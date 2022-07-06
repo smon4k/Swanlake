@@ -1,0 +1,66 @@
+@import './color.scss';
+@import './main.scss';
+@import './common.scss';
+
+
+
+body {
+    margin: 0;
+    font-family: "sans-serif";
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: left;
+    // background-color: $color-body-bg;
+    @include bodyBgc($color-bg-body-light , $color-font-body-light);
+    // color: #333333;
+    .web3modal-modal-lightbox {
+        z-index: 3000;
+    }
+    @media (min-width: 576px) {
+      .container {
+        max-width: 540px;
+      }
+    }
+    @media (min-width: 768px) {
+      .container {
+        max-width: 720px;
+      }
+    }
+    @media (max-width: 767px) {
+      .container {
+          max-width: none!important;
+      }
+    }
+    @media (min-width: 992px) {
+      .container {
+        max-width: 960px;
+      }
+    }
+    @media (min-width: 1230px) {
+      .container {
+        max-width: 1230px;
+      }
+    }
+  }
+a {
+    text-decoration: none;
+}
+
+.fade-transform-enter {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.fade-transform-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+[v-cloak] {
+  display: none !important;
+}
+.el-tooltip__popper {
+  .el-loading-mask {
+    background-color: rgba(0, 0, 0 , 0.2);
+  }
+}

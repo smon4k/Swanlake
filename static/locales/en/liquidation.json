@@ -1,0 +1,10 @@
+{
+    "header": "My Liquidation List",
+    "LiquidationList": "Liquidation list",
+    "SupplyValue": "Supply value",
+    "LoanValue": "Loan value",
+    "PositionValue": "Position value",
+    "RiskRatio": "Risk ratio",
+    "Action": "Action",
+    "Liquidate": "Liquidate"
+}

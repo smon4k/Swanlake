@@ -1,0 +1,198 @@
+.common-assets-list {
+    position: relative;
+    .head{ 
+        display: flex;
+        height: 35px;
+        line-height: 35px;
+        >div {
+            width: 14%;
+            line-height: 16px;
+            font-size: 14px;
+            color: #999999;
+            font-weight: bold;
+            padding-top: 16px;
+        }
+        .opera {
+            width: 16%;
+        }
+    }
+    .body {
+        min-height: 100px;
+        .item {
+            height: 75px;
+            display: flex;
+            // border-bottom: 1px solid rgb(0, 0, 0 , 0.1);
+            @include tableTrBorder($tableTrBorder-light);
+            >div {
+                width: 14%;
+                display: flex;
+                flex-direction: column ;
+                justify-content: center;
+                line-height: 14px;
+                font-size: 12px;
+                color: #999999;
+                white-space: wrap;
+                word-break: break-all;
+                p{
+                    width: 100%;
+                    margin: 0;
+                }
+                .bold {
+                    font-weight: 600;
+                    @include mainFont($color-mainFont-light);
+                }
+                .bold.green{
+                    color: #00B23B;
+                }
+                .bold.orange{
+                    color: orange;
+                }
+            }
+            .el-loading-mask{
+                width: 100%;
+            }
+           
+            .kind {
+                img {
+                    height: 20px;
+                    vertical-align: middle;
+                    margin-right: 8px;
+                    position: relative;
+                    top: -2px;
+                }
+                span{
+                    @include mainFont($color-mainFont-light);
+
+                }
+            }
+            .return-rate {
+                font-weight: 600;
+                .bold {
+                    color: #00B23B;
+
+                }
+                p{
+                    @include mainFont($color-mainFont-light);
+                }
+                .el-icon-warning-outline {
+                    // margin-left: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #00B23B;
+                    position: relative;
+                    .tips-outer{
+                        display: none;
+                        position: absolute;
+                        min-width: 320px;
+                        box-sizing: border-box;
+                        padding: 30px 21px;
+                        background-color: #000000;
+                        // @include sideBarBgc($color-bgc-sideBar-light);
+                        border-radius: 10px;
+                        box-shadow: 0px 0px 8px 0px rgba(0,0,0,.2);
+                        top: -20px;
+                        left:40px ;
+                        .line {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-top: 16px;
+                            .tit {
+                                // color: #333333;
+                                @include mainFont($color-mainFont-light);
+                                font-size: 16px;
+                                font-weight: normal;
+                            }
+                            .cnt{
+                                font-size: 16px;
+                                font-weight: 600;
+                            }
+                        }
+                        .line:nth-of-type(1){
+                            margin-top: 0;
+                        }
+                    }
+                }
+                .el-icon-warning-outline:hover .tips-outer{
+                    display: block;
+                }   
+            }
+            .balance {
+                .bold {
+                    display: inline-block;
+                    margin-right: 4px;
+                }
+            }
+            .opera {
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                width: 16%;
+                >div {
+                    cursor: pointer;
+                    // width: 70px;
+                    width: 100%;
+                    height: 30px;
+                    // border: 1px solid #0024FF;
+                    line-height: 30px;
+                    text-align: center;
+                    font-size: 14px;
+                    border-radius: 15px;
+                    // color: #0024FF;
+                    @include btnBorderColor($color-btnBorderColor-light)
+                }
+                .live {
+                    margin-right: 15px;
+                }
+            }
+
+        }
+    }
+}
+
+.common-page-outer {
+    padding-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+        .el-pager li {
+            min-width: 28px;
+            color: #1C1C1B;
+            font-size: 12px;
+            @include sideBarBgc($color-bgc-sideBar-light);
+        }
+        .el-pager li.active {
+            background-color: rgba(0, 0, 0 ,0.1);
+            border-radius: 14px;
+            // color: #1C1C1B;
+            @include mainFont($color-mainFont-light);
+        }
+        .el-pagination button:disabled{
+            @include sideBarBgc($color-bgc-sideBar-light);
+
+        }
+    
+}
+.el-loading-mask{
+    @include loadingMask($loadingMask-light)
+
+}
+
+.el-tooltip__popper.is-dark {
+    // background: #1C1C1C !important;
+    @include tooltipPopperBgc($color-tooltipPopper-dark)
+}
+.el-tooltip__popper[x-placement^=right] .popper__arrow::after {
+    // border-right-color: #1C1C1C !important;
+    @include tooltipPopperBorderRight($color-tooltipPopper-dark)
+}
+
+.el-tooltip__popper[x-placement^=right] .popper__arrow{
+    // border-right-color: #1C1C1C !important;
+    @include tooltipPopperBorderRight($color-tooltipPopper-dark)
+}
+
+.el-select-dropdown {
+    @include sideBarBgc($color-bgc-sideBar-dark);
+}
+.el-loading-mask {
+    border-radius: 30px;
+}

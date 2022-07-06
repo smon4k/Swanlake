@@ -1,0 +1,11 @@
+{
+    "header": "Simply stake tokens to earn",
+    "pool": "pool",
+    "APR": "APR",
+    "APY": "APY",
+    "TVL": "TVL",
+    "Deposited": "Deposited",
+    "Reward": "Reward",
+    "receive": "You will receive",
+    "wowAprHint": "Withdrawals can only be made after the deposited price has doubled."
+}

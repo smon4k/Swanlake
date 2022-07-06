@@ -1,0 +1,20 @@
+{
+    "InviteNewUsersParticipate": "Invite new users to participate",
+    "TheUserMe": "The user who invited me",
+    "InvitationRewardRules": "Invitation reward rules",
+    "InvitationRewardRules-01": "1. New users must use the invitee's invitation link to visit the website and accept the invitation before the invitation is considered successful",
+    "InvitationRewardRules-02": "2. If the invitee of the inviter also invites a new user, the current inviter can also get a part of the new user's mining reward, and so on. The highest invitation level is 4",
+    "InvitationRewardRules-03": "3. A certain proportion of the owner's mining revenue will be equally distributed to the superior, and the undistributed part without the superior will be destroyed",
+    "MyInvitationReward": "My invitation reward",
+    "MyInvitationReward-01": "You can only invite success if your friend accepts the prize",
+    "MyInvitationList": "My invitation list",
+    "MiningRewardsReferrals": "Mining rewards for referrals",
+    "copy": "Copy",
+    "Accept": "Accept",
+    "airdrop-friend-invites": "Your friend【{{inviteAddress}}】invites you to participate in the Farm for Free",
+    "Coin": "Coin",
+    "Harvestable": "Harvestable",
+    "Harvested": "Harvested",
+    "Action": "Action"
+
+}

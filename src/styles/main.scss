@@ -1,0 +1,248 @@
+#app {
+    .app-wrapper {
+        width: 100%;
+        .nav-container {
+            background-color: #fff;
+            .container {
+                margin: 0 auto;
+                .sidebar-container {
+                    width: 270px;
+                    @include topNavBgc($color-bgc-topnav-dark);
+                    // background-color: $color-sidebar-container-bg;
+                    height: 100vh;
+                    padding-top: 12px;
+                    box-sizing: border-box;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    // z-index: 1003;
+                    z-index: 1;
+                    box-shadow: 0px 0px 8px 0px $color-sidebar-container-bs;
+                    overflow-y: auto;
+                    
+                    .sider-inner {
+                        position: relative;
+                        height: 100%;
+                        min-height: 436px;
+                    }
+                    .fixAbs {
+                        // height: 386px;
+                    }
+                    .el-menu {
+                        @include sideBarBgc($color-bgc-sideBar-light);
+                        .el-menu-item{
+                            @include notSeleFontColor($color-notSeleFont-light);
+                        }
+                        .el-menu-item:hover, .el-menu-item:focus{
+                            background: linear-gradient(90deg, #0096FF, #0024FF);
+                            color: #fff ;
+                        }
+                        .el-menu-item.is-active{
+                            @include menuActiveBgc($color-bgc-sideBar-light);
+                            // background: #fff !important;
+                            .menuLink{
+                                @include activeFontColor($color-btnBorderColor-light);
+                            }
+                        }
+                        .el-submenu__title{
+                            @include notSeleFontColor($color-notSeleFont-light);
+                        }
+                    }
+                }
+                .headerNav-container {
+                    position: relative;
+                    display: flex;
+                    justify-content: flex-end;
+                    // padding-right: 45px;
+                    align-items: center;
+                    top: 0px;
+                    right: 0px;
+                    z-index: 1002;
+                    // width: calc(100% - 270px);
+                    width: 100%;
+                    height: 63px;
+                    // background-color: #fff;
+                    @include topNavBgc($color-bgc-topnav-light);
+                    // box-shadow: 0px 0px 8px 0px $color-sidebar-container-bs;
+                    // box-sizing: border-box;
+                    .connectWallet {
+                        height: 38px;
+                        min-width: 113px;
+                        padding: 0 10px;
+                        border-radius: 19px;
+                        background: $color-connectWallet-bg;
+                        text-align: center;
+                        line-height: 38px;
+                        font-size: 16px;
+                        font-weight: 500;
+                        color: #fff;
+                        cursor: pointer;
+                        margin-right: 10px;
+                        img{
+                            width:24px;
+                            height :24px;
+                            margin-left :12px;
+                            vertical-align :middle;
+                            position :relative;
+                            top :-2px;
+                            transform :rotateZ(360deg);
+                            transform-origin :12px 12px;
+                            animation :imgRotating 2s linear    infinite;
+                        }
+                    }
+                    .switchLang {
+                        width: 124px;
+                        display: flex;
+                        height: 32px;
+                        line-height: 32px;
+                        margin-right: 20px;
+                        @include switchLangBgc($color-bgc-switchLang-light);
+                        // background-color: #F6F6F6;
+                        border-radius: 16px;
+                        position: relative;
+                        >div  {
+                            width: 50%;
+                            height: 100%;
+                            text-align: center;
+                            position: relative;
+                            z-index: 2;
+                            font-size: 14px;
+                            color: #999999;
+                            cursor: pointer;
+                        }
+                        .bar{
+                            display: block;
+                            width: 62px;
+                            height: 32px;
+                            border-radius: 16px;
+                            background: $color-connectWallet-bg;
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            z-index: 1;
+                            transition: left .3s;
+                        }
+                        .activeEN ~ .bar {
+                            left: 50%;
+                        }
+                        .activeEN , & .activeCN{
+                            color: #fff;
+                        }
+                    }
+                    .main-theme {
+                        width: 32px;
+                        height: 32px;
+                        margin-right: 20px;
+                        @include switchLangBgc($color-bgc-switchLang-light);
+        
+                        // background: #F6F6F6;
+                        border-radius: 16px;
+                        text-align: center;
+                        img {
+                            width: 20px;
+                            height: 20px;
+                            margin-top: 6px;
+                        }
+                    }
+                    .receive-airdrop {
+                        font-size: 14px;
+                        line-height: 30px;
+                        padding: 0 12px 0 32px;
+                        height: 30px;
+                        @include btnBorderColor($color-btnBorderColor-light);
+                        // border: 1px solid $color-receive-airdrop-font;
+                        border-radius: 16px;
+                        margin-right: 20px;
+                        // color: $color-receive-airdrop-font;
+                        cursor: pointer;
+                        position: relative;
+                        img {
+                            display: block;
+                            position: absolute;
+                            width: 16px;
+                            height: 15px;
+                            left: 12px;
+                            top: 7px;
+                        }
+                    }
+                    
+                }
+            }
+            .footer {
+                position: fixed;
+                bottom: 0;
+                min-height: 44px;
+                font-size: 14px;
+                // line-height: 44px;
+                display: block;
+                width: 100%;
+                text-align: center;
+                padding: 10px;
+                margin-top: 20px;
+                color: #000;
+                background: #fff;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+            }
+        }
+        .appmain-container {
+            // padding-left: 283px;
+            // padding-top: 20px;
+            height: auto;
+            // padding-right: 20px;
+            // width: 1050px;
+            // width: 80%;
+            // min-width: 900px;
+            padding-bottom: 80px;
+            .app-main {
+                padding: 20px;
+            }
+            .container {
+                margin: 0 auto;
+            }
+            .app-container {
+                border-radius: 38px;
+                // min-height: 268px;
+                background-color: #fff;
+                @include sideBarBgc($color-bgc-sideBar-light);
+                .app-inner {
+                    padding: 0 23px;
+                    padding-bottom: 30px;
+                }
+                .commin-title {
+                    padding-top: 10px;
+                    height: 50px;
+                    line-height: 50px;
+                    @include commonTitle($commonTitle-light);
+                    @include mainFont($color-mainFont-light);
+                    .title-inner {
+                        padding-left: 22px;
+                        > img {
+                            height: 18px;
+                            vertical-align: middle;
+                            margin-right: 8px;
+                        }
+                        >span {
+                            display: inline-block;
+                            vertical-align: middle;
+                            font-weight: bold;
+                            font-size: 17px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@keyframes imgRotating {
+    0%{
+        transform:rotateZ(0deg);
+    }
+    100%{
+        transform:rotateZ(360deg)
+    }
+}

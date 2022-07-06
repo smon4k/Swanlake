@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!-- <title><%= htmlWebpackPlugin.options.title %></title> -->
+    <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico" />
+    <script type="text/javascript" src="./static/web3model/web3model.js"></script>
+    <script type="text/javascript" src="./static/web3model/walletconnect-web3-provider.js"></script>
+    <title>H2OFinance</title>
+    <script>
+      !function () {
+        var devices = ["iPhone","Android","Windows Phone"]
+        var ua = window.navigator.userAgent
+        for (var i = 0; i < devices.length; i++) {
+        if (ua.indexOf(devices[i]) != -1) {
+          // window.location.href = 'https://jason-lvlv.github.io/M-H2O/index.html'
+          }
+        }
+      }()
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+  </body>
+</html>

@@ -1,0 +1,602 @@
+$color-body-bg :#F6F6F6;
+$color-sidebar-container-bg :#f5f7f8;
+$color-sidebar-container-bs :rgba(0, 0, 0, 0.1);
+$color-connectWallet-bg :linear-gradient(90deg, #0096FF, #0024FF);
+$color-main-theme-bg:#F6F6F6;
+$color-receive-airdrop-font:#0024FF;
+$color-headerNav-bg : #fff;
+
+
+
+
+$color-btnBorderColor-dark:#0096FF ; 
+$color-btnBorderColor-light:#0024FF ;
+// $themes :(
+//     light:(
+//         $color-headerNav-bg : #fff , 
+        
+
+//     )
+// )
+
+@mixin btnBorderColor($color){
+    color: $color;
+    border: 1px solid $color;
+    [data-theme="light"] & {
+        color: $color-btnBorderColor-light;
+        border: 1px solid $color-btnBorderColor-light;
+    }
+    [data-theme="dark"] & {
+        color: $color-btnBorderColor-dark;
+        border: 1px solid $color-btnBorderColor-dark;
+    }
+}
+
+@mixin activeFontColor($color){
+    color: $color;
+    [data-theme="light"] & {
+        color: $color-btnBorderColor-light;
+    }
+    [data-theme="dark"] & {
+        color: $color-btnBorderColor-dark;
+    }
+}
+
+$color-exchange-activeBg-dark: #323232;
+$color-exchange-activeBg-light: rgba(250, 247, 245, 0.96);
+
+@mixin exchangeBgc($color){
+    background:$color;
+    [data-theme="light"] & {
+        background:$color-exchange-activeBg-light;
+    }
+    [data-theme="dark"] & {
+        background:$color-exchange-activeBg-dark;
+    }
+}
+
+//暗黑模式背景颜色
+$color-bgc-switchLang-dark:#1C1C1C ; 
+$color-bgc-switchLang-light:#F6F6F6 ;
+@mixin switchLangBgc($color){
+    background-color:$color;
+    [data-theme="light"] & {
+        background-color:$color-bgc-switchLang-light;
+    }
+    [data-theme="dark"] & {
+        background-color:$color-bgc-switchLang-dark;
+    }
+}
+
+
+
+//左侧 头部 导航背景颜色
+$color-bgc-topnav-dark:#333333 ; 
+// $color-bgc-topnav-dark:#1C1C1C ; 
+$color-bgc-topnav-light:#fff ;
+// $color-bgc-topnav-light:#f5f7f8;
+
+@mixin topNavBgc($color){
+    background-color:$color;
+    [data-theme="light"] & {
+        background-color:$color-bgc-topnav-light;
+    }
+    [data-theme="dark"] & {
+        background-color:$color-bgc-topnav-dark;
+    }
+}
+
+
+//主题背景颜色 中间内容
+$color-bgc-sideBar-dark:#333333; 
+// $color-bgc-sideBar-dark:#1C1C1C; 
+// $color-bgc-sideBar-light:#fff ;
+$color-bgc-sideBar-light:#fff;
+@mixin sideBarBgc($color){
+    background-color:$color;
+    [data-theme="light"] & {
+        background-color:$color-bgc-sideBar-light;
+    }
+    [data-theme="dark"] & {
+        background-color:$color-bgc-sideBar-dark;
+    }
+}
+
+@mixin menuActiveBgc($color){
+    background:$color !important;
+    [data-theme="light"] & {
+        background:$color-bgc-sideBar-light !important;
+    }
+    [data-theme="dark"] & {
+        background:$color-bgc-sideBar-dark !important;
+    }
+}
+
+
+//中间内容背景颜色
+$color-bg-body-dark: #0C0C0C;
+$color-bg-body-light: #f5f7f8;;
+
+$color-font-body-dark: #999999;
+$color-font-body-light: #333333;
+@mixin bodyBgc($color , $font-color){
+    color: $font-color;
+    background-color:$color;
+    [data-theme="light"] & {
+        background-color:$color-bg-body-light;
+        color: $color-font-body-light;
+    }
+    [data-theme="dark"] & {
+        background-color:$color-bg-body-dark;
+        color: $color-font-body-dark;
+    }
+}
+
+
+
+$color-notSeleFont-dark: #989898;
+$color-notSeleFont-light: #303133;
+
+@mixin notSeleFontColor($color){
+    color:$color;
+    [data-theme="light"] & {
+        color:$color-notSeleFont-light;
+    }
+    [data-theme="dark"] & {
+        color:$color-notSeleFont-dark;
+    }
+}
+
+
+
+
+
+$color-subMenuPoint-dark: #999999;
+$color-subMenuPoint-light: #333333;
+
+@mixin subMenuPointBgc($color){
+    background:$color;
+    [data-theme="light"] & {
+        background:$color-subMenuPoint-light;
+    }
+    [data-theme="dark"] & {
+        background:$color-subMenuPoint-dark;
+    }
+}
+
+
+$color-mainFont-dark: #fff;
+$color-mainFont-light: #1C1C1B;
+
+@mixin mainFont($color){
+    color:$color;
+    [data-theme="light"] & {
+        color:$color-mainFont-light;
+    }
+    [data-theme="dark"] & {
+        color:$color-mainFont-dark;
+    }
+}
+
+
+
+$color-mainFontSubNav-dark: #fff;
+$color-mainFontSubNav-light: #666666;
+
+@mixin mainFontSubNav($color){
+    color:$color;
+    [data-theme="light"] & {
+        color:$color-mainFontSubNav-light;
+    }
+    [data-theme="dark"] & {
+        color:$color-mainFontSubNav-dark;
+    }
+}
+
+$color-otherFont-dark: #999999;
+$color-otherFont-light: #333333;
+
+@mixin otherFont($color){
+    color:$color;
+    [data-theme="light"] & {
+        color:$color-otherFont-light;
+    }
+    [data-theme="dark"] & {
+        color:$color-otherFont-dark;
+    }
+}
+
+$color-activeFont-dark: #fff;
+$color-activeFont-light: #002CFF;
+
+@mixin activeFont($color){
+    color:$color;
+    [data-theme="light"] & {
+        color:$color-activeFont-light;
+    }
+    [data-theme="dark"] & {
+        color:$color-activeFont-dark;
+    }
+}
+
+
+$commonTitle-dark: #191919;
+$commonTitle-light: #F1F1F1;
+
+@mixin commonTitle($color){
+    border-bottom:1px solid $color;
+    [data-theme="light"] & {
+        border-bottom:1px solid $commonTitle-light;
+    }
+    [data-theme="dark"] & {
+        border-bottom:1px solid $commonTitle-dark;
+    }
+}
+
+
+$loadingMask-dark: rgba(0,0,0,.8);
+$loadingMask-light: rgba(255,255,255,.8);
+
+@mixin loadingMask($color){
+    background-color: $color;
+    [data-theme="light"] & {
+        background-color: $loadingMask-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $loadingMask-dark;
+    }
+}
+
+
+$enterDisabled-dark: #4f4e4e;
+$enterDisabled-light: #AAAAAA;
+
+@mixin enterDisabled($color){
+    background: $color;
+    [data-theme="light"] & {
+        background: $enterDisabled-light;
+        border-color: $enterDisabled-light;
+    }
+    [data-theme="dark"] & {
+        background: $enterDisabled-dark;
+        border-color: $enterDisabled-dark;
+    }
+}
+
+
+
+$blueFont-dark: #0096FF;
+$blueFont-light: #0031FF;
+
+@mixin blueFont($color){
+    color: $color;
+    [data-theme="light"] & {
+        color: $blueFont-light;
+    }
+    [data-theme="dark"] & {
+        color: $blueFont-dark;
+    }
+}
+
+
+$balanceFont-dark: #fff;
+$balanceFont-light: #333333;
+
+@mixin balanceFont($color){
+    color: $color;
+    [data-theme="light"] & {
+        color: $balanceFont-light;
+    }
+    [data-theme="dark"] & {
+        color: $balanceFont-dark;
+    }
+}
+
+
+// $tableTrBorder-dark: #333333;
+$tableTrBorder-dark: rgba(255, 255, 255, 0.1);
+$tableTrBorder-light: rgba(0, 0, 0, 0.1);
+
+@mixin tableTrBorder($color){
+    border-bottom:1px solid $color;
+    [data-theme="light"] & {
+        border-bottom:1px solid $tableTrBorder-light;
+    }
+    [data-theme="dark"] & {
+        border-bottom:1px solid $tableTrBorder-dark;
+    }
+}
+
+
+$infoBoxBorder-dark: #ffffff;
+$infoBoxBorder-light: #1C1C1B;
+
+@mixin infoBoxBorder($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        border-color: $infoBoxBorder-light;
+    }
+    [data-theme="dark"] & {
+        border-color: $infoBoxBorder-dark;
+    }
+}
+
+$commonbtn-dark: #ffffff;
+$commonbtn-light: #333333;
+
+@mixin commonbtn($color){
+    border-color: $color;
+    color: $color;
+    [data-theme="light"] & {
+        border-color: $commonbtn-light;
+        color: $commonbtn-light;
+    }
+    [data-theme="dark"] & {
+        border-color: $commonbtn-dark;
+        color: $commonbtn-dark;
+    }
+}
+
+$tokenTagsBlue-dark: rgba(0, 150, 255 , 0.2);
+$tokenTagsBlue-font-dark: #0096FF;
+$tokenTagsBlue-light: rgba(0, 45, 255 , 0.1);
+$tokenTagsBlue-font-light: #002DFF;
+
+
+@mixin tokenTagsBlue($color , $font-color){
+    background-color: $color;
+    color: $font-color;
+    [data-theme="light"] & {
+        border-color: $tokenTagsBlue-light;
+        color:$tokenTagsBlue-font-light;
+    }
+    [data-theme="dark"] & {
+        border-color: $tokenTagsBlue-dark;
+        color:$tokenTagsBlue-font-dark;
+    }
+}
+
+
+
+
+$warnTipsBg-dark: rgba(255, 0, 0 , .2);
+$warnTipsBg-light: rgba(255, 0, 0 , .06);
+@mixin warnTipsBg($color ){
+    background-color:$color;
+    [data-theme="light"] & {
+        background-color:warnTipsBg-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $warnTipsBg-dark;
+    }
+}
+
+
+
+$sliderBarBg-dark: #7f7f80;
+$sliderBarBg-light: #E4E7ED;
+@mixin sliderBarBg($color ){
+    background-color:$color;
+    [data-theme="light"] & {
+        background-color:sliderBarBg-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $sliderBarBg-dark;
+    }
+}
+
+
+
+$mutiSeleDisplayBg-dark: rgba(0, 49, 255, 0.2);
+$mutiSeleDisplayBg-light: rgba(0, 49, 255, 0.06);
+$mutiSeleDisplayfont-dark:#0096FF;
+$mutiSeleDisplayfont-light:#002AFF;
+@mixin mutiSeleDisplayBg($color , $font ){
+    background-color:$color;
+    color:  $font;
+    [data-theme="light"] & {
+        background-color:$mutiSeleDisplayBg-light;
+        color: $mutiSeleDisplayfont-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $mutiSeleDisplayBg-dark;
+        color: $mutiSeleDisplayfont-dark;
+    }
+}
+
+
+
+
+$claimCardBorder-dark: #7f7f80;
+$claimCardBorder-light: #EBEEF5;
+@mixin claimCardBorder($color ){
+    border-color: $color;
+    [data-theme="light"] & {
+        border-color: $claimCardBorder-light;
+    }
+    [data-theme="dark"] & {
+        border-color:  $claimCardBorder-dark;
+    }
+}
+
+
+$claimCardSwap-dark: #606077;
+$claimCardSwap-light: #fff;
+@mixin sideBarSwapBgc($color ){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$claimCardSwap-light;
+        border-color: $claimCardSwap-light;
+        color: $claimCardSwap-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $claimCardSwap-dark;
+        border-color:  $claimCardSwap-dark;
+        color: $claimCardSwap-dark;
+    }
+}
+
+$claimCardSwapInput-dark: #372f47;
+$claimCardSwapInput-light: rgb(238, 234, 244);
+@mixin sideBarSwapInputBgc($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$claimCardSwapInput-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $claimCardSwapInput-dark;
+    }
+}
+
+$selectSwapToken-dark: rgba(255, 255, 255, 0.16);
+$selectSwapToken-light: #cebfc5;
+@mixin selectSwapTokenBgc($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$selectSwapToken-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $selectSwapToken-dark;
+    }
+}
+
+$swapBlack-dark: rgb(8, 6, 11);
+$swapBlack-light: #cebfc5;
+@mixin swapBlackBgc($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$swapBlack-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $swapBlack-dark;
+    }
+}
+
+
+$swapBlackHover-dark: #37333e;
+$swapBlackHover-light: #cebfc5;
+@mixin swapBlackHoverBgc($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$swapBlackHover-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $swapBlackHover-dark;
+    }
+}
+
+$swapBlackSlider-dark: #4D4861;
+$swapBlackSlider-light: #cebfc5;
+@mixin swapBlackSliderBgc($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$swapBlackSlider-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $swapBlackSlider-dark;
+    }
+}
+
+$swapDivider-dark: #7f7f80;
+$swapDivider-light: #EBEEF5;
+@mixin swapDividerBgc($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$swapDivider-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $swapDivider-dark;
+    }
+}
+
+$numberBg-dark: #303148;
+$numberBg-light: rgb(237, 238, 254);
+@mixin numberBgc($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$numberBg-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $numberBg-dark;
+    }
+}
+
+//按钮边框颜色 选中
+$borderColorAction-dark: rgba(255,255,255,0.500);
+$borderColorAction-light: rgba(0,0,0,0.120);
+@mixin borderColorAction($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        border: 1px solid $borderColorAction-light;
+    }
+    [data-theme="dark"] & {
+        border: 1px solid $borderColorAction-dark;
+    }
+}
+
+//position 表格 行 背景颜色
+$positionTableItemBg-dark: rgb(35, 35, 35);
+$positionTableItemBg-light: rgb(240, 240, 240);
+@mixin positionTableItemBg($color){
+    border-color: $color;
+    [data-theme="light"] & {
+        background-color:$positionTableItemBg-light;
+    }
+    [data-theme="dark"] & {
+        background-color: $positionTableItemBg-dark;
+    }
+}
+
+$color-tooltipPopper-dark: #0C0C0C;
+$color-tooltipPopper-light: #999999;
+@mixin tooltipPopperBgc($color){
+    background:$color;
+    [data-theme="light"] & {
+        background:$color-tooltipPopper-light;
+    }
+    [data-theme="dark"] & {
+        background:$color-tooltipPopper-dark;
+    }
+}
+
+$color-tooltipPopper-2-dark: #0C0C0C;
+$color-tooltipPopper-2-light: #fff;
+@mixin tooltipPopperBgcTwo($color){
+    background:$color;
+    [data-theme="light"] & {
+        background:$color-tooltipPopper-2-light;
+    }
+    [data-theme="dark"] & {
+        background:$color-tooltipPopper-2-dark;
+    }
+}
+
+@mixin tooltipPopperBorderRight($color){
+    // background:$color;
+    [data-theme="light"] & {
+        border-right-color:$color-tooltipPopper-light;
+    }
+    [data-theme="dark"] & {
+        border-right-color:$color-tooltipPopper-dark;
+    }
+}
+
+@mixin tooltipPopperBorderBottom($color){
+    // background:$color;
+    [data-theme="light"] & {
+        border-bottom-color:$color-tooltipPopper-light;
+    }
+    [data-theme="dark"] & {
+        border-bottom-color:$color-tooltipPopper-dark;
+    }
+}
+
+@mixin tooltipPopperBorderRightTwo($color){
+    // background:$color;
+    [data-theme="light"] & {
+        border-right-color:$color-tooltipPopper-2-light;
+    }
+    [data-theme="dark"] & {
+        border-right-color:$color-tooltipPopper-2-dark;
+    }
+}
