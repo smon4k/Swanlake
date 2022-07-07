@@ -70,7 +70,7 @@
                     </p>
                 </div>
                 <div class="recommend-button">
-                      <el-button type="primary">立即投资</el-button>
+                      <el-button type="primary" @click="buyClick()">立即投资</el-button>
                 </div>
             </el-card>
         </div>
@@ -106,7 +106,15 @@ export default {
     methods: {
         cardClick() {
             // console.log(111);
-        }
+        },
+        buyClick() {
+            this.$router.push({
+                path:'/financial/currentDetail',
+                query: {
+                    type: 1
+                }
+            })
+        },
     },
     mounted() {
 
@@ -120,7 +128,7 @@ export default {
             .box-card {
                 position: relative;
                 margin-top: 20px;
-                max-width: 374px;
+                max-width: 400px;
                 border-radius: 10px;
                 .clearfix {
                     cursor: pointer;

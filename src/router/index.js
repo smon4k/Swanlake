@@ -29,6 +29,18 @@ export const constantRoutes = [
           meta: { title: 'financialProduct', keepAlive: true }
         },
         {
+          path: 'financial/currentDetail',
+          name: 'currentDetail',
+          component: () => import('@/views/manageFinances/currentDetail'),
+          meta: { title: 'currentDetail', keepAlive: true }
+        },
+        {
+          path: 'financial/incomeList',
+          name: 'incomeList',
+          component: () => import('@/views/manageFinances/incomeList'),
+          meta: { title: 'incomeList', keepAlive: true }
+        },
+        {
           path: 'fund/monitoring',
           name: 'fundMonitoring',
           component: () => import('@/views/fundMonitoring/index'),

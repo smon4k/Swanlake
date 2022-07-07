@@ -39,16 +39,6 @@
                     label="年化收益率"
                     align="center">
                 </el-table-column>
-                <el-table-column
-                fixed="right"
-                label="操作"
-                align="center">
-                <template slot-scope="scope">
-                    <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
-                    <el-button type="text" @click="buyClick(scope.row, 2)">赎回</el-button>
-                    <el-button type="text" @click="incomeClick(scope.row)">明细</el-button>
-                </template>
-                </el-table-column>
             </el-table>
         </div>
         <div v-else>
@@ -60,13 +50,6 @@
                 <el-descriptions-item label="昨日收益">{{ item.yest_income }}</el-descriptions-item>
                 <el-descriptions-item label="总收益率">{{ item.total_rate }}</el-descriptions-item>
                 <el-descriptions-item label="年化收益率">{{ item.year_rate }}</el-descriptions-item>
-                <el-descriptions-item>
-                    <div class="operate">
-                        <el-button size="mini" type="primary">购买</el-button>
-                        <el-button size="mini" type="primary">赎回</el-button>
-                        <el-button size="mini" type="primary">明细</el-button>
-                    </div>
-                </el-descriptions-item>
             </el-descriptions>
         </div>
     </div>
@@ -77,16 +60,7 @@ export default {
     name: '',
     data() {
         return {
-            tableData: [{
-                id: 1,
-                name: '红天鹅1号',
-                cast_number: '20000USDT', //在投数量
-                buy_number: '2000份', //购买份数
-                net_worth: '1.01', //净值
-                yest_income: '20USDT', //昨日收益
-                total_rate: '2300USDT', //总收益率
-                year_rate: '20%', //年化收益率
-            }]
+            tableData: []
         }
     },
     computed: {
@@ -115,11 +89,6 @@ export default {
                 query: {
                     type: type
                 }
-            })
-        },
-        incomeClick(row) {
-            this.$router.push({
-                path:'/financial/incomeList',
             })
         }
     },
