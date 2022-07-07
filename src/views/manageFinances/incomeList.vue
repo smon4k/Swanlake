@@ -42,15 +42,20 @@
             </el-table>
         </div>
         <div v-else>
-            <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
-                <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                <el-descriptions-item label="在投数量">{{ item.cast_number }}</el-descriptions-item>
-                <el-descriptions-item label="购买份数">{{ item.buy_number }}</el-descriptions-item>
-                <el-descriptions-item label="净值">{{ item.net_worth }}</el-descriptions-item>
-                <el-descriptions-item label="昨日收益">{{ item.yest_income }}</el-descriptions-item>
-                <el-descriptions-item label="总收益率">{{ item.total_rate }}</el-descriptions-item>
-                <el-descriptions-item label="年化收益率">{{ item.year_rate }}</el-descriptions-item>
-            </el-descriptions>
+            <div v-if="tableData.length">
+                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
+                    <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
+                    <el-descriptions-item label="在投数量">{{ item.cast_number }}</el-descriptions-item>
+                    <el-descriptions-item label="购买份数">{{ item.buy_number }}</el-descriptions-item>
+                    <el-descriptions-item label="净值">{{ item.net_worth }}</el-descriptions-item>
+                    <el-descriptions-item label="昨日收益">{{ item.yest_income }}</el-descriptions-item>
+                    <el-descriptions-item label="总收益率">{{ item.total_rate }}</el-descriptions-item>
+                    <el-descriptions-item label="年化收益率">{{ item.year_rate }}</el-descriptions-item>
+                </el-descriptions>
+            </div>
+            <div v-else>
+                <el-empty description="没有数据"></el-empty>
+            </div>
         </div>
     </div>
 </template>

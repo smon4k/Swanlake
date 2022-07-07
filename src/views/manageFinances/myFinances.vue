@@ -62,9 +62,9 @@
                 <el-descriptions-item label="年化收益率">{{ item.year_rate }}</el-descriptions-item>
                 <el-descriptions-item>
                     <div class="operate">
-                        <el-button size="mini" type="primary">购买</el-button>
-                        <el-button size="mini" type="primary">赎回</el-button>
-                        <el-button size="mini" type="primary">明细</el-button>
+                        <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
+                        <el-button size="mini" type="primary" @click="buyClick(item, 2)">赎回</el-button>
+                        <el-button size="mini" type="primary" @click="incomeClick(item)">明细</el-button>
                     </div>
                 </el-descriptions-item>
             </el-descriptions>
