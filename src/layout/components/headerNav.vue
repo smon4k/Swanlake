@@ -6,7 +6,7 @@
                     <div class="menu" @click="menuDrawerShow = true" v-if="screenWidth < 1280">
                         <img src="@/assets/menu.png" alt="" />
                     </div>
-                    <div class="logo" v-if="!isMobel">
+                    <div class="logo" v-show="screenWidth > 600">
                         <router-link to="/" class="logo-link">
                             <img
                                 src="@/assets/h2oToken.png"
@@ -17,7 +17,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title" v-if="!isMobel"> Swanlake </div>
+                    <div class="title" v-show="screenWidth > 600"> Swanlake </div>
                 </div>
                 <!-- 安全审计 -->
                 <!-- <div class="security-audit" v-if="$route.path !== '/deposit'" @click="SecurityAudit()">

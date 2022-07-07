@@ -1,0 +1,14 @@
+{
+    "header": "所有收益池",
+    "TotalDeposit": "总存款",
+    "TotalBorrowed": "借款总额",
+    "Utilization": "使用率",
+    "YourBalance": "您的余额",
+    "LendingAPR": "贷款年利率",
+    "StakingAPR": "质押年利率",
+    "TotalAPR": "总的年利率",
+    "deposit": "存款",
+    "withdraw": "提取",
+    "YouWillReceive": "您的收益",
+    "Notice": " 注意：记得在'Stake'页面质押hToken以获得H2O质押奖励"
+}
