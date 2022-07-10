@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<!-- 引入样式 -->
+<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<body>
+    <div id="app" style="width:500px;margin: 0 auto;">
+        <h2 align="center">BSC-APR配置</h2>
+        <div style="text-align: center;margin: 20px;">
+            <a href="/matic/apy/index">Matic APY配置</a>
+        </div>
+        <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="150px">
+            <el-form-item label="bzx-ibusd" prop="bzx_ibusd">
+              <el-input v-model="ruleForm.bzx_ibusd" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="bzx-ibnb" prop="bzx_ibnb">
+              <el-input v-model="ruleForm.bzx_ibnb" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="bzx-ieth" prop="bzx_ieth">
+              <el-input v-model="ruleForm.bzx_ieth" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="bzx-ibtc" prop="bzx_ibtc">
+              <el-input v-model="ruleForm.bzx_ibtc" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="bzx-iusdt" prop="bzx_iusdt">
+              <el-input v-model="ruleForm.bzx_iusdt" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="cakev2-kun-qsd" prop="cakev2_kun_qsd">
+              <el-input v-model="ruleForm.cakev2_kun_qsd" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="mdex-busd-usdt" prop="mdex_busd_usdt">
+              <el-input v-model="ruleForm.mdex_busd_usdt" clearable></el-input>
+            </el-form-item>
+            <el-form-item label="mdex-btcb-usdt" prop="mdex_btcb_usdt">
+              <el-input v-model="ruleForm.mdex_btcb_usdt" clearable></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="onSubmit('ruleForm')">保存</el-button>
+              <el-button @click="resetForm('ruleForm')">重置</el-button>
+            </el-form-item>
+          </el-form>
+    </div>
+</body>
+</html>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- 引入组件库 -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                ruleForm: {
+                    "bzx_ibusd": "",
+                    "bzx_ibnb": "",
+                    "bzx_ieth": "",
+                    "bzx_ibtc": "",
+                    "bzx_iusdt": "",
+                    "cakev2_kun_qsd": "",
+                    "mdex_busd_usdt": "",
+                    "mdex_btcb_usdt": "",
+                },
+                rules: {
+                    bzx_ibusd: [
+                        { required: true, message: '不能为空', trigger: 'blur' },
+                    ],
+                    bzx_ibnb: [
+                        { required: true, message: '不能为空', trigger: 'blur' },
+                    ],
+                    bzx_ieth: [
+                        { required: true, message: '不能为空', trigger: 'blur' },
+                    ],
+                    bzx_ibtc: [
+                        { required: true, message: '不能为空', trigger: 'blur' },
+                    ],
+                    bzx_iusdt: [
+                        { required: true, message: '不能为空', trigger: 'blur' },
+                    ],
+                    cakev2_kun_qsd: [
+                        { required: true, message: '不能为空', trigger: 'blur' },
+                    ],
+                    mdex_busd_usdt: [
+                        { required: true, message: '不能为空', trigger: 'blur' },
+                    ],
+                    mdex_btcb_usdt: [
+                        { required: true, message: '不能为空', trigger: 'blur' },
+                    ],
+                }
+            }
+        },
+        methods: {
+            onSubmit(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        // console.log(this.ruleForm);
+                        // return false;
+                        axios.get('/api/apy/saveData',{
+                            params: this.ruleForm
+                        })
+                        .then((response) => {
+                            console.log(response);
+                            if(response.data.code == 10000) {
+                                this.$message.success('保存成功');
+                                this.getData();
+                            } else {
+                                this.$message.error('获取数据异常');
+                            }
+                        })
+                        .catch( (error) => {
+                            this.$message.error('系统异常');
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            getData() { //获取数据
+                axios.get('/api/apy/getSaveOneData')
+                .then((response) => {
+                    if(response.data && response.data.code == 10000) {
+                        this.ruleForm.bzx_ibusd = response.data.data.bzx_ibusd;
+                        this.ruleForm.bzx_ibnb = response.data.data.bzx_ibnb;
+                        this.ruleForm.bzx_ieth = response.data.data.bzx_ieth;
+                        this.ruleForm.bzx_ibtc = response.data.data.bzx_ibtc;
+                        this.ruleForm.bzx_iusdt = response.data.data.bzx_iusdt;
+                        this.ruleForm.cakev2_kun_qsd = response.data.data.cakev2_kun_qsd;
+                        this.ruleForm.mdex_busd_usdt = response.data.data.mdex_busd_usdt;
+                        this.ruleForm.mdex_btcb_usdt = response.data.data.mdex_btcb_usdt;
+                    } else {
+                        this.$message.error('获取数据异常');
+                    }
+                })
+                .catch( (error) => {
+                    this.$message.error('系统异常');
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
+        },
+        created() {
+            this.getData();
+        },
+    })
+  </script>

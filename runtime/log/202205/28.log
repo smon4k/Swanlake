@@ -1,0 +1,1822 @@
+---------------------------------------------------------------
+[ 2022-05-28T00:11:10+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.216310s] [吞吐率：4.62req/s] [内存消耗：2,860.30kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.006762s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.007264s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.002507s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001624s ]
+---------------------------------------------------------------
+[ 2022-05-28T00:11:10+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.237858s] [吞吐率：4.20req/s] [内存消耗：2,937.73kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001287s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003122s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.000900s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001012s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003137s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001083s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002847s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001006s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000637s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000608s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000773s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000861s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000736s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000665s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.001363s ]
+---------------------------------------------------------------
+[ 2022-05-28T22:16:08+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.325188s] [吞吐率：3.08req/s] [内存消耗：1,703.38kb] [文件加载：51]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundary5bjAxzIWv7G1AmYN',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:16:25+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.379478s] [吞吐率：2.64req/s] [内存消耗：1,843.59kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryK2XhAgG8UHTh9xue',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:17:21+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.300032s] [吞吐率：3.33req/s] [内存消耗：1,843.59kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundary3q2bCwdFE22zAD7h',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:21:26+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.257196s] [吞吐率：3.89req/s] [内存消耗：1,795.64kb] [文件加载：49]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundarymTzTlGOmbq3aNGWY',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:26:14+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.276836s] [吞吐率：3.61req/s] [内存消耗：1,795.69kb] [文件加载：49]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryrHPtN2RfUBPoNaA6',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:34:16+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.284831s] [吞吐率：3.51req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryLMRbcOSd7gCPJ5sq',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:34:41+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.268839s] [吞吐率：3.72req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryw3nBe1sAtKYGEITL',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:40:29+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.258584s] [吞吐率：3.87req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryIjJdtgV3UyjFQnCK',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:41:18+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.385732s] [吞吐率：2.59req/s] [内存消耗：2,863.10kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.023843s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.017316s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.009637s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.004915s ]
+---------------------------------------------------------------
+[ 2022-05-28T22:41:19+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.230319s] [吞吐率：4.34req/s] [内存消耗：2,863.10kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001812s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003685s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001264s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001362s ]
+---------------------------------------------------------------
+[ 2022-05-28T22:41:19+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.309797s] [吞吐率：3.23req/s] [内存消耗：2,940.43kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005276s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.005165s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001293s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001290s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003239s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001318s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.003456s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001299s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000819s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000681s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000588s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000640s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000604s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000600s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000616s ]
+---------------------------------------------------------------
+[ 2022-05-28T22:41:19+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.172717s] [吞吐率：5.79req/s] [内存消耗：2,863.10kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001103s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.004016s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.000958s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001257s ]
+---------------------------------------------------------------
+[ 2022-05-28T22:41:19+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.188599s] [吞吐率：5.30req/s] [内存消耗：2,940.43kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002537s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003198s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001181s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001296s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003121s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001056s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002602s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.000989s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000706s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000792s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000744s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000652s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000624s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000680s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000545s ]
+---------------------------------------------------------------
+[ 2022-05-28T22:46:20+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.275874s] [吞吐率：3.62req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryxfMSz5pqzQ6ofLQ1',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:46:45+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.147274s] [吞吐率：6.79req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundary0WYlvHRvNeVu1AWZ',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '16444',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:47:26+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.137503s] [吞吐率：7.27req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryNKm1PSXlAsxIEsVS',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '16444',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:48:47+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.251419s] [吞吐率：3.98req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryAGnljaZZAkNBcJNI',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '1037916',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:49:27+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.156915s] [吞吐率：6.37req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryTADfwE4Ru2HzvfB7',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '16444',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:49:36+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.223248s] [吞吐率：4.48req/s] [内存消耗：2,863.10kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.006625s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.014450s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001597s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001185s ]
+---------------------------------------------------------------
+[ 2022-05-28T22:49:36+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.239579s] [吞吐率：4.17req/s] [内存消耗：2,940.43kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002538s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003343s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.000843s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001295s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003068s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001161s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002782s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001084s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000820s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000726s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000697s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000774s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000762s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000759s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000675s ]
+---------------------------------------------------------------
+[ 2022-05-28T22:54:47+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.145052s] [吞吐率：6.89req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundaryilZ6weXqUYfsKkUL',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '16444',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T22:55:20+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/uploadFile
+[运行时间：0.162837s] [吞吐率：6.14req/s] [内存消耗：1,844.52kb] [文件加载：52]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'uploadFile',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'multipart/form-data; boundary=----WebKitFormBoundarydTxjZYGu2UaHiSLh',
+  'accept-language' => 'zh-cn',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '16444',
+  'user-agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\NotesController->uploadFile[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-05-28T23:40:24+08:00 ] 172.18.0.1 POST www.h2omedia.com/api/Notes/addReleaseNotes
+[运行时间：0.310372s] [吞吐率：3.22req/s] [内存消耗：2,929.26kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'addReleaseNotes',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'content-type' => 'application/json',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'content-length' => '302',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'title' => '111',
+  'content' => '222',
+  'type' => 2,
+  'video_url' => 'https://h2o-finance-images.s3.amazonaws.com/h2oMedia/video/2022-05-28/234016_498999698.mp4',
+  'cover' => 'https://h2o-finance-images.s3.amazonaws.com/h2oMedia/image/2022-05-28/234022_1913150414.png',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->addReleaseNotes[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005565s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.007124s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001689s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.002104s ]
+[ sql ] [ SQL ] INSERT INTO `m_notes` (`user_id` , `address` , `class_id` , `content` , `title` , `cover` , `imgs` , `video_url` , `add_time` , `update_time` , `type` , `state`) VALUES (2 , '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' , 0 , '222' , '111' , 'https://h2o-finance-images.s3.amazonaws.com/h2oMedia/image/2022-05-28/234022_1913150414.png' , '' , 'https://h2o-finance-images.s3.amazonaws.com/h2oMedia/video/2022-05-28/234016_498999698.mp4' , '2022-05-28 23:40:24' , '2022-05-28 23:40:24' , 2 , 1) [ RunTime:0.003820s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes_log` [ RunTime:0.003984s ]
+[ sql ] [ SQL ] INSERT INTO `m_notes_log` (`note_id` , `desc` , `type` , `address` , `data` , `ip` , `hash` , `time` , `status` , `count` , `is_cancel`) VALUES (10 , '发布视屏作品' , 2 , '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' , '{\"user_id\":2,\"address\":\"0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D\",\"class_id\":0,\"content\":\"222\",\"title\":\"111\",\"cover\":\"https:\\/\\/h2o-finance-images.s3.amazonaws.com\\/h2oMedia\\/image\\/2022-05-28\\/234022_1913150414.png\",\"imgs\":\"\",\"video_url\":\"https:\\/\\/h2o-finance-images.s3.amazonaws.com\\/h2oMedia\\/video\\/2022-05-28\\/234016_498999698.mp4\",\"add_time\":\"2022-05-28 23:40:24\",\"update_time\":\"2022-05-28 23:40:24\",\"type\":\"2\",\"state\":1,\"id\":\"10\"}' , '172.18.0.1' , '' , '2022-05-28 23:40:24' , 0 , 1 , 0) [ RunTime:0.001249s ]
+[ sql ] [ SQL ] SELECT * FROM m_award WHERE `date` = '2022-05-28' AND `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001721s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_award` [ RunTime:0.002482s ]
+[ sql ] [ SQL ] INSERT INTO `m_award` (`address` , `date` , `publish_images_num` , `publish_video_num` , `browse_num` , `status`) VALUES ('0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' , '2022-05-28' , 0 , 0 , 0 , 0) [ RunTime:0.000885s ]
+[ sql ] [ SQL ] SELECT * FROM m_award WHERE `date` = '2022-05-28' AND `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.000622s ]
+[ sql ] [ SQL ] UPDATE `m_award`  SET `publish_video_num`=`publish_video_num`+1  WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `date` = '2022-05-28' [ RunTime:0.001780s ]
+[ sql ] [ SQL ] UPDATE `m_user`  SET `balance`=`balance`+500  WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' [ RunTime:0.000977s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:40:27+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.226515s] [吞吐率：4.41req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002279s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003388s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001187s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001365s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003072s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.000909s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002544s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.000846s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000697s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000582s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000506s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000629s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000601s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000477s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000603s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000577s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:40:27+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.227334s] [吞吐率：4.40req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002260s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003498s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001267s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001315s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003228s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001125s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002974s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.000979s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000770s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000698s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000592s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000580s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000517s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000506s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000548s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000565s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:45:52+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.492594s] [吞吐率：2.03req/s] [内存消耗：2,864.27kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.012368s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.027309s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.003841s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.002740s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:45:52+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.409600s] [吞吐率：2.44req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002731s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.006561s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001502s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.004781s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003601s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001464s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.005338s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001927s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.001299s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000981s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000862s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000812s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000567s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000512s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000596s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.001074s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:48:39+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/User/getUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.254583s] [吞吐率：3.93req/s] [内存消耗：2,805.02kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'User',
+    2 => 'getUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserInfo[ /home/wwwroot/h2o-media-api/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005793s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.008233s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001627s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_follow` [ RunTime:0.003512s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_follow` WHERE  `uid` = 2 LIMIT 1 [ RunTime:0.001294s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_follow` WHERE  `follow_uid` = 2 LIMIT 1 [ RunTime:0.000579s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003275s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` INNER JOIN `m_like` `b` ON `a`.`id`=`b`.`note_id` WHERE  `a`.`user_id` = 2  AND `b`.`state` = 1 LIMIT 1 [ RunTime:0.001093s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` INNER JOIN `m_collect` `b` ON `a`.`id`=`b`.`note_id` WHERE  `a`.`user_id` = 2  AND `b`.`state` = 1 LIMIT 1 [ RunTime:0.000753s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:48:39+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getUserNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.260602s] [吞吐率：3.84req/s] [内存消耗：2,930.60kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getUserNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getUserNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005801s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.008916s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1  AND `a`.`address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001851s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1  AND `a`.`address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 0,20 [ RunTime:0.001827s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.002572s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001154s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002814s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001279s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000768s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.001229s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:50:02+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.252753s] [吞吐率：3.96req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.009595s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.008549s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001895s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001413s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003187s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001155s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.004253s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001078s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000743s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000808s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000680s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000575s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000805s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000634s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000588s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000592s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:50:02+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.219422s] [吞吐率：4.56req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001745s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003473s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001035s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001266s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003413s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.000948s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002841s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001001s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000637s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000690s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000632s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000620s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000639s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000605s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000564s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000704s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:51:26+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.280356s] [吞吐率：3.57req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.007743s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.011845s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001985s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001560s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.004017s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001103s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.003006s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.000886s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000541s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000575s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000597s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000631s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000578s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000684s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000803s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000694s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:51:26+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.241814s] [吞吐率：4.14req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002847s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003942s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001255s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001411s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003030s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.000991s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002701s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.000900s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000711s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000699s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000602s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000603s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000647s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000562s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000564s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000599s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:51:27+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.202081s] [吞吐率：4.95req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001425s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003471s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.000810s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001179s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.002961s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.000762s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002463s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.000925s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000698s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000748s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000585s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000753s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000699s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000750s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000707s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000651s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:54:27+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getCommentNotesList?notesId=10&comment_id=0&limit=10
+[运行时间：0.228905s] [吞吐率：4.37req/s] [内存消耗：2,817.61kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getCommentNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'notesId' => '10',
+  'comment_id' => '0',
+  'limit' => '10',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getCommentNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.004050s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_comment` [ RunTime:0.015932s ]
+[ sql ] [ SQL ] SELECT `c`.*,`u`.`nickname`,`u`.`avatar` FROM `m_comment` `c` INNER JOIN `m_user` `u` ON `c`.`uid`=`u`.`id` WHERE  `note_id` = 10  AND `leave_pid` = 0 ORDER BY `c`.`id` DESC LIMIT 10 [ RunTime:0.005542s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:54:27+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesDetail?notesId=10&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.269731s] [吞吐率：3.71req/s] [内存消耗：3,118.09kb] [文件加载：68]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesDetail',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'notesId' => '10',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesDetail[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001398s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.004768s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001436s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.002533s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` INNER JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`id` = '10' LIMIT 1 [ RunTime:0.001057s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_follow` [ RunTime:0.003317s ]
+[ sql ] [ SQL ] SELECT * FROM `m_follow` WHERE  `uid` = 2  AND `follow_uid` = 2 LIMIT 1 [ RunTime:0.001115s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002476s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000877s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_collect` [ RunTime:0.003368s ]
+[ sql ] [ SQL ] SELECT * FROM `m_collect` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000964s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_like` WHERE  `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.001091s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_collect` WHERE  `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000669s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_comment` [ RunTime:0.003084s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_comment` WHERE  `note_id` = 10 LIMIT 1 [ RunTime:0.000905s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_reward` [ RunTime:0.002954s ]
+[ sql ] [ SQL ] SELECT * FROM `m_reward` WHERE  `uid` = 2  AND `note_id` = 10 LIMIT 1 [ RunTime:0.000961s ]
+[ sql ] [ SQL ] SELECT SUM(amount) AS tp_sum FROM `m_reward` WHERE  `note_id` = 10 LIMIT 1 [ RunTime:0.000666s ]
+[ sql ] [ SQL ] SELECT * FROM m_notes_log WHERE to_days(`time`) = to_days(now()) AND `address`='0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' AND `note_id`=10 AND `type`=3 LIMIT 1 [ RunTime:0.002848s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes_log` [ RunTime:0.002597s ]
+[ sql ] [ SQL ] INSERT INTO `m_notes_log` (`note_id` , `desc` , `type` , `address` , `data` , `ip` , `hash` , `time` , `status` , `count` , `is_cancel`) VALUES (10 , '浏览作品' , 3 , '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' , '{\"id\":10,\"user_id\":2,\"address\":\"0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D\",\"class_id\":0,\"content\":\"222\",\"title\":\"111\",\"cover\":\"\",\"imgs\":null,\"video_url\":\"https:\\/\\/h2o-finance-images.s3.amazonaws.com\\/h2oMedia\\/video\\/2022-05-28\\/234016_498999698.mp4\",\"video_ts_url\":null,\"add_time\":\"2022-05-28 23:40:24\",\"state\":1,\"update_time\":\"2022-05-28 23:40:24\",\"type\":2,\"like_num\":0,\"comment_num\":0,\"nickname\":\"1111\",\"avatar\":\"https:\\/\\/h2o-finance-images.s3.amazonaws.com\\/h2oMedia\\/picture\\/avatar\\/003752_4028970158_0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D.png\",\"date\":\"2022-05-28\",\"is_follow\":false,\"is_like\":false,\"is_collect\":false,\"collect_num\":0,\"message_num\":0,\"is_reward\":false,\"reward_num\":0}' , '172.18.0.1' , '' , '2022-05-28 23:54:27' , 0 , 1 , 0) [ RunTime:0.001164s ]
+[ sql ] [ SQL ] SELECT * FROM m_award WHERE `date` = '2022-05-28' AND `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001468s ]
+[ sql ] [ SQL ] SELECT * FROM m_award WHERE `date` = '2022-05-28' AND `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.000791s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_award` [ RunTime:0.002693s ]
+[ sql ] [ SQL ] UPDATE `m_award`  SET `browse_num`=`browse_num`+1  WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `date` = '2022-05-28' [ RunTime:0.001372s ]
+[ sql ] [ SQL ] UPDATE `m_user`  SET `balance`=`balance`+10  WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' [ RunTime:0.000647s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:54:27+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=10&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&is_video=1&not_note_id=10
+[运行时间：0.220062s] [吞吐率：4.54req/s] [内存消耗：2,933.97kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '10',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'is_video' => '1',
+  'not_note_id' => '10',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.003584s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.003416s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1  AND `a`.`type` = 2  AND `a`.`id` NOT IN ('10') LIMIT 1 [ RunTime:0.001708s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1  AND `a`.`type` = 2  AND `a`.`id` NOT IN ('10') LIMIT 0,10 [ RunTime:0.002603s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003370s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001202s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.003401s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000987s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000606s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000495s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000668s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000541s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:54:30+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.222767s] [吞吐率：4.49req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001408s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.004418s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.000879s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001065s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003274s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.000983s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.002981s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001327s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000894s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000900s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000575s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000652s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000706s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000626s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000650s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000616s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:54:30+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.224624s] [吞吐率：4.45req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002151s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.004139s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.000824s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001053s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.002870s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.000994s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.003128s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001371s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.001176s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000722s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000749s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000650s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000578s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000651s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000544s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000462s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:56:47+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.507172s] [吞吐率：1.97req/s] [内存消耗：2,864.27kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.010365s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.016914s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.002202s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.002806s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:56:48+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.501083s] [吞吐率：2.00req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002638s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.004770s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001237s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.001566s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.004583s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001603s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.003460s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001554s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000773s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000570s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000550s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000797s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000647s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000691s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000647s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000646s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:58:10+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.442652s] [吞吐率：2.26req/s] [内存消耗：2,864.27kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.012113s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.015056s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.002121s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.002685s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:58:10+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.423594s] [吞吐率：2.36req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002820s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.007023s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.001708s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.002174s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.007096s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001318s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.003060s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001121s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.000766s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000588s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000572s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000704s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000742s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000785s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000938s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000774s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:58:53+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=
+[运行时间：0.525846s] [吞吐率：1.90req/s] [内存消耗：2,864.27kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.029794s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.023704s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.002300s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.003003s ]
+---------------------------------------------------------------
+[ 2022-05-28T23:58:53+08:00 ] 172.18.0.1 GET www.h2omedia.com/api/Notes/getNotesList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.409983s] [吞吐率：2.44req/s] [内存消耗：2,942.34kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/h2o-media-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Notes',
+    2 => 'getNotesList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'referer' => 'http://localhost:8001/',
+  'origin' => 'http://localhost:8001',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'application/json, text/plain, */*',
+  'user-agent' => 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Mobile Safari/537.36',
+  'host' => 'www.h2omedia.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\NotesController->getNotesList[ /home/wwwroot/h2o-media-api/application/api/controller/NotesController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005044s ] mysql:host=127.0.0.1;dbname=h2o_media;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_notes` [ RunTime:0.011724s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 1 [ RunTime:0.003294s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`nickname`,`b`.`avatar` FROM `m_notes` `a` LEFT JOIN `m_user` `b` ON `a`.`user_id`=`b`.`id` WHERE  `a`.`state` = 1 LIMIT 0,20 [ RunTime:0.008698s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_user` [ RunTime:0.003769s ]
+[ sql ] [ SQL ] SELECT * FROM `m_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001608s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `m_like` [ RunTime:0.005528s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 6  AND `state` = 1 LIMIT 1 [ RunTime:0.001843s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 9  AND `state` = 1 LIMIT 1 [ RunTime:0.001168s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 10  AND `state` = 1 LIMIT 1 [ RunTime:0.000957s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 1  AND `state` = 1 LIMIT 1 [ RunTime:0.000563s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 2  AND `state` = 1 LIMIT 1 [ RunTime:0.000567s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 3  AND `state` = 1 LIMIT 1 [ RunTime:0.000794s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 4  AND `state` = 1 LIMIT 1 [ RunTime:0.000687s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 5  AND `state` = 1 LIMIT 1 [ RunTime:0.000609s ]
+[ sql ] [ SQL ] SELECT * FROM `m_like` WHERE  `uid` = 2  AND `note_id` = 8  AND `state` = 1 LIMIT 1 [ RunTime:0.000610s ]

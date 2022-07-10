@@ -1,0 +1,74 @@
+<?php
+
+namespace app\api\model;
+
+use think\Model;
+
+class Product extends Base {
+
+    /**
+     * 获取产品列表数据
+     * @author qinlh
+     * @since 2022-02-18
+     */
+    public static function getProductList($where, $page, $limit, $order='id desc')
+    {
+        if ($limit <= 0) {
+            $limit = config('paginate.list_rows');// 获取总条数
+        }
+        $count = self::alias('a')->where($where)->count();//计算总页面
+        $allpage = intval(ceil($count / $limit));
+        $lists = self::alias('a')
+                    ->field("a.*")
+                    ->where($where)
+                    ->page($page, $limit)
+                    ->order($order)
+                    ->select()
+                    ->toArray();
+        if (!$lists) {
+            ['count'=>0,'allpage'=>0,'lists'=>[]];
+        }
+        $yestDayDate = date("Y-m-d", strtotime("-1 day"));
+        $toDayDate = date("Y-m-d");
+        foreach ($lists as $key => $val) {
+            $NewsBuyAmount = MyProduct::getNewsBuyAmount($val['id']);
+            $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['id']);
+            $toDayNetworth = $NewTodayYesterdayNetworth['toDayData']; //今日最新净值
+            $yestDayNetworth = $NewTodayYesterdayNetworth['yestDayData']; //昨日净值
+            if($NewsBuyAmount['count_buy_number'] && $toDayNetworth && $yestDayNetworth) {
+                $yest_income = ((float)$toDayNetworth - (float)$yestDayNetworth) * $NewsBuyAmount['count_buy_number'];
+                $lists[$key]['yest_income'] = $yest_income;
+            }
+        }
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
+
+    /**
+     * 根据笔记id查询详情数据
+     * @author qinlh
+     * @since 2022-02-27
+     */
+    public static function getProductDetail($product_id=0, $address='')
+    {
+        if ($product_id > 0) {
+            $data = self::where('id', $product_id)->find();
+            if ($data) {
+                $DayNetworth = DayNetworth::getDayNetworth($product_id);
+                if($DayNetworth) {
+                    $data['networth'] = $DayNetworth['networth'];
+                }
+                $userId = User::getUserAddress($address);
+                $isBet = MyProduct::getMyProduct($product_id, $userId);
+                if($isBet) {
+                    $data['is_bet'] = 1;
+                } else {
+                    $data['is_bet'] = 0;
+                }
+                return $data;
+            }
+        }
+        return [];
+    }
+
+}

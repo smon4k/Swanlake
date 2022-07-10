@@ -1,0 +1,2630 @@
+---------------------------------------------------------------
+[ 2022-07-11T01:12:40+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getNewsBuyAmount?product_id=1
+[运行时间：0.215107s] [吞吐率：4.65req/s] [内存消耗：2,720.60kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getNewsBuyAmount',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getNewsBuyAmount[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002803s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001976s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003910s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000849s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000889s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:12:43+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=1
+[运行时间：0.197505s] [吞吐率：5.06req/s] [内存消耗：2,720.73kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.003167s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001442s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002937s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001086s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000979s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:12:43+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=13
+[运行时间：0.170007s] [吞吐率：5.88req/s] [内存消耗：2,720.73kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '13',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001373s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001758s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003103s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000977s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000935s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:12:43+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=130
+[运行时间：0.156309s] [吞吐率：6.40req/s] [内存消耗：2,720.73kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '130',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001159s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001262s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002541s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000708s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000621s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:12:45+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=130
+[运行时间：0.175490s] [吞吐率：5.70req/s] [内存消耗：2,720.73kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '130',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001141s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001418s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002783s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000676s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000663s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:12:48+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.138919s] [吞吐率：7.20req/s] [内存消耗：1,945.65kb] [文件加载：53]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '74',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '130',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:14:39+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.169824s] [吞吐率：5.89req/s] [内存消耗：1,619.84kb] [文件加载：49]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'sec-ch-ua-mobile' => '?0',
+  'sec-ch-ua-platform' => '"macOS"',
+  'upgrade-insecure-requests' => '1',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'sec-fetch-site' => 'none',
+  'sec-fetch-mode' => 'navigate',
+  'sec-fetch-user' => '?1',
+  'sec-fetch-dest' => 'document',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:14:45+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.144555s] [吞吐率：6.92req/s] [内存消耗：1,897.83kb] [文件加载：50]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '74',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '130',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:16:36+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.136834s] [吞吐率：7.31req/s] [内存消耗：1,897.98kb] [文件加载：50]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '74',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '130',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:16:46+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.137437s] [吞吐率：7.28req/s] [内存消耗：1,898.02kb] [文件加载：50]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '74',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '130',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:17:45+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.150814s] [吞吐率：6.63req/s] [内存消耗：1,898.48kb] [文件加载：50]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '74',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '130',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:18:36+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.156553s] [吞吐率：6.39req/s] [内存消耗：1,898.48kb] [文件加载：50]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '74',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '130',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:19:15+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.164795s] [吞吐率：6.07req/s] [内存消耗：1,897.98kb] [文件加载：50]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '74',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '130',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:19:29+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getNewsBuyAmount?product_id=1
+[运行时间：0.359013s] [吞吐率：2.79req/s] [内存消耗：2,721.52kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getNewsBuyAmount',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getNewsBuyAmount[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.011144s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.008192s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.009219s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001983s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.003059s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:19:29+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.296331s] [吞吐率：3.37req/s] [内存消耗：2,687.74kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001331s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.003481s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001708s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:19:32+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=1
+[运行时间：0.175446s] [吞吐率：5.70req/s] [内存消耗：2,673.77kb] [文件加载：58]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001335s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001479s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002639s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000702s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000648s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:19:34+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=1
+[运行时间：0.172290s] [吞吐率：5.80req/s] [内存消耗：2,673.77kb] [文件加载：58]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001099s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001415s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002863s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000785s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000601s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:19:54+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.146302s] [吞吐率：6.84req/s] [内存消耗：1,897.98kb] [文件加载：50]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '72',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:19:55+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=1
+[运行时间：0.195392s] [吞吐率：5.12req/s] [内存消耗：2,673.77kb] [文件加载：58]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002866s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.002900s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.004184s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000939s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001039s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:20:42+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.146499s] [吞吐率：6.83req/s] [内存消耗：1,851.31kb] [文件加载：49]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '72',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T01:22:13+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getNewsBuyAmount?product_id=1
+[运行时间：0.401634s] [吞吐率：2.49req/s] [内存消耗：2,721.36kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getNewsBuyAmount',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getNewsBuyAmount[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.009642s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.004769s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.007645s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001257s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001127s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:22:13+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.342815s] [吞吐率：2.92req/s] [内存消耗：2,687.74kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002065s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.003438s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001781s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:22:16+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=1
+[运行时间：0.177802s] [吞吐率：5.62req/s] [内存消耗：2,721.48kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002491s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001625s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002761s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000986s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000925s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:22:16+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=10
+[运行时间：0.173656s] [吞吐率：5.76req/s] [内存消耗：2,721.48kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '10',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001066s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001415s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002669s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000886s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000826s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:22:18+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=10
+[运行时间：0.186795s] [吞吐率：5.35req/s] [内存消耗：2,721.48kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '10',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001011s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001349s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002455s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000671s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000676s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:22:19+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=10
+[运行时间：0.185540s] [吞吐率：5.39req/s] [内存消耗：2,721.48kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '10',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001605s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001442s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003008s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000695s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001239s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:22:19+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.186094s] [吞吐率：5.37req/s] [内存消耗：2,672.83kb] [文件加载：58]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '73',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '10',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001582s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001573s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003124s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.003749s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001435s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:22:34+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.205079s] [吞吐率：4.88req/s] [内存消耗：2,688.38kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '73',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '10',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.003370s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.002921s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.004629s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000822s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000786s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11' LIMIT 1 [ RunTime:0.000487s ]
+[ sql ] [ SQL ] INSERT INTO `s_day_networth` (`product_id` , `profit` , `balance` , `number` , `networth` , `date` , `time`) VALUES (1 , 10 , NULL , NULL , 6.0097197233815 , '2022-07-11' , '2022-07-11 01:22:34') [ RunTime:0.003583s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:22:34+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getNewsBuyAmount?product_id=1
+[运行时间：0.165840s] [吞吐率：6.03req/s] [内存消耗：2,720.98kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getNewsBuyAmount',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getNewsBuyAmount[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002257s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001682s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002484s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000687s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000709s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:24:38+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.189033s] [吞吐率：5.29req/s] [内存消耗：2,673.80kb] [文件加载：58]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '73',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '10',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002234s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.005450s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.004699s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000775s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000879s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11' LIMIT 1 [ RunTime:0.000821s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:25:17+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.188606s] [吞吐率：5.30req/s] [内存消耗：2,673.80kb] [文件加载：58]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '73',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '10',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002387s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.003059s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003763s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000906s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000885s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11' LIMIT 1 [ RunTime:0.000557s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:25:54+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.267211s] [吞吐率：3.74req/s] [内存消耗：2,681.49kb] [文件加载：58]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '73',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '10',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.049604s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.008385s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.009389s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001101s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000966s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11' LIMIT 1 [ RunTime:0.000553s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.000541s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000507s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000612s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:26:00+08:00 ] 172.18.0.1 POST www.swan.com/Api/Product/saveDayNetworth
+[运行时间：0.198069s] [吞吐率：5.05req/s] [内存消耗：2,696.15kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'saveDayNetworth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'content-length' => '73',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'content-type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'origin' => 'http://localhost:8007',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+)
+[ info ] [ PARAM ] array (
+  'profit' => '10',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->saveDayNetworth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001421s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001651s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002744s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000815s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000902s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11' LIMIT 1 [ RunTime:0.000653s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.000536s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000465s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000732s ]
+[ sql ] [ SQL ] INSERT INTO `s_day_networth` (`product_id` , `profit` , `balance` , `number` , `networth` , `date` , `time`) VALUES (1 , 10 , 6727.5628888 , 1121.111 , 6.0097197233815 , '2022-07-11' , '2022-07-11 01:26:00') [ RunTime:0.004780s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:26:00+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getNewsBuyAmount?product_id=1
+[运行时间：0.170611s] [吞吐率：5.86req/s] [内存消耗：2,721.55kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getNewsBuyAmount',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getNewsBuyAmount[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.003282s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001368s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002850s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000891s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000793s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:26:39+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.251436s] [吞吐率：3.98req/s] [内存消耗：2,872.42kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'cache-control' => 'max-age=0',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'sec-ch-ua-mobile' => '?0',
+  'sec-ch-ua-platform' => '"macOS"',
+  'upgrade-insecure-requests' => '1',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'sec-fetch-site' => 'none',
+  'sec-fetch-mode' => 'navigate',
+  'sec-fetch-user' => '?1',
+  'sec-fetch-dest' => 'document',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.006712s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.013130s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.005860s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.003540s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001452s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001393s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003219s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001868s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000610s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:38:34+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getNewsBuyAmount?product_id=1
+[运行时间：0.341154s] [吞吐率：2.93req/s] [内存消耗：2,726.01kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getNewsBuyAmount',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getNewsBuyAmount[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.004196s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.005004s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.005813s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.003764s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.002504s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:38:34+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.308492s] [吞吐率：3.24req/s] [内存消耗：2,687.74kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001490s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.007453s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002106s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:38:36+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=1
+[运行时间：0.197411s] [吞吐率：5.07req/s] [内存消耗：2,726.13kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001327s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.002021s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003334s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001901s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001492s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:38:36+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/calcNewsNetWorth?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&profit=10
+[运行时间：0.169137s] [吞吐率：5.91req/s] [内存消耗：2,726.13kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'calcNewsNetWorth',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'profit' => '10',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->calcNewsNetWorth[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001373s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001329s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002510s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000906s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000814s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:38:40+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.202661s] [吞吐率：4.93req/s] [内存消耗：2,876.61kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001211s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.002903s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001110s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002758s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001188s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001057s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002446s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000903s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000522s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:39:27+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductDetail?product_id=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.201357s] [吞吐率：4.97req/s] [内存消耗：2,795.62kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductDetail',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductDetail[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001243s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.003340s ]
+[ sql ] [ SQL ] SELECT * FROM `s_product` WHERE  `id` = 1 LIMIT 1 [ RunTime:0.001065s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002211s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001075s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.002595s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001375s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002408s ]
+[ sql ] [ SQL ] SELECT * FROM `s_my_product` WHERE  `product_id` = 1  AND `uid` = 1 LIMIT 1 [ RunTime:0.000986s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:46:54+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.217345s] [吞吐率：4.60req/s] [内存消耗：2,876.65kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002919s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.007959s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002883s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002873s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001496s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001406s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002558s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001030s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000580s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:46:55+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductDetail?product_id=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.208870s] [吞吐率：4.79req/s] [内存消耗：2,795.66kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductDetail',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductDetail[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001288s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.003084s ]
+[ sql ] [ SQL ] SELECT * FROM `s_product` WHERE  `id` = 1 LIMIT 1 [ RunTime:0.000991s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002221s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000960s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.002556s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001257s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.001982s ]
+[ sql ] [ SQL ] SELECT * FROM `s_my_product` WHERE  `product_id` = 1  AND `uid` = 1 LIMIT 1 [ RunTime:0.000788s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:47:00+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.208724s] [吞吐率：4.79req/s] [内存消耗：2,876.65kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001212s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.006420s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001457s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002302s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.000884s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001174s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002310s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000872s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000550s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:53:19+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductDetailsList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&product_id=1
+[运行时间：0.230729s] [吞吐率：4.33req/s] [内存消耗：2,827.88kb] [文件加载：63]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductDetailsList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'sec-ch-ua-mobile' => '?0',
+  'sec-ch-ua-platform' => '"macOS"',
+  'upgrade-insecure-requests' => '1',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'sec-fetch-site' => 'none',
+  'sec-fetch-mode' => 'navigate',
+  'sec-fetch-user' => '?1',
+  'sec-fetch-dest' => 'document',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductDetailsList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005844s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.006810s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.005589s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product_details` [ RunTime:0.002661s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_product_details` `a` WHERE  `a`.`uid` = 1  AND `a`.`product_id` = '1' LIMIT 1 [ RunTime:0.002186s ]
+[ sql ] [ SQL ] SELECT `a`.* FROM `s_product_details` `a` WHERE  `a`.`uid` = 1  AND `a`.`product_id` = '1' ORDER BY `a`.`date` DESC LIMIT 0,20 [ RunTime:0.001038s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:57:14+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.289530s] [吞吐率：3.45req/s] [内存消耗：2,687.74kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.009475s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.012486s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.003009s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:57:21+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.206945s] [吞吐率：4.83req/s] [内存消耗：2,879.97kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001661s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.003237s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001776s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002548s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001259s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001168s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002358s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001007s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000616s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:57:24+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.279847s] [吞吐率：3.57req/s] [内存消耗：2,687.74kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001238s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.003345s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001481s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:57:24+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.331502s] [吞吐率：3.02req/s] [内存消耗：2,879.97kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.007112s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.005926s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.003530s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002529s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.000999s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001341s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003609s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000923s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000471s ]
+---------------------------------------------------------------
+[ 2022-07-11T01:57:26+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductDetailsList?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&product_id=1
+[运行时间：0.188545s] [吞吐率：5.30req/s] [内存消耗：2,827.52kb] [文件加载：63]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductDetailsList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductDetailsList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001096s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.002829s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001082s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product_details` [ RunTime:0.002911s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_product_details` `a` WHERE  `a`.`uid` = 1  AND `a`.`product_id` = '1' LIMIT 1 [ RunTime:0.001078s ]
+[ sql ] [ SQL ] SELECT `a`.* FROM `s_product_details` `a` WHERE  `a`.`uid` = 1  AND `a`.`product_id` = '1' ORDER BY `a`.`date` DESC LIMIT 0,20 [ RunTime:0.000732s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:12+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.293716s] [吞吐率：3.40req/s] [内存消耗：2,687.74kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.004118s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.007511s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002385s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:12+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductDetailsList?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&product_id=1
+[运行时间：0.312587s] [吞吐率：3.20req/s] [内存消耗：2,827.52kb] [文件加载：63]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductDetailsList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductDetailsList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.004993s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.007463s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002282s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product_details` [ RunTime:0.002801s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_product_details` `a` WHERE  `a`.`uid` = 1  AND `a`.`product_id` = '1' LIMIT 1 [ RunTime:0.003305s ]
+[ sql ] [ SQL ] SELECT `a`.* FROM `s_product_details` `a` WHERE  `a`.`uid` = 1  AND `a`.`product_id` = '1' ORDER BY `a`.`date` DESC LIMIT 0,20 [ RunTime:0.002987s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:17+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getNewsBuyAmount?product_id=1
+[运行时间：0.209746s] [吞吐率：4.77req/s] [内存消耗：2,729.37kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getNewsBuyAmount',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getNewsBuyAmount[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002848s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.002184s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003323s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001187s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001077s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:18+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductList?limit=20&page=1
+[运行时间：0.218662s] [吞吐率：4.57req/s] [内存消耗：2,862.13kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001238s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.006339s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_product` `a` WHERE  `state` = 1 LIMIT 1 [ RunTime:0.000749s ]
+[ sql ] [ SQL ] SELECT `a`.* FROM `s_product` `a` WHERE  `state` = 1 ORDER BY `a`.`id` ASC LIMIT 0,20 [ RunTime:0.000642s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = 1 [ RunTime:0.001408s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002641s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000696s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000888s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000793s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:19+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.224876s] [吞吐率：4.45req/s] [内存消耗：2,879.97kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001998s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.002722s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001350s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002567s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001111s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001082s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002767s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000994s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000632s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:21+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductDetail?product_id=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.193133s] [吞吐率：5.18req/s] [内存消耗：2,798.98kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductDetail',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductDetail[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001332s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.002607s ]
+[ sql ] [ SQL ] SELECT * FROM `s_product` WHERE  `id` = 1 LIMIT 1 [ RunTime:0.001020s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002446s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000751s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.002420s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001098s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002205s ]
+[ sql ] [ SQL ] SELECT * FROM `s_my_product` WHERE  `product_id` = 1  AND `uid` = 1 LIMIT 1 [ RunTime:0.000938s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:35+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.218612s] [吞吐率：4.57req/s] [内存消耗：2,879.97kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002821s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.005508s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002019s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002598s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001336s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001071s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002701s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000905s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000579s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:44+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.204234s] [吞吐率：4.90req/s] [内存消耗：2,879.97kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001169s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.002932s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001431s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002236s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.000777s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.000892s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002686s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000852s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000562s ]
+---------------------------------------------------------------
+[ 2022-07-11T02:03:48+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.218358s] [吞吐率：4.58req/s] [内存消耗：2,879.97kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'cookie' => 'token=75c15796376ae61864af0caac12915cdsYmSY4KFx2GG3bHbr6WmoMqO0qB9nKfcf45mow',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001000s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.002873s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001557s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002665s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001765s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.004434s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.004798s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001064s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000653s ]

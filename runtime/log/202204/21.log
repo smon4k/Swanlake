@@ -1,0 +1,29 @@
+---------------------------------------------------------------
+[ 2022-04-21T22:53:07+08:00 ] 172.18.0.1 GET www.h2oapi.com/
+[运行时间：0.281961s] [吞吐率：3.55req/s] [内存消耗：1,581.09kb] [文件加载：47]
+[ info ] [ LANG ] /home/wwwroot/h2o-api/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => '',
+    1 => NULL,
+    2 => NULL,
+  ),
+)
+[ info ] [ HEADER ] array (
+  'cookie' => 'sid=b3dba46e-ba2d-11ec-a5ec-ffe1e2ade95b',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'connection' => 'keep-alive',
+  'host' => 'www.h2oapi.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\index\controller\IndexController->index[ /home/wwwroot/h2o-api/application/index/controller/IndexController.php ]
+[ info ] [ LOG ] INIT File

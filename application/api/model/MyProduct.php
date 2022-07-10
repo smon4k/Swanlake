@@ -1,0 +1,249 @@
+<?php
+
+namespace app\api\model;
+
+use think\Model;
+
+class MyProduct extends Base {
+
+
+    /**
+     * 开始投资
+     * @param [$number 份额]
+     * @author qinlh
+     * @since 2022-07-08
+     */
+    public static function startInvestNow($address='', $product_id=0, $number=0) {
+        if($address !== '' || $product_id > 0 || $number > 0) {
+            $userId = User::getUserAddress($address);
+            self::startTrans();
+            try {
+                if($userId) {
+                    $networth = 1; 
+                    $buy_number = 0; //usdt 数量
+                    $dayNetwordRes = DayNetworth::getDayNetworth($product_id);
+                    if($dayNetwordRes) {
+                        $networth = $dayNetwordRes['networth']; //获取今日净值
+                    }
+                    $buy_number = (float)$networth > 0 ? (float)$number * (float)$networth : (float)$number; //计算购买数量
+                    $myProduct = self::getMyProduct($product_id, $userId);
+                    $insertId = 0;
+                    if ($myProduct && count((array)$myProduct) > 0) { //不存在添加
+                        // $insertId = $myProduct['id'];
+                        $update = [
+                            'total_invest' => (float)$myProduct['total_invest'] + (float)$buy_number,
+                            'total_number' => (float)$myProduct['total_number'] + (float)$number,
+                            'up_time' => date('Y-m-d H:i:s')
+                        ];
+                        $res = self::where('id', $myProduct['id'])->update($update);
+                    } else { //已存在 进行更新数据
+                        $insertData = [
+                            'product_id' => $product_id,
+                            'uid' => $userId,
+                            'total_invest' => $buy_number,
+                            'total_number' => $number,
+                            'time' => date('Y-m-d H:i:s'),
+                            'up_time' => date('Y-m-d H:i:s'),
+                        ];
+                        self::insert($insertData);
+                        $res = self::getLastInsID();
+                    }
+                    if($res) {
+                        // $userBalance = (float)$networth > 0 ? (float)$number * (float)$networth : $number;
+                        $isUserBalance = User::setUserLocalBalance($address, $buy_number, 2);
+                        if($isUserBalance) {
+                            $orderLog = ProductOrder::setProductOrder($userId, $product_id, $buy_number, $number, $networth, $type=1);
+                            if($orderLog) {
+                                self::commit();
+                                return true;
+                            }
+                        }
+                    }
+                }
+                self::rollback();
+                return false;
+                } catch ( PDOException $e) {
+                    self::rollback();
+                    return false;
+                }
+        }
+        return false;
+    }
+
+    /**
+     * 获取我的投资理财数据
+     * @author qinlh
+     * @since 2022-02-18
+     */
+    public static function getMyProductList($where, $page, $limit, $order='id desc')
+    {
+        if ($limit <= 0) {
+            $limit = config('paginate.list_rows');// 获取总条数
+        }
+        $count = self::alias('a')->join('s_product b', 'a.product_id = b.id')->where($where)->count();//计算总页面
+        $allpage = intval(ceil($count / $limit));
+        $lists = self::alias('a')
+                    ->join('s_product b', 'a.product_id = b.id')
+                    ->field("a.*,b.name")
+                    ->where($where)
+                    ->page($page, $limit)
+                    ->order($order)
+                    ->select()
+                    ->toArray();
+        if (!$lists) {
+            ['count'=>0,'allpage'=>0,'lists'=>[]];
+        }
+        $date = date("Y-m-d");
+        $d1 = strtotime($date);
+        foreach ($lists as $key => $val) {
+            $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['product_id']);
+            $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
+            $yestDayNetworth = (float)$NewTodayYesterdayNetworth['yestDayData']; //昨日净值
+            // $total_investment = $val['buy_number'] * $toDayNetworth; //总投资 = 购买份数 * 最新净值
+            $total_investment = (float)$val['total_invest']; //总投资
+            $total_number = (float)$val['total_number']; //总份数
+            $total_balance = $total_number * $toDayNetworth; //	总结余: 总的份数 * 最新净值 （随着净值的变化而变化）
+            $cumulative_income = $total_balance - $total_investment; // 累计收益: 总结余 – 总投资
+            $total_return = $cumulative_income / $total_investment; //	总收益率: 累计收益 / 总投资
+            $total_networth = DayNetworth::getCountNetworth($val['product_id']); //总的净值
+            $d2 = strtotime($val['time']);
+            $buy_days = round(($d1 - $d2) / 3600 / 24); //购买天数
+            $lists[$key]['networth'] = $toDayNetworth;  //今日最新净值
+            $lists[$key]['yest_income'] = ($toDayNetworth - $yestDayNetworth) * (float)$val['total_number']; //	昨日收益：（今天的净值 - 昨天的净值） * 用户总份数
+            $lists[$key]['total_rate'] = $total_return;
+            $lists[$key]['year_rate'] = (((float)$total_networth - 1) / (float)$buy_days) * 365;  //年化收益率
+        }
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
+
+     /**
+     * 获取计算总的投注数量和份数
+     * @author qinlh
+     * @since 2022-07-09
+     */
+    public static function getNewsBuyAmount($product_id=0) {
+        if($product_id > 0) {
+            $sql = "SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = {$product_id}";
+            $data = self::query($sql);
+            // p($data);
+            $count_total_number = 0; //总的份数
+            $count_buy_networth = 0; //总的净值
+            $count_balance = 0; //总结余
+            $today_net_worth = 0;
+            if($data && count((array)$data) > 0) {
+                $count_total_number = (float)$data[0]['count_total_number']; //总的份数
+                // $count_buy_networth = (float)$data[0]['count_buy_networth'];//总的净值
+                $count_buy_networth = DayNetworth::getCountNetworth($product_id);//总的净值
+                $count_balance = $count_total_number * $count_buy_networth;//总结余 = 总的份数 * 总的净值
+            }
+            $date = date('Y-m-d');
+            $netWorthToday = DayNetworth::getDayNetworth($product_id, $date);
+            if($netWorthToday && count((array)$netWorthToday) > 0) {
+                $today_net_worth = (float)$netWorthToday['networth'];
+            }
+            return [
+                'date' => date('Y-m-d'), 
+                'count_balance'=>$count_balance, //总结余
+                'count_buy_number' => $count_total_number, //总的份数
+                'count_buy_networth'=>$count_buy_networth, //总的净值
+                'today_net_worth' => $today_net_worth //今日最新净值
+            ];
+        } 
+    }
+
+    /**
+     * 获取计算总的投注数量和份数
+     * @author qinlh
+     * @since 2022-07-09
+     */
+    public static function calcNewsNetWorth($count_profit=0, $product_id=0) {
+        $dayNetWorth = 0; //当天净值
+        $count_balance = 0; //总结余
+        $count_buy_number = 0; //总的份数
+        if($count_profit > 0) {
+            $data = self::getNewsBuyAmount($product_id);
+            if($data) {
+                $count_buy_number = $data['count_buy_number']; //总的份数
+                $count_balance = $data['count_balance'];//总结余 = 总的份数 * 总的净值
+                $dayNetWorth =  ((float)$count_profit + $count_balance) / $count_buy_number;  //	当天净值:  （总的利润 + 总的结余）/ 总的份数
+            }
+        }
+        return $dayNetWorth;
+    }
+
+    /**
+     * 获取用户对应产品是否已投注
+     * @author qinlh
+     * @since 2022-07-09
+     */
+    public static function getMyProduct($product_id=0, $uid=0) {
+        if($product_id > 0 && $uid > 0) {
+            $res = self::where(['product_id'=>$product_id, 'uid'=>$uid])->find();
+            if($res && count((array)$res) > 0) {
+                return $res;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 异步循环计算用户投资产品收益数据
+     * @author qinlh
+     * @since 2022-07-11
+     */
+    public static function saveUserProductData() {
+        $data = self::select()->toArray();
+        $date = date('Y-m-d');
+        $yestDate = date('Y-m-d', strtotime("-1 day"));
+        $insertData = [];
+        self::startTrans();
+        try {
+            foreach ($data as $key => $val) {
+                $networthData = DayNetworth::getDayNetworth($val['product_id'], $date);
+                $yestNetworthData = DayNetworth::getDayNetworth($val['product_id'], $yestDate);
+                if($networthData && count((array)$networthData) > 0) {
+                    @self::name('product_details')->where(['product_id'=>$val['product_id'], 'uid' => $val['uid'], 'date' => $date])->delete();
+                    $networth = (float)$networthData['networth']; //今日净值
+                    $yestNetworth = (float)$yestNetworthData['networth']; //昨日净值
+                    $buy_total_number = (float)$val['total_number']; //购买总份数
+                    $account_balance = $buy_total_number * $networth; //账户余额 = 今日净值 * 购买份数
+                    $total_investment = (float)$val['total_invest']; //总投资
+                    $total_revenue = $account_balance - $total_investment; //	总收益: 当前账户余额-总投资额
+                    $daily_income = ($networth - $yestNetworth) * $buy_total_number; //	日收益:（当日净值-昨日净值）* 总购买份数
+                    $daily_rate_return = ($networth - $yestNetworth) / $yestNetworth; // 日收益率:（当日净值-昨日净值）/ 昨日净值
+                    $total_revenue_rate = $total_revenue / $total_investment; // 总收益率: 总收益 / 总投资额
+                    $averag_daily_rate = ProductDetails::getAverageDailyRate($val['product_id'], $val['uid']); //日均收益率: 所有日收益率的平均值
+                    $daily_average_annualized = (float)$averag_daily_rate * 365; // 日均年化: 日均收益率 * 365
+                    $insertData[] = [
+                        'product_id' => $val['product_id'],
+                        'uid' => $val['uid'],
+                        'date' => $date,
+                        'account_balance' => $account_balance,
+                        'total_revenue' => $total_revenue,
+                        'daily_income' => $daily_income,
+                        'daily_rate_return' => $daily_rate_return,
+                        'total_revenue_rate' => $total_revenue_rate,
+                        'daily_arg_rate' => $averag_daily_rate,
+                        'daily_arg_annualized' => $daily_average_annualized,
+                        'time' => date('Y-m-d H:i:s'),
+                    ];
+                }   
+            }
+            if($insertData && count((array)$insertData) > 0) {
+                $res = self::name('product_details')->insertAll($insertData);
+                if ($res) {
+                    self::commit();
+                    return true;
+                }
+            }
+            self::rollback();
+            return false;
+        } catch ( PDOException $e) {
+            self::rollback();
+            return false;
+        }
+    }
+}
