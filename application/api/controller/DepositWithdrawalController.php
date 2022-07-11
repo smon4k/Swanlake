@@ -151,12 +151,15 @@ class DepositwithdrawalController extends BaseController
             return $this->as_json('70001', 'Missing parameters');
         }
         $rewardBalance = User::getUserContractBalance($address);
-        $res = User::resetUserRewardBalance($address, $rewardBalance);
-        if(false !== $res) {
-            return $this->as_json('更新成功');
-        } else {
-            return $this->as_json(70001, '更新失败');
+        if($rewardBalance) {
+            $res = User::resetUserRewardBalance($address, $rewardBalance);
+            if(false !== $res) {
+                return $this->as_json('更新成功');
+            } else {
+                return $this->as_json(70001, '更新失败');
+            }
         }
+        return $this->as_json(70001, '更新失败');
         // p($result);
     }
 
