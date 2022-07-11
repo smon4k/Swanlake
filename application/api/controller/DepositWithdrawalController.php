@@ -144,7 +144,7 @@ class DepositwithdrawalController extends BaseController
      * @author qinlh
      * @since 2022-03-18
      */
-    public function getWalletUserBalance(Request $request)
+    public function resetUserRewardBalance(Request $request)
     {
         $address = $request->request('address', '', 'trim');
         if (!$address || $address == '') {
