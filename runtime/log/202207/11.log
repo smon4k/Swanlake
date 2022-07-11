@@ -39835,3 +39835,65 @@
 [ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.001500s ]
 [ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001666s ]
 [ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001110s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:45:19+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x669515B8B042174deF89229c8135435a8207bFc4
+[运行时间：0.183018s] [吞吐率：5.46req/s] [内存消耗：1,697.71kb] [文件加载：51]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'cache-control' => 'max-age=0',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+)
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T23:45:27+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getWalletBalanceBalances?address=0x669515B8B042174deF89229c8135435a8207bFc4
+[运行时间：1.341357s] [吞吐率：0.75req/s] [内存消耗：2,697.19kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getWalletBalanceBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getWalletBalanceBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005073s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.007038s ]
+[ sql ] [ SQL ] UPDATE `s_user`  SET `wallet_balance`=-28910  WHERE  `address` = '0x669515B8B042174deF89229c8135435a8207bFc4' [ RunTime:0.003893s ]
