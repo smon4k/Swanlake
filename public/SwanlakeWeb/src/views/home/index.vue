@@ -53,13 +53,13 @@
             </el-row>
             <el-card class="box-card recommend" v-for="(item,index) in tableData" :key="index">
                 <div class="novice">
-                    <span>定期</span>
+                    <span>活期</span>
                 </div>
                 <div class="title-name">
                     <img src="@/assets/usdt.png" width="30" height="30" alt="">
                     <p>
                         <span class="span1">{{ item.currency }}</span>
-                        <span class="span2">USDT定期理财</span>
+                        <span class="span2">{{ item.name }}</span>
                     </p>
                 </div>
                 <div class="interest-rate">

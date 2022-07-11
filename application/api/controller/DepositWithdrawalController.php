@@ -144,19 +144,21 @@ class DepositwithdrawalController extends BaseController
      * @author qinlh
      * @since 2022-03-18
      */
-    // public function getUserBalances(Request $request)
-    // {
-    //     $address = $request->request('address', '', 'trim');
-    //     if (!$address || $address == '') {
-    //         return $this->as_json('70001', 'Missing parameters');
-    //     }
-    //     $where = [];
-    //     $order = '';
-    //     // $result = User::getUserBalance($address);
-    //     $result = FillingRecord::getUserBalance($address);
-    //     // p($result);
-    //     return $this->as_json($result);
-    // }
+    public function getWalletBalanceBalances(Request $request)
+    {
+        $address = $request->request('address', '', 'trim');
+        if (!$address || $address == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $rewardBalance = User::getUserContractBalance($address);
+        $res = User::resetUserRewardBalance($address, $rewardBalance);
+        if(false !== $res) {
+            return $this->as_json('更新成功');
+        } else {
+            return $this->as_json(70001, '更新失败');
+        }
+        // p($result);
+    }
 
     /**
     * 充值或者提现

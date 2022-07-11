@@ -121,10 +121,10 @@ export const fetchAccountData = async () => {
     // MetaMask does not give you all accounts, only the selected account
     // console.log("Got accounts", accounts);
     let address = accounts[0];
-    if (window.location.host === "localhost:8099") {
+    if (window.location.host === "localhost:8007") {
       // address = "0x669515B8B042174deF89229c8135435a8207bFc4";
       // address = "0xad057189c9dea1e5253266201890181eb1918f48";
-      address = "0xDC187aeB10D42151663cE83B9a4363467FfF8D4F";
+      // address = "0x669515B8B042174deF89229c8135435a8207bFc4";
     }
     await getBaseData(chainId, accounts, address);
   } else {

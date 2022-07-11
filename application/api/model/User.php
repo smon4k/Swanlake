@@ -330,7 +330,7 @@ class User extends Base
      */
     public static function resetUserRewardBalance($address='', $balance=0)
     {
-        if ($address && $address !== '' && $balance > 0) {
+        if ($address && $address !== '') {
             return self::where('address', $address)->update(['wallet_balance'=>$balance]);
         }
     }

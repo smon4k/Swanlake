@@ -38277,3 +38277,1561 @@
 [ sql ] [ SQL ] SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid=1 [ RunTime:0.000569s ]
 [ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000568s ]
 [ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.003019s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:04:19+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.296591s] [吞吐率：3.37req/s] [内存消耗：2,691.41kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.011684s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.008970s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001840s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:04:20+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductDetail?product_id=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.474962s] [吞吐率：2.11req/s] [内存消耗：2,934.23kb] [文件加载：65]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductDetail',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductDetail[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.009564s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.008984s ]
+[ sql ] [ SQL ] SELECT * FROM `s_product` WHERE  `id` = 1 LIMIT 1 [ RunTime:0.001555s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003566s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.005024s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.007460s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001661s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001524s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.012200s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.007768s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.002159s ]
+[ sql ] [ SQL ] SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid=1 [ RunTime:0.003297s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001641s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.004638s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:04:23+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getFillingRecordUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.186167s] [吞吐率：5.37req/s] [内存消耗：2,744.76kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getFillingRecordUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getFillingRecordUserInfo[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001285s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.003151s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001133s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.002542s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.001195s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:04:25+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.250773s] [吞吐率：3.99req/s] [内存消耗：2,691.41kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002040s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.006310s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001844s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:04:25+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getFillingRecordUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.251058s] [吞吐率：3.98req/s] [内存消耗：2,744.76kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getFillingRecordUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getFillingRecordUserInfo[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001872s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.007442s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002493s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.004739s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.003091s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:04:44+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getIsInTradeProgress?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&userId=0
+[运行时间：0.303020s] [吞吐率：3.30req/s] [内存消耗：2,746.65kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getIsInTradeProgress',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'userId' => '0',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getIsInTradeProgress[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.003988s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.006908s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002047s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.004517s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.001894s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.000928s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:05:06+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.666417s] [吞吐率：1.50req/s] [内存消耗：2,691.41kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.009945s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.028522s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002477s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:05:06+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getFillingRecordUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.692501s] [吞吐率：1.44req/s] [内存消耗：2,744.76kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getFillingRecordUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getFillingRecordUserInfo[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.003268s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.027370s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002684s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.009177s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.003936s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:05:09+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getIsInTradeProgress?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&userId=0
+[运行时间：0.219330s] [吞吐率：4.56req/s] [内存消耗：2,746.65kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getIsInTradeProgress',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'userId' => '0',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getIsInTradeProgress[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001480s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.004346s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001270s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.003213s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.002133s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.001316s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:05:29+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getNewsBuyAmount?product_id=1
+[运行时间：0.246203s] [吞吐率：4.06req/s] [内存消耗：2,737.03kb] [文件加载：61]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getNewsBuyAmount',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getNewsBuyAmount[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.003125s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.003206s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.005639s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001021s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001155s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:05:29+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductList?limit=20&page=1
+[运行时间：0.254989s] [吞吐率：3.92req/s] [内存消耗：2,870.39kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002550s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.009681s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_product` `a` WHERE  `state` = 1 LIMIT 1 [ RunTime:0.002780s ]
+[ sql ] [ SQL ] SELECT `a`.* FROM `s_product` `a` WHERE  `state` = 1 ORDER BY `a`.`id` ASC LIMIT 0,20 [ RunTime:0.001237s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.002023s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003136s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001062s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001027s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000990s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000980s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000573s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:05:30+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.243133s] [吞吐率：4.11req/s] [内存消耗：2,892.48kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001480s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.004517s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001713s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.004159s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001278s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.002076s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003163s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001229s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000886s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:05:30+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductList
+[运行时间：0.302549s] [吞吐率：3.31req/s] [内存消耗：2,870.01kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001750s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.004838s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_product` `a` WHERE  `state` = 1 LIMIT 1 [ RunTime:0.001149s ]
+[ sql ] [ SQL ] SELECT `a`.* FROM `s_product` `a` WHERE  `state` = 1 ORDER BY `a`.`id` ASC LIMIT 0,20 [ RunTime:0.002201s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.002916s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003409s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001004s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.002280s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.002500s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.002453s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000882s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:05:30+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.345651s] [吞吐率：2.89req/s] [内存消耗：2,923.24kb] [文件加载：65]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001943s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.003793s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001666s ]
+[ sql ] [ SQL ] SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid=1 [ RunTime:0.004189s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.004084s ]
+[ sql ] [ SQL ] SELECT * FROM `s_my_product` WHERE  `uid` = 1 [ RunTime:0.007995s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.006299s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001490s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.001555s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.002816s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.002082s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:18:55+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductList
+[运行时间：0.618012s] [吞吐率：1.62req/s] [内存消耗：2,870.01kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005020s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.013662s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_product` `a` WHERE  `state` = 1 LIMIT 1 [ RunTime:0.002212s ]
+[ sql ] [ SQL ] SELECT `a`.* FROM `s_product` `a` WHERE  `state` = 1 ORDER BY `a`.`id` ASC LIMIT 0,20 [ RunTime:0.001554s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.006614s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.010979s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.004562s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.009036s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.009653s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.002842s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001527s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:18:55+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.383608s] [吞吐率：2.61req/s] [内存消耗：2,691.41kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001356s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.004997s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.003969s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:18:55+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.411369s] [吞吐率：2.43req/s] [内存消耗：2,923.24kb] [文件加载：65]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002397s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.008625s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.003589s ]
+[ sql ] [ SQL ] SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid=1 [ RunTime:0.001378s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.003180s ]
+[ sql ] [ SQL ] SELECT * FROM `s_my_product` WHERE  `uid` = 1 [ RunTime:0.002131s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002829s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.000979s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.000789s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000854s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000755s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:30:43+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getMyProductList?limit=20&page=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.304256s] [吞吐率：3.29req/s] [内存消耗：2,892.48kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getMyProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'limit' => '20',
+  'page' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getMyProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.011855s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.010628s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.003749s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.002748s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 LIMIT 1 [ RunTime:0.001621s ]
+[ sql ] [ SQL ] SELECT `a`.*,`b`.`name` FROM `s_my_product` `a` INNER JOIN `s_product` `b` ON `a`.`product_id`=`b`.`id` WHERE  `a`.`uid` = 1 ORDER BY `a`.`id` DESC LIMIT 0,20 [ RunTime:0.001730s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.002761s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001361s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000627s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:30:45+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getFillingRecordUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.213680s] [吞吐率：4.68req/s] [内存消耗：2,744.76kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getFillingRecordUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getFillingRecordUserInfo[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001607s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.003294s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001281s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.002847s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.001497s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:31:34+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.389617s] [吞吐率：2.57req/s] [内存消耗：2,691.41kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.010740s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.034341s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002252s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:31:34+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getFillingRecordUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.403903s] [吞吐率：2.48req/s] [内存消耗：2,744.76kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getFillingRecordUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getFillingRecordUserInfo[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.006294s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.033477s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002101s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.004105s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.001960s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:31:43+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x669515B8B042174deF89229c8135435a8207bFc4&invite_address=
+[运行时间：0.302658s] [吞吐率：3.30req/s] [内存消耗：2,658.33kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.003821s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.010427s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x669515B8B042174deF89229c8135435a8207bFc4' LIMIT 1 [ RunTime:0.003464s ]
+[ sql ] [ SQL ] INSERT INTO `s_user` (`username` , `password` , `address` , `nickname` , `introduction` , `avatar` , `sex` , `birthday` , `background_img` , `time` , `local_balance` , `status`) VALUES ('' , '' , '0x669515B8B042174deF89229c8135435a8207bFc4' , '' , '' , '' , 0 , '' , '' , '2022-07-11 23:31:43' , 0 , 1) [ RunTime:0.003960s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:31:43+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getFillingRecordUserInfo?address=0x669515B8B042174deF89229c8135435a8207bFc4
+[运行时间：0.247674s] [吞吐率：4.04req/s] [内存消耗：2,744.76kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getFillingRecordUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getFillingRecordUserInfo[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001255s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.003226s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x669515B8B042174deF89229c8135435a8207bFc4' LIMIT 1 [ RunTime:0.001489s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.003097s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x669515B8B042174deF89229c8135435a8207bFc4'  AND `status` = 1 LIMIT 1 [ RunTime:0.001668s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:32:16+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.614255s] [吞吐率：1.63req/s] [内存消耗：2,691.41kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.024865s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.019779s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.005513s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:32:16+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getFillingRecordUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.424915s] [吞吐率：2.35req/s] [内存消耗：2,744.76kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getFillingRecordUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getFillingRecordUserInfo[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002478s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.010380s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001303s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.005323s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.006741s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:32:34+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.360845s] [吞吐率：2.77req/s] [内存消耗：2,691.41kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.002964s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.008656s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001597s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:32:34+08:00 ] 172.18.0.1 GET www.swan.com/Api/Depositwithdrawal/getFillingRecordUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.371302s] [吞吐率：2.69req/s] [内存消耗：2,744.76kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Depositwithdrawal',
+    2 => 'getFillingRecordUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getFillingRecordUserInfo[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.001596s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.006461s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.001546s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_filling_record` [ RunTime:0.004655s ]
+[ sql ] [ SQL ] SELECT * FROM `s_filling_record` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D'  AND `status` = 1 LIMIT 1 [ RunTime:0.002441s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:36:25+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances
+[运行时间：0.150253s] [吞吐率：6.66req/s] [内存消耗：1,644.20kb] [文件加载：49]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T23:36:37+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.221444s] [吞吐率：4.52req/s] [内存消耗：2,030.49kb] [文件加载：53]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T23:36:54+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.803698s] [吞吐率：1.24req/s] [内存消耗：2,697.12kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'cache-control' => 'max-age=0',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.004928s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.013489s ]
+[ sql ] [ SQL ] UPDATE `s_user`  SET `wallet_balance`=6  WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' [ RunTime:0.005169s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:37:15+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.403609s] [吞吐率：2.48req/s] [内存消耗：2,697.12kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'cache-control' => 'max-age=0',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.004871s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.004068s ]
+[ sql ] [ SQL ] UPDATE `s_user`  SET `wallet_balance`=6  WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' [ RunTime:0.002801s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:37:31+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x669515B8B042174deF89229c8135435a8207bFc4
+[运行时间：0.331148s] [吞吐率：3.02req/s] [内存消耗：2,030.49kb] [文件加载：53]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T23:37:54+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x669515B8B042174deF89229c8135435a8207bFc4
+[运行时间：0.348270s] [吞吐率：2.87req/s] [内存消耗：1,918.30kb] [文件加载：50]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'cache-control' => 'max-age=0',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T23:38:42+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x669515B8B042174deF89229c8135435a8207bFc4
+[运行时间：0.355777s] [吞吐率：2.81req/s] [内存消耗：2,030.53kb] [文件加载：53]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'cache-control' => 'max-age=0',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ LOG ] INIT File
+---------------------------------------------------------------
+[ 2022-07-11T23:39:25+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x669515B8B042174deF89229c8135435a8207bFc4
+[运行时间：0.402991s] [吞吐率：2.48req/s] [内存消耗：2,698.74kb] [文件加载：62]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'cache-control' => 'max-age=0',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ error ] [8]未定义变量: balance[/home/wwwroot/Swanlake/application/api/model/User.php:334]
+---------------------------------------------------------------
+[ 2022-07-11T23:39:35+08:00 ] 172.18.0.1 GET www.swan.com/api/Depositwithdrawal/getUserBalances?address=0x669515B8B042174deF89229c8135435a8207bFc4
+[运行时间：0.409709s] [吞吐率：2.44req/s] [内存消耗：2,697.12kb] [文件加载：60]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'api',
+    1 => 'Depositwithdrawal',
+    2 => 'getUserBalances',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'accept-encoding' => 'gzip, deflate',
+  'accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'upgrade-insecure-requests' => '1',
+  'cache-control' => 'max-age=0',
+  'connection' => 'keep-alive',
+  'host' => 'www.swan.com',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x669515B8B042174deF89229c8135435a8207bFc4',
+)
+[ info ] [ RUN ] app\api\controller\DepositwithdrawalController->getUserBalances[ /home/wwwroot/Swanlake/application/api/controller/DepositwithdrawalController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.014152s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.010514s ]
+[ sql ] [ SQL ] UPDATE `s_user`  SET `wallet_balance`=-28910  WHERE  `address` = '0x669515B8B042174deF89229c8135435a8207bFc4' [ RunTime:0.005330s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:41:03+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductList
+[运行时间：0.437472s] [吞吐率：2.29req/s] [内存消耗：2,870.01kb] [文件加载：64]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductList',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductList[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.005903s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.014465s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_product` `a` WHERE  `state` = 1 LIMIT 1 [ RunTime:0.002389s ]
+[ sql ] [ SQL ] SELECT `a`.* FROM `s_product` `a` WHERE  `state` = 1 ORDER BY `a`.`id` ASC LIMIT 0,20 [ RunTime:0.002181s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.003081s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003170s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001021s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.003936s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001458s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000827s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000615s ]
+---------------------------------------------------------------
+[ 2022-07-11T23:41:04+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：1.600434s] [吞吐率：0.62req/s] [内存消耗：2,925.16kb] [文件加载：65]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.006748s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.022882s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.003709s ]
+[ sql ] [ SQL ] UPDATE `s_user`  SET `wallet_balance`=6  WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' [ RunTime:0.008329s ]
+[ sql ] [ SQL ] SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid=1 [ RunTime:0.003342s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_my_product` [ RunTime:0.003241s ]
+[ sql ] [ SQL ] SELECT * FROM `s_my_product` WHERE  `uid` = 1 [ RunTime:0.002043s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.003226s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.001353s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.001500s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.001666s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.001110s ]
