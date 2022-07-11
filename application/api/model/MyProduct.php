@@ -298,9 +298,9 @@ class MyProduct extends Base {
      */
     public static function getAllCumulativeIncome($userId=0) {
         if($userId > 0) {
+            $cumulative_income = 0; //累计收益
             $data = self::where('uid', $userId)->select()->toArray();
             if($data && count((array)$data) > 0) {
-                $cumulative_income = 0; //累计收益
                 foreach ($data as $key => $val) {
                     $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['product_id']);
                     $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
