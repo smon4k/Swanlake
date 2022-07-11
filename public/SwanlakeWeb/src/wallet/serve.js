@@ -131,14 +131,14 @@ export async function getGameFillingBalance(decimals=18) {
 export const saveNotifyStatus = async function(status, type=true){
   const apiUrl = __ownInstance__.$store.state.base.nftUrl;
   const address = __ownInstance__.$store.state.base.address;
-  await $get('/Api/DepositWithdrawal/saveNotifyStatus?address='+address+'&status='+status+'&type='+type);
+  await $get('/Api/Depositwithdrawal/saveNotifyStatus?address='+address+'&status='+status+'&type='+type);
 }
 
 //获取游戏-充提系统-修改充提记录日志状态
 export const setDepWithdrawStatus = async function(deWithId, status, type=true){
   const apiUrl = __ownInstance__.$store.state.base.nftUrl;
   const address = __ownInstance__.$store.state.base.address;
-  await $get('/Api/DepositWithdrawal/setDepWithdrawStatus?address='+address+'&deWithId='+deWithId+'&status='+status+'&type='+type);
+  await $get('/Api/Depositwithdrawal/setDepWithdrawStatus?address='+address+'&deWithId='+deWithId+'&status='+status+'&type='+type);
 }
 
 //获取游戏-充提系统-监听充提状态是否执行完成
@@ -146,7 +146,7 @@ export const getGameFillingWithdrawStatus = async function(withdrawId){
   const apiUrl = __ownInstance__.$store.state.base.nftUrl;
   const address = __ownInstance__.$store.state.base.address;
   let status = 0;
-  let data = await $get('/Api/DepositWithdrawal/getGameFillingWithdrawStatus?address='+address+'&withdrawId='+withdrawId);
+  let data = await $get('/Api/Depositwithdrawal/getGameFillingWithdrawStatus?address='+address+'&withdrawId='+withdrawId);
   if(data && data.code == 10000) {
     status = data.data;
   }

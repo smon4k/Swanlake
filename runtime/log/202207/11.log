@@ -38184,3 +38184,96 @@
 [ sql ] [ SQL ] SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid=1 [ RunTime:0.000651s ]
 [ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000568s ]
 [ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000473s ]
+---------------------------------------------------------------
+[ 2022-07-11T22:53:00+08:00 ] 172.18.0.1 GET www.swan.com/Api/User/getUserAddressInfo?address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D&invite_address=
+[运行时间：0.353967s] [吞吐率：2.83req/s] [内存消耗：2,691.41kb] [文件加载：59]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'User',
+    2 => 'getUserAddressInfo',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+  'invite_address' => '',
+)
+[ info ] [ RUN ] app\api\controller\UserController->getUserAddressInfo[ /home/wwwroot/Swanlake/application/api/controller/UserController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.006562s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.015973s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.003574s ]
+---------------------------------------------------------------
+[ 2022-07-11T22:53:00+08:00 ] 172.18.0.1 GET www.swan.com/Api/Product/getProductDetail?product_id=1&address=0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D
+[运行时间：0.392068s] [吞吐率：2.55req/s] [内存消耗：2,934.23kb] [文件加载：65]
+[ info ] [ LANG ] /home/wwwroot/Swanlake/thinkphp/lang/zh-cn.php
+[ info ] [ ROUTE ] array (
+  'type' => 'module',
+  'module' => 
+  array (
+    0 => 'Api',
+    1 => 'Product',
+    2 => 'getProductDetail',
+  ),
+)
+[ info ] [ HEADER ] array (
+  'host' => 'www.swan.com',
+  'connection' => 'close',
+  'sec-ch-ua' => '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+  'accept' => '*/*',
+  'x-requested-with' => 'XMLHttpRequest',
+  'sec-ch-ua-mobile' => '?0',
+  'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
+  'sec-ch-ua-platform' => '"macOS"',
+  'sec-fetch-site' => 'same-origin',
+  'sec-fetch-mode' => 'cors',
+  'sec-fetch-dest' => 'empty',
+  'referer' => 'http://localhost:8007/',
+  'accept-encoding' => 'gzip, deflate, br',
+  'accept-language' => 'zh-CN,zh;q=0.9',
+  'content-type' => '',
+  'content-length' => '',
+)
+[ info ] [ PARAM ] array (
+  'product_id' => '1',
+  'address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D',
+)
+[ info ] [ RUN ] app\api\controller\ProductController->getProductDetail[ /home/wwwroot/Swanlake/application/api/controller/ProductController.php ]
+[ info ] [ DB ] INIT mysql
+[ info ] [ LOG ] INIT File
+[ sql ] [ DB ] CONNECT:[ UseTime:0.006332s ] mysql:host=127.0.0.1;dbname=swanlake;charset=utf8mb4
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_product` [ RunTime:0.015837s ]
+[ sql ] [ SQL ] SELECT * FROM `s_product` WHERE  `id` = 1 LIMIT 1 [ RunTime:0.005024s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_day_networth` [ RunTime:0.006574s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.002682s ]
+[ sql ] [ SQL ] SHOW COLUMNS FROM `s_user` [ RunTime:0.004739s ]
+[ sql ] [ SQL ] SELECT * FROM `s_user` WHERE  `address` = '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D' LIMIT 1 [ RunTime:0.002167s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `product_id` = 1 ORDER BY `date` DESC LIMIT 2 [ RunTime:0.002497s ]
+[ sql ] [ SQL ] SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1  AND product_id = 1 [ RunTime:0.001626s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000922s ]
+[ sql ] [ SQL ] SELECT * FROM `s_day_networth` WHERE  `date` = '2022-07-11'  AND `product_id` = 1 LIMIT 1 [ RunTime:0.000674s ]
+[ sql ] [ SQL ] SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid=1 [ RunTime:0.000569s ]
+[ sql ] [ SQL ] SELECT SUM(networth) AS tp_sum FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.000568s ]
+[ sql ] [ SQL ] SELECT COUNT(*) AS tp_count FROM `s_day_networth` WHERE  `product_id` = 1 LIMIT 1 [ RunTime:0.003019s ]
