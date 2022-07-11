@@ -28,7 +28,7 @@ use ClassLibrary\ClString;
 use ClassLibrary\ClHttp;
 use ClassLibrary\ClImage;
 
-class DepositWithdrawalController extends BaseController
+class DepositwithdrawalController extends BaseController
 {
     /**
      * 获取用户充提信息
