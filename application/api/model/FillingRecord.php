@@ -23,21 +23,20 @@ class FillingRecord extends Base
      * @author qinlh
      * @since 2022-06-23
      */
-    public static function setDepositWithdrawRecord($user_id=0, $address='', $amount=0, $type=0, $gsBalance=0, $csBalance=0, $hash='')
+    public static function setDepositWithdrawRecord($address='', $amount=0, $type=0, $localBalance=0, $walletBalance=0, $hash='')
     {
-        if ($user_id > 0 && $address !== '' && $amount > 0 && $type > 0) {
+        if ($address !== '' && $amount > 0 && $type > 0) {
             if ($type == 2) { //如果是提取的话 校验 amount 必须 <= gs_balance+cs_balance
-                if ((float)$amount > ((float)$gsBalance + (float)$csBalance)) {
+                if ((float)$amount > ((float)$localBalance + (float)$walletBalance)) {
                     return false;
                 }
             }
             try {
                 $insertData = [
-                    'user_id' => $user_id,
                     'address' => $address,
                     'amount' => $amount,
-                    'gs_balance' => $gsBalance,
-                    'cs_balance' => $csBalance,
+                    'local_balance' => $localBalance,
+                    'wallet_balance' => $walletBalance,
                     'type' => $type,
                     'hash' => $hash,
                     'time' => date('Y-m-d H:i:s'),

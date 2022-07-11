@@ -106,10 +106,11 @@ class ProductController extends BaseController
         $address = $request->post('address', '', 'trim');
         $product_id = $request->post('product_id', 1, 'intval');
         $number = $request->post('number', '', 'trim');
+        $type = $request->post('type', 1, 'intval');
         if($address == '' || $product_id <= 0 || $number <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = MyProduct::startInvestNow($address, $product_id, $number);
+        $result = MyProduct::startInvestNow($address, $product_id, $number, $type);
         if($result) {
             return $this->as_json($result);
         } else {
@@ -245,5 +246,19 @@ class ProductController extends BaseController
         } else {
             return $this->as_json(70001, 'Error');
         }
+    }
+    
+    /**
+     * 获取产品年化收益
+     * @author qinlh
+     * @since 2022-07-11
+     */
+    public function getCountAnnualizedIncome(Request $request) {
+        $product_id = $request->request('product_id', 0, 'intval');
+        if($product_id <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = DayNetworth::getCountAnnualizedIncome($product_id);
+        return $this->as_json($result);
     }
 }

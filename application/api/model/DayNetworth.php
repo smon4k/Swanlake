@@ -98,5 +98,20 @@ class DayNetworth extends Base {
         }
         return $count;
     }
+    
+    /**
+     * 获取产品总的年化收益
+     * @author qinlh
+     * @since 2022-07-11
+     */
+    public static function getCountAnnualizedIncome($product_id=0) {
+        $total_annualized_income = 0;
+        if($product_id > 0) {
+            $countNetworth = self::getCountNetworth($product_id); //获取总的净值
+            $dayNum = self::where('product_id', $product_id)->count();
+            $total_annualized_income = (($countNetworth - 1) / $dayNum) * 365;
+        }
+        return $total_annualized_income;
+    }
 
 }

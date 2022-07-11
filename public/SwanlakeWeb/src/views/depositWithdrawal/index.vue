@@ -1,106 +1,101 @@
 <template>
     <div 
-        class="app-container"
+        class="container"
     >
-        <van-nav-bar
-            title="充提"
-            left-text=""
-            right-text=""
-            left-arrow
-            @click-left="onClickSave"
-        />
-        <van-row class="container">
-            <van-col :span="24">
-                <van-tabs v-model="activeName" @click="handleClick" :stretch="true">
-                    <van-tab title="存入" name="1" :disabled="trading">
-                        <van-row class="balance">
-                            <van-col :span="24">
+        <el-row class="main">
+            <el-col :span="24">
+                <el-tabs v-model="activeName" @click="handleClick" type="border-card" :stretch="true">
+                    <el-tab-pane label="存入" name="1" :disabled="trading" :style="{padding: isMobel ? '0' : '50px'}">
+                        <el-row class="balance">
+                            <el-col :span="24">
                                 <div>
-                                    <span>平台余额：{{ Math.trunc(Number(gsBalance) + Number(csBalance)) }}</span>
+                                    <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }}</span>
                                     <br />
-                                    <span>钱包余额：{{ Math.trunc(Number(h2oBalance)) }}</span>
-                                    <!-- <span>GS Balance：{{gsBalance}}</span> -->
+                                    <span>钱包余额：{{ Math.trunc(Number(h2oBalance)) }} USDT</span>
+                                    <!-- <span>GS Balance：{{localBalance}}</span> -->
                                     <!-- <span v-else>GS Balance：<el-skeleton-item variant="text" style="width: 5%;" /></span> -->
                                 </div>
-                            </van-col>
-                            <!-- <van-col :span="24">
+                            </el-col>
+                            <!-- <el-col :span="24">
                                 <div>
                                     <div>
-                                        <span v-if="!isStatus && !isWithdraw">CS Balance：{{csBalance}}</span>
+                                        <span v-if="!isStatus && !isWithdraw">CS Balance：{{walletBalance}}</span>
                                         <span v-else>
                                             CS Balance：<span v-loading="true"></span>
                                             <span style="font-size:10px;color:#909399;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The transfer speed on the chain is slow, please be patient for 5 minutes. .</span>
                                         </span>
                                     </div>
                                 </div>
-                            </van-col> -->
-                        </van-row>
-                        <van-row>
-                            <van-col :span="24">
-                                <van-form ref="depositForm">
-                                    <van-field 
+                            </el-col> -->
+                        </el-row>
+                        <el-row>
+                            <el-col :span="24">
+                                <el-form :model="depositForm" ref="depositForm">
+                                    <el-input 
                                         type="number" 
                                         label="H2O:" 
                                         v-model="depositForm.amount" 
                                         placeholder="请输入充值金额" 
                                         onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))" 
                                         :rules="[{ validator: checkDepositAmount, message: '请输入正确内容' }]"
-                                        />
-                                    <van-row class="button-amount">
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(100)">100</van-button>
-                                        </van-col>
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(200)">200</van-button>
-                                        </van-col>
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(500)">500</van-button>
-                                        </van-col>
-                                    </van-row>
-                                    <van-row class="button-amount">
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(1000)">1000</van-button>
-                                        </van-col>
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(2000)">2000</van-button>
-                                        </van-col>
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(50000)">50000</van-button>
-                                        </van-col>
-                                    </van-row>
+                                        >
+                                            <template slot="prepend">USDT</template>
+                                        </el-input>
+                                    <el-row class="button-amount">
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(100)">100</el-button>
+                                        </el-col>
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(200)">200</el-button>
+                                        </el-col>
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(500)">500</el-button>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row class="button-amount">
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(1000)">1000</el-button>
+                                        </el-col>
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(2000)">2000</el-button>
+                                        </el-col>
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(50000)">50000</el-button>
+                                        </el-col>
+                                    </el-row>
                                     <div class="submit-name">
-                                        <van-button type="primary" :loading="trading" :disabled="trading" @click="startApprove" v-if="!approve">批准</van-button>
-                                        <van-button type="primary" :loading="trading" :disabled="trading || isStatus || isWithdraw" @click="submitForm('depositForm')" v-else>存入</van-button>
-                                        <!-- <van-button @click="resetForm('depositForm')">Cancel</van-button> -->
+                                        <el-button type="primary" :loading="trading" :disabled="trading" @click="startApprove" v-if="!approve">批准</el-button>
+                                        <el-button type="primary" :loading="trading" :disabled="trading || isStatus || isWithdraw" @click="submitForm('depositForm')" v-else>存入</el-button>
+                                        <!-- <el-button @click="resetForm('depositForm')">Cancel</el-button> -->
                                     </div>
-                                </van-form>
-                            </van-col>
-                        </van-row>
-                    </van-tab>
-                    <van-tab title="提取" name="2" :disabled="trading">
-                        <van-row class="balance">
-                            <van-col :span="24">
+                                </el-form>
+                            </el-col>
+                        </el-row>
+                    </el-tab-pane>
+                    <el-tab-pane label="提取" name="2" :disabled="trading" :style="{padding: isMobel ? '0' : '50px'}">
+                        <el-row class="balance">
+                            <el-col :span="24">
                                 <div>
-                                    <span>平台余额：{{ Math.trunc(Number(gsBalance) + Number(csBalance)) }}</span>
+                                    <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }}</span>
                                     <br />
-                                    <span>钱包余额：{{ Math.trunc(Number(h2oBalance)) }}</span>
-                                    <!-- <span>GS Balance：{{gsBalance}}</span> -->
+                                    <span>钱包余额：{{ Math.trunc(Number(h2oBalance)) }} USDT</span>
+                                    <!-- <span>GS Balance：{{localBalance}}</span> -->
                                 </div>
-                            </van-col>
-                            <!-- <van-col :span="24">
+                            </el-col>
+                            <!-- <el-col :span="24">
                                 <div>
-                                    <span v-if="!isStatus && !isWithdraw">CS Balance：{{csBalance}}</span>
+                                    <span v-if="!isStatus && !isWithdraw">CS Balance：{{walletBalance}}</span>
                                     <span v-else>
                                         CS Balance：<span :loading="true"></span>
                                         <span style="font-size:10px;color:#909399;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The transfer speed on the chain is slow, please be patient for 5 minutes. .</span>
                                     </span>
                                 </div>
-                            </van-col> -->
-                        </van-row>
-                        <van-row>
-                            <van-col :span="24">
-                                <van-form ref="withdrawForm">
-                                    <van-field 
+                            </el-col> -->
+                        </el-row>
+                        <el-row>
+                            <el-col :span="24">
+                                <el-form  :model="withdrawForm" ref="withdrawForm">
+                                    <el-input 
                                         label="H2O:" 
                                         type="number" 
                                         v-model="withdrawForm.amount" 
@@ -109,50 +104,52 @@
                                         :max="maxWithdrawableBalance()" 
                                         onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))" 
                                         :rules="[{ validator: checkWithdrawalAmount, message: '请输入正确内容' }]"
-                                    />
-                                    <van-row class="button-amount">
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(100)">100</van-button>
-                                        </van-col>
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(200)">200</van-button>
-                                        </van-col>
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(500)">500</van-button>
-                                        </van-col>
-                                    </van-row>
-                                    <van-row class="button-amount">
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(1000)">1000</van-button>
-                                        </van-col>
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(2000)">2000</van-button>
-                                        </van-col>
-                                        <van-col :span="8">
-                                            <van-button type="primary" plain @click="buttonAmount(50000)">50000</van-button>
-                                        </van-col>
-                                    </van-row>
+                                    >
+                                        <template slot="prepend">USDT</template>
+                                    </el-input>
+                                    <el-row class="button-amount">
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(100)">100</el-button>
+                                        </el-col>
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(200)">200</el-button>
+                                        </el-col>
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(500)">500</el-button>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row class="button-amount">
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(1000)">1000</el-button>
+                                        </el-col>
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(2000)">2000</el-button>
+                                        </el-col>
+                                        <el-col :span="8">
+                                            <el-button type="primary" plain @click="buttonAmount(50000)">50000</el-button>
+                                        </el-col>
+                                    </el-row>
                                     <div class="submit-name">
-                                        <van-button type="primary" :loading="trading" :disabled="trading" @click="startApprove" v-if="!approve">批准</van-button>
-                                        <van-button type="primary" :loading="trading" :disabled="trading || isStatus || isGame || isWithdraw" @click="submitForm('withdrawForm')" v-else>提取</van-button>
-                                        <!-- <van-button @click="resetForm('withdrawForm')">Cancel</van-button> -->
+                                        <el-button type="primary" :loading="trading" :disabled="trading" @click="startApprove" v-if="!approve">批准</el-button>
+                                        <el-button type="primary" :loading="trading" :disabled="trading || isStatus || isGame || isWithdraw" @click="submitForm('withdrawForm')" v-else>提取</el-button>
+                                        <!-- <el-button @click="resetForm('withdrawForm')">Cancel</el-button> -->
                                     </div>
-                                </van-form>
-                            </van-col>
-                        </van-row>
-                    </van-tab>
-                </van-tabs>
-            </van-col>
-        </van-row>
-        <van-overlay :show="trading">
+                                </el-form>
+                            </el-col>
+                        </el-row>
+                    </el-tab-pane>
+                </el-tabs>
+            </el-col>
+        </el-row>
+        <!-- <el-overlay :show="trading">
             <div class="wrapper">
-                <van-loading type="spinner" color="#1989fa" />
+                <el-loading type="spinner" color="#1989fa" />
             </div>
-        </van-overlay>
+        </el-overlay> -->
     </div>
 </template>
 <script>
-import axios from 'axios'
+import { get, post } from "@/common/axios.js";
 import { mapState } from "vuex";
 import { approve, gamesBuyTokenTogToken, gamesGTokenToBuyToken } from "@/wallet/trade";
 import {getBalance,isApproved, getGameFillingBalance, saveNotifyStatus, getGameFillingWithdrawStatus, setDepWithdrawStatus} from "@/wallet/serve";
@@ -163,8 +160,8 @@ export default {
   data() {
     return {
         activeName: "1",
-        gsBalance: 0, //打赏余额
-        csBalance: 0, //清算余额
+        localBalance: 0, //本地余额
+        walletBalance: 0, //清算余额
         isStatus: false, //是否可以充提 0：可以充提 1：不可以充提
         isGame: false, //是否打赏中 true： 打赏中 false：不在打赏中
         isGameInfoNum: 0, //正在打赏中 提示次数
@@ -205,10 +202,10 @@ export default {
                 }
             },
         },
-        changeData: {
+        isConnected: {
             immediate: true,
             async handler(val){
-                if(val.userId && val.address) {
+                if(val) {
                     await this.getIsApprove();
                     await this.getUserInfo();
                     await this.refreshData();
@@ -223,11 +220,12 @@ export default {
         gamesFillingAddress:state=>state.base.gamesFillingAddress,
         apiUrl:state=>state.base.nftUrl,
         userId:state=>state.base.userId,
+        isMobel:state=>state.comps.isMobel,
     }),
     changeData() {
-      const {userId,apiUrl,address} = this
+      const {apiUrl,address} = this
       return {
-        userId, apiUrl, address
+        apiUrl, address
       };
     }
   },
@@ -270,15 +268,15 @@ export default {
         }
     },
     async refreshData() {
-        // this.csBalance = await getGameFillingBalance(); //获取余额
+        // this.walletBalance = await getGameFillingBalance(); //获取余额
         this.timeInterval = setInterval(async() => {
-            this.csBalance = await getGameFillingBalance(); //获取余额
+            this.walletBalance = await getGameFillingBalance(); //获取余额
             this.h2oBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
-            // console.log(this.csBalance);
+            // console.log(this.walletBalance);
         }, this.refreshTime)
     },
     maxWithdrawableBalance() {
-        let num = Number(this.csBalance) + Number(this.gsBalance);
+        let num = Number(this.walletBalance) + Number(this.localBalance);
         return num;
     },
     async handleClick(tab, event) {
@@ -298,21 +296,35 @@ export default {
       });
     },
     startApprove() { //批准H2O
+        const loading = this.$loading({
+          lock: true,
+          text: 'transaction in progress',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
       this.trading = true;
       approve(Address.BUSDT, this.gamesFillingAddress).then((hash) => {
         // console.log(result);
+        loading.close();
         if(hash) {
           this.approve = true;
           this.trading = false;
         }
       }).finally(() => {
+        loading.close();
         this.trading = false;
       });
     },
     async submitForm(formName) {//1. 提交调用合约
         // console.log(this.$refs[formName]);
-        this.$refs[formName].validate().then(async ()=>{
-          if (!this.trading) {
+        this.$refs[formName].validate(async (valid) => {
+          if (valid) {
+            const loading = this.$loading({
+                lock: true,
+                text: 'transaction in progress',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
             this.trading = true;
             let amount = 0;
             let contractName = '';
@@ -327,7 +339,7 @@ export default {
                 amount = this.depositForm.amount;
                 contractName = gamesBuyTokenTogToken;
             } else { //提取
-                await this.getIsInTheGame(); //检测是否在打赏中 提示信息
+                // await this.getIsInTheGame(); //检测是否在打赏中 提示信息
                 if(this.isGame) {
                     this.trading = false;
                     return false;
@@ -354,10 +366,11 @@ export default {
             //     // this.resetForm('withdrawForm');
             // }
             contractName(amount, Address.BUSDT).then(async (hash) => {
+                loading.close();
                 if(hash) {
                     if(this.activeName == 1) {//充值的话 二次检测是否充值成功
                         await this.setDepositWithdraw(amount, hash);
-                        await this.getGameFillingBalanceFun(this.activeName, amount, hash);
+                        await this.getGameFillingBalanceFun(this.activeName, hash);
                     } else { //提取的话 不二次检测是否充值成功 异步机器人扣除 这里直接写入数据库记录
                         await this.setDepositWithdraw(amount, hash);
                         // this.trading = false;
@@ -366,6 +379,7 @@ export default {
                     }
                 }
             }).finally(() => {
+                loading.close();
                 // saveNotifyStatus(0);
                 this.trading = false;
             });
@@ -373,9 +387,6 @@ export default {
             console.log('error submit!!');
             return false;
           }
-        }).catch(err => {
-            console.log('error submit!!');
-            return false;
         });
     },
     async setDepositWithdraw(amount, hash='') { // 记录数据库记录
@@ -385,15 +396,15 @@ export default {
         // } else {
         //     amount = this.withdrawForm.amount;
         // }
-        await axios.post(this.apiUrl + '/h2omarketplace/Reward/depositWithdraw', {
+        post('/Api/DepositWithdrawal/depositWithdraw', {
             amount: Number(amount),
             address: this.address,
             userId: this.userId,
             type: Number(this.activeName),
-            gsBalance: this.gsBalance,
-            csBalance: this.csBalance,
+            local_balance: this.localBalance,
+            wallet_balance: this.walletBalance,
             hash: hash
-        }).then((json) => {
+        }, (json) => {
             if (json && json.code == 10000) {
                 this.getUserInfo(true);
                 if(this.activeName == 1) {
@@ -406,21 +417,18 @@ export default {
                 this.$notify({ type: 'success', message: this.activeName == 1 ? '存款成功' : '提取成功' });
             } else {
                 this.trading = false;
-                this.$notify({ type: 'danger', message: error });
+                this.$notify({ type: 'warning', message: error });
             }
             return;
-        }).catch((error) => {
-            console.log(error);
-            this.$notify({ type: 'danger', message: error });
         });
     },
     async getGameFillingBalanceFun(deWithId, hash) { //2. 获取合约中充提绝对余额 检测是否充提成功
         // let repeat = 5;
         // let actualBalance = 0;
         // if(type == 1) {
-        //     actualBalance = Number(this.gsBalance) + Number(this.csBalance) + Number(amount)
+        //     actualBalance = Number(this.localBalance) + Number(this.walletBalance) + Number(amount)
         // } else {
-        //     actualBalance = Number(this.gsBalance) + Number(this.csBalance) - Number(amount)
+        //     actualBalance = Number(this.localBalance) + Number(this.walletBalance) - Number(amount)
         // }
         let depositTimer = setInterval(async () => {
             let receipt = await web3.eth.getTransactionReceipt(hash);
@@ -448,16 +456,16 @@ export default {
         let withdrawTimer = setInterval(async () => {
             if(withdrawId) {
                 let withdrawStatus = await getGameFillingWithdrawStatus(withdrawId);
-                // console.log(withdrawStatus);
+                console.log(withdrawStatus);
                 if(withdrawStatus) {
                     // await this.getUserInfo(true); //更新用户信息
                     clearInterval(withdrawTimer);
-                    saveNotifyStatus(0, true); //通知GS更新余额
+                    await saveNotifyStatus(0, true); //通知GS更新余额
                     setTimeout(async () => {
-                        this.csBalance = await getGameFillingBalance(); //重新获取一次余额
+                        this.walletBalance = await getGameFillingBalance(); //重新获取一次余额
                         this.isWithdraw = false;
                         this.isStatus = false;
-                    }, 10000) //停2秒
+                    }, 300) //停2秒
                 }
             }
         }, 5000);
@@ -467,8 +475,8 @@ export default {
         this.trading = false;
     },
     allBlanceFun() { //全部余额
-        if(this.gsBalance > 0 || this.csBalance > 0) {
-            this.withdrawForm.amount = Number(this.gsBalance) + Number(this.csBalance);
+        if(this.localBalance > 0 || this.walletBalance > 0) {
+            this.withdrawForm.amount = Number(this.localBalance) + Number(this.walletBalance);
             return true;
         }
         return false;
@@ -481,16 +489,13 @@ export default {
         return false;
     },
     async getUserInfo(isHint=false) { //获取用户信息
-        axios.get(this.apiUrl + "/h2omarketplace/Reward/getUserInfo", {
-            params: {
-              userId: this.userId,
-              address: this.address,
-            }
-        }).then(async (json) => {
+        get("/Api/DepositWithdrawal/getFillingRecordUserInfo", {
+            address: this.address,
+        }, async json => {
             console.log(json);
             if (json.code == 10000) {
-                this.gsBalance = keepDecimalNotRounding(json.data.gsBalance, 2, true);
-                // this.csBalance = json.data.csBalance;
+                this.localBalance = keepDecimalNotRounding(json.data.local_balance, 2, true);
+                // this.walletBalance = json.data.walletBalance;
                 this.isGame = json.data.isGame;
                 if(!isHint && json.data.isGame) {
                     this.$notify({
@@ -500,9 +505,9 @@ export default {
                     });
                 }
                 console.log('是否打赏中：', this.isGame);
-                this.csBalance = await getGameFillingBalance(); //获取合约余额
-                console.log('CS余额：', this.csBalance);
-                this.isStatus = json.data.status == 1 ? true : false;
+                this.walletBalance = await getGameFillingBalance(); //获取合约余额
+                console.log('链上余额：', this.walletBalance);
+                this.isStatus = json.data.dw_status == 1 ? true : false;
                 this.isWithdraw = json.data.isDeWith; //是否充提中
                 console.log('是否充提中：', this.isStatus, this.isWithdraw);
                 if(json.data.dw_status == 1 || json.data.isDeWith) { //有交易正在执行中 不能进行充提操作
@@ -526,17 +531,14 @@ export default {
             } else {
                 console.log("get Data error");
             }
-        }).catch((error) => {
-            console.log(error);
-            this.$notify({ type: 'danger', message: error });(error);
-        });
+        })
     },
-    async getIsInTheGame() { //获取是否打赏中 调用GS第三方接口获取
-        await axios.get(this.apiUrl + "/h2omarketplace/Reward/getIsGameOrNot", {
+    async getIsInTheGame() { //获取是否打赏中 调用GS第三方接口获取 暂时不使用
+        get("/api/DepositWithdrawal/getIsGameOrNot", {
             params: {
               address: this.address
             }
-        }).then(async (json) => {
+        }, async (json) => {
             // console.log(json);
             if (json.code == 10000) {
                 this.isGame = json.data;
@@ -558,17 +560,13 @@ export default {
                 console.log("get Data error");
             }
             return false;
-        }).catch((error) => {
-            this.$notify({ type: 'danger', message: error });(error);
-        });
+        })
     },
     async getIsInTradeProgress() { //实时 获取是否有交易正在进行中
-        await axios.get(this.apiUrl + "/h2omarketplace/Reward/getIsInTradeProgress", {
-            params: {
-              address: this.address,
-              userId: this.userId,
-            }
-        }).then(async (json) => {
+        get("/Api/DepositWithdrawal/getIsInTradeProgress", {
+            address: this.address,
+            userId: this.userId,
+        }, async (json) => {
             console.log(json);
             if (json.code == 10000) {
                 this.isStatus = json.data.status;
@@ -587,8 +585,6 @@ export default {
                 console.log("get Data error");
             }
             return false;
-        }).catch((error) => {
-            this.$notify({ type: 'danger', message: error });
         });
     },
     buttonAmount(value) { //选中按钮选择数量
@@ -606,8 +602,13 @@ export default {
   },
 };
 </script>
+<style>
+    .el-loading-mask {
+        border-radius: 0 !important; 
+    }
+</style>
 <style lang="scss" scoped>
-.app-container {
+.container {
     /deep/ {
         div {
             min-height: 0;
@@ -620,69 +621,77 @@ export default {
             -webkit-appearance: none;
             margin: 0;
         }
-        height: 100vh;
-        .container {
+        // height: 100vh;
+        .main {
             border-radius: 20px !important;
-            background-color: #F6F6F6 !important;
+            // background-color: #fff !important;
             // width: 80%;
             height: 80vh;
-            padding: 20px;
+            // padding: 20px;
             text-align: center;
             margin: 0 auto;
             // margin-top: 35px;
-            .van-form {
+            .el-form {
                 margin-top: 15px;
             }
-            .van-form-item {
+            .el-form-item {
                 // height: 50px;
             }
-            .van-tabs__item {
+            .el-tabs__content {
+                // padding: 50px;
+            }
+            .el-tabs__item {
                 height: 60px;
                 line-height: 60px;
-                font-size: 20px;
+                font-size: 16px;
                 font-weight: 800;
                 // color: #fff;
                 // @include mainFont($color-mainFont-light);
             }
-            .van-tabs__item.is-active {
+            .el-tabs__item.is-active {
                 color: #409EFF;
             }
-            .van-loading-spinner {
+            .el-loading-spinner {
                 margin-top: -11px;
                 .circular {
                     width: 20px;
                     height: 20px;
                 }
             }
-            .van-form-item__label {
+            .el-form-item__label {
                 color: #fff;
                 // @include mainFont($color-mainFont-light);
             }
-            .van-field {
+            .el-input {
                 // background-color: #333257;
                 // color: #fff;
                 // border: 1px solid #333257;
                 // padding: 0 10px;
                 font-size: 16px;
-                .van-field__label {
+                .el-input__label {
                     width: 50px;
                     margin-right: 0;
                     // text-align: right;
                 }
             }
-            .van-input__inner {
-                background-color: #333257;
+            .el-input__inner {
+                // background-color: #333257;
                 // color: #fff;
-                border: 1px solid #333257;
-                padding: 0;
+                // border: 1px solid #333257;
+                padding: 10px;
                 height: 50px;
                 line-height: 50px;
                 font-size: 16px;
             }
-            .van-input-group__append button.van-button {
+            .el-input-group__prepend {
+                background-color: #F5F7FA !important;
+                color: #333 !important;
+                border: 1px solid #DCDFE6 !important;
+            }
+            .el-input-group__append button.el-button {
                 color: #409EFF;
             }
-            .van-input-group__append, .van-input-group__prepend {
+            .el-input-group__append, .el-input-group__prepend {
                 background-color: #333257;
                 color: #fff;
                 border: 1px solid #333257;
@@ -695,41 +704,43 @@ export default {
                 // color: #fff;
                 // @include mainFont($color-mainFont-light);
             }
-            .van-button {
+            .el-button {
                 border-radius: 30px;
                 width: 100px;
                 border: 0;
             }
             .button-amount {
-                line-height: 50px;
-                .van-button--primary.is-plain {
-                    background: #8481e0;
+                margin-top: 30px;
+                line-height: 30px;
+                .el-button--primary.is-plain {
+                    background: #3ab293;
                     color: #fff;
                 }
-                .van-button {
+                .el-button {
                     border-radius: 5px;
                 }
-                .van-button::after {
+                .el-button::after {
                     background-color: #409EFF !important;
                 }
-                .van-button:focus,.van-button:hover {
-                    background-color: #ff976a !important;
+                .el-button:focus,.el-button:hover {
+                    background-color: #409EFF !important;
                     color: #fff;
                 }
             }
             .submit-name {
-                margin-top: 20px;
-                .van-button--primary {
+                margin-top: 30px;
+                .el-button--primary {
                     width: 200px;
-                    border-radius: 5px;
-                    background-color: #ff976a;
+                    height: 50px;
+                    border-radius: 50px;
+                    background-color: #409EFF;
                     border: 0;
                 }
-                .van-button--primary.is-disabled {
+                .el-button--primary.is-disabled {
                     background: #c8c9cc;
                     color: #fff;
                 }
-                .van-loading-mask {
+                .el-loading-mask {
                     border-radius: 5px;
                     background-color: rgba(0,0,0,0.8);
                     border: 0;

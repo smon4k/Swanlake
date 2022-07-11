@@ -1,8 +1,10 @@
 import {  fromWei , toWei , toolNumber , toFixed, byDecimals, keepDecimalNotRounding, scientificNotationToString} from '@/utils/tools'
 // import { $get } from '@/utils/request'
 import  tokenABI from './abis/token.json'
+import gameFillingABI from './abis/gameFillingABI.json'
 
-import { get } from "@/common/axios.js";
+import { get, post } from "@/common/axios.js";
+import { $get } from '@/utils/request'
 import axios from 'axios'
 import { getUrlParams, getQueryString } from '@/utils/tools'
 import router from '@/router'
@@ -44,7 +46,7 @@ import router from '@/router'
       userId: userId,
       address: address,
     };
-    await axios.post(apiUrl + '/api/User/saveUserInfo', params).then(async (json) => {
+    await post('/Api/User/saveUserInfo', params, async (json) => {
       console.log(json);
       if (json && json.code == 10000) {
         result = true;
@@ -55,10 +57,7 @@ import router from '@/router'
           // Notify({ type: 'warning', message: 'Error' });
           result = false;
       }
-    }).catch((error) => {
-      // Notify({ type: 'danger', message: error });
-      result = false;
-    });
+    })
   }
   return result;
 }
@@ -132,22 +131,22 @@ export async function getGameFillingBalance(decimals=18) {
 export const saveNotifyStatus = async function(status, type=true){
   const apiUrl = __ownInstance__.$store.state.base.nftUrl;
   const address = __ownInstance__.$store.state.base.address;
-  await $get(apiUrl + '/h2omarketplace/Reward/saveNotifyStatus?address='+address+'&status='+status+'&type='+type);
+  await $get('/Api/DepositWithdrawal/saveNotifyStatus?address='+address+'&status='+status+'&type='+type);
 }
 
 //获取游戏-充提系统-修改充提记录日志状态
 export const setDepWithdrawStatus = async function(deWithId, status, type=true){
   const apiUrl = __ownInstance__.$store.state.base.nftUrl;
   const address = __ownInstance__.$store.state.base.address;
-  await $get(apiUrl + '/h2omarketplace/Reward/setDepWithdrawStatus?address='+address+'&deWithId='+deWithId+'&status='+status+'&type='+type);
+  await $get('/Api/DepositWithdrawal/setDepWithdrawStatus?address='+address+'&deWithId='+deWithId+'&status='+status+'&type='+type);
 }
 
 //获取游戏-充提系统-监听充提状态是否执行完成
 export const getGameFillingWithdrawStatus = async function(withdrawId){
   const apiUrl = __ownInstance__.$store.state.base.nftUrl;
   const address = __ownInstance__.$store.state.base.address;
-  let data = await $get(apiUrl + '/h2omarketplace/Reward/getGameFillingWithdrawStatus?address='+address+'&withdrawId='+withdrawId);
   let status = 0;
+  let data = await $get('/Api/DepositWithdrawal/getGameFillingWithdrawStatus?address='+address+'&withdrawId='+withdrawId);
   if(data && data.code == 10000) {
     status = data.data;
   }

@@ -50,6 +50,9 @@
                     prop="year_rate"
                     label="年化收益率"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.year_rate || 0, 4) }}</span>
+                    </template>
                 </el-table-column>
                 <el-table-column
                 fixed="right"
@@ -87,7 +90,7 @@
                 <el-descriptions-item label="净值">{{ toFixed(item.buy_networth || 0, 2) }}</el-descriptions-item>
                 <el-descriptions-item label="昨日收益">{{ item.yest_income }}</el-descriptions-item>
                 <el-descriptions-item label="总收益率">{{ item.total_rate }}</el-descriptions-item>
-                <el-descriptions-item label="年化收益率">{{ item.year_rate }}</el-descriptions-item>
+                <el-descriptions-item label="年化收益率">{{ toFixed(scope.row.year_rate || 0, 4) }}</el-descriptions-item>
                 <el-descriptions-item>
                     <div class="operate">
                         <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>

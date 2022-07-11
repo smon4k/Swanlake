@@ -1,2 +1,10 @@
-<?php if (!defined('THINK_PATH')) exit(); /*a:1:{s:72:"/home/wwwroot/Swanlake/public/../application/index/view/index/index.html";i:1657014571;}*/ ?>
-<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><link rel="shortcut icon" type=image/x-icon href=./favicon.ico><script type=text/javascript src=/static/web3model/web3model.js></script><script type=text/javascript src=/static/web3model/walletconnect-web3-provider.js></script><title>H2OFinance</title><link href="/H2OMedia/dist/static/css/app.css?v=1657014527122" rel=stylesheet></head><body><div id=app></div><script type=text/javascript src=/H2OMedia/dist/static/js/manifest.42a14f8d8e446af2375a.js></script><script type=text/javascript src=/H2OMedia/dist/static/js/vendor.6a0ea947085cc144875f.js></script><script type=text/javascript src=/H2OMedia/dist/static/js/app.7a598788c62f2ebc34b8.js></script></body></html>
+<?php if (!defined('THINK_PATH')) exit(); /*a:1:{s:72:"/home/wwwroot/Swanlake/public/../application/index/view/index/index.html";i:1657537752;}*/ ?>
+<!DOCTYPE html><html lang=""><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" type=image/x-icon href=./favicon.ico><script type=text/javascript src=./static/web3model/web3model.js></script><script type=text/javascript src=./static/web3model/walletconnect-web3-provider.js></script><title>H2OFinance</title><script>!function () {
+        var devices = ["iPhone","Android","Windows Phone"]
+        var ua = window.navigator.userAgent
+        for (var i = 0; i < devices.length; i++) {
+        if (ua.indexOf(devices[i]) != -1) {
+          // window.location.href = 'https://jason-lvlv.github.io/M-H2O/index.html'
+          }
+        }
+      }()</script><link href="/SwanlakeWeb/dist/static/css/app.css?v=1657537722503" rel=stylesheet></head><body><noscript><strong>We're sorry but Webpack App doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id=app></div><script type=text/javascript src=/SwanlakeWeb/dist/static/js/manifest.54a4bbccd95d84548c8f.js></script><script type=text/javascript src=/SwanlakeWeb/dist/static/js/vendor.e4025d7fb2f6a02078e5.js></script><script type=text/javascript src=/SwanlakeWeb/dist/static/js/app.bcf5911efc6a44a5a793.js></script></body></html>

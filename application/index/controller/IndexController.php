@@ -8,8 +8,8 @@ class IndexController extends Controller
 {
     public function index()
     {
-        return 'Hello Swanlake API';
-        // return $this->fetch();
+        // return 'Hello Swanlake API';
+        return $this->fetch();
     }
 
     public function test()

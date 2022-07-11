@@ -15,6 +15,7 @@ namespace app\api\controller;
 use app\api\model\Notes;
 use app\api\model\User;
 use app\api\model\FillingRecord;
+use app\api\model\MyProduct;
 use think\Request;
 use think\Cookie;
 use think\Config;
@@ -44,25 +45,30 @@ class UserController extends BaseController
      */
     public function getUserInfo(Request $request)
     {
-        // $address = $request->request('address', '', 'trim');
-        $userId = $request->request('userId', 0, 'intval');
-        if ($userId <= 0) {
+        $address = $request->request('address', '', 'trim');
+        if ($address == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = User::getUserInfo($userId);
-        if($result) {
-            $liked_num = Notes::getUserLikedNum($result['id']);
-            $favorite_num = Notes::getUserFavoriteNum($result['id']);
+        $userInfo = User::getUserAddressInfo($address);
+        if($userInfo) {
             // p($favorite_num);
-            $result['liked_favorite_number'] = (float)$liked_num + (float)$favorite_num;
-            if($result['address'] !== '' && (float)$result['wallet_balance'] <= 0) {
-                $rewardBalance = User::getUserContractBalance($result['address']);
+            if($userInfo || (float)$userInfo['wallet_balance'] <= 0) {
+                $rewardBalance = User::getUserContractBalance($userInfo['address']);
                 if ($rewardBalance) {
-                    $result['wallet_balance'] = $rewardBalance;
+                    $userInfo['wallet_balance'] = $rewardBalance;
                     @User::resetUserRewardBalance($address, $rewardBalance);
                 }
             }
-            return $this->as_json($result);
+            $userInfo['total_invest'] = 0;
+            $userInfo['total_number'] = 0;
+            $UserTotalInvest = MyProduct::getUserTotalInvest($userInfo['id']);
+            if($UserTotalInvest) {
+                $userInfo['total_invest'] = $UserTotalInvest['total_invest'];
+                $userInfo['total_number'] = $UserTotalInvest['total_number'];
+            }
+            $cumulativeIncomeRes = MyProduct::getAllCumulativeIncome($userInfo['id']);
+            $userInfo['cumulative_income'] = $cumulativeIncomeRes;
+            return $this->as_json($userInfo);
         } else {
             return $this->as_json(70001, '添加失败');
         }

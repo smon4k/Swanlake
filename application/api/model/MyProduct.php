@@ -9,12 +9,15 @@ class MyProduct extends Base {
 
     /**
      * 开始投资
+     * @param [$address 钱包地址]
+     * @param [$product_id 产品id]
      * @param [$number 份额]
+     * @param [$type 1：投注 2：赎回]
      * @author qinlh
      * @since 2022-07-08
      */
-    public static function startInvestNow($address='', $product_id=0, $number=0) {
-        if($address !== '' || $product_id > 0 || $number > 0) {
+    public static function startInvestNow($address='', $product_id=0, $number=0, $type=0) {
+        if($address !== '' || $product_id > 0 || $number > 0 && $type > 0) {
             $userId = User::getUserAddress($address);
             self::startTrans();
             try {
@@ -28,15 +31,26 @@ class MyProduct extends Base {
                     $buy_number = (float)$networth > 0 ? (float)$number * (float)$networth : (float)$number; //计算购买数量
                     $myProduct = self::getMyProduct($product_id, $userId);
                     $insertId = 0;
-                    if ($myProduct && count((array)$myProduct) > 0) { //不存在添加
+                    if ($myProduct && count((array)$myProduct) > 0) { //已存在 进行更新数据
                         // $insertId = $myProduct['id'];
-                        $update = [
-                            'total_invest' => (float)$myProduct['total_invest'] + (float)$buy_number,
-                            'total_number' => (float)$myProduct['total_number'] + (float)$number,
-                            'up_time' => date('Y-m-d H:i:s')
-                        ];
+                        if($type == 1) { //投注
+                            $update = [
+                                'total_invest' => (float)$myProduct['total_invest'] + (float)$buy_number,
+                                'total_number' => (float)$myProduct['total_number'] + (float)$number,
+                                'up_time' => date('Y-m-d H:i:s')
+                            ];
+                        } else { //赎回
+                            $update = [
+                                'total_invest' => (float)$myProduct['total_invest'] - (float)$buy_number,
+                                'total_number' => (float)$myProduct['total_number'] - (float)$number,
+                                'up_time' => date('Y-m-d H:i:s')
+                            ];
+                        }
                         $res = self::where('id', $myProduct['id'])->update($update);
-                    } else { //已存在 进行更新数据
+                    } else {  //不存在 添加
+                        if($type == 2) {
+                            return false;
+                        }
                         $insertData = [
                             'product_id' => $product_id,
                             'uid' => $userId,
@@ -50,9 +64,13 @@ class MyProduct extends Base {
                     }
                     if($res) {
                         // $userBalance = (float)$networth > 0 ? (float)$number * (float)$networth : $number;
-                        $isUserBalance = User::setUserLocalBalance($address, $buy_number, 2);
+                        if($type == 1) { //投注
+                            $isUserBalance = User::setUserLocalBalance($address, $buy_number, 2); //扣除用户余额
+                        } else {//赎回
+                            $isUserBalance = User::setUserLocalBalance($address, $buy_number, 1); //增加用户余额
+                        }
                         if($isUserBalance) {
-                            $orderLog = ProductOrder::setProductOrder($userId, $product_id, $buy_number, $number, $networth, $type=1);
+                            $orderLog = ProductOrder::setProductOrder($userId, $product_id, $buy_number, $number, $networth, $type);
                             if($orderLog) {
                                 self::commit();
                                 return true;
@@ -122,9 +140,15 @@ class MyProduct extends Base {
      * @author qinlh
      * @since 2022-07-09
      */
-    public static function getNewsBuyAmount($product_id=0) {
+    public static function getNewsBuyAmount($product_id=0, $userId=0) {
         if($product_id > 0) {
-            $sql = "SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE product_id = {$product_id}";
+            $sql = "SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1 ";
+            if($product_id) {
+                $sql .= " AND product_id = {$product_id}";
+            }
+            if($userId) {
+                $sql .= " AND uid = {$userId}";
+            }
             $data = self::query($sql);
             // p($data);
             $count_total_number = 0; //总的份数
@@ -150,6 +174,26 @@ class MyProduct extends Base {
                 'today_net_worth' => $today_net_worth //今日最新净值
             ];
         } 
+    }
+    
+    /**
+     * 获取用户总的投注数量几购买总份数
+     * @author qinlh
+     * @since 2022-07-11
+     */
+    public static function getUserTotalInvest($userId=0) {
+        if($userId > 0) {
+            $sql = "SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid={$userId} ";
+            $data = self::query($sql);
+            $total_invest = 0;
+            $total_number = 0;
+            if($data && count((array)$data) > 0) {
+                $total_invest = $data[0]['total_invest'];
+                $total_number = $data[0]['total_number'];
+            }
+            return ['total_invest' => $total_invest, 'total_number' => $total_number];
+        }
+        return [];
     }
 
     /**
@@ -245,5 +289,27 @@ class MyProduct extends Base {
             self::rollback();
             return false;
         }
+    }
+    
+    /**
+     * 获取用户累计收益
+     * @author qinlh
+     * @since 2022-07-11
+     */
+    public static function getAllCumulativeIncome($userId=0) {
+        if($userId > 0) {
+            $data = self::where('uid', $userId)->select()->toArray();
+            if($data && count((array)$data) > 0) {
+                $cumulative_income = 0; //累计收益
+                foreach ($data as $key => $val) {
+                    $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['product_id']);
+                    $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
+                    $amountRes = self::getNewsBuyAmount($val['product_id']);
+                    $cumulative_income += ($val['total_number'] * $toDayNetworth) - $val['total_invest']; //累计收益 = 总结余（总的份数 * 最新净值） - 总投资；
+                }
+            }
+            return $cumulative_income;
+        }
+        return 0;
     }
 }

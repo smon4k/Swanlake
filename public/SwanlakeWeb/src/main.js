@@ -51,10 +51,10 @@ Vue.config.productionTip = false
 i18next.use(XHR).use(LngDetector).init({
   // lng: 'en', // 设定语言
   fallbackLng: 'en', // 默认语言包
-  ns: ['public', 'airdrops', 'nav', 'mysteryBox', 'pools', 'vault', 'stake', 'farms', 'portfolio', 'referral', 'claim', 'swap', 'liquidity', 'subscribe', 'liquidation', 'whitelist'],
+  ns: ['public', 'nav'],
   defaultNS: 'public',
   backend: {
-      loadPath: 'static/locales/{{lng}}/{{ns}}.json'
+      loadPath: '../static/locales/{{lng}}/{{ns}}.json'
   },
   detection: {
       // order and from where user language should be detected

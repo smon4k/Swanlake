@@ -112,14 +112,15 @@ class User extends Base
      * @author qinlh
      * @since 2022-03-18
      */
-    public static function getUserAddressInfo($address='', $invite_address='')
+    public static function getUserAddressInfo($address='')
     {
         if ($address && $address !== '') {
             $userinfo = self::where('address', $address)->find();
             if ($userinfo && count((array)$userinfo) > 0) {
                 return $userinfo->toArray();
             } else {
-                $userinfo = self::insertUserData($address, $invite_address);
+                // $userinfo = self::insertUserData($address, $invite_address);
+                $userinfo = self::insertUserData($address);
                 return $userinfo;
             }
         }
@@ -166,9 +167,9 @@ class User extends Base
                 ];
                 $userId = self::insertGetId($insertData);
                 if($userId > 0) {
-                    if($invite_address && $invite_address !== '') { //如果含有邀请人地址的话 创建推荐关系
-                        self::createRecommend($userId, $invite_address);
-                    } 
+                    // if($invite_address && $invite_address !== '') { //如果含有邀请人地址的话 创建推荐关系
+                    //     self::createRecommend($userId, $invite_address);
+                    // } 
                     self::commit();
                     $insertData['id'] = $userId;
                     return $insertData;
@@ -356,6 +357,50 @@ class User extends Base
             $balance = (float)$wallet_balance + (float)$local_balance;
         }
         return $balance;
+    }
+
+    /**
+     * 获取用户信息
+     * 获取用户余额
+     * 获取用户是否有提取进行中的记录
+     * 获取用户是否打赏中
+     * @author qinlh
+     * @since 2022-03-18
+     */
+    public static function getRewardUserInfo($address='')
+    {
+        if ($address !== '') {
+            $result = [];
+            $userinfo = self::where('address', $address)->find();
+            if ($userinfo && count($userinfo) > 0) {
+                $result = $userinfo->toArray();
+            } else {
+                $userinfo = self::insertUserData($address);
+                $result = $userinfo;
+            }
+            $result['status'] = $userinfo['dw_status'];
+            if ($result && count($result) > 0) {
+                $resBlanceArr = FillingRecord::getUserBalance($address);
+                // p($resBlanceArr);
+                $result['gsBalance'] = $resBlanceArr['gsBalance'];
+                $result['csBalance'] = $resBlanceArr['csBalance'];
+                // $result['isGame'] = self::getIsInTheGame($address);
+                $isDeWithdrawRes = FillingRecord::getUserIsInWithdraw($address); //是否充提中的记录
+                $result['isDeWith'] = false; //是否充提中的记录
+                $result['isDeWithStatusId'] = 0; //正在充提中的状态id
+                $result['isDeWithType'] = '';
+                $result['isDeWithHash'] = '';
+                // p($isDeWithdrawRes);
+                if ($isDeWithdrawRes && count($isDeWithdrawRes) > 0) {
+                    $result['isDeWith'] = true;
+                    $result['isDeWithStatusId'] = $isDeWithdrawRes['id'];
+                    $result['isDeWithType'] = $isDeWithdrawRes['type'];
+                    $result['isDeWithHash'] = $isDeWithdrawRes['hash'];
+                }
+                return $result;
+            }
+        }
+        return [];
     }
     
 }

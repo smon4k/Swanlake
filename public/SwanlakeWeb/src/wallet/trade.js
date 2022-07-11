@@ -2,6 +2,8 @@
 import {  fromWei , toWei } from '@/utils/tools'
 import { toolNumber } from '@/utils/tools'
 import  tokenABI from './abis/token.json'
+import gameFillingABI from './abis/gameFillingABI.json'
+import {saveNotifyStatus} from "@/wallet/serve";
 
 // 领取空投奖励
 

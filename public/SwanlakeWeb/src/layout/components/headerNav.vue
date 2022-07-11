@@ -185,13 +185,17 @@ export default {
                     name: '理财产品',
                     path: "/financial/product",
                 },
-                {
-                    name: '资金监控',
-                    path: "/fund/monitoring",
-                },
+                // {
+                //     name: '资金监控',
+                //     path: "/fund/monitoring",
+                // },
                 {
                     name: '净值配置',
                     path: "/day/networth",
+                },
+                {
+                    name: '充提',
+                    path: "/depositWithdrawal",
                 },
             ]
         }

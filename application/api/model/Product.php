@@ -4,7 +4,8 @@ namespace app\api\model;
 
 use think\Model;
 
-class Product extends Base {
+class Product extends Base
+{
 
     /**
      * 获取产品列表数据
@@ -35,10 +36,12 @@ class Product extends Base {
             $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['id']);
             $toDayNetworth = $NewTodayYesterdayNetworth['toDayData']; //今日最新净值
             $yestDayNetworth = $NewTodayYesterdayNetworth['yestDayData']; //昨日净值
-            if($NewsBuyAmount['count_buy_number'] && $toDayNetworth && $yestDayNetworth) {
+            if ($NewsBuyAmount['count_buy_number'] && $toDayNetworth && $yestDayNetworth) {
                 $yest_income = ((float)$toDayNetworth - (float)$yestDayNetworth) * $NewsBuyAmount['count_buy_number'];
                 $lists[$key]['yest_income'] = $yest_income;
             }
+            $annualizedIncome = DayNetworth::getCountAnnualizedIncome($val['id']); //获取年化收益
+            $lists[$key]['annualized_income'] = $annualizedIncome;
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
@@ -55,20 +58,41 @@ class Product extends Base {
             $data = self::where('id', $product_id)->find();
             if ($data) {
                 $DayNetworth = DayNetworth::getDayNetworth($product_id);
-                if($DayNetworth) {
+                $data['networth'] = 0;
+                if ($DayNetworth) {
                     $data['networth'] = $DayNetworth['networth'];
                 }
-                $userId = User::getUserAddress($address);
-                $isBet = MyProduct::getMyProduct($product_id, $userId);
-                if($isBet) {
-                    $data['is_bet'] = 1;
-                } else {
-                    $data['is_bet'] = 0;
+                $userInfo = User::getUserAddressInfo($address);
+                $data['balance'] = 0;
+                if ($userInfo && count((array)$userInfo) > 0) {
+                    $data['balance'] = (float)$userInfo['wallet_balance'] + (float)$userInfo['local_balance'];
                 }
+                $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($product_id);
+                $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
+                $yestDayNetworth = (float)$NewTodayYesterdayNetworth['yestDayData']; //昨日净值
+                $amountRes = MyProduct::getNewsBuyAmount($product_id);
+                $data['daily_income'] = 0;
+                if ($amountRes) {
+                    $data['daily_income'] = ($toDayNetworth - $yestDayNetworth) * (float)$amountRes['count_buy_number'];
+                }
+                $UserTotalInvest = MyProduct::getUserTotalInvest($userInfo['id']);
+                $data['total_invest'] = 0;
+                $data['total_number'] = 0;
+                if($UserTotalInvest) {
+                    $data['total_invest'] = $UserTotalInvest['total_invest'];
+                    $data['total_number'] = $UserTotalInvest['total_number'];
+                }
+                $annualizedIncome = DayNetworth::getCountAnnualizedIncome($product_id); //获取年化收益
+                $data['annualized_income'] = $annualizedIncome;
+                // $isBet = MyProduct::getMyProduct($product_id, $userId);
+                // if($isBet) {
+                //     $data['is_bet'] = 1;
+                // } else {
+                //     $data['is_bet'] = 0;
+                // }
                 return $data;
             }
         }
         return [];
     }
-
 }

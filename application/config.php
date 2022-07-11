@@ -269,8 +269,8 @@ return [
     'auth_code' => "H2OMedia", //微信公众号access_token key值
     // 'h2o_img_path' => '/home/wwwroot/bitguru-api/public/upload/metadata', //h2o
     //系统域名
-    'www_reptile'   => '192.168.1.3:8010',
-    'www_reptile_game_filling'   => '192.168.1.3:8011', // 获取充提余额
+    'www_reptile'   => '192.168.1.5:8010',
+    'www_reptile_game_filling'   => '192.168.1.5:8011', // 获取充提余额
     'reptile_service'=>[
         'filling_uri' => '/v1.0/get_filling_balance',
     ],

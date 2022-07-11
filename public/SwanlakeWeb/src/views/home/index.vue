@@ -16,25 +16,25 @@
                 <el-row class="total">
                     <el-col :span="12">
                         <div>平台余额(USDT)</div>
-                        <div class="price">433902</div>
-                        <div>≈2909096 CNY</div>
+                        <div class="price">{{ toFixed(Number(userInfo.local_balance) || 0, 4) }}</div>
+                        <div>≈{{ toFixed(userInfo.local_balance * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                     <el-col :span="12">
                         <div>钱包余额(USDT)</div>
-                        <div class="price">3042</div>
-                        <div>≈2909096 CNY</div>
+                        <div class="price">{{ toFixed(userInfo.wallet_balance || 0, 4) }}</div>
+                        <div>≈{{ toFixed(userInfo.wallet_balance * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                 </el-row>
                 <el-row class="total" style="margin-top:20px;">
                     <el-col :span="12">
                         <div>累计投资(USDT)</div>
-                        <div class="price">433902</div>
-                        <div>≈2909096 CNY</div>
+                        <div class="price">{{ toFixed(userInfo.total_invest || 0, 4) }}</div>
+                        <div>≈{{ toFixed(userInfo.total_invest * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                     <el-col :span="12">
                         <div>累计收益(USDT)</div>
-                        <div class="price gree">3042</div>
-                        <div>≈2909096 CNY</div>
+                        <div class="price gree">{{ toFixed(userInfo.cumulative_income | 0, 4) }}</div>
+                        <div>≈{{ toFixed(userInfo.cumulative_income * CNY_USD | 0, 4) }} CNY</div>
                     </el-col>
                 </el-row>
                 <br>
@@ -51,38 +51,42 @@
                     <div class="title">强力推荐</div>
                 </el-col>
             </el-row>
-            <el-card class="box-card recommend">
+            <el-card class="box-card recommend" v-for="(item,index) in tableData" :key="index">
                 <div class="novice">
                     <span>定期</span>
                 </div>
                 <div class="title-name">
                     <img src="@/assets/usdt.png" width="30" height="30" alt="">
                     <p>
-                        <span class="span1">USDT</span>
+                        <span class="span1">{{ item.currency }}</span>
                         <span class="span2">USDT定期理财</span>
                     </p>
                 </div>
                 <div class="interest-rate">
                     <p>
-                        <i class="p1">5.30</i>
+                        <i class="p1">{{ toFixed(item.annualized_income || 0, 4) }}</i>
                         <i class="pi">%</i>
                         <i class="p2">预期年化收益率</i>
                     </p>
                 </div>
                 <div class="recommend-button">
-                      <el-button type="primary" @click="buyClick()">立即投资</el-button>
+                      <el-button type="primary" @click="buyClick(item)">立即投资</el-button>
                 </div>
             </el-card>
         </div>
     </div>
 </template>
 <script>
+import { get } from "@/common/axios.js";
 import { mapGetters, mapState } from "vuex";
 export default {
     name: 'home',
     data() {
         return {
-            active: 2
+            active: 2,
+            CNY_USD: 6.70,
+            userInfo: {},
+            tableData: [],
         }
     },
     computed: {
@@ -93,12 +97,25 @@ export default {
             mainTheme:state=>state.comps.mainTheme,
             apiUrl:state=>state.base.apiUrl,
         }),
+        changeData() {
+            const {address} = this
+            return {
+                address
+            };
+        },
     },
     created() {
-
+        this.getListData();
     },
     watch: {
-
+        address: {
+            immediate: true,
+            handler(val){
+                if(val) {
+                    this.getUserInfo();
+                }
+            }
+        }
     },
     components: {
 
@@ -107,14 +124,43 @@ export default {
         cardClick() {
             // console.log(111);
         },
-        buyClick() {
+        buyClick(row) {
+            console.log(row);
             this.$router.push({
                 path:'/financial/currentDetail',
                 query: {
-                    type: 1
+                    type: 1,
+                    product_id: row.id,
                 }
             })
         },
+        getUserInfo() { //获取用户数据
+            get("/Api/User/getUserInfo", {
+                address: this.address
+            }, json => {
+                if (json.code == 10000) {
+                    this.userInfo = json.data;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
+        getListData() {
+            let ServerWhere = {
+                limit: this.pageSize,
+                page: this.currPage,
+            };
+            get("/Api/Product/getProductList", ServerWhere, json => {
+                console.log(json);
+                if (json.code == 10000) {
+                    this.tableData = json.data.lists;
+                    this.total = json.data.count;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
+        
     },
     mounted() {
 

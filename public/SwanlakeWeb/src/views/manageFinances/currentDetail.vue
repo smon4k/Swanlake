@@ -10,13 +10,13 @@
                 <el-row>
                     <el-col :span="24" align="center">
                         <p class="annualized-income desc">预计年化收益</p>
-                        <p class="rate">4.5%</p>
+                        <p class="rate">{{ toFixed(annualized_income || 0, 4) }}</p>
                     </el-col>
                 </el-row>
                 <el-row class="content" :style="'width:'+isMobel ? '100%' : '80%'">
                     <el-col :span="8">
                         <p class="desc">我的可用余额</p>
-                        <p class="balance">0 USDT</p>
+                        <p class="balance">{{ balance }} USDT</p>
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">净值</p>
@@ -24,14 +24,24 @@
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">预计每日收益</p>
-                        <p class="balance gree">0.000000 USDT</p>
+                        <p class="balance gree">{{ toFixed(daily_income || 0, 4) }} USDT</p>
                     </el-col>
+                    <div v-if="type == 2">
+                        <el-col :span="8">
+                            <p class="desc">在投数量</p>
+                            <p class="balance">{{ toFixed(total_invest | 0, 4) }} USDT</p>
+                        </el-col>
+                        <el-col :span="8">
+                            <p class="desc">购买总份数</p>
+                            <p class="balance">{{ toFixed(total_number || 0, 4) }} 份</p>
+                        </el-col>
+                    </div>
                     <el-col :span="24">
                         <el-input v-model="shareValue" placeholder="请输入起投份额">
                             <template slot="prepend">份额</template>
                             <template slot="append">
-                                <el-button v-if="type == 1" type="primary" @click="allfunClick()">全投</el-button>
-                                <el-button v-else type="primary" @click="allfunClick()">全部</el-button>
+                                <el-button v-if="type == 1" type="primary" @click="allfunBetClick()">全投</el-button>
+                                <el-button v-else type="primary" @click="allfunRedClick()">全部</el-button>
                             </template>
                         </el-input>
                     </el-col>
@@ -41,7 +51,7 @@
                     </el-col>
                     <el-col :span="24">
                         <el-button v-if="type == 1" class="invest-but" type="primary" :loading="loading" @click="startInvestNow()" :disabled="is_bet">立即投资</el-button>
-                        <el-button v-else class="invest-but" type="primary" :loading="loading">立即赎回</el-button>
+                        <el-button v-else class="invest-but" type="primary" :loading="loading" @click="startInvestNow()">立即赎回</el-button>
                     </el-col>
                 </el-row>
             </div>
@@ -62,6 +72,11 @@ export default {
             loading: false,
             networth: 0,
             is_bet: false,
+            balance: 0,
+            daily_income: 0.0000,
+            total_number: 0.0000, //投资总份数
+            total_invest: 0.0000, //投资数量
+            annualized_income: 0.0000 //预计年化收益
         }
     },
     computed: {
@@ -87,6 +102,7 @@ export default {
                 this.type = type;
             }
             let product_id = this.$route.query.product_id;
+            console.log(product_id);
             if(product_id && product_id > 0) {
                 this.product_id = product_id;
             }
@@ -106,10 +122,34 @@ export default {
 
     },
     methods: {
-        allfunClick() {
-
+        allfunBetClick() { //计算最大投注份额
+            let num = 0;
+            if(this.balance > 0) {
+                num = this.balance / this.networth;
+            }
+            this.shareValue = num;
         },
-        startInvestNow() { //立即投资
+        allfunRedClick() { //赎回 全部事件
+            this.shareValue = this.total_number;
+        },
+        startInvestNow() { //立即投资或者赎回
+            if(!this.address || this.address == undefined) {
+                return false;
+            }
+            if(this.type == 1 && this.balance <= 0) {
+                this.$message({
+                    message: '余额不足',
+                    type: 'warning'
+                });
+                return false;
+            }
+            if(this.type == 2 && this.total_number <= 0) {
+                this.$message({
+                    message: '投资份数不足',
+                    type: 'warning'
+                });
+                return false;
+            }
             if(this.shareValue <= 0) {
                 this.$message({
                     message: '请输入投资数量',
@@ -119,14 +159,19 @@ export default {
             }
             this.loading = true;
             setTimeout(() => {
-                post('/Api/Product/startInvestNow', { address: this.address, product_id: this.product_id, number: this.shareValue }, (json) => {
+                post('/Api/Product/startInvestNow', { 
+                        address: this.address, 
+                        product_id: this.product_id, 
+                        number: this.shareValue,
+                        type: this.type
+                    }, (json) => {
                     this.loading = false;
                     console.log(json);
                     if (json && json.code == 10000) {
                         this.shareValue = 0;
                         this.$message({
                             type: 'success',
-                            message: '投资成功!'
+                            message: this.type == 1 ? '投资成功!' : '赎回成功!'
                         });
                         setTimeout(() => {
                             this.$router.push({path:'/my/finances'})
@@ -145,6 +190,11 @@ export default {
                 console.log(json);
                 if (json.code == 10000) {
                     this.networth = json.data.networth;
+                    this.balance = json.data.balance;
+                    this.daily_income = json.data.daily_income;
+                    this.total_number = json.data.total_number;
+                    this.total_invest = json.data.total_invest;
+                    this.annualized_income = json.data.annualized_income;
                     // this.is_bet = json.data.is_bet ? true : false;
                 } else {
                     this.$message.error("加载数据失败");
