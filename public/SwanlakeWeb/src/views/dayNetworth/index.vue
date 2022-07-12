@@ -2,7 +2,7 @@
     <div class="container">
         <div class="main">
             <el-descriptions :column="isMobel ? 1 : 3" :title="date">
-                <el-descriptions-item label="总的结余">{{ toFixed(count_balance || 0, 4) }}</el-descriptions-item>
+                <el-descriptions-item label="总结余">{{ toFixed(count_balance || 0, 4) }} USDT</el-descriptions-item>
                 <el-descriptions-item label="总的份数">{{ toFixed(count_buy_number || 0, 4) }}</el-descriptions-item>
                 <el-descriptions-item label="今日最新净值">{{ toFixed(today_net_worth || 0, 4) }}</el-descriptions-item>
             </el-descriptions>

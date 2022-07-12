@@ -9,7 +9,7 @@
                         <el-row class="balance">
                             <el-col :span="24">
                                 <div>
-                                    <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }}</span>
+                                    <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }} USDT</span>
                                     <br />
                                     <span>钱包余额：{{ Math.trunc(Number(h2oBalance)) }} USDT</span>
                                     <!-- <span>GS Balance：{{localBalance}}</span> -->
@@ -76,7 +76,7 @@
                         <el-row class="balance">
                             <el-col :span="24">
                                 <div>
-                                    <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }}</span>
+                                    <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }} USDT</span>
                                     <br />
                                     <span>钱包余额：{{ Math.trunc(Number(h2oBalance)) }} USDT</span>
                                     <!-- <span>GS Balance：{{localBalance}}</span> -->
