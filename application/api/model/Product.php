@@ -36,11 +36,15 @@ class Product extends Base
             $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['id']);
             $toDayNetworth = $NewTodayYesterdayNetworth['toDayData']; //今日最新净值
             $yestDayNetworth = $NewTodayYesterdayNetworth['yestDayData']; //昨日净值
-            if ($NewsBuyAmount['count_buy_number'] && $toDayNetworth && $yestDayNetworth) {
+            $lists[$key]['yest_income'] = 0;
+            $lists[$key]['yest_income_rate'] = 0;
+            if ($NewsBuyAmount['count_buy_number'] && $toDayNetworth && $yestDayNetworth) { //昨日收益
                 $yest_income = ((float)$toDayNetworth - (float)$yestDayNetworth) * $NewsBuyAmount['count_buy_number'];
                 $lists[$key]['yest_income'] = $yest_income;
+                $lists[$key]['yest_income_rate'] = ((float)$toDayNetworth - (float)$yestDayNetworth) / (float)$yestDayNetworth * 100;
             }
             $annualizedIncome = DayNetworth::getCountAnnualizedIncome($val['id']); //获取年化收益
+            $lists[$key]['networth'] = $toDayNetworth; //今日净值
             $lists[$key]['annualized_income'] = $annualizedIncome;
         }
         // p($lists);
@@ -94,5 +98,29 @@ class Product extends Base
             }
         }
         return [];
+    }
+
+    /**
+     * 修改总规模
+     * @params address 用户地址
+     * @params amount 数量
+     * @params type 1：加 2：减
+     * @author qinlh
+     * @since 2022-06-14
+     */
+    public static function setTotalSizeBalance($product_id='', $amount=0, $type=0)
+    {
+        if ($product_id && $product_id > 0 && $amount > 0 && $type > 0) {
+            if($type == 1) {
+                $res = self::where('id', $product_id)->setInc('total_size', $amount);
+            }
+            if($type == 2) {
+                $res = self::where('id', $product_id)->setDec('total_size', $amount);
+            }
+            if($res) {
+                return true;
+            }
+        }
+        return false;
     }
 }

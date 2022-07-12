@@ -17,7 +17,7 @@
                     <el-col :span="12">
                         <div>平台余额(USDT)</div>
                         <div class="price">{{ toFixed(Number(userInfo.wallet_balance) + Number(userInfo.local_balance) || 0, 4) }}</div>
-                        <div>≈{{ toFixed(userInfo.local_balance * CNY_USD || 0, 4) }} CNY</div>
+                        <div>≈{{ toFixed((Number(userInfo.wallet_balance) + Number(userInfo.local_balance)) * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                     <el-col :span="12">
                         <div>钱包余额(USDT)</div>
@@ -38,11 +38,11 @@
                     </el-col>
                 </el-row>
                 <br>
-                <!-- <el-row>
+                <el-row>
                     <el-col :span="24">
                         <el-button round>我的订单 <i class="el-icon-caret-right"></i></el-button>
                     </el-col>
-                </el-row> -->
+                </el-row>
 
             </el-card>
             <br>
@@ -64,7 +64,7 @@
                 </div>
                 <div class="interest-rate">
                     <p>
-                        <i class="p1">{{ toFixed(item.annualized_income || 0, 4) }}</i>
+                        <i class="p1">{{ toFixed(item.annualized_income * 100 || 0, 4) }}</i>
                         <i class="pi">%</i>
                         <i class="p2">预期年化收益率</i>
                     </p>

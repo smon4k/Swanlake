@@ -7,7 +7,8 @@
                 <el-table-column
                     prop="name"
                     label="产品名称"
-                    align="center">
+                    align="center"
+                    width="130">
                 </el-table-column>
                 <el-table-column
                     prop="total_invest"
@@ -19,12 +20,12 @@
                     label="购买份数"
                     align="center">
                 </el-table-column>
-                <el-table-column
+                <!-- <el-table-column
                     prop="time"
                     label="购买时间"
                     align="center"
                     width="200">
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
                     prop="networth"
                     label="净值"
@@ -61,11 +62,11 @@
                 fixed="right"
                 label="操作"
                 align="center"
-                width="150">
+                width="200">
                 <template slot-scope="scope">
                     <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
                     <el-button type="text" @click="buyClick(scope.row, 2)">赎回</el-button>
-                    <el-button type="text" @click="incomeClick(scope.row)">明细</el-button>
+                    <el-button type="text" @click="incomeClick(scope.row)">历史净值</el-button>
                 </template>
                 </el-table-column>
             </el-table>
@@ -89,7 +90,7 @@
                 <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                 <el-descriptions-item label="总投资金额">{{ item.total_invest }}</el-descriptions-item>
                 <el-descriptions-item label="购买份数">{{ item.total_number }}</el-descriptions-item>
-                <el-descriptions-item label="购买时间">{{ item.time }}</el-descriptions-item>
+                <!-- <el-descriptions-item label="购买时间">{{ item.time }}</el-descriptions-item> -->
                 <el-descriptions-item label="净值">{{ toFixed(item.buy_networth || 0, 2) }}</el-descriptions-item>
                 <el-descriptions-item label="昨日收益">{{ item.yest_income }}</el-descriptions-item>
                 <el-descriptions-item label="总收益率">{{ item.total_rate }}</el-descriptions-item>

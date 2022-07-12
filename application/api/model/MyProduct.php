@@ -70,10 +70,17 @@ class MyProduct extends Base {
                             $isUserBalance = User::setUserLocalBalance($address, $buy_number, 1); //增加用户余额
                         }
                         if($isUserBalance) {
-                            $orderLog = ProductOrder::setProductOrder($userId, $product_id, $buy_number, $number, $networth, $type);
-                            if($orderLog) {
-                                self::commit();
-                                return true;
+                            if($type == 1) { //投注 份数减少
+                                $isTotalSize = Product::setTotalSizeBalance($product_id, $number, 2);
+                            } else { //赎回 份数增加
+                                $isTotalSize = Product::setTotalSizeBalance($product_id, $number, 1);
+                            }
+                            if($isTotalSize) {
+                                $orderLog = ProductOrder::setProductOrder($userId, $product_id, $buy_number, $number, $networth, $type);
+                                if($orderLog) {
+                                    self::commit();
+                                    return true;
+                                }
                             }
                         }
                     }
