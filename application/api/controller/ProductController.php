@@ -63,23 +63,6 @@ class ProductController extends BaseController
         set_time_limit(0);   // 设置脚本最大执行时间 为0 永不过期
         ini_set('max_execution_time', '0');
         ini_set("memory_limit", "-1");
-        // echo "Hello Notes";
-        // $video_url = DOCUMENT_ROOT_PATH . "/upload/h2o-media/2022/06/08/qinlh.mp4";
-        // $videoInfo = CLFfmpeg::getVideoInfo($video_url);
-        // // p($videoInfo);
-        // // $size = $videoInfo['width'].'*'.$videoInfo['height'];
-        // // p($size);
-        // // $cover = DOCUMENT_ROOT_PATH . "/upload/1_163108_4148115606_111.jpg";
-        // // $res = CLFfmpeg::getVideoCover($video_url, 2, $size, $cover);
-        // // p($res);
-        // $awsUpload = User::AwsS3MultipartUpload($video_url, "qinlh.mp4", $videoInfo['size']);
-        // $begin_time = time();
-        //测试下载远程文件
-        // $remote_file_url = "https://h2o-finance-images.s3.amazonaws.com/h2oMediaDev/image/2022-06-12/205901_1103894208.mp4"; //15M 2S
-        // $remote_file_url = "https://h2o-finance-images.s3.amazonaws.com/h2oMediaDev/image/2022-06-11/215225_1345024498.mp4"; //61M
-        // $local_absolute_file = DOCUMENT_ROOT_PATH . "/upload/h2o-media/download/111.mp4";
-        // $res = CLFile::catchRemote($remote_file_url,$local_absolute_file);
-        // echo (time() - $begin_time) . "s\n";
     }
 
     /**

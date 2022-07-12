@@ -19,7 +19,7 @@
                 </el-table-column>
                 <el-table-column
                     prop="total_size"
-                    label="总规模"
+                    label="总份数"
                     align="center">
                 </el-table-column>
                 <el-table-column
@@ -78,7 +78,7 @@
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="预期年化收益率">{{ item.annualized_income }}</el-descriptions-item>
-                    <el-descriptions-item label="总规模">{{ item.total_size }}</el-descriptions-item>
+                    <el-descriptions-item label="总份数">{{ item.total_size }}</el-descriptions-item>
                     <el-descriptions-item label="净值">{{ item.networth }}</el-descriptions-item>
                     <el-descriptions-item label="总结余(USDT)">{{ toFixed(Number(item.total_size) * Number(item.networth) || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>

@@ -71,9 +71,9 @@ class MyProduct extends Base {
                         }
                         if($isUserBalance) {
                             if($type == 1) { //投注 份数减少
-                                $isTotalSize = Product::setTotalSizeBalance($product_id, $number, 2);
-                            } else { //赎回 份数增加
                                 $isTotalSize = Product::setTotalSizeBalance($product_id, $number, 1);
+                            } else { //赎回 份数增加
+                                $isTotalSize = Product::setTotalSizeBalance($product_id, $number, 2);
                             }
                             if($isTotalSize) {
                                 $orderLog = ProductOrder::setProductOrder($userId, $product_id, $buy_number, $number, $networth, $type);
