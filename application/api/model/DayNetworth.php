@@ -100,7 +100,7 @@ class DayNetworth extends Base {
                 $count = self::where('product_id', $product_id)->sum('networth');
             } else { //不查询今天的净值
                 $date = date('Y-m-d');
-                $count = self::where('product_id', $product_id)->whereNotIn('id', 6)->sum('networth');
+                $count = self::where('product_id', $product_id)->whereNotIn('date', $date)->sum('networth');
             }
         }
         return $count;

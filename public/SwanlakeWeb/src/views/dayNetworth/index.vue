@@ -10,7 +10,7 @@
                 <el-form-item label="今日利润" prop="profit">
                     <el-input v-model="ruleForm.profit" @input="calcNewsNetWorth" @blur="calcNewsNetWorthBlur" placeholder="请输入今日利润"></el-input>
                 </el-form-item>
-                <el-form-item label="净值">
+                <el-form-item label="更新后净值" label-width="100px">
                     <span>{{ toFixed(newDaynetworth || 0, 4) }}</span>
                 </el-form-item>
                 <el-form-item align="center" class="submit">

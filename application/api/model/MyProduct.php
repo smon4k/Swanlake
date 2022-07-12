@@ -168,7 +168,8 @@ class MyProduct extends Base {
                 // $count_buy_networth = (float)$data[0]['count_buy_networth'];//总的净值
                 $count_buy_networth = DayNetworth::getCountNetworth($product_id, $iscalcToday);//总的净值
                 // p($count_buy_networth);
-                $count_balance = $count_total_number * $count_buy_networth + $today_profit;//总结余 = 总的份数 * 总的净值
+                // $count_balance = $count_total_number * $count_buy_networth;//总结余 = 总的份数 * 总的净值
+                $count_balance = $count_total_number * $today_net_worth;//总结余 = 总的份数 * 今日最新净值
             }
             return [
                 'date' => date('Y-m-d'), 
@@ -211,6 +212,7 @@ class MyProduct extends Base {
         $count_buy_number = 0; //总的份数
         if($count_profit > 0) {
             $data = self::getNewsBuyAmount($product_id, 0, false);
+            // p($data);
             if($data) {
                 $count_buy_number = $data['count_buy_number']; //总的份数
                 $count_balance = $data['count_balance'];//总结余 = 总的份数 * 总的净值
