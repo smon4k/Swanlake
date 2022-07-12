@@ -264,7 +264,7 @@ class MyProduct extends Base {
                 if($networthData && count((array)$networthData) > 0) {
                     @self::name('product_details')->where(['product_id'=>$val['product_id'], 'uid' => $val['uid'], 'date' => $date])->delete();
                     $networth = (float)$networthData['networth']; //今日净值
-                    $yestNetworth = (float)$yestNetworthData['networth']; //昨日净值
+                    $yestNetworth = isset($yestNetworthData['networth']) ? (float)$yestNetworthData['networth'] : 1; //昨日净值
                     $buy_total_number = (float)$val['total_number']; //购买总份数
                     $account_balance = $buy_total_number * $networth; //账户余额 = 今日净值 * 购买份数
                     $total_investment = (float)$val['total_invest']; //总投资
