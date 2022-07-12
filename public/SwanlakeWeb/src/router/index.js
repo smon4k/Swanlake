@@ -28,7 +28,7 @@ export const constantRoutes = [
           path: 'financial/product',
           name: 'financialProduct',
           component: () => import('@/views/manageFinances/product'),
-          meta: { title: 'financialProduct', keepAlive: true }
+          meta: { title: 'financialProduct', keepAlive: false }
         },
         //投注详情
         {
@@ -43,6 +43,12 @@ export const constantRoutes = [
           name: 'incomeList',
           component: () => import('@/views/manageFinances/incomeList'),
           meta: { title: 'incomeList', keepAlive: true }
+        },
+        {
+          path: 'order/record',
+          name: 'orderRecord',
+          component: () => import('@/views/manageFinances/orderRecord'),
+          meta: { title: 'orderRecord', keepAlive: true }
         },
         //资金监控
         {

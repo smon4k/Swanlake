@@ -6,6 +6,33 @@ use think\Model;
 
 class ProductOrder extends Base {
 
+     /**
+     * 获取我的订单列表
+     * @author qinlh
+     * @since 2022-02-18
+     */
+    public static function getProductOrderList($where, $page, $limit, $order='date desc')
+    {
+        if ($limit <= 0) {
+            $limit = config('paginate.list_rows');// 获取总条数
+        }
+        $count = self::alias('a')->join('s_product b', 'a.product_id=b.id')->where($where)->count();//计算总页面
+        $allpage = intval(ceil($count / $limit));
+        $lists = self::alias('a')
+                    ->field("a.*")
+                    ->join('s_product b', 'a.product_id=b.id')
+                    ->where($where)
+                    ->page($page, $limit)
+                    ->order($order)
+                    ->field('a.*,b.name')
+                    ->select()
+                    ->toArray();
+        if (!$lists) {
+            ['count'=>0,'allpage'=>0,'lists'=>[]];
+        }
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
 
     /**
      * 写入订单记录

@@ -40,7 +40,7 @@
                 <br>
                 <el-row>
                     <el-col :span="24">
-                        <el-button round>我的订单 <i class="el-icon-caret-right"></i></el-button>
+                        <el-button @click="routeMyOrder()" round>我的订单 <i class="el-icon-caret-right"></i></el-button>
                     </el-col>
                 </el-row>
 
@@ -160,6 +160,9 @@ export default {
                 }
             });
         },
+        routeMyOrder() { //跳转我的订单也
+            this.$router.push('/order/record');
+        }
         
     },
     mounted() {

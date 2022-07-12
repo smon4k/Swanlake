@@ -17,6 +17,7 @@ use app\api\model\MyProduct;
 use app\api\model\User;
 use app\api\model\DayNetworth;
 use app\api\model\ProductDetails;
+use app\api\model\ProductOrder;
 use think\Request;
 use think\Db;
 use think\Controller;
@@ -137,6 +138,34 @@ class ProductController extends BaseController
         $userId = User::getUserAddress($address);
         $where['a.uid'] = $userId;
         $result = MyProduct::getMyProductList($where, $page, $limit, $order);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
+
+    /**
+     * 获取订单列表
+     * @author qinlh
+     * @since 2022-07-08
+     */
+    public function getProductOrderList(Request $request) {
+        $address = $request->request('address', '', 'trim');
+        $page = $request->request('page', 1, 'intval');
+        $limit = $request->request('limit', 20, 'intval');
+        $product_id = $request->request('product_id', 1, 'intval');
+        $where = [];
+        $order = 'a.id desc';
+        if($address == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $userId = User::getUserAddress($address);
+        $where['a.uid'] = $userId;
+        if($product_id && $product_id > 0) {
+            $where['a.product_id'] = $product_id;
+        }
+        $result = ProductOrder::getProductOrderList($where, $page, $limit, $order);
         if($result) {
             return $this->as_json($result);
         } else {
