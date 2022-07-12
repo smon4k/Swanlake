@@ -40,12 +40,14 @@ class DayNetworth extends Base {
         if($product_id > 0) {
             $toDayData = 0;
             $yestDayData = 0;
+            $yestDayProfit = 0;
             $data = self::where('product_id', $product_id)->order('date desc')->limit(2)->select()->toArray();
             if($data && count((array)$data) == 2) {
                 $toDayData = $data[0]['networth']; //今日净值
                 $yestDayData = $data[1]['networth']; //昨日净值
+                $yestDayProfit = $data[0]['profit']; //今日利润
             }
-            return ['toDayData' => $toDayData, 'yestDayData' => $yestDayData];
+            return ['toDayData' => $toDayData, 'yestDayData' => $yestDayData, 'yestDayProfit' => $yestDayProfit];
         }
     }
 
@@ -91,10 +93,15 @@ class DayNetworth extends Base {
      * @author qinlh
      * @since 2022-07-10
      */
-    public static function getCountNetworth($product_id=0) {
+    public static function getCountNetworth($product_id=0, $iscalcToday=true) {
         $count = 0;
         if($product_id) {
-            $count = self::where('product_id', $product_id)->sum('networth');
+            if($iscalcToday) { //全部查询
+                $count = self::where('product_id', $product_id)->sum('networth');
+            } else { //不查询今天的净值
+                $date = date('Y-m-d');
+                $count = self::where('product_id', $product_id)->whereNotIn('id', 6)->sum('networth');
+            }
         }
         return $count;
     }

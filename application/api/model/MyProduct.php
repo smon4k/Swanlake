@@ -117,6 +117,7 @@ class MyProduct extends Base {
             $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['product_id']);
             $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
             $yestDayNetworth = (float)$NewTodayYesterdayNetworth['yestDayData']; //昨日净值
+            // $yestDayProfit = (float)$NewTodayYesterdayNetworth['yestDayProfit']; //今日利润
             // $total_investment = $val['buy_number'] * $toDayNetworth; //总投资 = 购买份数 * 最新净值
             $total_investment = (float)$val['total_invest']; //总投资
             $total_number = (float)$val['total_number']; //总份数
@@ -140,7 +141,7 @@ class MyProduct extends Base {
      * @author qinlh
      * @since 2022-07-09
      */
-    public static function getNewsBuyAmount($product_id=0, $userId=0) {
+    public static function getNewsBuyAmount($product_id=0, $userId=0, $iscalcToday=true) {
         if($product_id > 0) {
             $sql = "SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1 ";
             if($product_id) {
@@ -154,23 +155,26 @@ class MyProduct extends Base {
             $count_total_number = 0; //总的份数
             $count_buy_networth = 0; //总的净值
             $count_balance = 0; //总结余
-            $today_net_worth = 0;
-            if($data && count((array)$data) > 0) {
-                $count_total_number = (float)$data[0]['count_total_number']; //总的份数
-                // $count_buy_networth = (float)$data[0]['count_buy_networth'];//总的净值
-                $count_buy_networth = DayNetworth::getCountNetworth($product_id);//总的净值
-                $count_balance = $count_total_number * $count_buy_networth;//总结余 = 总的份数 * 总的净值
-            }
+            $today_net_worth = 1;
             $date = date('Y-m-d');
+            $today_profit = 0;
             $netWorthToday = DayNetworth::getDayNetworth($product_id, $date);
             if($netWorthToday && count((array)$netWorthToday) > 0) {
                 $today_net_worth = (float)$netWorthToday['networth'];
+                $today_profit = (float)$netWorthToday['profit']; //今日利润
+            }
+            if($data && count((array)$data) > 0) {
+                $count_total_number = (float)$data[0]['count_total_number']; //总的份数
+                // $count_buy_networth = (float)$data[0]['count_buy_networth'];//总的净值
+                $count_buy_networth = DayNetworth::getCountNetworth($product_id, $iscalcToday);//总的净值
+                // p($count_buy_networth);
+                $count_balance = $count_total_number * $count_buy_networth + $today_profit;//总结余 = 总的份数 * 总的净值
             }
             return [
                 'date' => date('Y-m-d'), 
-                'count_balance'=>$count_balance, //总结余
+                'count_balance' => $count_balance, //总结余
                 'count_buy_number' => $count_total_number, //总的份数
-                'count_buy_networth'=>$count_buy_networth, //总的净值
+                'count_buy_networth' => $count_buy_networth, //总的净值
                 'today_net_worth' => $today_net_worth //今日最新净值
             ];
         } 
@@ -206,11 +210,11 @@ class MyProduct extends Base {
         $count_balance = 0; //总结余
         $count_buy_number = 0; //总的份数
         if($count_profit > 0) {
-            $data = self::getNewsBuyAmount($product_id);
+            $data = self::getNewsBuyAmount($product_id, 0, false);
             if($data) {
                 $count_buy_number = $data['count_buy_number']; //总的份数
                 $count_balance = $data['count_balance'];//总结余 = 总的份数 * 总的净值
-                $dayNetWorth =  ((float)$count_profit + $count_balance) / $count_buy_number;  //	当天净值:  （总的利润 + 总的结余）/ 总的份数
+                $dayNetWorth =  $count_buy_number > 0 ? ((float)$count_profit + $count_balance) / $count_buy_number : (float)$count_profit + $count_balance;  //	当天净值:  （总的利润 + 总的结余）/ 总的份数
             }
         }
         return $dayNetWorth;
@@ -304,7 +308,7 @@ class MyProduct extends Base {
                 foreach ($data as $key => $val) {
                     $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['product_id']);
                     $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
-                    $amountRes = self::getNewsBuyAmount($val['product_id']);
+                    // $amountRes = self::getNewsBuyAmount($val['product_id']);
                     $cumulative_income += ($val['total_number'] * $toDayNetworth) - $val['total_invest']; //累计收益 = 总结余（总的份数 * 最新净值） - 总投资；
                 }
             }

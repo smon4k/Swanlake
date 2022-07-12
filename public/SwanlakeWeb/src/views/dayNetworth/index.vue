@@ -32,7 +32,7 @@ export default {
             count_balance: 0, //总的结余
             count_buy_number: 0, //总的份数
             count_buy_networth: 0, //总的购买净值
-            today_net_worth: 0, //今日最新净值
+            today_net_worth: 1, //今日最新净值
             newDaynetworth: 0,
             ruleForm: {
                 profit: '',
