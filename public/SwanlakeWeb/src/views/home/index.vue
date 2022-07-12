@@ -16,7 +16,7 @@
                 <el-row class="total">
                     <el-col :span="12">
                         <div>平台余额(USDT)</div>
-                        <div class="price">{{ toFixed(Number(userInfo.wallet_balance) - Number(userInfo.local_balance) || 0, 4) }}</div>
+                        <div class="price">{{ toFixed(Number(userInfo.wallet_balance) + Number(userInfo.local_balance) || 0, 4) }}</div>
                         <div>≈{{ toFixed(userInfo.local_balance * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                     <el-col :span="12">
