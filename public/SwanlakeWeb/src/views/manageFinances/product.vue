@@ -14,7 +14,7 @@
                     label="预期年化收益率"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.annualized_income || 0, 4) }}</span>
+                        <span>{{ toFixed(scope.row.annualized_income || 0, 4) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column

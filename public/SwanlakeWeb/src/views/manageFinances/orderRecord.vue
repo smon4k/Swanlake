@@ -32,7 +32,7 @@
                     label="类型"
                     align="center">
                     <template slot-scope="scope">
-                        <span v-if="scope.row.type == 1">投注</span>
+                        <span v-if="scope.row.type == 1">购买</span>
                         <span v-if="scope.row.type == 2">赎回</span>
                     </template>
                 </el-table-column>
@@ -64,7 +64,7 @@
                     <el-descriptions-item label="份数">{{ item.number }}</el-descriptions-item>
                     <el-descriptions-item label="净值">{{ item.networth }}</el-descriptions-item>
                     <el-descriptions-item label="类型">
-                        <span v-if="item.type == 1">投注</span>
+                        <span v-if="item.type == 1">购买</span>
                         <span v-if="item.type == 2">赎回</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="操作时间">{{ item.time }}</el-descriptions-item>
