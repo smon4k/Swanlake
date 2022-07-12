@@ -9,11 +9,11 @@
                     <div class="logo" v-show="screenWidth > 600">
                         <router-link to="/" class="logo-link">
                             <img
-                                src="@/assets/h2oToken.png"
+                                src="@/assets/usdt.png"
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
-                            <img src="@/assets/h2oToken_dark.png" alt="" v-else />
+                            <img src="@/assets/usdt.png" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
@@ -78,11 +78,11 @@
                     <div class="logo">
                         <router-link to="/" class="logo-link">
                             <img
-                                src="@/assets/h2oToken.png"
+                                src="@/assets/usdt.png"
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
-                            <img src="@/assets/h2oToken_dark.png" alt="" v-else />
+                            <img src="@/assets/usdt.png" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
@@ -347,6 +347,7 @@ export default {
     }
     .logo {
         margin-left: 20px;
+        margin-right: 10px;
         height: 40px;
         box-sizing: border-box;
         .logo-link {
