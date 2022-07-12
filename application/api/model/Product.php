@@ -36,8 +36,8 @@ class Product extends Base
             $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['id']);
             $toDayNetworth = $NewTodayYesterdayNetworth['toDayData']; //今日最新净值
             $yestDayNetworth = $NewTodayYesterdayNetworth['yestDayData']; //昨日净值
-            $lists[$key]['yest_income'] = 0;
-            $lists[$key]['yest_income_rate'] = 0;
+            $lists[$key]['yest_income'] = 0; //昨日收益
+            $lists[$key]['yest_income_rate'] = 0; //昨日收益率
             if ($NewsBuyAmount['count_buy_number'] && $toDayNetworth && $yestDayNetworth) { //昨日收益
                 $yest_income = ((float)$toDayNetworth - (float)$yestDayNetworth) * $NewsBuyAmount['count_buy_number'];
                 $lists[$key]['yest_income'] = $yest_income;

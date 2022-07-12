@@ -12,7 +12,7 @@
                 </el-table-column>
                 <el-table-column
                     prop="total_invest"
-                    label="总投资金额"
+                    label="总结余"
                     align="center">
                 </el-table-column>
                 <el-table-column
@@ -88,9 +88,9 @@
         <div v-else>
             <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                 <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                <el-descriptions-item label="总投资金额">{{ item.total_invest }}</el-descriptions-item>
+                <el-descriptions-item label="总结余">{{ item.total_invest }}</el-descriptions-item>
                 <el-descriptions-item label="购买份数">{{ item.total_number }}</el-descriptions-item>
-                <!-- <el-descriptions-item label="购买时间">{{ item.time }}</el-descriptions-item> -->
+                <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
                 <el-descriptions-item label="净值">{{ toFixed(item.buy_networth || 0, 2) }}</el-descriptions-item>
                 <el-descriptions-item label="昨日收益">{{ item.yest_income }}</el-descriptions-item>
                 <el-descriptions-item label="总收益率">{{ item.total_rate }}</el-descriptions-item>
