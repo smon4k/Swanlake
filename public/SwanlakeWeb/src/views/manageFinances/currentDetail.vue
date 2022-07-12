@@ -45,6 +45,7 @@
                             </template>
                         </el-input>
                     </el-col>
+                    <el-col :span="24" align="left" style="margin-top:10px;margin-left:70px;">{{ getCountAmount() }} USDT</el-col>
                     <el-col :span="24" class="protocol">
                         <span>继续代表你同意</span>
                         <a href="/page/agreement.html#/?agreement=financing_market_stakingprotocol" target="_blank">《活期宝产品服务协议》</a>
@@ -136,20 +137,39 @@ export default {
             if(!this.address || this.address == undefined) {
                 return false;
             }
-            if(this.type == 1 && this.balance <= 0) {
-                this.$message({
-                    message: '余额不足',
-                    type: 'warning'
-                });
-                return false;
+            if(this.type == 1) { //投资的话
+                if(this.balance <= 0) {
+                    this.$message({
+                        message: '余额不足',
+                        type: 'warning'
+                    });
+                    return false;
+                }
+                let amount = this.getCountAmount();
+                if(amount > this.balance) {
+                    this.$message({
+                        message: '超出可用余额',
+                        type: 'warning'
+                    });
+                    return false;
+                }
             }
-            if(this.type == 2 && this.total_number <= 0) {
-                this.$message({
-                    message: '投资份数不足',
-                    type: 'warning'
-                });
-                return false;
-            }
+            if(this.type == 2) { //赎回的话
+                if(this.total_number <= 0) {
+                    this.$message({
+                        message: '投资份数不足',
+                        type: 'warning'
+                    });
+                    return false;
+                }
+                if(this.shareValue > this.total_number) {
+                    this.$message({
+                        message: '已超过最大投资份数',
+                        type: 'warning'
+                    });
+                    return false;
+                }
+            } 
             if(this.shareValue <= 0) {
                 this.$message({
                     message: '请输入投资数量',
@@ -201,6 +221,9 @@ export default {
                 }
             });
         },
+        getCountAmount() { //获取投资数量
+           return this.toFixed(Number(this.shareValue) * Number(this.networth) || 0, 4);
+        }
     },
     mounted() {
 

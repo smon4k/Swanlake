@@ -38,8 +38,8 @@ class DayNetworth extends Base {
      */
     public static function getNewTodayYesterdayNetworth($product_id=0) {
         if($product_id > 0) {
-            $toDayData = 0;
-            $yestDayData = 0;
+            $toDayData = 1;
+            $yestDayData = 1;
             $yestDayProfit = 0;
             $data = self::where('product_id', $product_id)->order('date desc')->limit(2)->select()->toArray();
             if($data && count((array)$data) == 2) {

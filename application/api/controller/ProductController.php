@@ -188,7 +188,7 @@ class ProductController extends BaseController
         $profit = $request->request('profit', '', 'trim');
         $address = $request->request('address', '', 'trim');
         $product_id = $request->post('product_id', 1, 'intval');
-        if($profit == '' || $profit <= 0 || $product_id <= 0) {
+        if($profit == '' || $product_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $result = MyProduct::calcNewsNetWorth($profit, $product_id);

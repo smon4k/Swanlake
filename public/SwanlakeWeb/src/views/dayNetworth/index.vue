@@ -108,7 +108,7 @@ export default {
             this.calcNewsNetWorth(value);
         },
         calcNewsNetWorth(amount) { //实时根据利润值计算当天净值
-            if(amount > 0) {
+            if(amount !== 0) {
                 get("/Api/Product/calcNewsNetWorth", {
                     address: this.address,
                     profit: amount
@@ -116,7 +116,8 @@ export default {
                     if (json.code == 10000) {
                         this.newDaynetworth = json.data;
                     } else {
-                        this.$message.error("加载数据失败");
+                        console.log(json.msg);
+                        // this.$message.error("加载数据失败");
                     }
                 });
             } else {
