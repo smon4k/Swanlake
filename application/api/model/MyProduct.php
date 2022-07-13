@@ -293,14 +293,20 @@ class MyProduct extends Base {
                 $res = self::name('product_details')->insertAll($insertData);
                 if ($res) {
                     self::commit();
-                    return true;
+                    return ['code' => 1, 'message' => '计算净值记录数据成功'];
                 }
             }
             self::rollback();
-            return false;
+            return ['code' => 0, 'message' => '计算失败'];
         } catch ( PDOException $e) {
             self::rollback();
-            return false;
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            return ['code' => 0, 'message' => $error_msg];
         }
     }
     
