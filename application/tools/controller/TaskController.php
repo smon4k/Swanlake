@@ -66,7 +66,7 @@ class TaskController extends ToolsBaseController
     public function saveUserProductData() {
         $params = $this->ArgvParamsArr();
         $begin_time = time();
-        // MyProduct::saveProductListData();
+        MyProduct::saveProductListData();
         MyProduct::saveUserProductData();
         return (time() - $begin_time) . "s\n";
     }

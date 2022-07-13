@@ -280,7 +280,7 @@ class MyProduct extends Base {
                     $daily_income = ($networth - $yestNetworth) * $buy_total_number; //	日收益:（当日净值-昨日净值）* 总购买份数
                     $daily_rate_return = (($networth - $yestNetworth) / $yestNetworth) * 100; // 日收益率:（当日净值-昨日净值）/ 昨日净值
                     $total_revenue_rate = ($total_revenue / $total_investment) * 100; // 总收益率: 总收益 / 总投资额
-                    $averag_daily_rate = ProductUserDetails::getAverageDailyRate($val['product_id'], $val['uid']); //日均收益率: 所有日收益率的平均值
+                    $averag_daily_rate = ProductUserDetails::getAverageDailyRate($val['product_id'], $val['uid'], $daily_rate_return); //日均收益率: 所有日收益率的平均值
                     $daily_average_annualized = (float)$averag_daily_rate * 365; // 日均年化: 日均收益率 * 365
                     $insertData[] = [
                         'product_id' => $val['product_id'],
@@ -347,7 +347,7 @@ class MyProduct extends Base {
                     $daily_income = ($networth - $yestNetworth) * $buy_total_number; //	日收益:（当日净值-昨日净值）* 总购买份数
                     $daily_rate_return = (($networth - $yestNetworth) / $yestNetworth) * 100; // 日收益率:（当日净值-昨日净值）/ 昨日净值
                     $total_revenue_rate = ($total_revenue / $total_investment) * 100; // 总收益率: 总收益 / 总投资额
-                    $averag_daily_rate = ProductDetails::getAverageDailyRate($val['id']); //日均收益率: 所有日收益率的平均值
+                    $averag_daily_rate = ProductDetails::getAverageDailyRate($val['id'], $daily_rate_return); //日均收益率: 所有日收益率的平均值
                     $daily_average_annualized = (float)$averag_daily_rate * 365; // 日均年化: 日均收益率 * 365
                     $insertData[] = [
                         'product_id' => $val['id'],
