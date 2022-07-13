@@ -18,6 +18,14 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    prop="networth"
+                    label="净值"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.networth || 0, 2) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     prop="total_revenue"
                     label="总收益"
                     align="center">
@@ -71,9 +79,10 @@
             <div v-if="tableData.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
-                    <el-descriptions-item label="账户余额">{{ item.account_balance }}</el-descriptions-item>
-                    <el-descriptions-item label="总收益">{{ item.total_revenue }}</el-descriptions-item>
-                    <el-descriptions-item label="日收益">{{ item.daily_income }}</el-descriptions-item>
+                    <el-descriptions-item label="账户余额">{{ toFixed(item.account_balance || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="净值">{{ toFixed(item.networth || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="总收益">{{ toFixed(item.total_revenue || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="日收益">{{ toFixed(item.daily_income || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="日收益率">{{ toFixed(item.daily_rate_return || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="总收益率">{{ toFixed(item.total_revenue_rate || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="日均收益率">{{ toFixed(item.daily_arg_rate || 0, 2) }}</el-descriptions-item>

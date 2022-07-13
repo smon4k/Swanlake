@@ -15,7 +15,7 @@
                     label="总结余(USDT)"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_invest || 0, 2) }}</span>
+                        <span>{{ toFixed(scope.row.total_balance || 0, 2) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
