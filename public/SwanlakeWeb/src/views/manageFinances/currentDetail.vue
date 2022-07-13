@@ -10,30 +10,30 @@
                 <el-row>
                     <el-col :span="24" align="center">
                         <p class="annualized-income desc">预计年化收益率</p>
-                        <p class="rate">{{ toFixed(annualized_income || 0, 4) }}%</p>
+                        <p class="rate">{{ toFixed(annualized_income || 0, 2) }}%</p>
                     </el-col>
                 </el-row>
                 <el-row class="content" :style="'width:'+isMobel ? '100%' : '80%'">
                     <el-col :span="8">
                         <p class="desc">我的可用余额</p>
-                        <p class="balance">{{ balance }} USDT</p>
+                        <p class="balance">{{ toFixed(balance || 0, 2) }} USDT</p>
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">净值</p>
-                        <p class="balance">{{ networth }}</p>
+                        <p class="balance">{{ toFixed(networth || 0, 2) }}</p>
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">预计每日收益率</p>
-                        <p class="balance gree">{{ toFixed(annualized_income / 365 * 100 || 0, 4) }}%</p>
+                        <p class="balance gree">{{ toFixed(annualized_income / 365 * 100 || 0, 2) }}%</p>
                     </el-col>
                     <div v-if="type == 2">
                         <el-col :span="8">
                             <p class="desc">在投数量</p>
-                            <p class="balance">{{ toFixed(total_invest | 0, 4) }} USDT</p>
+                            <p class="balance">{{ toFixed(total_invest | 0, 2) }} USDT</p>
                         </el-col>
                         <el-col :span="8">
                             <p class="desc">购买总份数</p>
-                            <p class="balance">{{ toFixed(total_number || 0, 4) }} 份</p>
+                            <p class="balance">{{ toFixed(total_number || 0, 2) }} 份</p>
                         </el-col>
                     </div>
                     <el-col :span="24">
@@ -222,7 +222,7 @@ export default {
             });
         },
         getCountAmount() { //获取投资数量
-           return this.toFixed(Number(this.shareValue) * Number(this.networth) || 0, 4);
+           return this.toFixed(Number(this.shareValue) * Number(this.networth) || 0, 2);
         }
     },
     mounted() {
