@@ -131,13 +131,14 @@ class MyProduct extends Base {
             $total_balance = $total_number * $toDayNetworth; //	总结余: 总的份数 * 最新净值 （随着净值的变化而变化）
             $cumulative_income = $total_balance - $total_investment; // 累计收益: 总结余 – 总投资
             $total_return = ($cumulative_income / $total_investment) * 100; //	总收益率: 累计收益 / 总投资
-            $total_networth = DayNetworth::getCountNetworth($val['product_id']); //总的净值
+            // $total_networth = DayNetworth::getCountNetworth($val['product_id']); //总的净值
             $d2 = strtotime($val['time']);
             $buy_days = round(($d1 - $d2) / 3600 / 24); //购买天数
             $lists[$key]['networth'] = $toDayNetworth;  //今日最新净值
             $lists[$key]['yest_income'] = ($toDayNetworth - $yestDayNetworth) * (float)$val['total_number']; //	昨日收益：（今天的净值 - 昨天的净值） * 用户总份数
             $lists[$key]['total_rate'] = $total_return;
-            $lists[$key]['year_rate'] = $buy_days > 0 ? (((float)$total_networth - 1) / (float)$buy_days) * 365 * 100 : ((float)$total_networth - 1) * 365 * 100;  //年化收益率
+            // p($toDayNetworth);
+            $lists[$key]['year_rate'] = $buy_days > 0 ? (((float)$toDayNetworth - 1) / (float)$buy_days) * 365 : ((float)$toDayNetworth - 1) / 1 * 365;  //年化收益率
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
