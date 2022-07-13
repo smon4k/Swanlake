@@ -13,36 +13,57 @@
                     prop="account_balance"
                     label="账户余额"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.account_balance || 0, 2) }}</span>
+                    </template>
                 </el-table-column>
                 <el-table-column
                     prop="total_revenue"
                     label="总收益"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.total_revenue || 0, 2) }}</span>
+                    </template>
                 </el-table-column>
                 <el-table-column
                     prop="daily_income"
                     label="日收益"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_income || 0, 2) }}</span>
+                    </template>
                 </el-table-column>
                 <el-table-column
                     prop="daily_rate_return"
                     label="日收益率"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_rate_return || 0, 2) }}%</span>
+                    </template>
                 </el-table-column>
                 <el-table-column
                     prop="total_revenue_rate"
                     label="总收益率"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.total_revenue_rate || 0, 2) }}%</span>
+                    </template>
                 </el-table-column>
                 <el-table-column
                     prop="daily_arg_rate"
                     label="日均收益率"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_arg_rate || 0, 2) }}%</span>
+                    </template>
                 </el-table-column>
                 <el-table-column
                     prop="daily_arg_annualized"
                     label="日均年化收益"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_arg_annualized || 0, 2) }}%</span>
+                    </template>
                 </el-table-column>
             </el-table>
         </div>
@@ -53,10 +74,10 @@
                     <el-descriptions-item label="账户余额">{{ item.account_balance }}</el-descriptions-item>
                     <el-descriptions-item label="总收益">{{ item.total_revenue }}</el-descriptions-item>
                     <el-descriptions-item label="日收益">{{ item.daily_income }}</el-descriptions-item>
-                    <el-descriptions-item label="日收益率">{{ item.daily_rate_return }}</el-descriptions-item>
-                    <el-descriptions-item label="总收益率">{{ item.total_revenue_rate }}</el-descriptions-item>
-                    <el-descriptions-item label="日均收益率">{{ item.daily_arg_rate }}</el-descriptions-item>
-                    <el-descriptions-item label="日均年化收益">{{ item.daily_arg_annualized }}</el-descriptions-item>
+                    <el-descriptions-item label="日收益率">{{ toFixed(item.daily_rate_return || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="总收益率">{{ toFixed(item.total_revenue_rate || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="日均收益率">{{ toFixed(item.daily_arg_rate || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="日均年化收益">{{ toFixed(item.daily_arg_annualized || 0, 2) }}</el-descriptions-item>
                 </el-descriptions>
             </div>
             <div v-else>

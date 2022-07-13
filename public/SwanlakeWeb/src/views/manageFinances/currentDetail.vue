@@ -9,7 +9,7 @@
             <div class="buy-box">
                 <el-row>
                     <el-col :span="24" align="center">
-                        <p class="annualized-income desc">预计年化收益</p>
+                        <p class="annualized-income desc">预计年化收益率</p>
                         <p class="rate">{{ toFixed(annualized_income || 0, 4) }}</p>
                     </el-col>
                 </el-row>
@@ -20,7 +20,7 @@
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">净值</p>
-                        <p class="balance">{{ networth }} USDT</p>
+                        <p class="balance">{{ networth }}</p>
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">预计每日收益率</p>
