@@ -137,8 +137,10 @@ class MyProduct extends Base {
             $lists[$key]['networth'] = $toDayNetworth;  //今日最新净值
             $lists[$key]['yest_income'] = ($toDayNetworth - $yestDayNetworth) * (float)$val['total_number']; //	昨日收益：（今天的净值 - 昨天的净值） * 用户总份数
             $lists[$key]['total_rate'] = $total_return;
-            // p($toDayNetworth);
-            $lists[$key]['year_rate'] = $buy_days > 0 ? (((float)$toDayNetworth - 1) / (float)$buy_days) * 365 * 100 : ((float)$toDayNetworth - 1) / 1 * 365 * 100;  //年化收益率
+            $buyDate = date('Y-m-d', $d2);
+            $buyNetworth = DayNetworth::getDayNetworth($val['product_id'], $buyDate);
+            // p($buyNetworth);
+            $lists[$key]['year_rate'] = $buy_days > 0 ? (((float)$toDayNetworth - $buyNetworth['networth']) / (float)$buy_days) * 365 * 100 : ((float)$toDayNetworth - $buyNetworth['networth']) / 1 * 365 * 100;  //年化收益率: ((当前最新净值-购买第一天的当日净值)/天数)*365
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
