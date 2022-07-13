@@ -64,7 +64,7 @@
                 </div>
                 <div class="interest-rate">
                     <p>
-                        <i class="p1">{{ toFixed(item.annualized_income * 100 || 0, 4) }}</i>
+                        <i class="p1">{{ toFixed(item.annualized_income || 0, 2) }}</i>
                         <i class="pi">%</i>
                         <i class="p2">预期年化收益率</i>
                     </p>
