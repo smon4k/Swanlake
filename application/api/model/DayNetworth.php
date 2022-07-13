@@ -132,7 +132,7 @@ class DayNetworth extends Base {
             $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($product_id);
             $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
             $dayNum = self::where('product_id', $product_id)->count();
-            $total_annualized_income = (($toDayNetworth - 1) / $dayNum) * 365;
+            $total_annualized_income = (($toDayNetworth - 1) / $dayNum) * 365 * 100;
         }
         return $total_annualized_income;
     }
