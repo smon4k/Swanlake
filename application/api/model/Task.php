@@ -32,7 +32,7 @@ class Task extends Base
             $sql = 'SELECT
                         id,command,`number`
                     FROM
-                        m_task 
+                        s_task 
                     WHERE
                         ( `status` = 0 OR `status` = 3 ) 
                         AND `number` < 3 
@@ -49,7 +49,7 @@ class Task extends Base
             }
             // p($item);
         } else {
-            $sql = "SELECT id,command,`number` FROM m_task WHERE id = $id LIMIT 1";
+            $sql = "SELECT id,command,`number` FROM s_task WHERE id = $id LIMIT 1";
             $sqlRes = self::query($sql);
             if ($sqlRes && count((array)$sqlRes) > 0) {
                 $item = $sqlRes[0];
@@ -124,11 +124,11 @@ class Task extends Base
      * @author qinlh
      * @since 2022-02-18
      */
-    public static function addTaskData($user_id=0, $command='', $desc='')
+    public static function addTaskData($address='', $command='', $desc='')
     {
-        if ($user_id > 0 && $command !== '') {
+        if ($address !== '' && $command !== '') {
             $insertData = [
-                'user_id' => $user_id,
+                'address' => $address,
                 'command' => $command,
                 'desc' => $desc,
                 'create_time' => date('Y-m-d H:i:s')

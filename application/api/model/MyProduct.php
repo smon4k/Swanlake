@@ -269,7 +269,7 @@ class MyProduct extends Base {
                     $account_balance = $buy_total_number * $networth; //账户余额 = 今日净值 * 购买份数
                     $total_investment = (float)$val['total_invest']; //总投资
                     $total_revenue = $account_balance - $total_investment; //	总收益: 当前账户余额-总投资额
-                    $daily_income = (($networth - $yestNetworth) * $buy_total_number) * 100; //	日收益:（当日净值-昨日净值）* 总购买份数
+                    $daily_income = ($networth - $yestNetworth) * $buy_total_number; //	日收益:（当日净值-昨日净值）* 总购买份数
                     $daily_rate_return = (($networth - $yestNetworth) / $yestNetworth) * 100; // 日收益率:（当日净值-昨日净值）/ 昨日净值
                     $total_revenue_rate = ($total_revenue / $total_investment) * 100; // 总收益率: 总收益 / 总投资额
                     $averag_daily_rate = ProductDetails::getAverageDailyRate($val['product_id'], $val['uid']); //日均收益率: 所有日收益率的平均值

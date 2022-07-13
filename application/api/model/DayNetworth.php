@@ -56,7 +56,7 @@ class DayNetworth extends Base {
      * @author qinlh
      * @since 2022-07-09
      */
-    public static function saveDayNetworth($profit=0, $product_id=1) {
+    public static function saveDayNetworth($address='', $profit=0, $product_id=1) {
         if($profit > 0) {
             $dayNetWorth = MyProduct::calcNewsNetWorth($profit, $product_id);
             if($dayNetWorth > 0) {
@@ -65,6 +65,10 @@ class DayNetworth extends Base {
                 if($res && count((array)$res) > 0) {
                     $res = self::where('date', $date)->update(['networth'=>$dayNetWorth, 'time'=>date('Y-m-d H:i:s')]);
                     if($res !== false) {
+                        $command = 'app\api\model\MyProduct::saveUserProductData();';
+                        // p($command);
+                        $desc = '更新历史净值';
+                        Task::addTaskData($address, $command, $desc);
                         return true;
                     }
                 } else {
@@ -80,6 +84,10 @@ class DayNetworth extends Base {
                     ]);
                     $insertId = self::getLastInsID();
                     if($insertId > 0) {
+                        $command = 'app\api\model\MyProduct::saveUserProductData();';
+                        // p($command);
+                        $desc = '更新历史净值';
+                        Task::addTaskData($address, $command, $desc);
                         return true;
                     }
                 }

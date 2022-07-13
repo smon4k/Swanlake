@@ -226,7 +226,7 @@ class ProductController extends BaseController
         if(strtolower($address) !== strtolower(config('admin_address'))) {
             return $this->as_json('70001', 'no operating authority');
         }
-        $result = DayNetworth::saveDayNetworth($profit, $product_id);
+        $result = DayNetworth::saveDayNetworth($address, $profit, $product_id);
         if($result) {
             return $this->as_json($result);
         } else {
