@@ -14,11 +14,17 @@
                     prop="total_invest"
                     label="总结余(USDT)"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.total_invest || 0, 2) }}</span>
+                    </template>
                 </el-table-column>
                 <el-table-column
                     prop="total_number"
                     label="购买份数"
                     align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.total_number || 0, 2) }}</span>
+                    </template>
                 </el-table-column>
                 <!-- <el-table-column
                     prop="time"
@@ -88,13 +94,13 @@
         <div v-else>
             <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                 <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                <el-descriptions-item label="总结余(USDT)">{{ item.total_invest }}</el-descriptions-item>
-                <el-descriptions-item label="购买份数">{{ item.total_number }}</el-descriptions-item>
+                <el-descriptions-item label="总结余(USDT)">{{ toFixed(item.total_invest || 0, 2) }}</el-descriptions-item>
+                <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 2) }}</el-descriptions-item>
                 <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
                 <el-descriptions-item label="净值">{{ toFixed(item.buy_networth || 0, 2) }}</el-descriptions-item>
-                <el-descriptions-item label="昨日收益">{{ item.yest_income }}</el-descriptions-item>
-                <el-descriptions-item label="总收益率">{{ item.total_rate }}%</el-descriptions-item>
-                <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 4) }}%</el-descriptions-item>
+                <el-descriptions-item label="昨日收益">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>
+                <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 2) }}%</el-descriptions-item>
+                <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 2) }}%</el-descriptions-item>
                 <el-descriptions-item>
                     <div class="operate">
                         <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
