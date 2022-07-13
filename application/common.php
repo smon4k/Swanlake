@@ -291,7 +291,7 @@ function CurlRequest($url, $header, $content=array(), $backHeader=0, $cookie='')
     function getAdminAddress($address='') {
         $arr = config('admin_address_arr');
         $isAdmin = false;
-        if($arr && count((array) $arr > 0)) {
+        if($arr && count((array)$arr) > 0) {
             foreach ($arr as $key => $val) {
                 if(strtolower($val) === strtolower($address)) {
                     $isAdmin = true;

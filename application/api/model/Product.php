@@ -79,7 +79,7 @@ class Product extends Base
                 if ($amountRes) {
                     $data['daily_income'] = ($toDayNetworth - $yestDayNetworth) * (float)$amountRes['count_buy_number'];
                 }
-                $UserTotalInvest = MyProduct::getUserTotalInvest($userInfo['id']);
+                $UserTotalInvest = MyProduct::getUserTotalInvest($userInfo['id'], $product_id);
                 $data['total_invest'] = 0;
                 $data['total_number'] = 0;
                 if($UserTotalInvest) {

@@ -193,18 +193,23 @@ class MyProduct extends Base {
      * @author qinlh
      * @since 2022-07-11
      */
-    public static function getUserTotalInvest($userId=0) {
-        if($userId > 0) {
-            $sql = "SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE uid={$userId} ";
-            $data = self::query($sql);
-            $total_invest = 0;
-            $total_number = 0;
-            if($data && count((array)$data) > 0) {
-                $total_invest = $data[0]['total_invest'];
-                $total_number = $data[0]['total_number'];
-            }
-            return ['total_invest' => $total_invest, 'total_number' => $total_number];
+    public static function getUserTotalInvest($userId=0, $product_id=0) {
+        $sql = "SELECT sum(total_invest) AS total_invest, sum(total_number) AS total_number FROM s_my_product WHERE 1=1 ";
+        if ($userId && $userId > 0) {
+            $sql .= " AND uid={$userId}";
         }
+        if ($product_id && $product_id > 0) {
+            $sql .= " AND product_id={$product_id}";
+        }
+        $data = self::query($sql);
+        $total_invest = 0;
+        $total_number = 0;
+        if($data && count((array)$data) > 0) {
+            $total_invest = $data[0]['total_invest'];
+            $total_number = $data[0]['total_number'];
+        }
+        return ['total_invest' => $total_invest, 'total_number' => $total_number];
+        
         return [];
     }
 
@@ -262,7 +267,7 @@ class MyProduct extends Base {
                 $networthData = DayNetworth::getDayNetworth($val['product_id'], $date);
                 $yestNetworthData = DayNetworth::getDayNetworth($val['product_id'], $yestDate);
                 if($networthData && count((array)$networthData) > 0) {
-                    @self::name('product_details')->where(['product_id'=>$val['product_id'], 'uid' => $val['uid'], 'date' => $date])->delete();
+                    @self::name('product_user_details')->where(['product_id'=>$val['product_id'], 'uid' => $val['uid'], 'date' => $date])->delete();
                     $networth = (float)$networthData['networth']; //今日净值
                     $yestNetworth = isset($yestNetworthData['networth']) ? (float)$yestNetworthData['networth'] : 1; //昨日净值
                     $buy_total_number = (float)$val['total_number']; //购买总份数
@@ -272,11 +277,77 @@ class MyProduct extends Base {
                     $daily_income = ($networth - $yestNetworth) * $buy_total_number; //	日收益:（当日净值-昨日净值）* 总购买份数
                     $daily_rate_return = (($networth - $yestNetworth) / $yestNetworth) * 100; // 日收益率:（当日净值-昨日净值）/ 昨日净值
                     $total_revenue_rate = ($total_revenue / $total_investment) * 100; // 总收益率: 总收益 / 总投资额
-                    $averag_daily_rate = ProductDetails::getAverageDailyRate($val['product_id'], $val['uid']); //日均收益率: 所有日收益率的平均值
+                    $averag_daily_rate = ProductUserDetails::getAverageDailyRate($val['product_id'], $val['uid']); //日均收益率: 所有日收益率的平均值
                     $daily_average_annualized = (float)$averag_daily_rate * 365; // 日均年化: 日均收益率 * 365
                     $insertData[] = [
                         'product_id' => $val['product_id'],
                         'uid' => $val['uid'],
+                        'date' => $date,
+                        'account_balance' => $account_balance,
+                        'total_revenue' => $total_revenue,
+                        'daily_income' => $daily_income,
+                        'daily_rate_return' => $daily_rate_return,
+                        'total_revenue_rate' => $total_revenue_rate,
+                        'daily_arg_rate' => $averag_daily_rate,
+                        'daily_arg_annualized' => $daily_average_annualized,
+                        'time' => date('Y-m-d H:i:s'),
+                    ];
+                }   
+            }
+            if($insertData && count((array)$insertData) > 0) {
+                $res = self::name('product_user_details')->insertAll($insertData);
+                if ($res) {
+                    self::commit();
+                    return ['code' => 1, 'message' => '计算净值记录数据成功'];
+                }
+            }
+            self::rollback();
+            return ['code' => 0, 'message' => '计算失败'];
+        } catch ( PDOException $e) {
+            self::rollback();
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            return ['code' => 0, 'message' => $error_msg];
+        }
+    }
+
+    /**
+     * 异步计算产品每日收益数据
+     * @author qinlh
+     * @since 2022-07-13
+     */
+    public static function saveProductListData() {
+        $data = self::name('product')->select()->toArray();
+        $date = date('Y-m-d');
+        $yestDate = date('Y-m-d', strtotime("-1 day"));
+        $insertData = [];
+        self::startTrans();
+        try {
+            foreach ($data as $key => $val) {
+                $networthData = DayNetworth::getDayNetworth($val['id'], $date);
+                $yestNetworthData = DayNetworth::getDayNetworth($val['id'], $yestDate);
+                // p($yestNetworthData);
+                if($networthData && count((array)$networthData) > 0) {
+                    @self::name('product_details')->where(['product_id'=>$val['id'], 'date' => $date])->delete();
+                    $networth = (float)$networthData['networth']; //今日净值
+                    $yestNetworth = isset($yestNetworthData['networth']) ? (float)$yestNetworthData['networth'] : 1; //昨日净值
+                    $productTotalAmount = self::getUserTotalInvest(0, $val['id']);
+                    // p($productTotalAmount);
+                    $buy_total_number = (float)$productTotalAmount['total_number']; //购买总份数
+                    $account_balance = $buy_total_number * $networth; //账户余额 = 今日净值 * 购买份数
+                    $total_investment = (float)$productTotalAmount['total_invest']; //总投资
+                    $total_revenue = $account_balance - $total_investment; //	总收益: 当前账户余额-总投资额
+                    $daily_income = ($networth - $yestNetworth) * $buy_total_number; //	日收益:（当日净值-昨日净值）* 总购买份数
+                    $daily_rate_return = (($networth - $yestNetworth) / $yestNetworth) * 100; // 日收益率:（当日净值-昨日净值）/ 昨日净值
+                    $total_revenue_rate = ($total_revenue / $total_investment) * 100; // 总收益率: 总收益 / 总投资额
+                    $averag_daily_rate = ProductDetails::getAverageDailyRate($val['id']); //日均收益率: 所有日收益率的平均值
+                    $daily_average_annualized = (float)$averag_daily_rate * 365; // 日均年化: 日均收益率 * 365
+                    $insertData[] = [
+                        'product_id' => $val['id'],
                         'date' => $date,
                         'account_balance' => $account_balance,
                         'total_revenue' => $total_revenue,

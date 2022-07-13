@@ -4,7 +4,7 @@ namespace app\api\model;
 
 use think\Model;
 
-class ProductDetails extends Base {
+class ProductUserDetails extends Base {
 
 
     /**
@@ -85,9 +85,9 @@ class ProductDetails extends Base {
      * @author qinlh
      * @since 2022-07-11
      */
-    public static function getAverageDailyRate($product_id=0) {
-        if($product_id > 0) {
-            $avgNum = self::where(['product_id' => $product_id])->avg('daily_rate_return');
+    public static function getAverageDailyRate($product_id=0, $uid=0) {
+        if($product_id > 0 && $uid > 0) {
+            $avgNum = self::where(['product_id' => $product_id, 'uid' => $uid])->avg('daily_rate_return');
             if($avgNum > 0 ) {
                 return $avgNum;
             }

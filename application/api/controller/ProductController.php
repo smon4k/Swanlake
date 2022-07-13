@@ -16,7 +16,7 @@ use app\api\model\Product;
 use app\api\model\MyProduct;
 use app\api\model\User;
 use app\api\model\DayNetworth;
-use app\api\model\ProductDetails;
+use app\api\model\ProductUserDetails;
 use app\api\model\ProductOrder;
 use think\Request;
 use think\Db;
@@ -223,7 +223,7 @@ class ProductController extends BaseController
         if(!$address || $address == '' || $profit == '' || $product_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        if(strtolower($address) !== strtolower(config('admin_address'))) {
+        if(!getAdminAddress($address)) {
             return $this->as_json('70001', 'no operating authority');
         }
         $result = DayNetworth::saveDayNetworth($address, $profit, $product_id);
@@ -239,7 +239,7 @@ class ProductController extends BaseController
      * @author qinlh
      * @since 2022-07-08
      */
-    public function getMyProductDetailsList(Request $request) {
+    public function getMyProductUserDetailsList(Request $request) {
         $address = $request->request('address', '', 'trim');
         $page = $request->request('page', 1, 'intval');
         $limit = $request->request('limit', 20, 'intval');
@@ -252,7 +252,7 @@ class ProductController extends BaseController
         $where['a.uid'] = $userId;
         $where['a.product_id'] = $product_id;
         $order = 'a.date desc';
-        $result = ProductDetails::getMyProductDetailsList($where, $page, $limit, $order);
+        $result = ProductUserDetails::getMyProductUserDetailsList($where, $page, $limit, $order);
         if($result) {
             return $this->as_json($result);
         } else {

@@ -66,9 +66,12 @@ class DayNetworth extends Base {
                     $res = self::where('date', $date)->update(['networth'=>$dayNetWorth, 'time'=>date('Y-m-d H:i:s')]);
                     if($res !== false) {
                         $command = 'app\api\model\MyProduct::saveUserProductData();';
+                        $command1 = 'app\api\model\MyProduct::saveProductListData();';
                         // p($command);
-                        $desc = '更新历史净值';
+                        $desc = '更新用户产品历史净值';
+                        $desc1 = '更新产品历史净值';
                         Task::addTaskData($address, $command, $desc);
+                        Task::addTaskData($address, $command1, $desc1);
                         return true;
                     }
                 } else {
@@ -85,9 +88,12 @@ class DayNetworth extends Base {
                     $insertId = self::getLastInsID();
                     if($insertId > 0) {
                         $command = 'app\api\model\MyProduct::saveUserProductData();';
+                        $command1 = 'app\api\model\MyProduct::saveProductListData();';
                         // p($command);
                         $desc = '更新历史净值';
+                        $desc1 = '更新产品历史净值';
                         Task::addTaskData($address, $command, $desc);
+                        Task::addTaskData($address, $command1, $desc1);
                         return true;
                     }
                 }
