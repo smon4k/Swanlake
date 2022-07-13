@@ -26,6 +26,7 @@ export default {
         accounts:'',
         userId: 0, //用户ID
         userInfo: {}, //用户ID
+        isAdmin: false, //是否管理员
         chainId:'',
         tradeStatus:{
             current:"",
@@ -65,7 +66,12 @@ export default {
         },
         async getAddress(state, value) { //设置钱包地址
             state.address = value;
-            await getUserAddressInfo(value);
+            let userInfo = await getUserAddressInfo(value);
+            console.log(userInfo)
+            if(userInfo) {
+                state.userInfo = userInfo;
+                state.isAdmin = userInfo.is_admin;
+            }
         },  
         async removeAddress(state) {
             state.address = '';

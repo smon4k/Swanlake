@@ -20,15 +20,10 @@ import router from '@/router'
     const re_address = getQueryString('re');
     let result = [];
     if(address && address !== '') {
-        get("/Api/User/getUserAddressInfo", {
-          address: address,
-          invite_address: re_address,
-        }, json => {
-          console.log(json);
-          if (json && json.code == 10000) {
-              result = json.data;
-          }
-      });
+      let data = await $get('/Api/User/getUserAddressInfo?address='+address+'&re_address='+re_address);
+        if (data && data.code == 10000) {
+            result = data.data;
+        }
     }
     return result;
   }

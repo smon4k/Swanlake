@@ -64,7 +64,7 @@
             <el-divider></el-divider>
 
             <div v-show="screenWidth >= 1280">
-                <el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleSelect" :router="true">
+                <el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleSelect" :router="true" v-if="navList.length">
                     <el-menu-item v-for="(item, index) in navList" :key="index" :index="item.path">{{ item.name }}</el-menu-item>
                 </el-menu>
             </div>
@@ -146,6 +146,7 @@ export default {
             isConnected:state=>state.base.isConnected,
             mainTheme:state=>state.comps.mainTheme,
             apiUrl:state=>state.base.apiUrl,
+            isAdmin:state=>state.base.isAdmin,
             isMobel:state=>state.comps.isMobel,
         }),
         ...mapGetters(['pendingOrderAmount']),
@@ -168,7 +169,7 @@ export default {
             return this.$route.path
         },
         navList () { //导航菜单
-            return [
+            let arr = [
                 {
                     name: '首页',
                     path: "/home",
@@ -190,14 +191,18 @@ export default {
                 //     path: "/fund/monitoring",
                 // },
                 {
-                    name: '净值配置',
-                    path: "/day/networth",
-                },
-                {
                     name: '充提',
                     path: "/depositWithdrawal",
                 },
-            ]
+                {
+                    name: '净值配置',
+                    path: "/day/networth",
+                },
+            ];
+            if(!this.isAdmin) {
+                arr.splice(arr.length - 1, 1);
+            }
+            return arr;
         }
     },
     created(){

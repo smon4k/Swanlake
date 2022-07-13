@@ -87,6 +87,7 @@ class UserController extends BaseController
         }
         $result = User::getUserAddressInfo($address, $invite_address);
         if($result) {
+            $result['is_admin'] = getAdminAddress($address);
             return $this->as_json($result);
         } else {
             return $this->as_json(70001, 'Error');
