@@ -27,7 +27,7 @@ class ProductUserDetails extends Base {
                     ->select()
                     ->toArray();
         if (!$lists) {
-            ['count'=>0,'allpage'=>0,'lists'=>[]];
+            return ['count'=>0,'allpage'=>0,'lists'=>[]];
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];

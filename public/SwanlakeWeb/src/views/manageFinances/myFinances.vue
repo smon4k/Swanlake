@@ -99,7 +99,7 @@
                     <div class="operate">
                         <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
                         <el-button size="mini" type="primary" @click="buyClick(item, 2)">赎回</el-button>
-                        <el-button size="mini" type="primary" @click="incomeClick(item)">明细</el-button>
+                        <el-button size="mini" type="primary" @click="incomeClick(item)">历史净值</el-button>
                     </div>
                 </el-descriptions-item>
             </el-descriptions>
@@ -158,7 +158,7 @@ export default {
         },
         incomeClick(row) {
             this.$router.push({
-                path:'/financial/incomeList',
+                path:'/financial/userDetailsList',
                 query: {
                     product_id: row.product_id,
                 }

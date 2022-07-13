@@ -56,6 +56,7 @@
                     align="center">
                     <template slot-scope="scope">
                         <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
+                        <el-button type="text" @click="incomeClick(scope.row)">历史净值</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -86,6 +87,7 @@
                     <el-descriptions-item>
                         <div class="operate">
                             <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
+                            <el-button type="text" @click="incomeClick(item)">历史净值</el-button>
                         </div>
                     </el-descriptions-item>
                 </el-descriptions>
@@ -179,7 +181,15 @@ export default {
                     product_id: row.id,
                 }
             })
-        }
+        },
+        incomeClick(row) {
+            this.$router.push({
+                path:'/financial/productDetailsList',
+                query: {
+                    product_id: row.id,
+                }
+            })
+        },
     },
     mounted() {
 

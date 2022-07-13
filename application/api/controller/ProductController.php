@@ -17,6 +17,7 @@ use app\api\model\MyProduct;
 use app\api\model\User;
 use app\api\model\DayNetworth;
 use app\api\model\ProductUserDetails;
+use app\api\model\ProductDetails;
 use app\api\model\ProductOrder;
 use think\Request;
 use think\Db;
@@ -252,7 +253,31 @@ class ProductController extends BaseController
         $where['a.uid'] = $userId;
         $where['a.product_id'] = $product_id;
         $order = 'a.date desc';
-        $result = ProductUserDetails::getMyProductUserDetailsList($where, $page, $limit, $order);
+        $result = ProductUserDetails::getMyProductDetailsList($where, $page, $limit, $order);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
+
+    /**
+     * 获取产品每天的净值数据
+     * @author qinlh
+     * @since 2022-07-13
+     */
+    public function getProductDetailsList(Request $request) {
+        $address = $request->request('address', '', 'trim');
+        $page = $request->request('page', 1, 'intval');
+        $limit = $request->request('limit', 20, 'intval');
+        $product_id = $request->request('product_id', 0, 'intval');
+        if($address == '' || $product_id <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $where = [];
+        $where['a.product_id'] = $product_id;
+        $order = 'a.date desc';
+        $result = ProductDetails::getProductDetailsList($where, $page, $limit, $order);
         if($result) {
             return $this->as_json($result);
         } else {

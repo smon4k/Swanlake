@@ -8,11 +8,11 @@ class ProductDetails extends Base {
 
 
     /**
-     * 获取我的投资理财数据
+     * 获取产品净值数据
      * @author qinlh
      * @since 2022-02-18
      */
-    public static function getMyProductDetailsList($where, $page, $limit, $order='date desc')
+    public static function getProductDetailsList($where, $page, $limit, $order='date desc')
     {
         if ($limit <= 0) {
             $limit = config('paginate.list_rows');// 获取总条数
@@ -27,10 +27,10 @@ class ProductDetails extends Base {
                     ->select()
                     ->toArray();
         if (!$lists) {
-            ['count'=>0,'allpage'=>0,'lists'=>[]];
+            return ['count'=>0, 'allpage'=>0, 'lists'=>[]];
         }
         // p($lists);
-        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+        return ['count'=>$count, 'allpage'=>$allpage, 'lists'=>$lists];
     }
 
     /**

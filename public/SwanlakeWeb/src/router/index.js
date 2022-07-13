@@ -37,11 +37,18 @@ export const constantRoutes = [
           component: () => import('@/views/manageFinances/currentDetail'),
           meta: { title: 'currentDetail', keepAlive: false }
         },
-        //我的投注 明细数据
+        //我的产品投注 历史净值
         {
-          path: 'financial/incomeList',
+          path: 'financial/userDetailsList',
           name: 'incomeList',
-          component: () => import('@/views/manageFinances/incomeList'),
+          component: () => import('@/views/manageFinances/productUserDetailsList'),
+          meta: { title: 'incomeList', keepAlive: true }
+        },
+        //产品投注 历史净值
+        {
+          path: 'financial/productDetailsList',
+          name: 'incomeList',
+          component: () => import('@/views/manageFinances/productDetailsList'),
           meta: { title: 'incomeList', keepAlive: true }
         },
         {
