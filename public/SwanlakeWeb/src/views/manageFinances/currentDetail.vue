@@ -10,7 +10,7 @@
                 <el-row>
                     <el-col :span="24" align="center">
                         <p class="annualized-income desc">预计年化收益率</p>
-                        <p class="rate">{{ toFixed(annualized_income || 0, 4) }}</p>
+                        <p class="rate">{{ toFixed(annualized_income || 0, 4) }}%</p>
                     </el-col>
                 </el-row>
                 <el-row class="content" :style="'width:'+isMobel ? '100%' : '80%'">
