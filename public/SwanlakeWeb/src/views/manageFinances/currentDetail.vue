@@ -23,7 +23,7 @@
                         <p class="balance">{{ toFixed(networth || 0, 4) }}</p>
                     </el-col>
                     <el-col :span="8">
-                        <p class="desc">预计每日收益率</p>
+                        <p class="desc">日收益率</p>
                         <p class="balance gree">{{ toFixed(annualized_income / 365 || 0, 2) }}%</p>
                     </el-col>
                     <div v-if="type == 2">
@@ -31,10 +31,10 @@
                             <p class="desc">在投数量</p>
                             <p class="balance">{{ toFixed(total_invest | 0, 2) }} USDT</p>
                         </el-col>
-                        <el-col :span="8">
+                        <!-- <el-col :span="8">
                             <p class="desc">购买总份数</p>
                             <p class="balance">{{ toFixed(total_number || 0, 2) }} 份</p>
-                        </el-col>
+                        </el-col> -->
                     </div>
                     <el-col :span="24">
                         <el-input v-model="shareValue" placeholder="请输入起投份额">
@@ -46,10 +46,10 @@
                         </el-input>
                     </el-col>
                     <el-col :span="24" align="left" style="margin-top:10px;margin-left:70px;">{{ getCountAmount() }} USDT</el-col>
-                    <el-col :span="24" class="protocol">
+                    <!-- <el-col :span="24" class="protocol">
                         <span>继续代表你同意</span>
                         <a href="/page/agreement.html#/?agreement=financing_market_stakingprotocol" target="_blank">《活期宝产品服务协议》</a>
-                    </el-col>
+                    </el-col> -->
                     <el-col :span="24">
                         <el-button v-if="type == 1" class="invest-but" type="primary" :loading="loading" @click="startInvestNow()" :disabled="is_bet">立即投资</el-button>
                         <el-button v-else class="invest-but" type="primary" :loading="loading" @click="startInvestNow()">立即赎回</el-button>
