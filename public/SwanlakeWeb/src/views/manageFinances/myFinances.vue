@@ -37,7 +37,7 @@
                     label="净值"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.networth || 0, 2) }}</span>
+                        <span>{{ toFixed(scope.row.networth || 0, 4) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -97,7 +97,7 @@
                 <el-descriptions-item label="总结余(USDT)">{{ toFixed(item.total_invest || 0, 2) }}</el-descriptions-item>
                 <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 2) }}</el-descriptions-item>
                 <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
-                <el-descriptions-item label="净值">{{ toFixed(item.buy_networth || 0, 2) }}</el-descriptions-item>
+                <el-descriptions-item label="净值">{{ toFixed(item.buy_networth || 0, 4) }}</el-descriptions-item>
                 <el-descriptions-item label="昨日收益">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>
                 <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 2) }}%</el-descriptions-item>
                 <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 2) }}%</el-descriptions-item>

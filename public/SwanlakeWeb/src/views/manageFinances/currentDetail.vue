@@ -20,7 +20,7 @@
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">净值</p>
-                        <p class="balance">{{ toFixed(networth || 0, 2) }}</p>
+                        <p class="balance">{{ toFixed(networth || 0, 4) }}</p>
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">预计每日收益率</p>
