@@ -64,7 +64,8 @@
                 class="infinite-list-wrapper"
                 v-if="tableData.length" 
                 v-infinite-scroll="load"
-                style="overflow:auto">
+                style="overflow:auto"
+                >
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="数量(USDT)">{{ item.quantity }}</el-descriptions-item>
@@ -76,6 +77,8 @@
                     </el-descriptions-item>
                     <el-descriptions-item label="操作时间">{{ item.time }}</el-descriptions-item>
                 </el-descriptions>
+                <p v-if="loading">加载中...</p>
+                <p v-if="finished">没有更多了</p>
             </div>
             <div v-else>
                 <el-empty description="没有数据"></el-empty>
@@ -95,7 +98,10 @@ export default {
             product_id: 0,
             currPage: 1, //当前页
             pageSize: 20, //每页显示条数
-            total: 100, //总条数
+            total: 1, //总条数
+            loading: false,
+            finished: false,
+            PageSearchWhere: [],
         }
     },
     computed: {
@@ -145,8 +151,9 @@ export default {
             })
         },
         load () { //加载更多
-            console.log(111);
-            alert('111')
+            if(!this.finished) {
+                this.getProductOrderList();
+            }
         },
         getProductOrderList(ServerWhere) {
             if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
@@ -157,13 +164,41 @@ export default {
                     product_id: this.product_id,
                 };
             }
+            this.loading = true;
             get("/Api/Product/getProductOrderList", ServerWhere, json => {
                 if (json.code == 10000) {
-                    this.tableData = json.data.lists;
+                    if (json.data.lists) {
+                        let list = (json.data && json.data.lists) || [];
+                        if(this.isMobel) {
+                            if (this.currPage <= 1) {
+                                // console.log('首次加载');
+                                this.tableData = list;
+                                // this.$forceUpdate();
+                            } else {
+                                // console.log('二次加载');
+                                if (ServerWhere.page <= json.data.allpage) {
+                                    // console.log(ServerWhere.page, json.data.allpage);
+                                    this.tableData = [...this.tableData, ...list];
+                                    // this.$forceUpdate();
+                                }
+                            }
+                            this.currPage += 1;
+                            if (ServerWhere.page >= json.data.allpage) {
+                                // console.log(ServerWhere.page, json.data.allpage);
+                                this.finished = true;
+                            } else {
+                                this.finished = false;
+                            }
+                        } else {
+                            this.tableData = list;
+                        }
+                    }
                     this.total = json.data.count;
+                    this.loading = false;
                 } else {
                     this.$message.error("加载数据失败");
                 }
+                this.loading = false;
             });
         },
         limitPaging(limit) {
@@ -179,6 +214,7 @@ export default {
         },
         skipPaging(page) {
             //赋值当前页数
+            console.log(this.PageSearchWhere);
             this.currPage = page;
             if (
                 this.PageSearchWhere.page &&
@@ -200,6 +236,13 @@ export default {
             .el-table {
                 font-size: 16px;
             }
+            .infinite-list-wrapper {
+                height: 100vh;
+                p {
+                    text-align: center;
+                }
+            }
+            .infinite-list-wrapper::-webkit-scrollbar { width: 0 !important }
             .el-descriptions {
                 margin-bottom: 20px;
                 .el-descriptions__body {
