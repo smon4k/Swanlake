@@ -1,5 +1,9 @@
 <template>
     <div class="container">
+        <el-breadcrumb separator="/">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>投注</el-breadcrumb-item>
+        </el-breadcrumb>
         <el-card class="box-card">
             <div slot="header" class="clearfix">
                 <img src="@/assets/usdt.png" width="30" height="30" alt="">
@@ -233,6 +237,10 @@ export default {
 <style lang="scss" scoped>
     .container {
         /deep/ {
+            .el-breadcrumb {
+                height: 25px;
+                font-size: 16px;
+            }
             .box-card {
                 .clearfix {
                     img {

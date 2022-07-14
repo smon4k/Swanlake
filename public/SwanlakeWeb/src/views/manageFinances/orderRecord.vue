@@ -1,5 +1,9 @@
 <template>
     <div class="container">
+        <el-breadcrumb separator="/">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>我的订单</el-breadcrumb-item>
+        </el-breadcrumb>
         <div v-if="!isMobel">
             <el-table
                 :data="tableData"
@@ -233,6 +237,10 @@ export default {
 <style lang="scss" scoped>
     .container {
         /deep/ {
+            .el-breadcrumb {
+                height: 25px;
+                font-size: 16px;
+            }
             .el-table {
                 font-size: 16px;
             }
