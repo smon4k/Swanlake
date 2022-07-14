@@ -56,6 +56,7 @@ class MyProduct extends Base {
                             'uid' => $userId,
                             'total_invest' => $buy_number,
                             'total_number' => $number,
+                            'buy_networth' => $networth,
                             'time' => date('Y-m-d H:i:s'),
                             'up_time' => date('Y-m-d H:i:s'),
                         ];
@@ -141,13 +142,13 @@ class MyProduct extends Base {
             $lists[$key]['yest_income'] = 0;
             $lists[$key]['total_rate'] = 0;
             $lists[$key]['year_rate'] = 0;
-            if($buy_days > 0) {
+            if($toDayNetworth !== $val['buy_networth']) { //如果净值发生变换 计算收益
                 $lists[$key]['yest_income'] = ($toDayNetworth - $yestDayNetworth) * (float)$val['total_number']; //	昨日收益：（今天的净值 - 昨天的净值） * 用户总份数
                 $lists[$key]['total_rate'] = $total_return;
                 $buyDate = date('Y-m-d', $d2);
                 $buyNetworth = DayNetworth::getDayNetworth($val['product_id'], $buyDate);
-                // p($buyNetworth);
-                $lists[$key]['year_rate'] = $buy_days > 0 ? (((float)$toDayNetworth - $buyNetworth['networth']) / (float)$buy_days) * 365 * 100 : ((float)$toDayNetworth - $buyNetworth['networth']) / 1 * 365 * 100;  //年化收益率: ((当前最新净值-购买第一天的当日净值)/天数)*365
+                // p($val['buy_networth']);
+                $lists[$key]['year_rate'] = $buy_days > 0 ? (((float)$toDayNetworth - (float)$val['buy_networth']) / (float)$buy_days) * 365 * 100 : ((float)$toDayNetworth - $val['buy_networth']) / 1 * 365 * 100;  //年化收益率: ((当前最新净值-购买第一天的当日净值)/天数)*365
             }
         }
         // p($lists);
