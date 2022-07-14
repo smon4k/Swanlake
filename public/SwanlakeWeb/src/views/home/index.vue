@@ -33,7 +33,7 @@
                     </el-col>
                     <el-col :span="12">
                         <div>累计收益(USDT)</div>
-                        <div class="price gree">{{ toFixed(userInfo.cumulative_income | 0, 4) }}</div>
+                        <div class="price gree">{{ toFixed(userInfo.cumulative_income || 0, 4) }}</div>
                         <div>≈{{ toFixed(userInfo.cumulative_income * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                 </el-row>
