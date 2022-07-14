@@ -232,7 +232,9 @@ class MyProduct extends Base {
             $data = self::getNewsBuyAmount($product_id, 0, false);
             if($data) {
                 $count_buy_number = $data['count_buy_number']; //总的份数
-                $count_balance = $data['count_balance'] * $data['today_net_worth'];//总结余 = 总的份数 * 总的净值
+                // p($data['count_balance']);
+                // $count_balance = $data['count_balance'] * $data['today_net_worth'];//总结余 = 总的份数 * 总的净值
+                $count_balance = $data['count_balance'];//总结余 = 总的份数 * 总的净值
                 $dayNetWorth =  $count_buy_number > 0 ? ((float)$count_profit + $count_balance) / $count_buy_number : (float)$count_profit + $count_balance;  //	当天净值:  （总的利润 + 总的结余）/ 总的份数
             }
         }
