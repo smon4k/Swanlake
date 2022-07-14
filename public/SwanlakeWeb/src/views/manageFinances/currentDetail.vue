@@ -222,7 +222,7 @@ export default {
             });
         },
         getCountAmount() { //获取投资数量
-           return this.toFixed(Number(this.shareValue) * Number(this.networth) || 0, 2);
+           return this.toFixed(Number(this.shareValue) * Number(this.networth) || 0, 4);
         }
     },
     mounted() {
