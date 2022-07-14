@@ -21,8 +21,8 @@
                     </el-col>
                     <el-col :span="12">
                         <div>钱包余额(USDT)</div>
-                        <div class="price">{{ toFixed(userInfo.wallet_balance || 0, 4) }}</div>
-                        <div>≈{{ toFixed(userInfo.wallet_balance * CNY_USD || 0, 4) }} CNY</div>
+                        <div class="price">{{ toFixed(h2oBalance || 0, 4) }}</div>
+                        <div>≈{{ toFixed(h2oBalance * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                 </el-row>
                 <el-row class="total" style="margin-top:20px;">
@@ -79,6 +79,8 @@
 <script>
 import { get } from "@/common/axios.js";
 import { mapGetters, mapState } from "vuex";
+import { getBalance } from "@/wallet/serve";
+import Address from '@/wallet/address.json'
 export default {
     name: 'home',
     data() {
@@ -87,6 +89,7 @@ export default {
             CNY_USD: 6.70,
             userInfo: {},
             tableData: [],
+            h2oBalance: 0,
         }
     },
     computed: {
@@ -137,9 +140,11 @@ export default {
         getUserInfo() { //获取用户数据
             get("/Api/User/getUserInfo", {
                 address: this.address
-            }, json => {
+            }, async json => {
                 if (json.code == 10000) {
                     this.userInfo = json.data;
+                    this.h2oBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
+                    console.log('H2O 余额：', this.h2oBalance);
                 } else {
                     this.$message.error("加载数据失败");
                 }

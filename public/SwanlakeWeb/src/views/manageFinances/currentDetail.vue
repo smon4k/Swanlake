@@ -24,7 +24,7 @@
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">预计每日收益率</p>
-                        <p class="balance gree">{{ toFixed(annualized_income / 365 * 100 || 0, 2) }}%</p>
+                        <p class="balance gree">{{ toFixed(annualized_income / 365 || 0, 2) }}%</p>
                     </el-col>
                     <div v-if="type == 2">
                         <el-col :span="8">

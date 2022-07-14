@@ -60,7 +60,11 @@
             </el-row>
         </div>
         <div v-else>
-            <div v-if="tableData.length">
+            <div 
+                class="infinite-list-wrapper"
+                v-if="tableData.length" 
+                v-infinite-scroll="load"
+                style="overflow:auto">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="数量(USDT)">{{ item.quantity }}</el-descriptions-item>
@@ -139,6 +143,10 @@ export default {
                     type: type
                 }
             })
+        },
+        load () { //加载更多
+            console.log(111);
+            alert('111')
         },
         getProductOrderList(ServerWhere) {
             if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
