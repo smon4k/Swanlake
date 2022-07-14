@@ -1,5 +1,9 @@
 <template>
     <div class="container">
+        <el-breadcrumb separator="/">
+            <el-breadcrumb-item :to="{ path: '/my/finances' }">我的理财</el-breadcrumb-item>
+            <el-breadcrumb-item>历史净值</el-breadcrumb-item>
+        </el-breadcrumb>
         <div v-if="!isMobel">
             <el-table
                 :data="tableData"
@@ -11,8 +15,9 @@
                 </el-table-column>
                 <el-table-column
                     prop="account_balance"
-                    label="账户余额"
-                    align="center">
+                    label="账户余额(USDT)"
+                    align="center"
+                    width="150">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.account_balance || 0, 2) }}</span>
                     </template>
@@ -27,7 +32,7 @@
                 </el-table-column>
                 <el-table-column
                     prop="total_revenue"
-                    label="总收益"
+                    label="总收益(USDT)"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total_revenue || 0, 2) }}</span>
@@ -35,7 +40,7 @@
                 </el-table-column>
                 <el-table-column
                     prop="daily_income"
-                    label="日收益"
+                    label="日收益(USDT)"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.daily_income || 0, 2) }}</span>
@@ -79,10 +84,10 @@
             <div v-if="tableData.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
-                    <el-descriptions-item label="账户余额">{{ toFixed(item.account_balance || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="账户余额(USDT)">{{ toFixed(item.account_balance || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="净值">{{ toFixed(item.networth || 0, 4) }}</el-descriptions-item>
-                    <el-descriptions-item label="总收益">{{ toFixed(item.total_revenue || 0, 2) }}</el-descriptions-item>
-                    <el-descriptions-item label="日收益">{{ toFixed(item.daily_income || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="总收益(USDT)">{{ toFixed(item.total_revenue || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="日收益(USDT)">{{ toFixed(item.daily_income || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="日收益率">{{ toFixed(item.daily_rate_return || 0, 2) }}%</el-descriptions-item>
                     <el-descriptions-item label="总收益率">{{ toFixed(item.total_revenue_rate || 0, 2) }}%</el-descriptions-item>
                     <el-descriptions-item label="日均收益率">{{ toFixed(item.daily_arg_rate || 0, 2) }}%</el-descriptions-item>
@@ -202,6 +207,10 @@ export default {
 <style lang="scss" scoped>
     .container {
         /deep/ {
+            .el-breadcrumb {
+                height: 25px;
+                font-size: 16px;
+            }
             .el-table {
                 font-size: 16px;
             }
