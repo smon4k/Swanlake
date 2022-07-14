@@ -327,6 +327,11 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+/deep/ {
+    .el-drawer__body {
+        padding: 20px !important;
+    }
+}
 .sider-inner {
     display: flex;
     position: absolute;
