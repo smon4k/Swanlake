@@ -255,7 +255,7 @@ export default {
                 .buy-box {
                     .annualized-income {
                         margin: 0;
-                        width: 380px;
+                        // width: 380px;
                     }
                     .content {
                         text-align: center;
@@ -286,7 +286,7 @@ export default {
                         font-weight: 700;
                         margin: 0 auto;
                         padding-bottom: 10px;
-                        width: 380px;
+                        // width: 380px;
                     }
                 }
             }
