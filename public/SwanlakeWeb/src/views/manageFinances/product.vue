@@ -42,7 +42,7 @@
                 </el-table-column>
                 <el-table-column
                     prop="yest_income"
-                    label="昨日收益"
+                    label="昨日收益(USDT)"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.yest_income || 0, 2) }}</span>
@@ -53,7 +53,7 @@
                     label="昨日收益率"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.yest_income_rate || 0, 2) }}</span>
+                        <span>{{ toFixed(scope.row.yest_income_rate || 0, 2) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -88,7 +88,7 @@
                     <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="净值">{{ toFixed(item.networth || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="总结余(USDT)">{{ toFixed(Number(item.total_size) * Number(item.networth) || 0, 2) }}</el-descriptions-item>
-                    <el-descriptions-item label="昨日收益">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="昨日收益(USDT)">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益率">{{ toFixed(item.yest_income_rate || 0, 2) }}%</el-descriptions-item>
                     <el-descriptions-item>
                         <div class="operate">

@@ -34,12 +34,16 @@
                     <el-col :span="12">
                         <div>累计收益(USDT)</div>
                         <div class="price gree">{{ toFixed(userInfo.cumulative_income | 0, 4) }}</div>
-                        <div>≈{{ toFixed(userInfo.cumulative_income * CNY_USD | 0, 4) }} CNY</div>
+                        <div>≈{{ toFixed(userInfo.cumulative_income * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                 </el-row>
-                <br>
-                <el-row>
-                    <el-col :span="24">
+                <el-row type="flex" class="total" style="margin-top:20px;">
+                    <el-col :span="12">
+                        <div>投资结余(USDT)</div>
+                        <div class="price">{{ toFixed(userInfo.count_balance || 0, 4) }}</div>
+                        <div>≈{{ toFixed(userInfo.count_balance * CNY_USD || 0, 4) }} CNY</div>
+                    </el-col>
+                     <el-col :span="12" class="my-order">
                         <el-button @click="routeMyOrder()" round>我的订单 <i class="el-icon-caret-right"></i></el-button>
                     </el-col>
                 </el-row>
@@ -202,6 +206,18 @@ export default {
                             line-height: 33px;
                             margin-bottom: 5px;
                             word-break: break-all;
+                        }
+                        .my-order {
+                            display: flex;
+                            align-items: center;
+                        }
+                        .el-button {
+                            background: #409EFF;
+                            color: #fff;
+                            line-height: unset;
+                            .is-round {
+                                padding: 0;
+                            }
                         }
                     }
                     .el-button.is-round {

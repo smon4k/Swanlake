@@ -142,7 +142,7 @@ class MyProduct extends Base {
             $lists[$key]['yest_income'] = 0;
             $lists[$key]['total_rate'] = 0;
             $lists[$key]['year_rate'] = 0;
-            if($toDayNetworth !== $val['buy_networth']) { //如果净值发生变换 计算收益
+            if((float)$toDayNetworth !== (float)$val['buy_networth']) { //如果净值发生变换 计算收益
                 $lists[$key]['yest_income'] = ($toDayNetworth - $yestDayNetworth) * (float)$val['total_number']; //	昨日收益：（今天的净值 - 昨天的净值） * 用户总份数
                 $lists[$key]['total_rate'] = $total_return;
                 $buyDate = date('Y-m-d', $d2);
@@ -161,7 +161,7 @@ class MyProduct extends Base {
      * @since 2022-07-09
      */
     public static function getNewsBuyAmount($product_id=0, $userId=0, $iscalcToday=true) {
-        if($product_id > 0) {
+        if($product_id > 0 || $userId > 0) {
             $sql = "SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1 ";
             if($product_id) {
                 $sql .= " AND product_id = {$product_id}";
@@ -200,6 +200,27 @@ class MyProduct extends Base {
                 'today_net_worth' => $today_net_worth //今日最新净值
             ];
         } 
+    }
+
+    /**
+     * 根据用户id获取所有产品总结余
+     * @author qinlh
+     * @since 2022-07-14
+     */
+    public static function getAllProductBalance($uid=0) {
+        if($uid > 0) {
+            $sql = "SELECT product_id,uid,total_number FROM s_my_product WHERE uid={$uid}";
+            $data = self::query($sql);
+            $count_balance = 0;
+            foreach ($data as $key => $val) {
+                $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['product_id']);
+                $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
+                $count_balance += $val['total_number'] * $toDayNetworth;//总结余 = 总的份数 * 今日最新净值
+            }
+            return $count_balance;
+            // p($count_balance);
+        }
+        return 0;
     }
     
     /**

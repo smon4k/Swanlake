@@ -68,6 +68,8 @@ class UserController extends BaseController
             }
             $cumulativeIncomeRes = MyProduct::getAllCumulativeIncome($userInfo['id']);
             $userInfo['cumulative_income'] = $cumulativeIncomeRes;
+            $balanceData = MyProduct::getAllProductBalance($userInfo['id']);
+            $userInfo['count_balance'] = $balanceData;
             return $this->as_json($userInfo);
         } else {
             return $this->as_json(70001, '添加失败');
