@@ -80,7 +80,7 @@ class Task extends Base
                     'remark' => $EvalResult['message'] === "ok" ? '异步执行成功' : $EvalResult['message'],
                     'end_time' => date("Y-m-d H:i:s"),
                     'status' => 2,
-                    'data' => $EvalResult['data'] ? json_encode($EvalResult['data'], JSON_UNESCAPED_UNICODE) : '',
+                    'data' => isset($EvalResult['data']) ? json_encode($EvalResult['data'], JSON_UNESCAPED_UNICODE) : '',
                 ]);
             } else {
                 self::where([
