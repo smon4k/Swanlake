@@ -79,7 +79,7 @@ class DayNetworth extends Base {
                     self::insert([
                         'product_id' => $product_id,
                         'profit' => $profit,
-                        'balance' => $buyNumber['count_balance'],
+                        'balance' => $buyNumber['yest_count_balance'],
                         'number' => $buyNumber['count_buy_number'],
                         'networth' => $dayNetWorth,
                         'date' => date('Y-m-d'),

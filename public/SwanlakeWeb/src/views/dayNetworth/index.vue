@@ -2,10 +2,10 @@
     <div class="container">
         <div class="main">
             <el-descriptions :column="isMobel ? 1 : 3" :title="date">
-                <el-descriptions-item label="总结余">{{ toFixed(count_balance || 0, 2) }} USDT</el-descriptions-item>
+                <el-descriptions-item label="总结余">{{ toFixed(is_networth ? count_balance : yest_count_balance, 4) }} USDT</el-descriptions-item>
                 <!-- <el-descriptions-item label="总结余">{{ toFixed(yest_count_balance || 0, 2) }} USDT</el-descriptions-item> -->
                 <el-descriptions-item label="总的份数">{{ toFixed(count_buy_number || 0, 2) }}</el-descriptions-item>
-                <el-descriptions-item label="今日最新净值">{{ keepDecimalNotRounding(today_net_worth || 0, 4) }}</el-descriptions-item>
+                <el-descriptions-item label="当前净值">{{ keepDecimalNotRounding(today_net_worth > 0 ? today_net_worth : yest_net_worth || 0, 4) }}</el-descriptions-item>
             </el-descriptions>
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="80px" class="demo-ruleForm">
                 <el-form-item label="今日利润" prop="profit">
@@ -36,7 +36,9 @@ export default {
             count_buy_number: 0, //总的份数
             count_buy_networth: 0, //总的购买净值
             today_net_worth: 1, //今日最新净值
+            yest_net_worth: 1, //昨日最新净值
             newDaynetworth: 0,
+            is_networth: false,
             ruleForm: {
                 profit: '',
             },
@@ -102,6 +104,8 @@ export default {
                     this.count_buy_number = json.data.count_buy_number;
                     this.count_buy_networth = json.data.count_buy_networth;
                     this.today_net_worth = json.data.today_net_worth;
+                    this.yest_net_worth = json.data.yest_net_worth;
+                    this.is_networth = json.data.is_networth;
                 } else {
                     this.$message.error("加载数据失败");
                 }
