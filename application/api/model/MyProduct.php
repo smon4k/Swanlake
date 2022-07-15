@@ -345,7 +345,7 @@ class MyProduct extends Base {
                     $total_revenue_rate = 0;
                     $averag_daily_rat = 0;
                     $daily_average_annualized = 0;
-                    if(float($networth) !== (float)$val['buy_networth']) {
+                    if((float)$networth !== (float)$val['buy_networth']) {
                         $total_revenue = $account_balance - $total_investment; //	总收益: 当前账户余额-总投资额
                         $daily_income = ($networth - $yestNetworth) * $buy_total_number; //	日收益:（当日净值-昨日净值）* 总购买份数
                         $daily_rate_return = (($networth - $yestNetworth) / $yestNetworth) * 100; // 日收益率:（当日净值-昨日净值）/ 昨日净值
