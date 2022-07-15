@@ -3,15 +3,16 @@
         <div class="main">
             <el-descriptions :column="isMobel ? 1 : 3" :title="date">
                 <el-descriptions-item label="总结余">{{ toFixed(count_balance || 0, 2) }} USDT</el-descriptions-item>
+                <!-- <el-descriptions-item label="总结余">{{ toFixed(yest_count_balance || 0, 2) }} USDT</el-descriptions-item> -->
                 <el-descriptions-item label="总的份数">{{ toFixed(count_buy_number || 0, 2) }}</el-descriptions-item>
-                <el-descriptions-item label="今日最新净值">{{ toFixed(today_net_worth || 0, 4) }}</el-descriptions-item>
+                <el-descriptions-item label="今日最新净值">{{ keepDecimalNotRounding(today_net_worth || 0, 4) }}</el-descriptions-item>
             </el-descriptions>
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="80px" class="demo-ruleForm">
                 <el-form-item label="今日利润" prop="profit">
                     <el-input v-model="ruleForm.profit" @input="calcNewsNetWorth" @blur="calcNewsNetWorthBlur" placeholder="请输入今日利润"></el-input>
                 </el-form-item>
                 <el-form-item label="更新后净值" label-width="100px">
-                    <span>{{ toFixed(newDaynetworth || 0, 4) }}</span>
+                    <span>{{ keepDecimalNotRounding(newDaynetworth || 0, 4) }}</span>
                 </el-form-item>
                 <el-form-item align="center" class="submit">
                     <el-button type="primary" @click="submitForm('ruleForm')">更新</el-button>
@@ -23,6 +24,7 @@
 <script>
 import { mapGetters, mapState } from "vuex";
 import { get, post } from "@/common/axios.js";
+import { keepDecimalNotRounding } from "@/utils/tools.js";
 export default {
     name: '',
     data() {
@@ -30,6 +32,7 @@ export default {
             product_id: 1,
             date: '',
             count_balance: 0, //总的结余
+            yest_count_balance: 0, //昨日总的结余
             count_buy_number: 0, //总的份数
             count_buy_networth: 0, //总的购买净值
             today_net_worth: 1, //今日最新净值
@@ -95,6 +98,7 @@ export default {
                 if (json.code == 10000) {
                     this.date = json.data.date;
                     this.count_balance = json.data.count_balance;
+                    this.yest_count_balance = json.data.yest_count_balance;
                     this.count_buy_number = json.data.count_buy_number;
                     this.count_buy_networth = json.data.count_buy_networth;
                     this.today_net_worth = json.data.today_net_worth;
@@ -108,7 +112,7 @@ export default {
             this.calcNewsNetWorth(value);
         },
         calcNewsNetWorth(amount) { //实时根据利润值计算当天净值
-            if(amount !== 0) {
+            if(amount && amount !== 0) {
                 get("/Api/Product/calcNewsNetWorth", {
                     address: this.address,
                     profit: amount

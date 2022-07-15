@@ -63,7 +63,7 @@ class DayNetworth extends Base {
                 $date = date("Y-m-d");
                 $res = self::where('date', $date)->find();
                 if($res && count((array)$res) > 0) {
-                    $res = self::where('date', $date)->update(['networth'=>$dayNetWorth, 'time'=>date('Y-m-d H:i:s')]);
+                    $res = self::where('date', $date)->update(['profit'=>$profit, 'networth'=>$dayNetWorth, 'time'=>date('Y-m-d H:i:s')]);
                     if($res !== false) {
                         $command = 'app\api\model\MyProduct::saveUserProductData();';
                         $command1 = 'app\api\model\MyProduct::saveProductListData();';

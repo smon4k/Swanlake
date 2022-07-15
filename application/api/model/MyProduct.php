@@ -169,13 +169,13 @@ class MyProduct extends Base {
             if($userId) {
                 $sql .= " AND uid = {$userId}";
             }
+            $date = date('Y-m-d');
             $data = self::query($sql);
             // p($data);
             $count_total_number = 0; //总的份数
             $count_buy_networth = 0; //总的净值
             $count_balance = 0; //总结余
             $today_net_worth = 1;
-            $date = date('Y-m-d');
             $today_profit = 0;
             $netWorthToday = DayNetworth::getDayNetworth($product_id, $date);
             if($netWorthToday && count((array)$netWorthToday) > 0) {
@@ -190,11 +190,14 @@ class MyProduct extends Base {
                 // $count_balance = $count_total_number * $count_buy_networth;//总结余 = 总的份数 * 总的净值
                 $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($product_id);
                 $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
+                $yestDayData = (float)$NewTodayYesterdayNetworth['yestDayData']; //昨日最新净值
                 $count_balance = $count_total_number * $toDayNetworth;//总结余 = 总的份数 * 今日最新净值
+                $yest_count_balance = $count_total_number * $yestDayData;//总结余 = 总的份数 * 昨日最新净值
             }
             return [
                 'date' => date('Y-m-d'), 
                 'count_balance' => $count_balance, //总结余
+                'yest_count_balance' => $yest_count_balance, //昨日总结余
                 'count_buy_number' => $count_total_number, //总的份数
                 'count_buy_networth' => $count_buy_networth, //总的净值
                 'today_net_worth' => $today_net_worth //今日最新净值
@@ -263,7 +266,8 @@ class MyProduct extends Base {
                 $count_buy_number = $data['count_buy_number']; //总的份数
                 // p($data['count_balance']);
                 // $count_balance = $data['count_balance'] * $data['today_net_worth'];//总结余 = 总的份数 * 总的净值
-                $count_balance = $data['count_balance'];//总结余 = 总的份数 * 总的净值
+                // $count_balance = $data['count_balance'];//总结余 = 总的份数 * 总的净值
+                $count_balance = $data['yest_count_balance'];//总结余 = 总的份数 * 总的净值
                 $dayNetWorth =  $count_buy_number > 0 ? ((float)$count_profit + $count_balance) / $count_buy_number : (float)$count_profit + $count_balance;  //	当天净值:  （总的利润 + 总的结余）/ 总的份数
             }
         }
