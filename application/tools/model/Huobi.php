@@ -24,8 +24,37 @@ class Huobi extends Base
      * @since 2022-06-29
      */
     public static function getAccountBalance() {
-        $rpc = new hbdm('806eacdf-84f76c82-cdgs9k03f3-03c14', 'd4d6c964-629ba4e7-b9bd0c11-cc963');
-        $data = $rpc->account_accounts(272749571);
+        $rpc = new hbdm('a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8', '3d2322fc-a5919d1d-18dc22e8-527e9');
+        $data = $rpc->get_account_valuation();
         p($data);
     }
+
+    /**
+     * 获取账户余额
+     * @author qinlh
+     * @since 2022-06-29
+     */
+    public static function getCcxtAccountBalance() {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+
+        $className = "\ccxt\\okex5";
+
+        $exchange  = new $className(array(
+            'apiKey' => '21d3e612-910b-4f51-8f8d-edf2fc6f22f5',
+            'secret' => '89D37429D52C5F8B8D8E8BFB964D79C8',
+            'password' => 'Zx112211',
+        ));
+
+        //$this->market
+        try {  
+            // $result = $exchange->fetch_users_subaccount_list();
+            $result = $exchange->fetch_balance();
+            p($result);
+        } catch (\Exception $e) {
+            //$this->error($e->getMessage());
+            return array(0, $e->getMessage());
+        }
+    }
+    
 }

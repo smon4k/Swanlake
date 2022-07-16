@@ -209,6 +209,13 @@ class hbdm {
 		return $this->curl($this->url . $this->api_method);
 	}
 
+	function get_account_valuation($accountType='', $valuationCurrency='') {
+		//echo nl2br("---------获取平台资产总估值-----------------\n");
+		$this->api_method = "/v2/account/valuation?accountType=$accountType&valuationCurrency=$valuationCurrency";
+		$this->req_method = 'GET';
+		return $this->curl($this->url . $this->api_method);
+	}
+
 	/**
 	* 工具方法
 	*/

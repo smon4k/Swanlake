@@ -90,6 +90,7 @@ class TaskController extends ToolsBaseController
     }
 
     public function huobiDemo() {
-        Huobi::getAccountBalance();
+        // Huobi::getAccountBalance();
+        Huobi::getCcxtAccountBalance();
     }
 }
