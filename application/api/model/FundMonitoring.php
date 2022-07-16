@@ -83,13 +83,13 @@ class FundMonitoring extends Base
                         $btcBalance = 0;
                         $usdtBalance = 0;
                         foreach ($subaccountBalancesDetails[0]['details'] as $k => $v) {
-                            if(isset($v['cashBal'])) {
+                            if(isset($v['eq'])) {
                                 if($v['ccy'] === 'BTC' || $v['ccy'] === 'USDT') {
-                                    if($v['ccy'] === 'BTC' && (float)$v['cashBal'] > 0) {
-                                        $btcBalance += (float)$v['cashBal'];
+                                    if($v['ccy'] === 'BTC' && (float)$v['eq'] > 0) {
+                                        $btcBalance += (float)$v['eq'];
                                     }
-                                    if($v['ccy'] === 'USDT' && (float)$v['cashBal'] > 0) {
-                                        $usdtBalance += (float)$v['cashBal'];
+                                    if($v['ccy'] === 'USDT' && (float)$v['eq'] > 0) {
+                                        $usdtBalance += (float)$v['eq'];
                                     }
                                 }
                             }
