@@ -24,7 +24,7 @@
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">净值</p>
-                        <p class="balance">{{ toFixed(networth || 0, 4) }}</p>
+                        <p class="balance">{{ keepDecimalNotRounding(networth || 0, 4) }}</p>
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">日收益率</p>

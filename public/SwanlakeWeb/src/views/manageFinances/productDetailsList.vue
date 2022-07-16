@@ -27,7 +27,7 @@
                     label="净值"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.networth || 0, 4) }}</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.networth || 0, 4) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -85,7 +85,7 @@
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
                     <el-descriptions-item label="账户余额(USDT)">{{ toFixed(item.account_balance || 0, 2) }}</el-descriptions-item>
-                    <el-descriptions-item label="净值">{{ toFixed(item.networth || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="总收益(USDT)">{{ toFixed(item.total_revenue || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="日收益(USDT)">{{ toFixed(item.daily_income || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="日收益率">{{ toFixed(item.daily_rate_return || 0, 2) }}%</el-descriptions-item>

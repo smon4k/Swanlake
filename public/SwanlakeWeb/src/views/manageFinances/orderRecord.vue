@@ -32,7 +32,7 @@
                     label="净值"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.networth || 0, 4) }}</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.networth || 0, 4) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -74,7 +74,7 @@
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="数量(USDT)">{{ item.quantity }}</el-descriptions-item>
                     <el-descriptions-item label="份数">{{ item.number }}</el-descriptions-item>
-                    <el-descriptions-item label="净值">{{ toFixed(item.networth || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="类型">
                         <span v-if="item.type == 1">购买</span>
                         <span v-if="item.type == 2">赎回</span>
