@@ -40,7 +40,7 @@ class FundMonitoring extends Base
                         }
                     } 
                 }
-                $result = ['huobi_btc_balance' => $countBTCBalance, 'huobi_usdt_balance' => $countUSDTBalance];
+                $result = ['huobi_btc_balance' => $countBTCBalance, 'huobi_usdt_balance' => $countUSDTBalance, 'time' => date('Y-m-d H:i:s')];
                 // p($result);
                 $res = self::updateDataDetail($result);
                 if($res) {
@@ -101,7 +101,7 @@ class FundMonitoring extends Base
                     }
                     // p($subaccountBalances);
                 }
-                $result = ['okex_btc_balance' => $countBTCBalance, 'okex_usdt_balance' => $countUSDTBalance];
+                $result = ['okex_btc_balance' => $countBTCBalance, 'okex_usdt_balance' => $countUSDTBalance, 'time' => date('Y-m-d H:i:s')];
                 // p($result);
                 $res = self::updateDataDetail($result);
                 if($res) {
