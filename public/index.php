@@ -8,7 +8,7 @@ if(isset($_SERVER['REQUEST_METHOD'])) {
         exit;
     }
 }
-
+date_default_timezone_set("Etc/GMT-8");
 // $a = 5;
 // print_r('%2d\n', $a--);die;
 
