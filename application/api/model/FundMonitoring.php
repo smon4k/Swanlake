@@ -26,7 +26,7 @@ class FundMonitoring extends Base
         try {  
             $rpc = new hbdm('a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8', '3d2322fc-a5919d1d-18dc22e8-527e9');
             $result = $rpc->get_subuser_aggregate_balance();
-            // p($result);
+            p($result);
             $countBTCBalance = 0;
             $countUSDTBalance = 0;
             if($result && $result['status'] === 'ok') { 
