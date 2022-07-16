@@ -147,3 +147,19 @@ export const getGameFillingWithdrawStatus = async function(withdrawId){
   }
   return status;
 }
+
+/**
+ * 获取BTC爬虫数据
+ * @param {*} type 
+ * @returns 
+ */
+ export const getPoolBtcData = async function(){
+  const apiUrl = __ownInstance__.$store.state.base.apiUrl
+  const address = __ownInstance__.$store.state.base.address;
+  let result = [];
+  let data = await $get('https://www.h2ofinance.pro/getPoolBtc')
+  if(data) {
+    result = data;
+  }
+  return result;
+}

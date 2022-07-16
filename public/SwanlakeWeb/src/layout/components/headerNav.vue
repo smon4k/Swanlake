@@ -186,10 +186,10 @@ export default {
                     name: '理财产品',
                     path: "/financial/product",
                 },
-                // {
-                //     name: '资金监控',
-                //     path: "/fund/monitoring",
-                // },
+                {
+                    name: '资金监控',
+                    path: "/fund/monitoring",
+                },
                 {
                     name: '充提',
                     path: "/depositWithdrawal",

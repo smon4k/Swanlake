@@ -19,6 +19,7 @@ use app\api\model\DayNetworth;
 use app\api\model\ProductUserDetails;
 use app\api\model\ProductDetails;
 use app\api\model\ProductOrder;
+use app\api\model\FundMonitoring;
 use think\Request;
 use think\Db;
 use think\Controller;
@@ -297,5 +298,23 @@ class ProductController extends BaseController
         }
         $result = DayNetworth::getCountAnnualizedIncome($product_id);
         return $this->as_json($result);
+    }
+
+    /**
+     * 获取资金监控数据
+     * @author qinlh
+     * @since 2022-07-16
+     */
+    public function getFundMonitoring(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limit = $request->request('limit', 20, 'intval');
+        $where = [];
+        $order = 'a.date desc';
+        $result = FundMonitoring::getFundMonitoringList($where, $page, $limit, $order);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
     }
 }
