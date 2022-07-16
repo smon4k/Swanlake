@@ -1230,7 +1230,8 @@ class okex extends Exchange {
         $request = array(
             // 'ccy' => 'BTC,ETH', // comma-separated list of currency ids
         );
-        $response = $this->$method (array_merge($request, $params));
+        // p($request);
+        $response = $this->$method(array_merge($request, $params));
         //
         //     {
         //         "code":"0",
@@ -1335,7 +1336,12 @@ class okex extends Exchange {
         //
         return $this->parse_balance_by_type($type, $response);
     }
-
+    
+    /**
+     * 获取子账户列表
+     * @author qinlh
+     * @since 2022-07-16
+     */
     public function fetch_users_subaccount_list($params = array ()) {
         $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType');
@@ -1349,10 +1355,16 @@ class okex extends Exchange {
             // 'ccy' => 'BTC,ETH', // comma-separated list of currency ids
         );
         $response = $this->$method (array_merge($request, $params));
-        var_dump($response);die;
-        // return $this->parse_balance_by_type($type, $response);
+        // $result = array( 'info' => $response );
+        $result = $this->safe_value($response, 'data', array());
+        return $result;
     }
-
+    
+    /**
+     * 获取子账户交易账户余额
+     * @author qinlh
+     * @since 2022-07-16
+     */
     public function fetch_account_subaccount_balance($params = array ()) {
         $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType');
@@ -1361,13 +1373,14 @@ class okex extends Exchange {
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
         $method = null;
-        $method = 'privateGetAccountSubaccountBalance';
+        $method = 'privateGetAccountSubaccountBalances';
         $request = array(
             // 'ccy' => 'BTC,ETH', // comma-separated list of currency ids
         );
         $response = $this->$method (array_merge($request, $params));
-        p($response);
-        return $this->parse_balance_by_type($type, $response);
+        $result = $this->safe_value($response, 'data', array());
+        // p($result);
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

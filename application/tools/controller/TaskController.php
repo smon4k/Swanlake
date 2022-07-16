@@ -2,7 +2,7 @@
 namespace app\tools\controller;
 
 use app\tools\model\Reptile;
-use app\tools\model\Huobi;
+use app\api\model\FundMonitoring;
 use app\tools\model\MaticReptile;
 use app\api\model\Task;
 use app\api\model\User;
@@ -71,6 +71,23 @@ class TaskController extends ToolsBaseController
         return (time() - $begin_time) . "s\n";
     }
 
+    /**
+     * 定时获取每天的资金监控余额
+     * @author qinlh
+     * @since 2022-07-16
+     */
+    public function getFundMonitoring() {
+        $begin_time = time();
+
+        FundMonitoring::getHuobiAccountBalance(); //获取火币账户余额
+        // var_dump($res);die;
+
+        FundMonitoring::getOkexAccountBalance(); //获取okex账户余额
+        // var_dump($res);die;
+
+        return (time() - $begin_time) . "s\n";
+    }
+
     public function awsUpload() {
         $video_url = DOCUMENT_ROOT_PATH . "/upload/h2o-media/2022/06/08/qinlh.mp4";
         $videoInfo = CLFfmpeg::getVideoInfo($video_url);
@@ -87,10 +104,5 @@ class TaskController extends ToolsBaseController
         $res = CLFile::catchRemote($remote_file_url,$local_absolute_file);
         echo $res . "s\n";
         return (time() - $begin_time) . "s\n";
-    }
-
-    public function huobiDemo() {
-        // Huobi::getAccountBalance();
-        Huobi::getCcxtAccountBalance();
     }
 }

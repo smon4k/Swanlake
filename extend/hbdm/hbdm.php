@@ -12,7 +12,8 @@ define('SECRET_KEY', 'XXXXXXX-XXXXXXX-XXXXXX-XXXXX'); // your SECRET_KEY
 * 火币合约REST API库
 */
 class hbdm {
-	private $url = 'https://api.hbdm.com'; //正式地址
+// 	private $url = 'https://api.hbdm.com'; //正式地址
+	private $url = 'https://api.huobi.pro'; //正式地址
 	private $api = '';
 	public $api_method = '';
 	public $req_method = '';
@@ -36,184 +37,41 @@ class hbdm {
 		$this->req_method = 'GET';
 		return $this->curl($this->url . $this->api_method);
 	}
-
-	function contract_index() {
-		//echo nl2br("---------获取合约指数信息-----------------\n");
-		$this->api_method = "/api/v1/contract_index";
+    
+    // 获取子用户列表
+	function get_sub_user_list($fromId='') {
+		//echo nl2br("---------获取平台资产总估值-----------------\n");
+		$this->api_method = "/v2/sub-user/user-list";
 		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-
-	function contract_price_limit() {
-		//echo nl2br("---------获取合约最高限价和最低限价-----------------\n");
-		//$this->api_method = "/api/v1/contract_price_limit?symbol=BTC&contract_type=this_week";
-		$this->api_method = "/api/v1/contract_price_limit";
-		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-
-	function contract_open_interest() {
-		//echo nl2br("---------获取合约当前可用合约总持仓量-----------------\n");
-		$this->api_method = "/api/v1/contract_open_interest";
-		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-
-	function market_depth() {
-		//echo nl2br("---------获取行情深度数据-----------------\n");
-		$this->api_method = "/market/depth";
-		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-	function market_history() {
-		//echo nl2br("--------- 获取K线数据-----------------\n");
-		$this->api_method = "/market/history/kline?symbol=BTC_CQ&period=1min&size=200";
-		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-	function market_merged($symbol) {
-		//echo nl2br("---------获取聚合行情-----------------\n");
-		$this->api_method = "/market/detail/merged?symbol=$symbol";
-		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-	function market_trade() {
-		//echo nl2br("---------获取市场最近成交记录-----------------\n");
-		$this->api_method = "/market/trade?symbol=BTC_CQ";
-		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-	function market_history_trade() {
-		//echo nl2br("---------批量获取获取最近的交易记录-----------------\n");
-		$this->api_method = "/market/history/trade?symbol=BTC_CQ&size=100";
-		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-
-	function account_accounts($sub_id=0) {
-		//echo nl2br("---------母用户查询子用户各币种账户余额-----------------\n");
-		$this->api_method = "/v1/account/accounts/" . $sub_id;
-		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
-	}
-
-
-	function contract_account_info($symbol = '') {
-		//echo nl2br("---------获取用户账户信息-----------------\n");
-		$this->api_method = "/api/v1/contract_account_info";
-		$this->req_method = 'POST';
-		$postdata = [
-			'symbol' => $symbol
-		];
-		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($url, $postdata);
-		return json_decode($return,true);
-	}
-
-	function contract_position_info($symbol = '') {
-		//echo nl2br("---------获取用户持仓信息-----------------\n");
-		$this->api_method = "/api/v1/contract_position_info";
-		$this->req_method = 'POST';
-		$postdata = [
-			'symbol' => $symbol
-		];
-		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($url, $postdata);
-		//var_dump($return);
-		return json_decode($return,true);
-	}
-
-	function contract_order() {
-		echo nl2br("---------合约下单-----------------\n");
-		$this->api_method = "/api/v1/contract_order";
-		$this->req_method = 'POST';
-		$postdata = [
-			"symbol"=>"BTC",
-			"contract_type"=>"quarter",
-			"price"=>"6375.01",
-			"volume"=>9.0,
-			"direction"=>"buy",
-			"offset"=>"open",
-			"lever_rate"=>"20",
-			"order_price_type"=>"limit"
-		];
-		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($url, $postdata);
-		return $return;
-	}
-
-	function contract_match_result($symbol,$contract_code) {
-		//echo nl2br("---------获取用户持仓信息-----------------\n");
-		$this->api_method = "/api/v1/contract_matchresults";
-		$this->req_method = 'POST';
-		$postdata = [
-			'symbol' => $symbol,
-			'trade_type' => 0,
-			'create_date' =>7,
-			'contract_code' => $contract_code,
-			'page_index' => 1,
-			'page_size' => 50,
-		];
-		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($url, $postdata);
-		return json_decode($return,true);
-	}
-
-	
-	function swap_account_info($contract_code, $type) {
-		//echo nl2br("---------获取U本位币本位用户账户信息-----------------\n");
-		if($type == 2) {
-			$this->api_method = "/linear-swap-api/v1/swap_account_info";
-		} 
-		if($type == 3) {
-			$this->api_method = "/swap-api/v1/swap_account_info";
-		}
-		$this->req_method = 'POST';
 		$postdata = [];
-		if(!empty($contract_code)) {
-			$postdata = [
-				'contract_code' => $contract_code
-			];
-		}
 		$url = $this->create_sign_url($postdata);
 		$return = $this->curl($url, $postdata);
 		return json_decode($return,true);
 	}
-
-	function swap_account_position_info($contract_code, $type) {
-		//echo nl2br("---------获取U本位币本位用户持仓信息-----------------\n");
-		if($type == 2) {
-			$this->api_method = "/linear-swap-api/v1/swap_account_position_info";
-		} 
-		if($type == 3) {
-			$this->api_method = "/swap-api/v1/swap_account_position_info";
-		}
-		$this->req_method = 'POST';
-		$postdata = [
-			'contract_code' => $contract_code
-		];
-		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($url, $postdata);
-		return json_decode($return,true);
-	}
-
-	function swap_market_bbo($contract_code, $type) {
-		//echo nl2br("---------获取市场最优挂单-----------------\n");
-		if($type == 2) {
-			$this->api_method = "/linear-swap-ex/market/bbo?contract_code=$contract_code";
-		} 
-		if($type == 3) {
-			$this->api_method = "/swap-ex/market/bbo?contract_code=$contract_code";
-		}
+	
+	// 获取子用户账户余额
+	function get_subuser_aggregate_balance() {
+		//echo nl2br("---------获取平台资产总估值-----------------\n");
+		$this->api_method = "/v1/subuser/aggregate-balance";
 		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
+		$postdata = [];
+		$url = $this->create_sign_url($postdata);
+		$return = $this->curl($url, $postdata);
+		return json_decode($return,true);
 	}
-
+	
+    // 获取平台资产总估值
 	function get_account_valuation($accountType='', $valuationCurrency='') {
 		//echo nl2br("---------获取平台资产总估值-----------------\n");
-		$this->api_method = "/v2/account/valuation?accountType=$accountType&valuationCurrency=$valuationCurrency";
+		$this->api_method = "/v2/account/valuation";
 		$this->req_method = 'GET';
-		return $this->curl($this->url . $this->api_method);
+		$postdata = [
+			'accountType' => $accountType,
+			'valuationCurrency' => $valuationCurrency,
+		];
+		$url = $this->create_sign_url($postdata);
+		$return = $this->curl($url, $postdata);
+		return json_decode($return,true);
 	}
 
 	/**
