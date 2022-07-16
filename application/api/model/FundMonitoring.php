@@ -40,6 +40,7 @@ class FundMonitoring extends Base
                         }
                     } 
                 }
+                date_default_timezone_set("Etc/GMT-8");
                 $result = ['huobi_btc_balance' => $countBTCBalance, 'huobi_usdt_balance' => $countUSDTBalance, 'time' => date('Y-m-d H:i:s')];
                 // p($result);
                 $res = self::updateDataDetail($result);
@@ -101,6 +102,7 @@ class FundMonitoring extends Base
                     }
                     // p($subaccountBalances);
                 }
+                date_default_timezone_set("Etc/GMT-8");
                 $result = ['okex_btc_balance' => $countBTCBalance, 'okex_usdt_balance' => $countUSDTBalance, 'time' => date('Y-m-d H:i:s')];
                 // p($result);
                 $res = self::updateDataDetail($result);
@@ -121,6 +123,7 @@ class FundMonitoring extends Base
      * @since 2022-07-16
      */
     public static function getDateDetails() {
+        date_default_timezone_set("Etc/GMT-8");
         $date = date('Y-m-d');
         $details = self::where('date', $date)->find();
         if ($details && count((array)$details) > 0) {
@@ -141,6 +144,7 @@ class FundMonitoring extends Base
     {
         self::startTrans();
         try {
+            date_default_timezone_set("Etc/GMT-8");
             $insertData = [
                 'okex_btc_balance' => 0,
                 'okex_usdt_balance' => 0,
@@ -174,6 +178,7 @@ class FundMonitoring extends Base
         try {
             $res = self::getDateDetails();
             if($res) {
+                date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
                 $isUpRes = self::where('date', $date)->update($update);
                 if(false !== $isUpRes) {
