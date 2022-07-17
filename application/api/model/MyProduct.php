@@ -304,7 +304,7 @@ class MyProduct extends Base {
                 // $count_balance = $data['count_balance'] * $data['today_net_worth'];//总结余 = 总的份数 * 总的净值
                 // $count_balance = $data['count_balance'];//总结余 = 总的份数 * 总的净值
                 $count_balance = $data['yest_count_balance'];//总结余 = 总的份数 * 总的净值
-                p($count_balance);
+                // p($count_balance);
                 $dayNetWorth =  $count_buy_number > 0 ? ((float)$count_profit + (float)$count_balance) / (float)$count_buy_number : (float)$count_profit + (float)$count_balance;  //	当天净值:  （总的利润 + 总的结余）/ 总的份数
             }
         }
