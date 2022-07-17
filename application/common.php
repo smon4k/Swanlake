@@ -302,7 +302,7 @@ function CurlRequest($url, $header, $content=array(), $backHeader=0, $cookie='')
     }
 
     function valueInterceptStr($value=0, $num=4) {
-        $pat = "/(\d+\.\d{$num})\d*/"; 
+        $pat = "/(\d+\.\d{".$num."})\d*/"; 
         $str = preg_replace($pat,"\${1}",$value);
         return $str;
     }
