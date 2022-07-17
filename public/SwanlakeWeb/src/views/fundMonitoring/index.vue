@@ -75,6 +75,30 @@
                         <span>{{ toFixed(scope.row.huobi_balance || 0, 4) }}</span>
                     </template>
                 </el-table-column>
+                <el-table-column
+                    prop="networth"
+                    label="汇总(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.summary || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop="networth"
+                    label="日增(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop="networth"
+                    label="日增率"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_rate || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
             </el-table>
             <el-row class="pages" v-if="total > pageSize">
                 <el-col :span="24">
@@ -94,8 +118,11 @@
             <div v-if="tableData.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
-                    <el-descriptions-item label="OKEX账户余额">{{ toFixed(item.okex_balance || 0, 2) }}</el-descriptions-item>
-                    <el-descriptions-item label="火币账户余额">{{ toFixed(item.huobi_balance || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="OKEX账户余额(USDT)">{{ toFixed(item.okex_balance || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="火币账户余额(USDT)">{{ toFixed(item.huobi_balance || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="汇总(USDT)">{{ toFixed(item.summary || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="日增(USDT)">{{ toFixed(item.daily || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="日增率">{{ toFixed(item.daily_rate || 0, 4) }}</el-descriptions-item>
                 </el-descriptions>
             </div>
             <div v-else>
