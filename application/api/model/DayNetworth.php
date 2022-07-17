@@ -59,11 +59,12 @@ class DayNetworth extends Base {
     public static function saveDayNetworth($address='', $profit=0, $product_id=1) {
         if($profit > 0) {
             $dayNetWorth = MyProduct::calcNewsNetWorth($profit, $product_id);
+            $newDayNetWorth = valueInterceptStr($dayNetWorth, 6);
             if($dayNetWorth > 0) {
                 $date = date("Y-m-d");
                 $res = self::where('date', $date)->find();
                 if($res && count((array)$res) > 0) {
-                    $res = self::where('date', $date)->update(['profit'=>$profit, 'networth'=>$dayNetWorth, 'time'=>date('Y-m-d H:i:s')]);
+                    $res = self::where('date', $date)->update(['profit'=>$profit, 'networth'=>$newDayNetWorth, 'time'=>date('Y-m-d H:i:s')]);
                     if($res !== false) {
                         $command = 'app\api\model\MyProduct::saveUserProductData();';
                         $command1 = 'app\api\model\MyProduct::saveProductListData();';
@@ -81,7 +82,7 @@ class DayNetworth extends Base {
                         'profit' => $profit,
                         'balance' => $buyNumber['yest_count_balance'],
                         'number' => $buyNumber['count_buy_number'],
-                        'networth' => $dayNetWorth,
+                        'networth' => $newDayNetWorth,
                         'date' => date('Y-m-d'),
                         'time' => date('Y-m-d H:i:s')
                     ]);
