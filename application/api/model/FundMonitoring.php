@@ -128,6 +128,42 @@ class FundMonitoring extends Base
     }
 
     /**
+     * 修改统计数据
+     * @author qinlh
+     * @since 2022-07-17
+     */
+    public static function saveStatisticsData() {
+        self::startTrans();
+        try {
+            date_default_timezone_set("Etc/GMT-8");
+            $date = date('Y-m-d');
+            $details = self::where('date', $date)->find();
+            $summary = (float)$details['okex_balance'] + (float)$details['huobi_balance']; //计算今日汇总数据
+            $yestDetails = self::where('date', '<', $date)->order('date desc')->find()->toArray(); //获取昨天的数据
+            $daily = 0; //日增
+            $daily_rate = 0; //日增率
+            if($yestDetails && count((array)$yestDetails) > 0) {
+                $daily = (float)$summary - (float)$yestDetails['summary'];
+                $daily_rate = (float)$yestDetails['summary'] > 0 ? ($daily / (float)$yestDetails['summary']) * 100 : 0;
+                $res = self::updateDataDetail(['summary' => $summary, 'daily' => $daily, 'daily_rate' => $daily_rate, 'time' => date('Y-m-d H:i:s')]);
+                if(false !== $res) {
+                    self::commit();
+                    return true;
+                }
+            } else {
+                self::commit();
+                return true;
+            }
+            self::rollback();
+            return false;
+        } catch (\Exception $e) {
+            // p($e->getMessage());
+            self::rollback();
+            return false;
+        }
+    }
+
+    /**
      * 获取今日数据
      * @author qinlh
      * @since 2022-07-16
@@ -156,10 +192,11 @@ class FundMonitoring extends Base
         try {
             date_default_timezone_set("Etc/GMT-8");
             $insertData = [
-                'okex_btc_balance' => 0,
-                'okex_usdt_balance' => 0,
-                'huobi_btc_balance' => 0,
-                'huobi_usdt_balance' => 0,
+                'okex_balance' => 0,
+                'okex_balance' => 0,
+                'summary' => 0,
+                'daily' => 0,
+                'daily_rate' => 0,
                 'date' => date('Y-m-d'),
                 'time' => date('Y-m-d H:i:s'),
             ];

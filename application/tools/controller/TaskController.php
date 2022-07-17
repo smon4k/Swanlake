@@ -79,10 +79,14 @@ class TaskController extends ToolsBaseController
     public function getFundMonitoring() {
         $begin_time = time();
 
-        FundMonitoring::getHuobiAccountBalance(); //获取火币账户余额
+        $res1 = FundMonitoring::getHuobiAccountBalance(); //获取火币账户余额
         // var_dump($res);die;
 
-        FundMonitoring::getOkexAccountBalance(); //获取okex账户余额
+        $res2 = FundMonitoring::getOkexAccountBalance(); //获取okex账户余额
+
+        if($res1 && $res2) {
+            FundMonitoring::saveStatisticsData(); //统计数据
+        }
         // var_dump($res);die;
 
         return (time() - $begin_time) . "s\n";
