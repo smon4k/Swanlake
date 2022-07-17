@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <el-descriptions class="margin-top" title="" :column="isMobel ? 1 : 3" border>
+        <el-descriptions class="margin-top" title="" :column="isMobel ? 1 : 3" size="medium" border>
             <template slot="title">OKEX</template>
             <el-descriptions-item>
                 <template slot="label">
@@ -22,7 +22,7 @@
                     Zx112211@
             </el-descriptions-item>
         </el-descriptions>
-        <el-descriptions class="margin-top" title="" :column="isMobel ? 1 : 3" border>
+        <el-descriptions class="margin-top" title="" :column="isMobel ? 1 : 3" size="medium" border>
             <template slot="title">火币</template>
             <el-descriptions-item>
                 <template slot="label">
