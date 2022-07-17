@@ -4,38 +4,48 @@
             <template slot="title">OKEX</template>
             <el-descriptions-item>
                 <template slot="label">
-                    <i class="el-icon-user"></i>
+                    <!-- <i class="el-icon-user"></i> -->
                     APIKey
                 </template>
-                21d3e612-910b-4f51-8f8d-edf2fc6f22f5
+                {{ APIKey }}
+                &nbsp;
+                <el-button type="text" v-clipboard:copy="APIKey" v-clipboard:success="copySuccess">复制</el-button>
             </el-descriptions-item>
             <el-descriptions-item>
                 <template slot="label">
                     SecretKey
                 </template>
-                89D37429D52C5F8B8D8E8BFB964D79C8
+                {{ SecretKey }}
+                &nbsp;
+                <el-button type="text" v-clipboard:copy="SecretKey" v-clipboard:success="copySuccess">复制</el-button>
             </el-descriptions-item>
             <el-descriptions-item>
                 <template slot="label">
                     Passphrase
                 </template>
-                    Zx112211@
+                {{ Passphrase }}
+                &nbsp;
+                <el-button type="text" v-clipboard:copy="Passphrase" v-clipboard:success="copySuccess">复制</el-button>
             </el-descriptions-item>
         </el-descriptions>
         <el-descriptions class="margin-top" title="" :column="isMobel ? 1 : 3" size="medium" border>
             <template slot="title">火币</template>
             <el-descriptions-item>
                 <template slot="label">
-                    <i class="el-icon-user"></i>
+                    <!-- <i class="el-icon-user"></i> -->
                     Access Key
                 </template>
-                a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8
+                {{ Access_Key }}
+                &nbsp;
+                <el-button type="text" v-clipboard:copy="Access_Key" v-clipboard:success="copySuccess">复制</el-button>
             </el-descriptions-item>
             <el-descriptions-item>
                 <template slot="label">
                     Secret Key
                 </template>
-                3d2322fc-a5919d1d-18dc22e8-527e9
+                {{ Secret_Key }}
+                &nbsp;
+                <el-button type="text" v-clipboard:copy="Secret_Key" v-clipboard:success="copySuccess">复制</el-button>
             </el-descriptions-item>
         </el-descriptions>
         
@@ -112,6 +122,11 @@ export default {
             loading: false,
             finished: false,
             PageSearchWhere: [],
+            APIKey: '21d3e612-910b-4f51-8f8d-edf2fc6f22f5',
+            SecretKey: '89D37429D52C5F8B8D8E8BFB964D79C8',
+            Passphrase: 'Zx112211@',
+            Access_Key: 'a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8',
+            Secret_Key: '3d2322fc-a5919d1d-18dc22e8-527e9',
         }
     },
     computed: {
@@ -206,6 +221,12 @@ export default {
             }
             this.getList(this.PageSearchWhere); //刷新列表
         },
+        copySuccess() {
+            this.$message({
+                message: 'Copy successfully!',
+                type: 'success'
+            });
+        }
     },
     mounted() {
 
