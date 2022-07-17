@@ -28,21 +28,21 @@ class FundMonitoring extends Base
             $rpc = new hbdm('a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8', '3d2322fc-a5919d1d-18dc22e8-527e9');
             $result = $rpc->get_subuser_aggregate_balance();
             // p($result);
-            $countBTCBalance = 0;
-            $countUSDTBalance = 0;
+            // $countBTCBalance = 0;
+            $countBalance = 0;
             if($result && $result['status'] === 'ok') { 
                 foreach ($result['data'] as $vkey => $val) {
                     if(isset($val['currency']) ) {
-                        if($val['currency'] === 'btc' && $val['balance'] > 0) {
-                            $countBTCBalance += $val['balance'];
-                        }
+                        // if($val['currency'] === 'btc' && $val['balance'] > 0) {
+                        //     $countBTCBalance += $val['balance'];
+                        // }
                         if($val['currency'] === 'usdt' && $val['balance'] > 0) {
-                            $countUSDTBalance += $val['balance'];
+                            $countBalance += $val['balance'];
                         }
                     } 
                 }
                 date_default_timezone_set("Etc/GMT-8");
-                $result = ['huobi_btc_balance' => $countBTCBalance, 'huobi_usdt_balance' => $countUSDTBalance, 'time' => date('Y-m-d H:i:s')];
+                $result = ['huobi_balance' => $countBalance, 'time' => date('Y-m-d H:i:s')];
                 // p($result);
                 $res = self::updateDataDetail($result);
                 if($res) {
@@ -74,37 +74,46 @@ class FundMonitoring extends Base
         try {  
             $result = $exchange->fetch_users_subaccount_list();
             // $result = $exchange->fetch_balance();
-            $countBTCBalance = 0;
-            $countUSDTBalance = 0;
+            // $countBTCBalance = 0;
+            $countBalance = 0;
             // $subaccountBalancesDetails = $exchange->fetch_account_subaccount_balance(['subAcct'=>'smon4k03']);
             // p($subaccountBalancesDetails);
+            // die;
+            // p($subaccountBalancesDetails);
             if($result) {
+                // p($result);
                 foreach ($result as $key => $val) {
                     $subaccountBalancesDetails = $exchange->fetch_account_subaccount_balance(['subAcct'=>$val['subAcct']]);
-                    if($subaccountBalancesDetails && count((array)$subaccountBalancesDetails) > 0 && isset($subaccountBalancesDetails[0]['details'])) {
-                        $btcBalance = 0;
-                        $usdtBalance = 0;
-                        foreach ($subaccountBalancesDetails[0]['details'] as $k => $v) {
-                            if(isset($v['eq'])) {
-                                if($v['ccy'] === 'BTC' || $v['ccy'] === 'USDT') {
-                                    if($v['ccy'] === 'BTC' && (float)$v['eq'] > 0) {
-                                        $btcBalance += (float)$v['eq'];
-                                    }
-                                    if($v['ccy'] === 'USDT' && (float)$v['eq'] > 0) {
-                                        $usdtBalance += (float)$v['eq'];
-                                    }
-                                }
-                            }
+                    if($subaccountBalancesDetails && count((array)$subaccountBalancesDetails) > 0) {
+                        // $btcBalance = 0;
+                        // $usdtBalance = 0;
+                        if($subaccountBalancesDetails[0] && $subaccountBalancesDetails[0]['totalEq']) {
+                            $countBalance = $subaccountBalancesDetails[0]['totalEq'];
                         }
+                        // foreach ($subaccountBalancesDetails[0]['details'] as $k => $v) {
+                        //     if(isset($v['eq'])) {
+                        //         if($v['ccy'] == 'BTC' || $v['ccy'] == 'USDT') {
+                        //             if($v['ccy'] == 'BTC' && (float)$v['eq'] > 0) {
+                        //                 print_r($v);
+                        //                 $btcBalance += (float)$v['eq'];
+                        //             }
+                        //             if($v['ccy'] == 'USDT' && (float)$v['eq'] > 0) {
+                        //                 $usdtBalance += (float)$v['eq'];
+                        //             }
+                        //         }
+                        //     }
+                        // }
                         // echo $val['subAcct'] . "&" . $currencyBalance;
                         // echo "\r\n";
-                        $countBTCBalance += $btcBalance;
-                        $countUSDTBalance += $usdtBalance;
+                        // $countBTCBalance += $btcBalance;
+                        // $countUSDTBalance += $usdtBalance;
                     }
-                    // p($subaccountBalances);
+                    // p($countBTCBalance);
                 }
+                        // p($countBTCBalance);
+                // p($countBalance);
                 date_default_timezone_set("Etc/GMT-8");
-                $result = ['okex_btc_balance' => $countBTCBalance, 'okex_usdt_balance' => $countUSDTBalance, 'time' => date('Y-m-d H:i:s')];
+                $result = ['okex_balance' => $countBalance, 'time' => date('Y-m-d H:i:s')];
                 // p($result);
                 $res = self::updateDataDetail($result);
                 if($res) {
