@@ -1,5 +1,45 @@
 <template>
     <div class="container">
+        <el-descriptions class="margin-top" title="" :column="isMobel ? 1 : 3" border>
+            <template slot="title">OKEX</template>
+            <el-descriptions-item>
+                <template slot="label">
+                    <i class="el-icon-user"></i>
+                    APIKey
+                </template>
+                21d3e612-910b-4f51-8f8d-edf2fc6f22f5
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                    SecretKey
+                </template>
+                89D37429D52C5F8B8D8E8BFB964D79C8
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                    Passphrase
+                </template>
+                    Zx112211@
+            </el-descriptions-item>
+        </el-descriptions>
+        <el-descriptions class="margin-top" title="" :column="isMobel ? 1 : 3" border>
+            <template slot="title">火币</template>
+            <el-descriptions-item>
+                <template slot="label">
+                    <i class="el-icon-user"></i>
+                    Access Key
+                </template>
+                a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8
+            </el-descriptions-item>
+            <el-descriptions-item>
+                <template slot="label">
+                    Secret Key
+                </template>
+                3d2322fc-a5919d1d-18dc22e8-527e9
+            </el-descriptions-item>
+        </el-descriptions>
+        
+
         <div v-if="!isMobel">
             <el-table
                 :data="tableData"
@@ -26,6 +66,19 @@
                     </template>
                 </el-table-column>
             </el-table>
+            <el-row class="pages" v-if="total > pageSize">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="total"
+                        :pageSize="pageSize"
+                        :currPage="currPage"
+                        @changeLimit="limitPaging"
+                        @changeSkip="skipPaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
         </div>
         <div v-else>
             <div v-if="tableData.length">
@@ -45,6 +98,7 @@
 import { get, post } from "@/common/axios.js";
 import { mapGetters, mapState } from "vuex";
 import { getPoolBtcData } from "@/wallet/serve";
+import Page from "@/components/Page.vue";
 export default {
     name: '',
     data() {
@@ -52,6 +106,12 @@ export default {
             active: 2,
             btc_price: 0,
             tableData: [],
+            currPage: 1, //当前页
+            pageSize: 20, //每页显示条数
+            total: 1, //总条数
+            loading: false,
+            finished: false,
+            PageSearchWhere: [],
         }
     },
     computed: {
@@ -72,7 +132,7 @@ export default {
 
     },
     components: {
-
+        "wbc-page": Page, //加载分页组件
     },
     methods: {
         async getPoolBtc() {
@@ -88,10 +148,37 @@ export default {
                     page: this.currPage
                 };
             }
+            this.loading = true;
             get("/Api/Product/getFundMonitoring", ServerWhere, json => {
                 if (json.code == 10000) {
-                    this.tableData = json.data.lists;
+                    if (json.data.lists) {
+                        let list = (json.data && json.data.lists) || [];
+                        if(this.isMobel) {
+                            if (this.currPage <= 1) {
+                                // console.log('首次加载');
+                                this.tableData = list;
+                                // this.$forceUpdate();
+                            } else {
+                                // console.log('二次加载');
+                                if (ServerWhere.page <= json.data.allpage) {
+                                    // console.log(ServerWhere.page, json.data.allpage);
+                                    this.tableData = [...this.tableData, ...list];
+                                    // this.$forceUpdate();
+                                }
+                            }
+                            this.currPage += 1;
+                            if (ServerWhere.page >= json.data.allpage) {
+                                // console.log(ServerWhere.page, json.data.allpage);
+                                this.finished = true;
+                            } else {
+                                this.finished = false;
+                            }
+                        } else {
+                            this.tableData = list;
+                        }
+                    }
                     this.total = json.data.count;
+                    this.loading = false;
                 } else {
                     this.$message.error("加载数据失败");
                 }

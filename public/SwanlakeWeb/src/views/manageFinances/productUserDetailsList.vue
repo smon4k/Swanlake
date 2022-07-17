@@ -110,6 +110,12 @@ export default {
         return {
             tableData: [],
             product_id: 0,
+            currPage: 1, //当前页
+            pageSize: 20, //每页显示条数
+            total: 1, //总条数
+            loading: false,
+            finished: false,
+            PageSearchWhere: [],
         }
     },
     computed: {

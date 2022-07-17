@@ -226,21 +226,21 @@ class FundMonitoring extends Base
         if (!$lists) {
             ['count'=>0,'allpage'=>0,'lists'=>[]];
         }
-        $url = "https://www.h2ofinance.pro/getPoolBtc";
-        $poolBtc = 
-        $params = [];
-        $response_string = RequestService::doCurlGetRequest($url, $params);
-        $btc_currency_price = 0;
-        if($response_string && $response_string[0]) {
-            $btc_currency_price = $response_string[0]['currency_price'] ? (float)$response_string[0]['currency_price'] : 1;
-        }
-        $newArray = [];
-        foreach ($lists as $key => $val) {
-            $newArray[$key]['okex_balance'] = ((float)$val['okex_btc_balance'] * $btc_currency_price) + (float)$val['okex_usdt_balance'];
-            $newArray[$key]['huobi_balance'] = ((float)$val['huobi_btc_balance'] * $btc_currency_price) + (float)$val['huobi_usdt_balance'];
-            $newArray[$key]['date'] = $val['date'];
-            $newArray[$key]['time'] = $val['time'];
-        }
-        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$newArray];
+        // $url = "https://www.h2ofinance.pro/getPoolBtc";
+        // $poolBtc = 
+        // $params = [];
+        // $response_string = RequestService::doCurlGetRequest($url, $params);
+        // $btc_currency_price = 0;
+        // if($response_string && $response_string[0]) {
+        //     $btc_currency_price = $response_string[0]['currency_price'] ? (float)$response_string[0]['currency_price'] : 1;
+        // }
+        // $newArray = [];
+        // foreach ($lists as $key => $val) {
+        //     $newArray[$key]['okex_balance'] = ((float)$val['okex_btc_balance'] * $btc_currency_price) + (float)$val['okex_usdt_balance'];
+        //     $newArray[$key]['huobi_balance'] = ((float)$val['huobi_btc_balance'] * $btc_currency_price) + (float)$val['huobi_usdt_balance'];
+        //     $newArray[$key]['date'] = $val['date'];
+        //     $newArray[$key]['time'] = $val['time'];
+        // }
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
 }
