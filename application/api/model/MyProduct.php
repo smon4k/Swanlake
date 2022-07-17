@@ -194,26 +194,37 @@ class MyProduct extends Base {
             $data = self::query($sql);
             // p($data);
             $count_total_number = 0; //总的份数
-            $count_buy_networth = 0; //总的净值
+            // $count_buy_networth = 0; //总的净值
             $count_balance = 0; //总结余
             $today_net_worth = 0;
             $today_profit = 0;
             if($data && count((array)$data) > 0) {
                 $count_total_number = (float)$data[0]['count_total_number']; //总的份数
-                // $count_buy_networth = (float)$data[0]['count_buy_networth'];//总的净值
-                $count_buy_networth = DayNetworth::getCountNetworth($product_id, $iscalcToday);//总的净值
-                // p($count_buy_networth);
-                // $count_balance = $count_total_number * $count_buy_networth;//总结余 = 总的份数 * 总的净值
-                // $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($product_id);
-                // $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
-                // $yestDayData = (float)$NewTodayYesterdayNetworth['yestDayData']; //昨日最新净值
+
+                // p($toDayNetworth);
+
                 $yestDayDate = date("Y-m-d", strtotime("-1 day"));
                 $toDayDate = date("Y-m-d");
                 $toDayNetworthArr = DayNetworth::getDayNetworth($product_id, $toDayDate);
                 $yestDayNetworthArr = DayNetworth::getDayNetworth($product_id, $yestDayDate);
 
-                $toDayNetworth = isset($toDayNetworthArr['networth']) ? (float)$toDayNetworthArr['networth'] : 0;
-                $yestDayNetworth = isset($yestDayNetworthArr['networth']) ? (float)$yestDayNetworthArr['networth'] : 0;
+                // p($toDayNetworthNew);
+                $toDayNetworth = 0; //今日净值
+                $yestDayNetworth = 0; //昨日净值
+                $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($product_id);
+                $toDayNetworthNew = (float)$NewTodayYesterdayNetworth['toDayData']; // 获取最新的一天净值
+                $yestDayNetworthNew = (float)$NewTodayYesterdayNetworth['yestDayData']; //倒数一天的净值
+                if(isset($toDayNetworthArr['networth']) && $toDayNetworthArr['networth'] !== 0) {
+                    $toDayNetworth = (float)$toDayNetworthArr['networth'];
+                } else {
+                    $toDayNetworth = $toDayNetworthNew;
+                }
+
+                if(isset($yestDayNetworthArr['networth']) && $yestDayNetworthArr['networth'] !== 0) {
+                    $yestDayNetworth = (float)$yestDayNetworthArr['networth'];
+                } else {
+                    $yestDayNetworth = $yestDayNetworthNew;
+                }
 
                 $count_balance = $count_total_number * (float)$toDayNetworth;//总结余 = 总的份数 * 今日最新净值
                 $yest_count_balance = $count_total_number * (float)$yestDayNetworth;//总结余 = 总的份数 * 昨日最新净值
@@ -223,7 +234,6 @@ class MyProduct extends Base {
                 'count_balance' => $count_balance, //总结余
                 'yest_count_balance' => $yest_count_balance, //昨日总结余
                 'count_buy_number' => $count_total_number, //总的份数
-                'count_buy_networth' => $count_buy_networth, //总的净值
                 'today_net_worth' => (float)$toDayNetworth, //今日最新净值
                 'yest_net_worth' => (float)$yestDayNetworth, //最新净值
                 'is_networth' => (float)$toDayNetworth == 0 ? false : true,

@@ -11,16 +11,15 @@
                 </el-table-column>
                 <el-table-column
                     prop="account_balance"
-                    label="OKEX账户余额"
-                    align="center"
-                    width="150">
+                    label="OKEX账户余额(USDT)"
+                    align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.okex_balance || 0, 4) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
                     prop="networth"
-                    label="火币账户余额"
+                    label="火币账户余额(USDT)"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.huobi_balance || 0, 4) }}</span>

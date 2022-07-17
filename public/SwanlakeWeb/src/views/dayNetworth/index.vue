@@ -34,7 +34,7 @@ export default {
             count_balance: 0, //总的结余
             yest_count_balance: 0, //昨日总的结余
             count_buy_number: 0, //总的份数
-            count_buy_networth: 0, //总的购买净值
+            // count_buy_networth: 0, //总的购买净值
             today_net_worth: 1, //今日最新净值
             yest_net_worth: 1, //昨日最新净值
             newDaynetworth: 0,
@@ -102,7 +102,7 @@ export default {
                     this.count_balance = json.data.count_balance;
                     this.yest_count_balance = json.data.yest_count_balance;
                     this.count_buy_number = json.data.count_buy_number;
-                    this.count_buy_networth = json.data.count_buy_networth;
+                    // this.count_buy_networth = json.data.count_buy_networth;
                     this.today_net_worth = json.data.today_net_worth;
                     this.yest_net_worth = json.data.yest_net_worth;
                     this.is_networth = json.data.is_networth;
