@@ -11,7 +11,7 @@
                                 <div>
                                     <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }} USDT</span>
                                     <br />
-                                    <span>钱包余额：{{ Math.trunc(Number(h2oBalance)) }} USDT</span>
+                                    <span>钱包余额：{{ Math.trunc(Number(usdtBalance)) }} USDT</span>
                                     <!-- <span>GS Balance：{{localBalance}}</span> -->
                                     <!-- <span v-else>GS Balance：<el-skeleton-item variant="text" style="width: 5%;" /></span> -->
                                 </div>
@@ -78,7 +78,7 @@
                                 <div>
                                     <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }} USDT</span>
                                     <br />
-                                    <span>钱包余额：{{ Math.trunc(Number(h2oBalance)) }} USDT</span>
+                                    <span>钱包余额：{{ Math.trunc(Number(usdtBalance)) }} USDT</span>
                                     <!-- <span>GS Balance：{{localBalance}}</span> -->
                                 </div>
                             </el-col>
@@ -169,7 +169,7 @@ export default {
         approve: false,
         trading: false,
         buttonAmountNum: 0, //按钮选择额度值
-        h2oBalance: 0,
+        usdtBalance: 0,
         depositForm: {
             amount: '',
         },
@@ -231,11 +231,11 @@ export default {
   },
   methods: {
     checkDepositAmount(value) { //充值输入框验证
-        // console.log(value);
+        console.log(value);
         if (!value) {
             return false;
         }
-        let num = this.h2oBalance;
+        let num = this.usdtBalance;
         if(Number(value) > num) {
             return false;
         } else {
@@ -271,7 +271,7 @@ export default {
         // this.walletBalance = await getGameFillingBalance(); //获取余额
         this.timeInterval = setInterval(async() => {
             this.walletBalance = await getGameFillingBalance(); //获取余额
-            this.h2oBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
+            this.usdtBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
             // console.log(this.walletBalance);
         }, this.refreshTime)
     },
@@ -288,7 +288,7 @@ export default {
     },
     async getIsApprove() { //获取余额 查看是否授权
       let balance = await getBalance(Address.BUSDT, 18); //获取余额
-      console.log("h2o balance", balance);
+      console.log("USDT balance", balance);
       this.tokenBalance = balance;
       isApproved(Address.BUSDT, 18, balance, this.gamesFillingAddress).then((bool) => {
         console.log("isApprove", bool);
@@ -482,8 +482,8 @@ export default {
         return false;
     },
     allWalletBlanceFun() { //全部钱包余额
-        if(this.h2oBalance > 0) {
-            this.depositForm.amount = Math.trunc(this.h2oBalance);
+        if(this.usdtBalance > 0) {
+            this.depositForm.amount = Math.trunc(this.usdtBalance);
             return true;
         }
         return false;
@@ -526,8 +526,8 @@ export default {
                         }
                     }
                 }
-                this.h2oBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
-                console.log('H2O 余额：', this.h2oBalance);
+                this.usdtBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
+                console.log('USDT 余额：', this.usdtBalance);
             } else {
                 console.log("get Data error");
             }
