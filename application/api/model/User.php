@@ -40,7 +40,7 @@ class User extends Base
             $userinfo = self::where('id', $userId)->find();
             if ($userinfo && count((array)$userinfo) > 0) {
                 return $userinfo->toArray();
-            } 
+            }
             // else {
             //     $userinfo = self::insertUserData($address);
             //     return $userinfo;
@@ -77,7 +77,7 @@ class User extends Base
      */
     public static function checkLogin($user_name='', $password='')
     {
-        if($user_name !== '' && $password !== '') {
+        if ($user_name !== '' && $password !== '') {
             $user_info = self::where('username', $user_name)->find();
             if (!$user_info || empty($user_info)) {
                 return -1;
@@ -95,7 +95,8 @@ class User extends Base
      * @author qinlh
      * @since 2022-06-18
      */
-    public static function getAddressIsExit($address) {
+    public static function getAddressIsExit($address)
+    {
         if ($address && $address !== '') {
             $userinfo = self::where('address', $address)->find();
             if ($userinfo && count((array)$userinfo) > 0) {
@@ -166,17 +167,17 @@ class User extends Base
                     'status' => 1
                 ];
                 $userId = self::insertGetId($insertData);
-                if($userId > 0) {
+                if ($userId > 0) {
                     // if($invite_address && $invite_address !== '') { //如果含有邀请人地址的话 创建推荐关系
                     //     self::createRecommend($userId, $invite_address);
-                    // } 
+                    // }
                     self::commit();
                     $insertData['id'] = $userId;
                     return $insertData;
                 }
                 self::rollback();
                 return false;
-            } catch ( PDOException $e) {
+            } catch (PDOException $e) {
                 p($e);
                 self::rollback();
                 return false;
@@ -204,7 +205,8 @@ class User extends Base
      * @author qinlh
      * @since 2022-06-27
      */
-    public static function createRecommend($user_id='', $re_address='') {
+    public static function createRecommend($user_id='', $re_address='')
+    {
         $invitees_id = self::getUserAddress($re_address); //获取邀请人id
         if ($invitees_id <= 0) { //如果邀请人不存在
             return false;
@@ -218,7 +220,7 @@ class User extends Base
                 $userLevelId = UserLevel::saveUserLevel($user_id, $invitees_id, 2); //先判断是否需要添加二级用户信息
                 if ($userLevelId) {
                     $inviteLog = self::addUserInviteLog($invitees_id, $user_id);
-                    if($inviteLog) {
+                    if ($inviteLog) {
                         return true;
                     }
                 }
@@ -242,14 +244,14 @@ class User extends Base
     {
         if ($address && $address !== '' && $amount > 0 && $type > 0) {
             $userInfo = self::getUserAddressInfo($address);
-            if($userInfo && count((array)$userInfo)) {
-                if($type == 1) {
+            if ($userInfo && count((array)$userInfo)) {
+                if ($type == 1) {
                     $res = self::where('address', $address)->setInc('local_balance', $amount);
                 }
-                if($type == 2) {
+                if ($type == 2) {
                     $res = self::where('address', $address)->setDec('local_balance', $amount);
                 }
-                if($res) {
+                if ($res) {
                     return true;
                 }
             }
@@ -262,14 +264,15 @@ class User extends Base
      * @author qinlh
      * @since 2022-05-29
      */
-    public static function getUserNameIsExistence($username='', $userId=0) {
-        if($username !== '') {
-            if($userId > 0) {
+    public static function getUserNameIsExistence($username='', $userId=0)
+    {
+        if ($username !== '') {
+            if ($userId > 0) {
                 $res = self::where('username', $username)->whereNotIn('id', $userId)->count('id');
             } else {
                 $res = self::where('username', $username)->count('id');
             }
-            if($res && $res > 0) {
+            if ($res && $res > 0) {
                 return true;
             } else {
                 return false;
@@ -340,18 +343,19 @@ class User extends Base
      * @author qinlh
      * @since 2022-06-23
      */
-    public static function getUserBalance($userId=0) {
+    public static function getUserBalance($userId=0)
+    {
         $balance = 0;
-        if($userId > 0) {
+        if ($userId > 0) {
             $wallet_balance = 0;
             $local_balance = 0;
             $userInfo = self::getUserInfo($userId);
-            if($userInfo['wallet_balance'] <= 0) {
+            if ($userInfo['wallet_balance'] <= 0) {
                 $wallet_balance = self::getUserContractBalance($userInfo['address']);
             } else {
                 $wallet_balance = $userInfo['wallet_balance'];
             }
-            if($userInfo['local_balance'] > 0) {
+            if ($userInfo['local_balance'] > 0) {
                 $local_balance = $userInfo['local_balance'];
             }
             $balance = (float)$wallet_balance + (float)$local_balance;
@@ -372,14 +376,14 @@ class User extends Base
         if ($address !== '') {
             $result = [];
             $userinfo = self::where('address', $address)->find();
-            if ($userinfo && count($userinfo) > 0) {
+            if ($userinfo && count((array)$userinfo) > 0) {
                 $result = $userinfo->toArray();
             } else {
                 $userinfo = self::insertUserData($address);
                 $result = $userinfo;
             }
             $result['status'] = $userinfo['dw_status'];
-            if ($result && count($result) > 0) {
+            if ($result && count((array)$result) > 0) {
                 $resBlanceArr = FillingRecord::getUserBalance($address);
                 // p($resBlanceArr);
                 $result['gsBalance'] = $resBlanceArr['gsBalance'];
@@ -391,7 +395,7 @@ class User extends Base
                 $result['isDeWithType'] = '';
                 $result['isDeWithHash'] = '';
                 // p($isDeWithdrawRes);
-                if ($isDeWithdrawRes && count($isDeWithdrawRes) > 0) {
+                if ($isDeWithdrawRes && count((array)$isDeWithdrawRes) > 0) {
                     $result['isDeWith'] = true;
                     $result['isDeWithStatusId'] = $isDeWithdrawRes['id'];
                     $result['isDeWithType'] = $isDeWithdrawRes['type'];
@@ -402,5 +406,4 @@ class User extends Base
         }
         return [];
     }
-    
 }
