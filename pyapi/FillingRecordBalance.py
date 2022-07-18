@@ -16,7 +16,8 @@ class JDSpider(object):
         self.poolsList = []
         self.rpcUrls = 'https://bsc-dataseed.binance.org'
         self.web3Client = Web3(HTTPProvider(self.rpcUrls))
-        self.gamesFillingAddress = "0xdA9A81cf2000fc4df10362bA58EF4607d82E57BE"
+        # self.gamesFillingAddress = "0xdA9A81cf2000fc4df10362bA58EF4607d82E57BE"
+        self.gamesFillingAddress = "0x079bDC8845D0C6878716A3f5219f1D0DcdF15308"
         #读取abi文件
         with open(str(os.path.join('./abis/gameFillingABI.json')), 'r') as abi_definition:   
             self.gameFillingABI = json.load(abi_definition)
