@@ -9,9 +9,10 @@
                         <el-row class="balance">
                             <el-col :span="24">
                                 <div>
-                                    <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }} USDT</span>
+                                    <!-- <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }} USDT</span> -->
+                                    <span>平台余额：{{ toFixed(Number(localBalance) + Number(walletBalance), 4) }} USDT</span>
                                     <br />
-                                    <span>钱包余额：{{ Math.trunc(Number(usdtBalance)) }} USDT</span>
+                                    <span>钱包余额：{{ toFixed(Number(usdtBalance), 4) }} USDT</span>
                                     <!-- <span>GS Balance：{{localBalance}}</span> -->
                                     <!-- <span v-else>GS Balance：<el-skeleton-item variant="text" style="width: 5%;" /></span> -->
                                 </div>
@@ -494,7 +495,7 @@ export default {
         }, async json => {
             console.log(json);
             if (json.code == 10000) {
-                this.localBalance = keepDecimalNotRounding(json.data.local_balance, 2, true);
+                this.localBalance = keepDecimalNotRounding(json.data.local_balance, 4, true);
                 // this.walletBalance = json.data.walletBalance;
                 this.isGame = json.data.isGame;
                 if(!isHint && json.data.isGame) {
