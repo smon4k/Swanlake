@@ -155,7 +155,8 @@ export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimal
   const contract = new web3.eth.Contract(gameFillingABI, contractAddress);
   const withdrawAmount = toWei(gTokenAmt, decimals);
   let encodedABI = contract.methods.gTokenToBuyToken(withdrawAmount, buyToken).encodeABI();
-  let value = toWei('0.00201', decimals);
+  // let value = toWei('0.00201', decimals);
+  let value = toWei('0', decimals);
 
   let timestamp = new Date().getTime().toString()
   __ownInstance__.$store.dispatch('createOrderForm' , {val:0 ,id:timestamp })
