@@ -16,8 +16,9 @@
                 <el-row class="total">
                     <el-col :span="12">
                         <div>平台余额(USDT)</div>
-                        <div class="price">{{ toFixed(Number(userInfo.wallet_balance) + Number(userInfo.local_balance) || 0, 4) }}</div>
-                        <div>≈{{ toFixed((Number(userInfo.wallet_balance) + Number(userInfo.local_balance)) * CNY_USD || 0, 4) }} CNY</div>
+                        <!-- <div class="price">{{ toFixed(Number(userInfo.wallet_balance) + Number(userInfo.local_balance), 4) }}</div> -->
+                        <div class="price">{{ toFixed(Number(walletBalance) + Number(userInfo.local_balance), 4) }}</div>
+                        <div>≈{{ toFixed((Number(walletBalance) + Number(userInfo.local_balance)) * CNY_USD || 0, 4) }} CNY</div>
                     </el-col>
                     <el-col :span="12">
                         <div>钱包余额(USDT)</div>
@@ -83,7 +84,7 @@
 <script>
 import { get } from "@/common/axios.js";
 import { mapGetters, mapState } from "vuex";
-import { getBalance } from "@/wallet/serve";
+import { getBalance, getGameFillingBalance } from "@/wallet/serve";
 import Address from '@/wallet/address.json'
 export default {
     name: 'home',
@@ -91,9 +92,10 @@ export default {
         return {
             active: 2,
             CNY_USD: 6.70,
-            userInfo: {},
+            // userInfo: {},
             tableData: [],
             h2oBalance: 0,
+            walletBalance: 0, //链上余额
         }
     },
     computed: {
@@ -103,6 +105,7 @@ export default {
             isMobel:state=>state.comps.isMobel,
             mainTheme:state=>state.comps.mainTheme,
             apiUrl:state=>state.base.apiUrl,
+            userInfo:state=>state.base.userInfo,
         }),
         changeData() {
             const {address} = this
@@ -117,9 +120,13 @@ export default {
     watch: {
         address: {
             immediate: true,
-            handler(val){
+            async handler(val){
                 if(val) {
-                    this.getUserInfo();
+                    // this.getUserInfo();
+                    this.h2oBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
+                    console.log('USDT 余额：', this.h2oBalance);
+                    this.walletBalance = await getGameFillingBalance(); //获取合约余额
+                    console.log('链上余额：', this.walletBalance);
                 }
             }
         }
@@ -145,10 +152,11 @@ export default {
             get("/Api/User/getUserInfo", {
                 address: this.address
             }, async json => {
+                console.log(json);
                 if (json.code == 10000) {
                     this.userInfo = json.data;
                     this.h2oBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
-                    console.log('H2O 余额：', this.h2oBalance);
+                    console.log('USDT 余额：', this.h2oBalance);
                 } else {
                     this.$message.error("加载数据失败");
                 }
