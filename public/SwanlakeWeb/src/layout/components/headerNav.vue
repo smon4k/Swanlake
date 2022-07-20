@@ -9,11 +9,11 @@
                     <div class="logo" v-show="screenWidth > 600">
                         <router-link to="/" class="logo-link">
                             <img
-                                src="@/assets/usdt.png"
+                                src="@/assets/log.jpeg"
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
-                            <img src="@/assets/usdt.png" alt="" v-else />
+                            <img src="@/assets/log.jpeg" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
@@ -78,11 +78,11 @@
                     <div class="logo">
                         <router-link to="/" class="logo-link">
                             <img
-                                src="@/assets/usdt.png"
+                                src="@/assets/log.jpeg"
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
-                            <img src="@/assets/usdt.png" alt="" v-else />
+                            <img src="@/assets/log.jpeg" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
