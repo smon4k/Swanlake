@@ -367,6 +367,7 @@ export default {
             img {
                 height: 40px;
                 margin-left: -24px;
+                border-radius: 50%;
             }
             span {
                 display: inline-block;
