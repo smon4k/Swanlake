@@ -27,8 +27,8 @@
                 <!-- {{ language }} -->
                 <!-- <i class="el-icon-arrow-down el-icon--right"></i> -->
                 <div class="language">
-                      <el-button v-if="language === 'en'" @click="clickLanguageDropdown('zh')">中文</el-button>
-                      <el-button v-else @click="clickLanguageDropdown('en')">英文</el-button>
+                      <!-- <el-button v-if="language === 'en'" @click="clickLanguageDropdown('zh')">中文</el-button>
+                      <el-button v-else @click="clickLanguageDropdown('en')">英文</el-button> -->
                     <!-- <el-dropdown trigger="click" @command="clickLanguageDropdown">
                         <span class="el-dropdown-link">
                             {{ language }}
