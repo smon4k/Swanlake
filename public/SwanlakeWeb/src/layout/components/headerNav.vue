@@ -17,7 +17,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title" v-show="screenWidth > 600"> Swanlake </div>
+                    <div class="title" v-show="screenWidth > 600"> Swan Lake Quant </div>
                 </div>
                 <!-- 安全审计 -->
                 <!-- <div class="security-audit" v-if="$route.path !== '/deposit'" @click="SecurityAudit()">
@@ -86,7 +86,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title"> Swanlake </div>
+                    <div class="title"> Swan Lake Quant </div>
                 </div>
                 <br><br>
                 <el-menu
