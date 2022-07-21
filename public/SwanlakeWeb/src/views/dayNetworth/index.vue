@@ -4,7 +4,7 @@
             <el-descriptions :column="isMobel ? 1 : 3" :title="date">
                 <el-descriptions-item label="总结余">{{ toFixed(is_networth ? count_balance : yest_count_balance, 4) }} USDT</el-descriptions-item>
                 <!-- <el-descriptions-item label="总结余">{{ toFixed(yest_count_balance || 0, 2) }} USDT</el-descriptions-item> -->
-                <el-descriptions-item label="总的份数">{{ toFixed(count_buy_number || 0, 2) }}</el-descriptions-item>
+                <el-descriptions-item label="总的份数">{{ toFixed(count_buy_number || 0, 4) }}</el-descriptions-item>
                 <el-descriptions-item label="当前净值">{{ keepDecimalNotRounding(today_net_worth > 0 ? today_net_worth : yest_net_worth || 0, 4) }}</el-descriptions-item>
             </el-descriptions>
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="80px" class="demo-ruleForm">

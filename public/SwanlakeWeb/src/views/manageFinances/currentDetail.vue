@@ -14,13 +14,13 @@
                 <el-row>
                     <el-col :span="24" align="center">
                         <p class="annualized-income desc">预计年化收益率</p>
-                        <p class="rate">{{ toFixed(annualized_income || 0, 2) }}%</p>
+                        <p class="rate">{{ toFixed(annualized_income || 0, 4) }}%</p>
                     </el-col>
                 </el-row>
                 <el-row class="content" :style="'width:'+isMobel ? '100%' : '80%'">
                     <el-col :span="8">
                         <p class="desc">我的可用余额</p>
-                        <p class="balance">{{ toFixed(balance || 0, 2) }} USDT</p>
+                        <p class="balance">{{ toFixed(balance || 0, 4) }} USDT</p>
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">净值</p>
@@ -28,12 +28,12 @@
                     </el-col>
                     <el-col :span="8">
                         <p class="desc">日收益率</p>
-                        <p class="balance gree">{{ toFixed(annualized_income / 365 || 0, 2) }}%</p>
+                        <p class="balance gree">{{ toFixed(annualized_income / 365 || 0, 4) }}%</p>
                     </el-col>
                     <div v-if="type == 2">
                         <el-col :span="8">
                             <p class="desc">在投数量</p>
-                            <p class="balance">{{ toFixed(total_invest | 0, 2) }} USDT</p>
+                            <p class="balance">{{ toFixed(total_invest | 0, 4) }} USDT</p>
                         </el-col>
                         <!-- <el-col :span="8">
                             <p class="desc">购买总份数</p>

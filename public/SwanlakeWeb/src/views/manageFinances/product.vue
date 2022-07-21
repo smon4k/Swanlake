@@ -1,4 +1,4 @@
-<template>
+4<template>
     <div class="container">
         <div v-if="!isMobel">
             <el-table
@@ -14,7 +14,7 @@
                     label="预期年化收益率"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.annualized_income || 0, 2) }}%</span>
+                        <span>{{ toFixed(scope.row.annualized_income || 0, 4) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -22,7 +22,7 @@
                     label="总份数"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_size || 0, 2) }}</span>
+                        <span>{{ toFixed(scope.row.total_size || 0, 4) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -37,7 +37,7 @@
                     label="总结余(USDT)"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(Number(scope.row.total_size) * Number(scope.row.networth) || 0, 2) }}</span>
+                        <span>{{ toFixed(Number(scope.row.total_size) * Number(scope.row.networth) || 0, 4) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -84,12 +84,12 @@
             <div v-if="tableData.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="预期年化收益率">{{ toFixed(item.annualized_income || 0, 2) }}%</el-descriptions-item>
-                    <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="预期年化收益率">{{ toFixed(item.annualized_income || 0, 4) }}%</el-descriptions-item>
+                    <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
-                    <el-descriptions-item label="总结余(USDT)">{{ toFixed(Number(item.total_size) * Number(item.networth) || 0, 2) }}</el-descriptions-item>
-                    <el-descriptions-item label="昨日收益(USDT)">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>
-                    <el-descriptions-item label="昨日收益率">{{ toFixed(item.yest_income_rate || 0, 2) }}%</el-descriptions-item>
+                    <el-descriptions-item label="总结余(USDT)">{{ toFixed(Number(item.total_size) * Number(item.networth) || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="昨日收益(USDT)">{{ toFixed(item.yest_income || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="昨日收益率">{{ toFixed(item.yest_income_rate || 0, 4) }}%</el-descriptions-item>
                     <el-descriptions-item>
                         <div class="operate">
                             <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
