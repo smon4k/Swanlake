@@ -116,13 +116,12 @@ class User extends Base
     public static function getUserAddressInfo($address='')
     {
         if ($address && $address !== '') {
+            $rewardBalance = self::getUserContractBalance($address); //重置链上余额
+            if ($rewardBalance) {
+                @self::resetUserRewardBalance($address, $rewardBalance);
+            }
             $userinfo = self::where('address', $address)->find();
             if ($userinfo && count((array)$userinfo) > 0) {
-                $rewardBalance = self::getUserContractBalance($address); //重置链上余额
-                if ($rewardBalance) {
-                    $userInfo['wallet_balance'] = $rewardBalance;
-                    @self::resetUserRewardBalance($address, $rewardBalance);
-                }
                 return $userinfo->toArray();
             } else {
                 // $userinfo = self::insertUserData($address, $invite_address);
