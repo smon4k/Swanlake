@@ -23,29 +23,30 @@ class FundMonitoring extends Base
      * @author qinlh
      * @since 2022-06-29
      */
-    public static function getHuobiAccountBalance() {
-        try {  
+    public static function getHuobiAccountBalance()
+    {
+        try {
             $rpc = new hbdm('a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8', '3d2322fc-a5919d1d-18dc22e8-527e9');
             $result = $rpc->get_subuser_aggregate_balance();
             // p($result);
             // $countBTCBalance = 0;
             $countBalance = 0;
-            if($result && $result['status'] === 'ok') { 
+            if ($result && $result['status'] === 'ok') {
                 foreach ($result['data'] as $vkey => $val) {
-                    if(isset($val['currency']) ) {
+                    if (isset($val['currency'])) {
                         // if($val['currency'] === 'btc' && $val['balance'] > 0) {
                         //     $countBTCBalance += $val['balance'];
                         // }
-                        if($val['currency'] === 'usdt' && $val['balance'] > 0) {
+                        if ($val['currency'] === 'usdt' && $val['balance'] > 0) {
                             $countBalance += $val['balance'];
                         }
-                    } 
+                    }
                 }
                 date_default_timezone_set("Etc/GMT-8");
                 $result = ['huobi_balance' => $countBalance, 'time' => date('Y-m-d H:i:s')];
                 // p($result);
                 $res = self::updateDataDetail($result);
-                if($res) {
+                if ($res) {
                     return true;
                 }
             }
@@ -61,7 +62,8 @@ class FundMonitoring extends Base
      * @author qinlh
      * @since 2022-06-29
      */
-    public static function getOkexAccountBalance() {
+    public static function getOkexAccountBalance()
+    {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
         $className = "\ccxt\\okex5";
@@ -71,7 +73,7 @@ class FundMonitoring extends Base
             'password' => 'Zx112211@',
         ));
 
-        try {  
+        try {
             $result = $exchange->fetch_users_subaccount_list();
             // $result = $exchange->fetch_balance();
             // $countBTCBalance = 0;
@@ -80,14 +82,14 @@ class FundMonitoring extends Base
             // p($subaccountBalancesDetails);
             // die;
             // p($subaccountBalancesDetails);
-            if($result) {
+            if ($result) {
                 // p($result);
                 foreach ($result as $key => $val) {
                     $subaccountBalancesDetails = $exchange->fetch_account_subaccount_balance(['subAcct'=>$val['subAcct']]);
-                    if($subaccountBalancesDetails && count((array)$subaccountBalancesDetails) > 0) {
+                    if ($subaccountBalancesDetails && count((array)$subaccountBalancesDetails) > 0) {
                         // $btcBalance = 0;
                         // $usdtBalance = 0;
-                        if($subaccountBalancesDetails[0] && $subaccountBalancesDetails[0]['totalEq']) {
+                        if ($subaccountBalancesDetails[0] && $subaccountBalancesDetails[0]['totalEq']) {
                             $countBalance = $subaccountBalancesDetails[0]['totalEq'];
                         }
                         // foreach ($subaccountBalancesDetails[0]['details'] as $k => $v) {
@@ -110,13 +112,13 @@ class FundMonitoring extends Base
                     }
                     // p($countBTCBalance);
                 }
-                        // p($countBTCBalance);
+                // p($countBTCBalance);
                 // p($countBalance);
                 date_default_timezone_set("Etc/GMT-8");
                 $result = ['okex_balance' => $countBalance, 'time' => date('Y-m-d H:i:s')];
                 // p($result);
                 $res = self::updateDataDetail($result);
-                if($res) {
+                if ($res) {
                     return true;
                 }
             }
@@ -132,16 +134,18 @@ class FundMonitoring extends Base
      * @author qinlh
      * @since 2022-06-29
      */
-    public static function getAccountBalance() {
-        try {  
+    public static function getAccountBalance()
+    {
+        try {
             $rpc = new hbdm('a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8', '3d2322fc-a5919d1d-18dc22e8-527e9');
             // $result = $rpc->get_account_accounts($uid);
             $result = $rpc->post_swap_balance_valuation();
+            $account = 'smon4k06';
             // $countBTCBalance = 0;
             $countHuobiBalance = 0;//火币账户余额
             $countOkexBalance = 0;//Okex账户余额
                 // p($result);
-            if($result && $result['status'] === 'ok') { 
+            if ($result && $result['status'] === 'ok') {
                 $countHuobiBalance = isset($result['data'][0]['balance']) &&  $result['data'][0]['balance'] !== 0 ?  $result['data'][0]['balance'] : 0; //获取账户余额
             }
             
@@ -153,11 +157,18 @@ class FundMonitoring extends Base
                 'secret' => '89D37429D52C5F8B8D8E8BFB964D79C8',
                 'password' => 'Zx112211@',
             ));
-            $subaccountBalancesDetails = $exchange->fetch_account_subaccount_balance(['subAcct'=>'smon4k06']);
-            if($subaccountBalancesDetails[0] && $subaccountBalancesDetails[0]['totalEq']) {
+            $subaccountBalancesDetails = $exchange->fetch_account_subaccount_balance(['subAcct'=>$account]);
+            if ($subaccountBalancesDetails[0] && $subaccountBalancesDetails[0]['totalEq']) {
                 $countOkexBalance = $subaccountBalancesDetails[0]['totalEq'];
             }
-            return ['huobi_balance' => $countHuobiBalance, 'okex_balance' => $countOkexBalance];
+            // return ['huobi_balance' => $countHuobiBalance, 'okex_balance' => $countOkexBalance];
+            date_default_timezone_set("Etc/GMT-8");
+            $result = ['huobi_balance' => $countHuobiBalance, 'okex_balance' => $countOkexBalance, 'time' => date('Y-m-d H:i:s')];
+            // p($result);
+            $res = self::updateAccountDataDetail($result, $account);
+            if ($res) {
+                return true;
+            }
         } catch (\Exception $e) {
             return false;
             // return ['code' => 0, 'message' => $e->getMessage()];
@@ -169,7 +180,8 @@ class FundMonitoring extends Base
      * @author qinlh
      * @since 2022-07-17
      */
-    public static function saveStatisticsData() {
+    public static function saveStatisticsData()
+    {
         self::startTrans();
         try {
             date_default_timezone_set("Etc/GMT-8");
@@ -179,11 +191,11 @@ class FundMonitoring extends Base
             $yestDetails = self::where('date', '<', $date)->order('date desc')->find()->toArray(); //获取昨天的数据
             $daily = 0; //日增
             $daily_rate = 0; //日增率
-            if($yestDetails && count((array)$yestDetails) > 0) {
+            if ($yestDetails && count((array)$yestDetails) > 0) {
                 $daily = (float)$summary - (float)$yestDetails['summary'];
                 $daily_rate = (float)$yestDetails['summary'] > 0 ? ($daily / (float)$yestDetails['summary']) * 100 : 0;
                 $res = self::updateDataDetail(['summary' => $summary, 'daily' => $daily, 'daily_rate' => $daily_rate, 'time' => date('Y-m-d H:i:s')]);
-                if(false !== $res) {
+                if (false !== $res) {
                     self::commit();
                     return true;
                 }
@@ -205,7 +217,8 @@ class FundMonitoring extends Base
      * @author qinlh
      * @since 2022-07-16
      */
-    public static function getDateDetails() {
+    public static function getDateDetails($account='')
+    {
         date_default_timezone_set("Etc/GMT-8");
         $date = date('Y-m-d');
         $details = self::where('date', $date)->find();
@@ -213,16 +226,20 @@ class FundMonitoring extends Base
             return $details->toArray();
         } else {
             // $userinfo = self::insertUserData($address, $invite_address);
-            $details = self::insertMonitoringData();
+            if ($account && $account !== '') {
+                $details = self::insertAccountMonitoringData($account);
+            } else {
+                $details = self::insertMonitoringData();
+            }
             return $details;
         }
     }
 
-     /**
-     * 开始添加今日数据
-     * @author qinlh
-     * @since 2022-03-18
-     */
+    /**
+    * 开始添加今日数据
+    * @author qinlh
+    * @since 2022-03-18
+    */
     public static function insertMonitoringData()
     {
         self::startTrans();
@@ -238,14 +255,45 @@ class FundMonitoring extends Base
                 'time' => date('Y-m-d H:i:s'),
             ];
             $userId = self::insertGetId($insertData);
-            if($userId > 0) {
+            if ($userId > 0) {
                 self::commit();
                 $insertData['id'] = $userId;
                 return $insertData;
             }
             self::rollback();
             return false;
-        } catch ( PDOException $e) {
+        } catch (PDOException $e) {
+            self::rollback();
+            return false;
+        }
+    }
+
+    /**
+    * 开始添加今日数据
+    * @author qinlh
+    * @since 2022-03-18
+    */
+    public static function insertAccountMonitoringData($account='')
+    {
+        self::startTrans();
+        try {
+            date_default_timezone_set("Etc/GMT-8");
+            $insertData = [
+                'account' => $account,
+                'okex_balance' => 0,
+                'okex_balance' => 0,
+                'date' => date('Y-m-d'),
+                'time' => date('Y-m-d H:i:s'),
+            ];
+            $userId = self::insertGetId($insertData);
+            if ($userId > 0) {
+                self::commit();
+                $insertData['id'] = $userId;
+                return $insertData;
+            }
+            self::rollback();
+            return false;
+        } catch (PDOException $e) {
             self::rollback();
             return false;
         }
@@ -261,18 +309,45 @@ class FundMonitoring extends Base
         self::startTrans();
         try {
             $res = self::getDateDetails();
-            if($res) {
+            if ($res) {
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
                 $isUpRes = self::where('date', $date)->update($update);
-                if(false !== $isUpRes) {
+                if (false !== $isUpRes) {
                     self::commit();
                     return true;
                 }
             }
             self::rollback();
             return false;
-        } catch ( PDOException $e) {
+        } catch (PDOException $e) {
+            self::rollback();
+            return false;
+        }
+    }
+
+    /**
+     * 更新指定账户数据
+     * @author qinlh
+     * @since 2022-03-18
+     */
+    public static function updateAccountDataDetail($update=[], $account='')
+    {
+        self::startTrans();
+        try {
+            $res = self::getDateDetails($account);
+            if ($res) {
+                date_default_timezone_set("Etc/GMT-8");
+                $date = date('Y-m-d');
+                $isUpRes = self::where('date', $date)->update($update);
+                if (false !== $isUpRes) {
+                    self::commit();
+                    return true;
+                }
+            }
+            self::rollback();
+            return false;
+        } catch (PDOException $e) {
             self::rollback();
             return false;
         }
@@ -301,7 +376,7 @@ class FundMonitoring extends Base
             ['count'=>0,'allpage'=>0,'lists'=>[]];
         }
         // $url = "https://www.h2ofinance.pro/getPoolBtc";
-        // $poolBtc = 
+        // $poolBtc =
         // $params = [];
         // $response_string = RequestService::doCurlGetRequest($url, $params);
         // $btc_currency_price = 0;
