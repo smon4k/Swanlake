@@ -52,7 +52,8 @@ class UserController extends BaseController
         $userInfo = User::getUserAddressInfo($address);
         if($userInfo) {
             // p($favorite_num);
-            if($userInfo && (float)$userInfo['wallet_balance'] <= 0) {
+            // if($userInfo && (float)$userInfo['wallet_balance'] <= 0) {
+            if($userInfo || (float)$userInfo['wallet_balance'] <= 0) {
                 $rewardBalance = User::getUserContractBalance($userInfo['address']);
                 if ($rewardBalance) {
                     $userInfo['wallet_balance'] = $rewardBalance;
