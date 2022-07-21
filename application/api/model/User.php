@@ -118,6 +118,11 @@ class User extends Base
         if ($address && $address !== '') {
             $userinfo = self::where('address', $address)->find();
             if ($userinfo && count((array)$userinfo) > 0) {
+                $rewardBalance = self::getUserContractBalance($address); //重置链上余额
+                if ($rewardBalance) {
+                    $userInfo['wallet_balance'] = $rewardBalance;
+                    @self::resetUserRewardBalance($address, $rewardBalance);
+                }
                 return $userinfo->toArray();
             } else {
                 // $userinfo = self::insertUserData($address, $invite_address);
