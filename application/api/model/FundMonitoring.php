@@ -285,7 +285,7 @@ class FundMonitoring extends Base
                 'date' => date('Y-m-d'),
                 'time' => date('Y-m-d H:i:s'),
             ];
-            $userId = self::insertGetId($insertData);
+            $userId = self::name('fund_monitoring_account')->insertGetId($insertData);
             if ($userId > 0) {
                 self::commit();
                 $insertData['id'] = $userId;
@@ -339,7 +339,7 @@ class FundMonitoring extends Base
             if ($res) {
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
-                $isUpRes = self::where('date', $date)->update($update);
+                $isUpRes = self::name('fund_monitoring_account')->where('date', $date)->update($update);
                 if (false !== $isUpRes) {
                     self::commit();
                     return true;
