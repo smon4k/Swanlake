@@ -45,10 +45,10 @@ class DayNetworth extends Base
             $yestDayData = 1;
             $yestDayProfit = 0;
             $data = self::where('product_id', $product_id)->order('date desc')->limit(2)->select()->toArray();
+            $toDayData = $data[0]['networth']; //今日净值
+            $yestDayProfit = $data[0]['profit']; //今日利润
             if ($data && count((array)$data) == 2) {
-                $toDayData = $data[0]['networth']; //今日净值
                 $yestDayData = $data[1]['networth']; //昨日净值
-                $yestDayProfit = $data[0]['profit']; //今日利润
             }
             return ['toDayData' => $toDayData, 'yestDayData' => $yestDayData, 'yestDayProfit' => $yestDayProfit];
         }

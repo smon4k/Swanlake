@@ -53,7 +53,7 @@
                     label="总收益率"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_rate || 0, 4) }}%</span>
+                        <span>{{ toFixed(scope.row.total_rate || 0, 2) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -61,7 +61,7 @@
                     label="年化收益率"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.year_rate || 0, 4) }}%</span>
+                        <span>{{ toFixed(scope.row.year_rate || 0, 2) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -98,9 +98,9 @@
                 <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 4) }}</el-descriptions-item>
                 <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
                 <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
-                <el-descriptions-item label="昨日收益(USDT)">{{ toFixed(item.yest_income || 0, 4) }}</el-descriptions-item>
-                <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 4) }}%</el-descriptions-item>
-                <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 4) }}%</el-descriptions-item>
+                <el-descriptions-item label="昨日收益(USDT)">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>
+                <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 2) }}%</el-descriptions-item>
+                <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 2) }}%</el-descriptions-item>
                 <el-descriptions-item>
                     <div class="operate">
                         <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
