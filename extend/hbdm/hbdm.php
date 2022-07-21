@@ -14,6 +14,7 @@ define('SECRET_KEY', 'XXXXXXX-XXXXXXX-XXXXXX-XXXXX'); // your SECRET_KEY
 class hbdm {
 // 	private $url = 'https://api.hbdm.com'; //正式地址
 	private $url = 'https://api.huobi.pro'; //正式地址
+	private $pro_url = 'https://api.huobi.pro'; //正式地址
 	private $api = '';
 	public $api_method = '';
 	public $req_method = '';
@@ -45,29 +46,27 @@ class hbdm {
 		$this->req_method = 'GET';
 		$postdata = [];
 		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($url, $postdata);
+		$return = $this->curl($pro_url, $postdata);
 		return json_decode($return,true);
 	}
 	
-	// 获取子用户账户余额
+	// 获取子用户账户余额 汇总
 	function get_subuser_aggregate_balance() {
 		//echo nl2br("---------获取平台资产总估值-----------------\n");
 		$this->api_method = "/v1/subuser/aggregate-balance";
 		$this->req_method = 'GET';
 		$postdata = [];
 		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($url, $postdata);
+		$return = $this->curl($pro_url, $postdata);
 		return json_decode($return,true);
 	}
-	
-    // 获取平台资产总估值
-	function get_account_valuation($accountType='', $valuationCurrency='') {
-		//echo nl2br("---------获取平台资产总估值-----------------\n");
-		$this->api_method = "/v2/account/valuation";
-		$this->req_method = 'GET';
+
+	// 【通用】获取账户总资产估值
+	function post_swap_balance_valuation($valuation_asset='USDT') {
+		$this->api_method = "/linear-swap-api/v1/swap_balance_valuation";
+		$this->req_method = 'POST';
 		$postdata = [
-			'accountType' => $accountType,
-			'valuationCurrency' => $valuationCurrency,
+			'valuation_asset' => $valuation_asset
 		];
 		$url = $this->create_sign_url($postdata);
 		$return = $this->curl($url, $postdata);

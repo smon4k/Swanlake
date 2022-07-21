@@ -317,4 +317,25 @@ class ProductController extends BaseController
             return $this->as_json(70001, 'Error');
         }
     }
+
+    /**
+     * 获取指定账户余额监控
+     * @author qinlh
+     * @since 2022-07-21
+     */
+    public function getOkexHuobiBalance(Request $request) {
+        $address = $request->request('address', '', 'trim');
+        if(!$address || $address == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        if(!getAdminAddress($address)) {
+            return $this->as_json('70001', 'no operating authority');
+        }
+        $result = FundMonitoring::getAccountBalance();
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
 }

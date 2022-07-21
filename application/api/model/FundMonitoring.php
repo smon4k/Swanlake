@@ -128,6 +128,36 @@ class FundMonitoring extends Base
     }
 
     /**
+     * 获取Okex 火币账户余额
+     * @author qinlh
+     * @since 2022-06-29
+     */
+    public static function getAccountBalance() {
+        try {  
+            $rpc = new hbdm('a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8', '3d2322fc-a5919d1d-18dc22e8-527e9');
+            // $result = $rpc->get_account_accounts($uid);
+            $result = $rpc->post_swap_balance_valuation();
+            // $countBTCBalance = 0;
+            $countBalance = 0;
+            if($result && $result['status'] === 'ok') { 
+                $countBalance = isset($result['data'][0]['balance']) &&  $result['data'][0]['balance'] !== 0 ?  $result['data'][0]['balance'] : 0; //获取账户余额
+                p($countBalance);
+                // date_default_timezone_set("Etc/GMT-8");
+                // $result = ['huobi_balance' => $countBalance, 'time' => date('Y-m-d H:i:s')];
+                // // p($result);
+                // $res = self::updateDataDetail($result);
+                // if($res) {
+                //     return true;
+                // }
+            }
+            return false;
+        } catch (\Exception $e) {
+            return false;
+            // return ['code' => 0, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
      * 修改统计数据
      * @author qinlh
      * @since 2022-07-17
