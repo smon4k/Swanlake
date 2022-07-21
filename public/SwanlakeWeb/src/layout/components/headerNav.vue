@@ -195,12 +195,16 @@ export default {
                     path: "/depositWithdrawal",
                 },
                 {
+                    name: '资金账户监控',
+                    path: "/fund/monitoring/account",
+                },
+                {
                     name: '净值配置',
                     path: "/day/networth",
                 },
             ];
             if(!this.isAdmin) {
-                arr.splice(arr.length - 1, 1);
+                arr.splice(arr.length - 2, 2);
             }
             return arr;
         }

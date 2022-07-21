@@ -64,6 +64,13 @@ export const constantRoutes = [
           component: () => import('@/views/fundMonitoring/index'),
           meta: { title: 'fundMonitoring', keepAlive: true }
         },
+        //账户资金监控
+        {
+          path: 'fund/monitoring/account',
+          name: 'fundMonitoringAccount',
+          component: () => import('@/views/fundMonitoring/account'),
+          meta: { title: 'fundMonitoringAccount', keepAlive: true }
+        },
         //净值配置
         {
           path: 'day/networth',

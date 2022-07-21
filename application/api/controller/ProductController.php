@@ -319,6 +319,24 @@ class ProductController extends BaseController
     }
 
     /**
+     * 获取资金监控数据
+     * @author qinlh
+     * @since 2022-07-16
+     */
+    public function getAccountFundMonitoring(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limit = $request->request('limit', 20, 'intval');
+        $where = [];
+        $order = 'a.date desc';
+        $result = FundMonitoring::getAccountFundMonitoringList($where, $page, $limit, $order);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
+
+    /**
      * 获取指定账户余额监控
      * @author qinlh
      * @since 2022-07-21

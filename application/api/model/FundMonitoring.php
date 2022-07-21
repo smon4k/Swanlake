@@ -392,4 +392,30 @@ class FundMonitoring extends Base
         // }
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
+
+    /**
+     * 获取资金监控数据
+     * @author qinlh
+     * @since 2022-07-16
+     */
+    public static function getAccountFundMonitoringList($where, $page, $limit, $order='id desc')
+    {
+        if ($limit <= 0) {
+            $limit = config('paginate.list_rows');// 获取总条数
+        }
+        $count = self::name('fund_monitoring_account')->alias('a')->where($where)->count();//计算总页面
+        $allpage = intval(ceil($count / $limit));
+        $lists = self::name('fund_monitoring_account')
+                    ->alias('a')
+                    ->field("a.*")
+                    ->where($where)
+                    ->page($page, $limit)
+                    ->order($order)
+                    ->select()
+                    ->toArray();
+        if (!$lists) {
+            ['count'=>0,'allpage'=>0,'lists'=>[]];
+        }
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
 }
