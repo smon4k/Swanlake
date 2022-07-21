@@ -16,6 +16,7 @@ class hbdm {
 	private $url = 'https://api.hbdm.com'; //正式地址
 	private $pro_url = 'https://api.huobi.pro'; //正式地址
 	private $api = '';
+	private $api_pro = '';
 	public $api_method = '';
 	public $req_method = '';
 	public $access_key = '';
@@ -26,6 +27,7 @@ class hbdm {
 		$this->access_key = $access_key;
 		$this->secret_key = $secret_key;
 		$this->api = parse_url($this->url)['host'];
+		$this->api_pro = parse_url($this->pro_url)['host'];
 		date_default_timezone_set("Etc/GMT+0");
 	}
 	/**
@@ -45,8 +47,8 @@ class hbdm {
 		$this->api_method = "/v2/sub-user/user-list";
 		$this->req_method = 'GET';
 		$postdata = [];
-		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($pro_url, $postdata);
+		$url = $this->create_sign_pro_url($postdata);
+		$return = $this->curl($url, $postdata);
 		return json_decode($return,true);
 	}
 	
@@ -56,8 +58,8 @@ class hbdm {
 		$this->api_method = "/v1/subuser/aggregate-balance";
 		$this->req_method = 'GET';
 		$postdata = [];
-		$url = $this->create_sign_url($postdata);
-		$return = $this->curl($pro_url, $postdata);
+		$url = $this->create_sign_pro_url($postdata);
+		$return = $this->curl($url, $postdata);
 		return json_decode($return,true);
 	}
 
@@ -92,6 +94,27 @@ class hbdm {
 		}
 		return 'https://'.$this->api.$this->api_method.'?'.$this->bind_param($param);
 	}
+
+	/**
+	* 工具方法
+	*/
+	// 生成验签URL
+	function create_sign_pro_url($append_param = []) {
+		// 验签参数
+		$param = [
+			'AccessKeyId' => $this->access_key,
+			'SignatureMethod' => 'HmacSHA256',
+			'SignatureVersion' => 2,
+			'Timestamp' => date('Y-m-d\TH:i:s', time())
+		];
+		if ($append_param) {
+			foreach($append_param as $k=>$ap) {
+				$param[$k] = $ap; 
+			}
+		}
+		return 'https://'.$this->api_pro.$this->api_method.'?'.$this->bind_param($param);
+	}
+
 	// 组合参数
 	function bind_param($param) {
 		$u = [];
