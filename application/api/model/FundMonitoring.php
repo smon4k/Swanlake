@@ -138,19 +138,26 @@ class FundMonitoring extends Base
             // $result = $rpc->get_account_accounts($uid);
             $result = $rpc->post_swap_balance_valuation();
             // $countBTCBalance = 0;
-            $countBalance = 0;
+            $countHuobiBalance = 0;//火币账户余额
+            $countOkexBalance = 0;//Okex账户余额
+                // p($result);
             if($result && $result['status'] === 'ok') { 
-                $countBalance = isset($result['data'][0]['balance']) &&  $result['data'][0]['balance'] !== 0 ?  $result['data'][0]['balance'] : 0; //获取账户余额
-                p($countBalance);
-                // date_default_timezone_set("Etc/GMT-8");
-                // $result = ['huobi_balance' => $countBalance, 'time' => date('Y-m-d H:i:s')];
-                // // p($result);
-                // $res = self::updateDataDetail($result);
-                // if($res) {
-                //     return true;
-                // }
+                $countHuobiBalance = isset($result['data'][0]['balance']) &&  $result['data'][0]['balance'] !== 0 ?  $result['data'][0]['balance'] : 0; //获取账户余额
             }
-            return false;
+            
+            $vendor_name = "ccxt.ccxt";
+            Vendor($vendor_name);
+            $className = "\ccxt\\okex5";
+            $exchange  = new $className(array(
+                'apiKey' => '21d3e612-910b-4f51-8f8d-edf2fc6f22f5',
+                'secret' => '89D37429D52C5F8B8D8E8BFB964D79C8',
+                'password' => 'Zx112211@',
+            ));
+            $subaccountBalancesDetails = $exchange->fetch_account_subaccount_balance(['subAcct'=>'smon4k06']);
+            if($subaccountBalancesDetails[0] && $subaccountBalancesDetails[0]['totalEq']) {
+                $countOkexBalance = $subaccountBalancesDetails[0]['totalEq'];
+            }
+            return ['huobi_balance' => $countHuobiBalance, 'okex_balance' => $countOkexBalance];
         } catch (\Exception $e) {
             return false;
             // return ['code' => 0, 'message' => $e->getMessage()];

@@ -13,7 +13,7 @@ define('SECRET_KEY', 'XXXXXXX-XXXXXXX-XXXXXX-XXXXX'); // your SECRET_KEY
 */
 class hbdm {
 // 	private $url = 'https://api.hbdm.com'; //正式地址
-	private $url = 'https://api.huobi.pro'; //正式地址
+	private $url = 'https://api.hbdm.com'; //正式地址
 	private $pro_url = 'https://api.huobi.pro'; //正式地址
 	private $api = '';
 	public $api_method = '';
