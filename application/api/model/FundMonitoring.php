@@ -161,14 +161,30 @@ class FundMonitoring extends Base
             if ($subaccountBalancesDetails[0] && $subaccountBalancesDetails[0]['totalEq']) {
                 $countOkexBalance = $subaccountBalancesDetails[0]['totalEq'];
             }
-            // return ['huobi_balance' => $countHuobiBalance, 'okex_balance' => $countOkexBalance];
+            $date = date('Y-m-d');
+            $summary = (float)$countHuobiBalance + (float)$countOkexBalance; //计算今日汇总数据
+            $yestDetails = self::name('fund_monitoring_account')->where('date', '<', $date)->order('date desc')->find()->toArray(); //获取昨天的数据
+            $daily = 0; //日增
+            $daily_rate = 0; //日增率
+            if ($yestDetails && count((array)$yestDetails) > 0) {
+                $daily = (float)$summary - (float)$yestDetails['summary'];
+                $daily_rate = (float)$yestDetails['summary'] > 0 ? ($daily / (float)$yestDetails['summary']) * 100 : 0;
+            }
             date_default_timezone_set("Etc/GMT-8");
-            $result = ['huobi_balance' => $countHuobiBalance, 'okex_balance' => $countOkexBalance, 'time' => date('Y-m-d H:i:s')];
+            $result = [
+                'huobi_balance' => $countHuobiBalance, 
+                'okex_balance' => $countOkexBalance, 
+                'summary' => $summary,
+                'daily' => $daily,
+                'daily_rate' => $daily_rate,
+                'time' => date('Y-m-d H:i:s')
+            ];
             // p($result);
             $res = self::updateAccountDataDetail($result, $account);
             if ($res) {
                 return true;
             }
+            // return ['huobi_balance' => $countHuobiBalance, 'okex_balance' => $countOkexBalance];
         } catch (\Exception $e) {
             return false;
             // return ['code' => 0, 'message' => $e->getMessage()];
@@ -282,6 +298,9 @@ class FundMonitoring extends Base
                 'account' => $account,
                 'okex_balance' => 0,
                 'okex_balance' => 0,
+                'summary' => 0,
+                'daily' => 0,
+                'daily_rate' => 0,
                 'date' => date('Y-m-d'),
                 'time' => date('Y-m-d H:i:s'),
             ];
