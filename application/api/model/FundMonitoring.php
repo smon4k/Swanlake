@@ -137,7 +137,7 @@ class FundMonitoring extends Base
     public static function getAccountBalance()
     {
         try {
-            $rpc = new hbdm('a36c5b20-qv2d5ctgbn-cb3de46a-f3ce8', '3d2322fc-a5919d1d-18dc22e8-527e9');
+            $rpc = new hbdm('5f960d81-77e614c8-f60ac2bc-vqgdf4gsga', '58f6f0e0-8577a5f8-900b5b96-fd262', 'https://api.hbdm.com');
             // $result = $rpc->get_account_accounts($uid);
             $result = $rpc->post_swap_balance_valuation();
             $account = 'smon4k06';

@@ -13,21 +13,23 @@ define('SECRET_KEY', 'XXXXXXX-XXXXXXX-XXXXXX-XXXXX'); // your SECRET_KEY
 */
 class hbdm {
 // 	private $url = 'https://api.hbdm.com'; //正式地址
-	private $url = 'https://api.hbdm.com'; //正式地址
-	private $pro_url = 'https://api.huobi.pro'; //正式地址
+	private $url = 'https://api.huobi.pro'; //正式地址
 	private $api = '';
-	private $api_pro = '';
 	public $api_method = '';
 	public $req_method = '';
 	public $access_key = '';
 	public $secret_key = '';
 	// private $runtimeConfig = [];
-	function __construct($access_key,$secret_key) {
+	function __construct($access_key, $secret_key, $url='') {
 		// $this->runtimeConfig = include CMF_ROOT . "data/conf/config.php";
 		$this->access_key = $access_key;
 		$this->secret_key = $secret_key;
-		$this->api = parse_url($this->url)['host'];
-		$this->api_pro = parse_url($this->pro_url)['host'];
+		if($url && $url !== '') {
+		    $this->api = parse_url($url)['host'];
+		} else {
+		    $this->api = parse_url($this->url)['host'];
+		}
+// 		$this->api_pro = parse_url($this->pro_url)['host'];
 		date_default_timezone_set("Etc/GMT+0");
 	}
 	/**
@@ -42,12 +44,12 @@ class hbdm {
 	}
     
     // 获取子用户列表
-	function get_sub_user_list($fromId='') {
+	function get_sub_user_list() {
 		//echo nl2br("---------获取平台资产总估值-----------------\n");
 		$this->api_method = "/v2/sub-user/user-list";
 		$this->req_method = 'GET';
 		$postdata = [];
-		$url = $this->create_sign_pro_url($postdata);
+		$url = $this->create_sign_url($postdata);
 		$return = $this->curl($url, $postdata);
 		return json_decode($return,true);
 	}
@@ -58,8 +60,9 @@ class hbdm {
 		$this->api_method = "/v1/subuser/aggregate-balance";
 		$this->req_method = 'GET';
 		$postdata = [];
-		$url = $this->create_sign_pro_url($postdata);
+		$url = $this->create_sign_url($postdata);
 		$return = $this->curl($url, $postdata);
+// 		p($return);
 		return json_decode($return,true);
 	}
 
@@ -93,26 +96,6 @@ class hbdm {
 			}
 		}
 		return 'https://'.$this->api.$this->api_method.'?'.$this->bind_param($param);
-	}
-
-	/**
-	* 工具方法
-	*/
-	// 生成验签URL
-	function create_sign_pro_url($append_param = []) {
-		// 验签参数
-		$param = [
-			'AccessKeyId' => $this->access_key,
-			'SignatureMethod' => 'HmacSHA256',
-			'SignatureVersion' => 2,
-			'Timestamp' => date('Y-m-d\TH:i:s', time())
-		];
-		if ($append_param) {
-			foreach($append_param as $k=>$ap) {
-				$param[$k] = $ap; 
-			}
-		}
-		return 'https://'.$this->api_pro.$this->api_method.'?'.$this->bind_param($param);
 	}
 
 	// 组合参数
