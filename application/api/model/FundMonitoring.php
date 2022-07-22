@@ -163,7 +163,10 @@ class FundMonitoring extends Base
             }
             $date = date('Y-m-d');
             $summary = (float)$countHuobiBalance + (float)$countOkexBalance; //计算今日汇总数据
-            $yestDetails = self::name('fund_monitoring_account')->where('date', '<', $date)->order('date desc')->find()->toArray(); //获取昨天的数据
+            $yestDetailsRes = self::name('fund_monitoring_account')->where('date', '<', $date)->order('date desc')->find(); //获取昨天的数据
+            if($yestDetailsRes && count((array)$yestDetailsRes) > 0) {
+                $yestDetails = $yestDetailsRes->toArray();
+            }
             $daily = 0; //日增
             $daily_rate = 0; //日增率
             if ($yestDetails && count((array)$yestDetails) > 0) {
@@ -233,7 +236,7 @@ class FundMonitoring extends Base
      * @author qinlh
      * @since 2022-07-16
      */
-    public static function getDateDetails($account='')
+    public static function getDateDetails()
     {
         date_default_timezone_set("Etc/GMT-8");
         $date = date('Y-m-d');
@@ -242,11 +245,26 @@ class FundMonitoring extends Base
             return $details->toArray();
         } else {
             // $userinfo = self::insertUserData($address, $invite_address);
-            if ($account && $account !== '') {
-                $details = self::insertAccountMonitoringData($account);
-            } else {
-                $details = self::insertMonitoringData();
-            }
+            $details = self::insertMonitoringData();
+            return $details;
+        }
+    }
+    
+    /**
+     * 获取今日数据
+     * @author qinlh
+     * @since 2022-07-16
+     */
+    public static function getAccountDateDetails($account='')
+    {
+        date_default_timezone_set("Etc/GMT-8");
+        $date = date('Y-m-d');
+        $details = self::name('fund_monitoring_account')->where('date', $date)->find();
+        if ($details && count((array)$details) > 0) {
+            return $details->toArray();
+        } else {
+            // $userinfo = self::insertUserData($address, $invite_address);
+            $details = self::insertAccountMonitoringData($account);
             return $details;
         }
     }
@@ -354,7 +372,7 @@ class FundMonitoring extends Base
     {
         self::startTrans();
         try {
-            $res = self::getDateDetails($account);
+            $res = self::getAccountDateDetails($account);
             if ($res) {
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
