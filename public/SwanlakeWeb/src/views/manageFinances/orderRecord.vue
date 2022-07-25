@@ -169,7 +169,7 @@ export default {
                 };
             }
             this.loading = true;
-            get("/Api/Product/getProductOrderList", ServerWhere, json => {
+            get(this.apiUrl + "/Api/Product/getProductOrderList", ServerWhere, json => {
                 if (json.code == 10000) {
                     if (json.data.lists) {
                         let list = (json.data && json.data.lists) || [];

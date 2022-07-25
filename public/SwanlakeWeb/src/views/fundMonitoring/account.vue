@@ -197,7 +197,7 @@ export default {
                 };
             }
             this.loading = true;
-            get("/Api/Product/getAccountFundMonitoring", ServerWhere, json => {
+            get(this.apiUrl + "/Api/Product/getAccountFundMonitoring", ServerWhere, json => {
                 if (json.code == 10000) {
                     if (json.data.lists) {
                         let list = (json.data && json.data.lists) || [];

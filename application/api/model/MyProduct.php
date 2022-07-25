@@ -170,8 +170,8 @@ class MyProduct extends Base {
                 $lists[$key]['total_rate'] = $total_return;
                 $buyDate = date('Y-m-d', $d2);
                 $buyNetworth = DayNetworth::getDayNetworth($val['product_id'], $buyDate);
-                $daily_rate_return = (($toDayNetworth - $yestDayNetworth) / $yestDayNetworth) * 100; // 日收益率:（当日净值-昨日净值）/ 昨日净值
-                $averag_daily_rate = ProductUserDetails::getAverageDailyRate($val['product_id'], $userId, $daily_rate_return); //日均收益率: 所有日收益率的平均值
+                // $daily_rate_return = (($toDayNetworth - $yestDayNetworth) / $yestDayNetworth) * 100; // 日收益率:（当日净值-昨日净值）/ 昨日净值
+                $averag_daily_rate = ProductUserDetails::getAverageDailyRate($val['product_id'], $userId); //日均收益率: 所有日收益率的平均值
                 // p($yestDayNetworth);
                 // p($val['buy_networth']);
                 // $lists[$key]['year_rate'] = $buy_days > 0 ? (((float)$toDayNetworth - (float)$val['buy_networth']) / (float)$buy_days) * 365 * 100 : ((float)$toDayNetworth - $val['buy_networth']) / 1 * 365 * 100;  //年化收益率: ((当前最新净值-购买第一天的当日净值)/天数)*365

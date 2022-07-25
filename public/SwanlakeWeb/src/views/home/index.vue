@@ -149,7 +149,7 @@ export default {
             })
         },
         getUserInfo() { //获取用户数据
-            get("/Api/User/getUserInfo", {
+            get(this.apiUrl + "/Api/User/getUserInfo", {
                 address: this.address
             }, async json => {
                 console.log(json);
@@ -167,7 +167,7 @@ export default {
                 limit: this.pageSize,
                 page: this.currPage,
             };
-            get("/Api/Product/getProductList", ServerWhere, json => {
+            get(this.apiUrl + "/Api/Product/getProductList", ServerWhere, json => {
                 console.log(json);
                 if (json.code == 10000) {
                     this.tableData = json.data.lists;

@@ -147,7 +147,7 @@ export default {
                     page: that.currPage,
                 };
             }
-            get("/Api/Product/getProductList", ServerWhere, json => {
+            get(this.apiUrl + "/Api/Product/getProductList", ServerWhere, json => {
                 console.log(json);
                 if (json.code == 10000) {
                     this.tableData = json.data.lists;

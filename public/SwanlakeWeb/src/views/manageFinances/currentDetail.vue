@@ -183,7 +183,7 @@ export default {
             }
             this.loading = true;
             setTimeout(() => {
-                post('/Api/Product/startInvestNow', { 
+                post(this.apiUrl + '/Api/Product/startInvestNow', { 
                         address: this.address, 
                         product_id: this.product_id, 
                         number: this.shareValue,
@@ -207,7 +207,7 @@ export default {
             }, 2000)
         },
         getProductDetail() { //获取产品详情数据
-            get("/Api/Product/getProductDetail", {
+            get(this.apiUrl + "/Api/Product/getProductDetail", {
                 product_id: this.product_id,
                 address: this.address
             }, json => {

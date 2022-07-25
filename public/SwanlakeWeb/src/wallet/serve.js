@@ -20,7 +20,7 @@ import router from '@/router'
     const re_address = getQueryString('re');
     let result = [];
     if(address && address !== '') {
-      let data = await $get('/Api/User/getUserAddressInfo?address='+address+'&re_address='+re_address);
+      let data = await $get(apiUrl + '/Api/User/getUserAddressInfo?address='+address+'&re_address='+re_address);
         if (data && data.code == 10000) {
             result = data.data;
         }
@@ -41,7 +41,7 @@ import router from '@/router'
       userId: userId,
       address: address,
     };
-    await post('/Api/User/saveUserInfo', params, async (json) => {
+    await post(apiUrl + '/Api/User/saveUserInfo', params, async (json) => {
       console.log(json);
       if (json && json.code == 10000) {
         result = true;
@@ -124,24 +124,24 @@ export async function getGameFillingBalance(decimals=18) {
 
 //获取游戏-充提系统-修改充提状态
 export const saveNotifyStatus = async function(status, type=true){
-  const apiUrl = __ownInstance__.$store.state.base.nftUrl;
+  const apiUrl = __ownInstance__.$store.state.base.apiUrl;
   const address = __ownInstance__.$store.state.base.address;
-  await $get('/Api/Depositwithdrawal/saveNotifyStatus?address='+address+'&status='+status+'&type='+type);
+  await $get(apiUrl + '/Api/Depositwithdrawal/saveNotifyStatus?address='+address+'&status='+status+'&type='+type);
 }
 
 //获取游戏-充提系统-修改充提记录日志状态
 export const setDepWithdrawStatus = async function(deWithId, status, type=true){
-  const apiUrl = __ownInstance__.$store.state.base.nftUrl;
+  const apiUrl = __ownInstance__.$store.state.base.apiUrl;
   const address = __ownInstance__.$store.state.base.address;
-  await $get('/Api/Depositwithdrawal/setDepWithdrawStatus?address='+address+'&deWithId='+deWithId+'&status='+status+'&type='+type);
+  await $get(apiUrl + '/Api/Depositwithdrawal/setDepWithdrawStatus?address='+address+'&deWithId='+deWithId+'&status='+status+'&type='+type);
 }
 
 //获取游戏-充提系统-监听充提状态是否执行完成
 export const getGameFillingWithdrawStatus = async function(withdrawId){
-  const apiUrl = __ownInstance__.$store.state.base.nftUrl;
+  const apiUrl = __ownInstance__.$store.state.base.apiUrl;
   const address = __ownInstance__.$store.state.base.address;
   let status = 0;
-  let data = await $get('/Api/Depositwithdrawal/getGameFillingWithdrawStatus?address='+address+'&withdrawId='+withdrawId);
+  let data = await $get(apiUrl + '/Api/Depositwithdrawal/getGameFillingWithdrawStatus?address='+address+'&withdrawId='+withdrawId);
   if(data && data.code == 10000) {
     status = data.data;
   }

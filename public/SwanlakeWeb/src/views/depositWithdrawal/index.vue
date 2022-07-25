@@ -397,7 +397,7 @@ export default {
         // } else {
         //     amount = this.withdrawForm.amount;
         // }
-        post('/Api/Depositwithdrawal/depositWithdraw', {
+        post(this.apiUrl + '/Api/Depositwithdrawal/depositWithdraw', {
             amount: Number(amount),
             address: this.address,
             userId: this.userId,
@@ -490,7 +490,7 @@ export default {
         return false;
     },
     async getUserInfo(isHint=false) { //获取用户信息
-        get("/Api/Depositwithdrawal/getFillingRecordUserInfo", {
+        get(this.apiUrl + "/Api/Depositwithdrawal/getFillingRecordUserInfo", {
             address: this.address,
         }, async json => {
             console.log(json);
@@ -535,7 +535,7 @@ export default {
         })
     },
     async getIsInTheGame() { //获取是否打赏中 调用GS第三方接口获取 暂时不使用
-        get("/api/Depositwithdrawal/getIsGameOrNot", {
+        get(this.apiUrl + "/api/Depositwithdrawal/getIsGameOrNot", {
             params: {
               address: this.address
             }
@@ -564,7 +564,7 @@ export default {
         })
     },
     async getIsInTradeProgress() { //实时 获取是否有交易正在进行中
-        get("/Api/Depositwithdrawal/getIsInTradeProgress", {
+        get(this.apiUrl + "/Api/Depositwithdrawal/getIsInTradeProgress", {
             address: this.address,
             userId: this.userId,
         }, async (json) => {

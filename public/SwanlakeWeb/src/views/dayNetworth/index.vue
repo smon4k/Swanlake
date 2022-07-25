@@ -72,7 +72,7 @@ export default {
         submitForm(formName) {
             this.$refs[formName].validate((valid) => {
             if (valid) {
-                post("/Api/Product/saveDayNetworth", {
+                post(this.apiUrl + "/Api/Product/saveDayNetworth", {
                     profit: this.ruleForm.profit,
                     address: this.address,
                     product_id: this.product_id,
@@ -94,7 +94,7 @@ export default {
             this.$refs[formName].resetFields();
         },
         getDayAmount() { //获取最新数值
-            get("/Api/Product/getNewsBuyAmount", {
+            get(this.apiUrl + "/Api/Product/getNewsBuyAmount", {
                 product_id: this.product_id,
             }, json => {
                 if (json.code == 10000) {
@@ -117,7 +117,7 @@ export default {
         },
         calcNewsNetWorth(amount) { //实时根据利润值计算当天净值
             if(amount && amount !== 0) {
-                get("/Api/Product/calcNewsNetWorth", {
+                get(this.apiUrl + "/Api/Product/calcNewsNetWorth", {
                     address: this.address,
                     profit: amount
                 }, json => {
