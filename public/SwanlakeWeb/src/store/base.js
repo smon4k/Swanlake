@@ -36,8 +36,8 @@ export default {
             userDenyId:''
         },
         domainHostAddress:'https://bscscan.com/tx/',
-        // apiUrl: window.location.host === 'localhost:8001' ? 'http://www.h2omedia.com' : 'https://www.swanlake.club',
-        apiUrl: '',
+        apiUrl: window.location.host === 'localhost:8001' ? 'http://www.h2omedia.com' : 'https://www.swanlake.club',
+        // apiUrl: '',
         nftUrl: window.location.host === 'localhost:8001' || window.location.host === '192.168.1.3:8001' ? 'http://www.api.com' : 'https://api.h2o.live',
         // Env: window.location.host === 'localhost:8001' || window.location.host === '192.168.1.6:8001' ? 'dev' : 'prod',
         Env: 'dev',

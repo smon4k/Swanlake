@@ -92,9 +92,10 @@ class ProductUserDetails extends Base {
             $arr = array_column($data, 'daily_rate_return');
             if($arr && count((array)$arr) > 0) {
                 if($todayRate > 0) {
-                    $avgNum =  (array_sum($arr) + (float)$todayRate) / count($arr) + 1;
+                    $num = count($arr) + 1;
+                    $avgNum =  ((float)array_sum($arr) + (float)$todayRate) / $num;
                 } else {
-                    $avgNum =  array_sum($arr) / count($arr);
+                    $avgNum = array_sum($arr) / count($arr);
                 }
             } else {
                 $avgNum = $todayRate > 0 ? $todayRate / 1 : 0;
