@@ -139,7 +139,7 @@ class ProductController extends BaseController
         }
         $userId = User::getUserAddress($address);
         $where['a.uid'] = $userId;
-        $result = MyProduct::getMyProductList($where, $page, $limit, $order);
+        $result = MyProduct::getMyProductList($where, $page, $limit, $order, $userId);
         if($result) {
             return $this->as_json($result);
         } else {
