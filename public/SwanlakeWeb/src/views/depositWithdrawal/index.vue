@@ -219,7 +219,7 @@ export default {
         isConnected:state=>state.base.isConnected,
         address:state=>state.base.address,
         gamesFillingAddress:state=>state.base.gamesFillingAddress,
-        apiUrl:state=>state.base.nftUrl,
+        apiUrl:state=>state.base.apiUrl,
         userId:state=>state.base.userId,
         isMobel:state=>state.comps.isMobel,
     }),
