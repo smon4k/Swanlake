@@ -87,13 +87,20 @@ class ProductDetails extends Base {
      */
     public static function getAverageDailyRate($product_id=0, $todayRate=0) {
         if($product_id > 0) {
+            $avgNum = 0;
             // $avgNum = self::where(['product_id' => $product_id])->avg('daily_rate_return');
             $data = self::where(['product_id' => $product_id])->field('daily_rate_return')->select()->toArray();
             $arr = array_column($data, 'daily_rate_return');
-            $avgNum = count($arr) > 0 ? (array_sum($arr) + (float)$todayRate) / count($arr) : $todayRate / 1;
-            if($avgNum > 0 ) {
-                return $avgNum;
+            if($arr && count((array)$arr) > 0) {
+                if($todayRate > 0) {
+                    $avgNum =  (array_sum($arr) + (float)$todayRate) / count($arr) + 1;
+                } else {
+                    $avgNum =  array_sum($arr) / count($arr);
+                }
+            } else {
+                $avgNum = $todayRate > 0 ? $todayRate / 1 : 0;
             }
+            return $avgNum;
         }
         return 0;
     }
