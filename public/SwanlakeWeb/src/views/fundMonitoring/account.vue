@@ -59,11 +59,11 @@
                     label="日期"
                     align="center">
                 </el-table-column>
-                <el-table-column
+                <!-- <el-table-column
                     prop="account"
                     label="账户名称"
                     align="center">
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
                     prop="account_balance"
                     label="OKEX账户余额(USDT)"
@@ -123,7 +123,7 @@
             <div v-if="tableData.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
-                    <el-descriptions-item label="账户名称">{{ item.account }}</el-descriptions-item>
+                    <!-- <el-descriptions-item label="账户名称">{{ item.account }}</el-descriptions-item> -->
                     <el-descriptions-item label="OKEX账户余额(USDT)">{{ toFixed(item.okex_balance || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="火币账户余额(USDT)">{{ toFixed(item.huobi_balance || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="汇总(USDT)">{{ toFixed(item.summary || 0, 4) }}</el-descriptions-item>
