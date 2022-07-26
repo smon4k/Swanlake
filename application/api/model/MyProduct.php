@@ -342,6 +342,7 @@ class MyProduct extends Base {
     public static function saveUserProductData($where=[]) {
         $data = self::where($where)->select()->toArray();
         $date = date('Y-m-d');
+        $d1 = strtotime($date);
         $yestDate = date('Y-m-d', strtotime("-1 day"));
         $insertData = [];
         self::startTrans();
