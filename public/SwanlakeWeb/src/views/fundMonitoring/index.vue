@@ -83,7 +83,7 @@
                         <span>{{ toFixed(scope.row.summary || 0, 4) }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column
+                <!-- <el-table-column
                     prop="networth"
                     label="日增(USDT)"
                     align="center">
@@ -98,7 +98,7 @@
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.daily_rate || 0, 4) }}%</span>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
             </el-table>
             <el-row class="pages" v-if="total > pageSize">
                 <el-col :span="24">
@@ -121,8 +121,8 @@
                     <el-descriptions-item label="OKEX账户余额(USDT)">{{ toFixed(item.okex_balance || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="火币账户余额(USDT)">{{ toFixed(item.huobi_balance || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="汇总(USDT)">{{ toFixed(item.summary || 0, 4) }}</el-descriptions-item>
-                    <el-descriptions-item label="日增(USDT)">{{ toFixed(item.daily || 0, 4) }}</el-descriptions-item>
-                    <el-descriptions-item label="日增率">{{ toFixed(item.daily_rate || 0, 4) }}%</el-descriptions-item>
+                    <!-- <el-descriptions-item label="日增(USDT)">{{ toFixed(item.daily || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="日增率">{{ toFixed(item.daily_rate || 0, 4) }}%</el-descriptions-item> -->
                 </el-descriptions>
             </div>
             <div v-else>

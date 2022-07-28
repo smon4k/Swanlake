@@ -1,4 +1,4 @@
-4<template>
+<template>
     <div class="container">
         <div v-if="!isMobel">
             <el-table
@@ -17,14 +17,14 @@
                         <span>{{ toFixed(scope.row.annualized_income || 0, 2) }}%</span>
                     </template>
                 </el-table-column>
-                <el-table-column
+                <!-- <el-table-column
                     prop="total_size"
                     label="总份数"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total_size || 0, 4) }}</span>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
                     prop="networth"
                     label="净值"
@@ -85,7 +85,7 @@
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="预期年化收益率">{{ toFixed(item.annualized_income || 0, 2) }}%</el-descriptions-item>
-                    <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item>
+                    <!-- <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item> -->
                     <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="总结余(USDT)">{{ toFixed(Number(item.total_size) * Number(item.networth) || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益(USDT)">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>
