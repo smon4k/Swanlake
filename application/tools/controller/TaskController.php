@@ -7,6 +7,7 @@ use app\tools\model\MaticReptile;
 use app\api\model\Task;
 use app\api\model\User;
 use app\api\model\MyProduct;
+use app\api\model\DayNetworth;
 use ClassLibrary\ClFieldVerify;
 use ClassLibrary\CLFfmpeg;
 use ClassLibrary\CLFile;
@@ -91,6 +92,22 @@ class TaskController extends ToolsBaseController
         }
         // var_dump($res);die;
 
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * 默认更新今天的净值数据 
+     * 如果今天净值数据不存在 利润默认给0
+     * @author qinlh
+     * @since 2022-07-31
+     */
+    public function saveTodayNetWorth() {
+        $begin_time = time();
+        $isNetWorth = DayNetworth::getTodayIsNetWorth();
+        if(!$isNetWorth) {
+            $address = "0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D";
+            DayNetworth::saveDayNetworth($address, 0, 1);
+        }
         return (time() - $begin_time) . "s\n";
     }
 

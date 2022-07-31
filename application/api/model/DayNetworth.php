@@ -143,4 +143,19 @@ class DayNetworth extends Base
         }
         return $total_annualized_income;
     }
+
+    /**
+     * 获取今日净值是否设置
+     * @author qinlh
+     * @since 2022-07-31
+     */
+    public static function getTodayIsNetWorth() {
+        $date = date("Y-m-d");
+        $res = self::where('date', $date)->find();
+        if($res && count((array)$res) > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
