@@ -350,9 +350,16 @@ class MyProduct extends Base {
             foreach ($data as $key => $val) {
                 $networthData = DayNetworth::getDayNetworth($val['product_id'], $date);
                 $yestNetworthData = DayNetworth::getDayNetworth($val['product_id'], $yestDate);
+                $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['id']);
                 if($networthData && count((array)$networthData) > 0) {
                     @self::name('product_user_details')->where(['product_id'=>$val['product_id'], 'uid' => $val['uid'], 'date' => $date])->delete();
                     $networth = (float)$networthData['networth']; //今日净值
+                    $yestNetworth = "";
+                    if(isset($yestNetworthData['networth']) && $yestNetworthData['networth'] !== '') {
+                        $yestNetworth = (float)$yestNetworthData['networth']; //昨日净值
+                    } else {
+                        $yestNetworth = $NewTodayYesterdayNetworth['yestDayData'];
+                    }
                     $yestNetworth = isset($yestNetworthData['networth']) ? (float)$yestNetworthData['networth'] : 1; //昨日净值
                     $buy_total_number = (float)$val['total_number']; //购买总份数
                     $account_balance = $buy_total_number * $networth; //账户余额 = 今日净值 * 购买份数
