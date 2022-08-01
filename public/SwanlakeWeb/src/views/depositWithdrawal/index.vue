@@ -535,7 +535,7 @@ export default {
         })
     },
     async getIsInTheGame() { //获取是否打赏中 调用GS第三方接口获取 暂时不使用
-        get(this.apiUrl + "/api/Depositwithdrawal/getIsGameOrNot", {
+        get(this.apiUrl + "/Api/Depositwithdrawal/getIsGameOrNot", {
             params: {
               address: this.address
             }
