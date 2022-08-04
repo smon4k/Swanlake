@@ -171,6 +171,7 @@ class User extends Base
                     'background_img' => '',
                     'time' => date('Y-m-d H:i:s'),
                     'local_balance' => 0,
+                    'wallet_balance' => 0,
                     'status' => 1
                 ];
                 $userId = self::insertGetId($insertData);
@@ -250,17 +251,36 @@ class User extends Base
     public static function setUserLocalBalance($address='', $amount=0, $type=0)
     {
         if ($address && $address !== '' && $amount > 0 && $type > 0) {
-            $userInfo = self::getUserAddressInfo($address);
-            if ($userInfo && count((array)$userInfo)) {
-                if ($type == 1) {
-                    $res = self::where('address', $address)->setInc('local_balance', $amount);
+            self::startTrans();
+            try {
+                $userInfo = self::getUserAddressInfo($address);
+                if ($userInfo && count((array)$userInfo)) {
+                    if ($type == 1) {
+                        $res = self::where('address', $address)->setInc('local_balance', $amount);
+                    }
+                    if ($type == 2) {
+                        $res = self::where('address', $address)->setDec('local_balance', $amount);
+                    }
+                    if ($res) {
+                        $params = [
+                            'address' => $address,
+                            'amount' => $amount,
+                            'type' => $type,
+                        ];
+                        $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/setUserUsdtLocalBalance', http_build_query($params));
+                        // $dataArr = json_decode($response_string, true);
+                        if($dataArr && $dataArr['code'] == 10000) {
+                            self::commit();
+                            return true;
+                        }
+                    }
                 }
-                if ($type == 2) {
-                    $res = self::where('address', $address)->setDec('local_balance', $amount);
-                }
-                if ($res) {
-                    return true;
-                }
+                self::rollback();
+                return false;
+            } catch (PDOException $e) {
+                p($e);
+                self::rollback();
+                return false;
             }
         }
         return false;
@@ -341,7 +361,28 @@ class User extends Base
     public static function resetUserRewardBalance($address='', $balance=0)
     {
         if ($address && $address !== '') {
-            return self::where('address', $address)->update(['wallet_balance'=>$balance]);
+            self::startTrans();
+            try {
+                // return self::where('address', $address)->update(['wallet_balance'=>$balance]);
+                $res = self::where('address', $address)->update(['wallet_balance'=>$balance]);
+                if($res) {
+                    $params = [
+                        'address' => $address,
+                        'amount' => $balance
+                    ];
+                    $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/resetUserRewardBalance', http_build_query($params));
+                    // $dataArr = json_decode($response_string, true);
+                    if($dataArr && $dataArr['code'] == 10000) {
+                        self::commit();
+                        return true;
+                    } 
+                }
+                self::rollback();
+                return false;
+            } catch (PDOException $e) {
+                self::rollback();
+                return false;
+            }
         }
     }
 
