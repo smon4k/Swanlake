@@ -203,6 +203,25 @@ class DepositwithdrawalController extends BaseController
     }
 
     /**
+     * 外部获取充提记录
+     * @author qinlh
+     * @since 2022-05-08
+     */
+    public function exterDepositWithdrawRecord(Request $request)
+    {
+        $address = $request->request('address', '', 'trim');
+        $limit = $request->request('limit', 20, 'intval');
+        $page = $request->request('page', 1, 'intval');
+        $where = [];
+        if($address && $address !== '') {
+            $where['address'] = $address;
+        }
+        $order = "time desc";
+        $result = FillingRecord::getDepositWithdrawRecord($where, $page, $limit, $order);
+        return $this->as_json($result);
+    }
+
+    /**
      * 写入打赏记录
      * @author qinlh
      * @since 2022-04-24
