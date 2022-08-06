@@ -5,6 +5,7 @@ use app\tools\model\Reptile;
 use app\api\model\FundMonitoring;
 use app\tools\model\MaticReptile;
 use app\api\model\Task;
+use app\api\model\TaskContract;
 use app\api\model\User;
 use app\api\model\MyProduct;
 use app\api\model\DayNetworth;
@@ -41,7 +42,7 @@ class TaskController extends ToolsBaseController
     }
 
     /**
-     * 处理任务
+     * 处理普通实时任务
      * @return int
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\ModelNotFoundException
@@ -55,6 +56,25 @@ class TaskController extends ToolsBaseController
         // p($id);
         //处理数据
         Task::deal($id);
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * 处理合约任务
+     * @return int
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function contractDeal()
+    {
+        $params = $this->ArgvParamsArr();
+        $begin_time = time();
+        $id         = isset($params['id']) ? $params['id'] : 0;
+        // p($id);
+        //处理数据
+        TaskContract::deal($id);
 
         return (time() - $begin_time) . "s\n";
     }

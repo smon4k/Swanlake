@@ -3,7 +3,7 @@ import {  fromWei , toWei } from '@/utils/tools'
 import { toolNumber } from '@/utils/tools'
 import  tokenABI from './abis/token.json'
 import gameFillingABI from './abis/gameFillingABI.json'
-import {saveNotifyStatus} from "@/wallet/serve";
+import {saveNotifyStatus, setUSDTDepositWithdraw} from "@/wallet/serve";
 
 // 领取空投奖励
 
@@ -80,9 +80,10 @@ export const approve =  function (tokenAddress  , otherAddress ,  amount , decim
  * @param {*} gTokenAmt 充值的数量
  * @param {*} buyToken 提的Token地址
  * @param {*} decimals 长度
+ * @param {*} fillingRecordParams 记录数据库参数
  * @returns 
  */
-export const gamesBuyTokenTogToken = function (gTokenAmt=0, buyToken='', decimals=18) {
+export const gamesBuyTokenTogToken = function (gTokenAmt=0, buyToken='', decimals=18, fillingRecordParams={}) {
   // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
   const address = __ownInstance__.$store.state.base.address;
   const contractAddress = __ownInstance__.$store.state.base.gamesFillingAddress;
@@ -111,12 +112,15 @@ export const gamesBuyTokenTogToken = function (gTokenAmt=0, buyToken='', decimal
         // gas: web3.utils.toHex(400000), // Optional
       }];
       web3.eth.sendTransaction(params[0])
-        .on('transactionHash', function (hash) {
+        .on('transactionHash', async function (hash) {
           console.log('hash', hash);
           if (hash) {
             hashInfo = hash
+            //开始记录数据库充提记录 修改用户充提状态为充提进行中
+            fillingRecordParams.hash = hash;
+            await setUSDTDepositWithdraw(fillingRecordParams);
             //开始修改用户充提状态为充提进行中
-            saveNotifyStatus(1);
+            // saveNotifyStatus(1);
           }
         })
         .on('receipt', function (receipt) {
@@ -146,9 +150,10 @@ export const gamesBuyTokenTogToken = function (gTokenAmt=0, buyToken='', decimal
  * @param {*} gTokenAmt 提的数量
  * @param {*} buyToken 提的Token地址
  * @param {*} decimals 长度
+ * @param {*} fillingRecordParams 记录数据库参数
  * @returns 
  */
-export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimals=18) {
+export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimals=18, fillingRecordParams) {
   // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
   const address = __ownInstance__.$store.state.base.address;
   const contractAddress = __ownInstance__.$store.state.base.gamesFillingAddress;
@@ -182,12 +187,14 @@ export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimal
       }];
       params[0].value =  web3.utils.toHex(value) 
       web3.eth.sendTransaction(params[0])
-        .on('transactionHash', function (hash) {
+        .on('transactionHash', async function (hash) {
           console.log('hash', hash);
           if (hash) {
             hashInfo = hash
+            fillingRecordParams.hash = hash;
+            await setUSDTDepositWithdraw(fillingRecordParams);
             //开始修改用户充提状态为充提进行中
-            saveNotifyStatus(1);
+            // saveNotifyStatus(1);
           }
         })
         .on('receipt', function (receipt) {

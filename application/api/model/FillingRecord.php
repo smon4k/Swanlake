@@ -31,6 +31,7 @@ class FillingRecord extends Base
                     return false;
                 }
             }
+            self::startTrans();
             try {
                 $insertData = [
                     'address' => $address,
@@ -45,15 +46,27 @@ class FillingRecord extends Base
                 ];
                 $insertId = self::insertGetId($insertData);
                 if ($insertId && $insertId > 0) {
-                    if ($type == 1) { //存的话 直接通知更新余额
-                        @User::saveNotifyStatus($address, 0);
+                    $isRes = User::saveNotifyStatus($address, 1);
+                    if ($isRes) {
+                        if ($type == 1) { //存的话 直接通知更新余额
+                            // @User::saveNotifyStatus($address, 0);
+                            $command = 'app\api\model\FillingRecord::asyncSetDepWithdrawStatus(' . "'" . $address . "'" . ',' . $insertId . ');';
+                            TaskContract::addTaskData($address, $hash, $command, '监听充值机器人执行状态');
+                            self::commit();
+                        } else {
+                            //监听机器人任务是否执行成功
+                            $command = 'app\api\model\FillingRecord::asyncFillingWithdrawStatus(' . $insertId .');';
+                            TaskContract::addTaskData($address, $hash, $command, '监听提取机器人执行状态');
+                            self::commit();
+                            return true;
+                        }
                     }
-                    return true;
-                } else {
-                    return false;
                 }
+                self::rollback();
+                return false;
             } catch (\Exception $e) {
                 // p($e);
+                self::rollback();
                 return false;
             }
         }
@@ -129,6 +142,34 @@ class FillingRecord extends Base
     }
 
     /**
+     * 异步任务监听提取机器人状态是否执行完成
+     * @author qinlh
+     * @since 2022-08-05
+     */
+    public static function asyncFillingWithdrawStatus($withdrawId=0)
+    {
+        if ($withdrawId > 0) {
+            $res = self::where("id", $withdrawId)->field('id,address,status')->find();
+            if ($res || count($res) > 0) {
+                if ($res['status'] == 2) {
+                    $isRes = User::saveNotifyStatus($res['address'], 0);
+                    if($isRes) {
+                        return ['code' => 1, 'message' => '提取机器人执行已完成'];
+                    } else {
+                        return ['code' => 0, 'message' => '同步获取用户余额失败'];
+                    }
+                } else {
+                    return ['code' => 0, 'message' => '提取机器人执行中'];
+                }
+            } else {
+                return ['code' => 0, 'message' => '获取提取数据失败'];
+            }
+        } else {
+            return ['code' => 0, 'message' => '获取提取任务ID失败'];
+        }
+    }
+
+    /**
      * 修改充提状态 已完成
      * @author qinlh
      * @since 2022-04-11
@@ -138,24 +179,68 @@ class FillingRecord extends Base
         if ($deWithId > 0) {
             $res = self::where('id', $deWithId)->setField('status', $status);
             if (false !== $res) {
-                if ($status == 2 && $isGsGetBalance) { //如果是非重提状态 且 允许通知NFT更新打赏余额
-                    $rewardBalance = User::getUserContractBalance($address);
-                    if ($rewardBalance) {
-                        @User::resetUserRewardBalance($address, $rewardBalance);
-                    }
-                    //     $api_url = "https://api.h2ofinance.pro/api/notifyUpdateBalance.ashx";
-                //     $params = array('address' => $address);
-                //     $resultArray = RequestService::doCurlGetRequest($api_url, $params);
-                //     if ($resultArray && $resultArray['code']) {
-                //         return true;
-                //     } else {
-                //         return false;
-                //     }
+                $isRes = User::saveNotifyStatus($address, 0);
+                if ($isRes) {
+                    // if ($status == 2 && $isGsGetBalance) { //如果是非重提状态 且 允许通知NFT更新打赏余额
+                    //     $rewardBalance = User::getUserContractBalance($address);
+                    //     if ($rewardBalance) {
+                    //         @User::resetUserRewardBalance($address, $rewardBalance);
+                    //     }
+                    // }
+                    return true;
                 }
-                return true;
+                return false;
             }
         }
         return false;
+    }
+
+     /**
+     * 异步监听执行
+     * 修改充提状态 已完成
+     * @author qinlh
+     * @since 2022-04-11
+     */
+    public static function asyncSetDepWithdrawStatus($address='', $deWithId=0)
+    {
+        if ($deWithId > 0) {
+            self::startTrans();
+            try {
+                $res = self::where('id', $deWithId)->find();
+                if($res['status'] && $res['status'] == 2) {
+                    self::commit();
+                    return ['code' => 1, 'message' => '同步已执行成功'];
+                }
+                $saveRes = self::where('id', $deWithId)->setField('status', 2);
+                if (false !== $saveRes) {
+                    $isRes = User::saveNotifyStatus($address, 0);
+                    if ($isRes) { 
+                        $rewardBalance = User::getUserContractBalance($address);
+                        if ($rewardBalance) {
+                            @User::resetUserRewardBalance($address, $rewardBalance);
+                            self::commit();
+                            return ['code' => 1, 'message' => 'ok'];
+                        }
+                    } else {
+                        self::rollback();
+                        return ['code' => 0, 'message' => '修改用户充提状态失败'];
+                    }
+                } else {
+                    self::rollback();
+                    return ['code' => 0, 'message' => '修改充提状态失败'];
+                }
+            } catch (\Exception $e) {
+                // 回滚事务
+                self::rollback();
+                $error_msg = json_encode([
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                ], JSON_UNESCAPED_UNICODE);
+                return ['code' => 0, 'message' => $error_msg];
+            }
+        }
     }
 
     /**

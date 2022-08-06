@@ -10,5 +10,6 @@
 // +----------------------------------------------------------------------
 
 return [
-    'app\console\TaskRun'
+    'app\console\TaskRun',
+    'app\console\TaskContractRun'
 ];

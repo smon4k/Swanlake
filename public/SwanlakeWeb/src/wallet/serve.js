@@ -148,6 +148,23 @@ export const getGameFillingWithdrawStatus = async function(withdrawId){
   return status;
 }
 
+
+//记录充提记录到数据库 修改充提状态为充提中
+export const setUSDTDepositWithdraw = async (params={}) => {
+  const apiUrl = __ownInstance__.$store.state.base.apiUrl;
+  if(params && params.hash !== '') {
+    await axios.post(apiUrl + '/Api/Depositwithdrawal/depositWithdraw', params).then((json) => {
+      if(json && json.code == 10000) {
+        return true;
+      }
+    }).catch((error) => {
+        console.log(error);
+        return false;
+    });
+  }
+  return false;
+};
+
 /**
  * 获取BTC爬虫数据
  * @param {*} type 

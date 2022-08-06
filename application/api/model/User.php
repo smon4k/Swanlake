@@ -318,7 +318,7 @@ class User extends Base
     /**
      * 开始充提中 修改状态
      * status 1：充提中 0：非充提中
-     * isGsGetBalance 是否通知GS更新余额 true：更新 false：不更新
+     * isGsGetBalance 是否通知GS更新余额(提取这里暂时不需要通知更新余额) true：更新 false：不更新
      * @author qinlh
      * @since 2022-03-19
      */

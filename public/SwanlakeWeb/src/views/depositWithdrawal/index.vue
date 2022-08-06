@@ -366,15 +366,26 @@ export default {
             //     // this.resetForm('depositForm');
             //     // this.resetForm('withdrawForm');
             // }
-            contractName(amount, Address.BUSDT).then(async (hash) => {
+            const fillingRecordParams = { //充提记录参数
+                amount: Number(amount),
+                address: this.address,
+                userId: this.userId,
+                type: Number(this.activeName),
+                local_balance: this.localBalance,
+                wallet_balance: this.walletBalance,
+                hash: ''
+            };
+            contractName(amount, Address.BUSDT, 18, fillingRecordParams).then(async (hash) => {
                 loading.close();
                 if(hash) {
                     if(this.activeName == 1) {//充值的话 二次检测是否充值成功
-                        await this.setDepositWithdraw(amount, hash);
+                        // await this.setDepositWithdraw(amount, hash);
+                        saveNotifyStatus(0, true);
                         await this.getGameFillingBalanceFun(this.activeName, hash);
                     } else { //提取的话 不二次检测是否充值成功 异步机器人扣除 这里直接写入数据库记录
-                        await this.setDepositWithdraw(amount, hash);
+                        // await this.setDepositWithdraw(amount, hash);
                         // this.trading = false;
+                        saveNotifyStatus(0, false); //提取的话 这里不通知GS获取余额
                         this.resetForm('depositForm');
                         this.resetForm('withdrawForm');
                     }
