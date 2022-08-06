@@ -248,7 +248,7 @@ class User extends Base
      * @author qinlh
      * @since 2022-06-14
      */
-    public static function setUserLocalBalance($address='', $amount=0, $type=0)
+    public static function setUserLocalBalance($address='', $amount=0, $type=0, $isSaveMediaBalance=true)
     {
         if ($address && $address !== '' && $amount > 0 && $type > 0) {
             self::startTrans();
@@ -267,9 +267,14 @@ class User extends Base
                             'amount' => $amount,
                             'type' => $type,
                         ];
-                        $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/setUserUsdtLocalBalance', http_build_query($params));
-                        // $dataArr = json_decode($response_string, true);
-                        if($dataArr && $dataArr['code'] == 10000) {
+                        if($isSaveMediaBalance) {
+                            $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/setUserUsdtLocalBalance', http_build_query($params));
+                            // $dataArr = json_decode($response_string, true);
+                            if($dataArr && $dataArr['code'] == 10000) {
+                                self::commit();
+                                return true;
+                            }
+                        } else {
                             self::commit();
                             return true;
                         }

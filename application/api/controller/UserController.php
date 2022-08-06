@@ -110,7 +110,7 @@ class UserController extends BaseController
         if ($amount <= 0 || $amount == '' || $address == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = User::setUserLocalBalance($address, $amount, $type);
+        $result = User::setUserLocalBalance($address, $amount, $type, false);
         if($result) {
             return $this->as_json($result);
         } else {
