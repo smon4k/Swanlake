@@ -375,7 +375,7 @@ class User extends Base
                         'address' => $address,
                         'amount' => $balance
                     ];
-                    $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/resetUserRewardBalance', http_build_query($params));
+                    $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/resetUserUsdfWallettBalance', http_build_query($params));
                     // $dataArr = json_decode($response_string, true);
                     if($dataArr && $dataArr['code'] == 10000) {
                         self::commit();
