@@ -78,6 +78,56 @@ class UserController extends BaseController
     }
 
     /**
+     * 修改用户信息
+     * @author qinlh
+     * @since 2022-05-22
+     */
+    public function saveUserInfo(Request $request)
+    {
+        $address = $request->post('address', '', 'trim');
+        $nickname = $request->post('nickname', '', 'trim');
+        $images_key = $request->post('images_key', '', 'trim');
+        if ($address == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $userInfo = User::getUserAddressInfo($address);
+        $avatar_img_url = "";
+        if ($images_key && $images_key !== '') {
+            if($images_key == "avatar") {
+                $fileResult        = ClFile::uploadDealClient(); //上传文件
+                if ($fileResult && $fileResult['result']) { //如果本地文件上传成功的话 开始上传到Aws 云端文件存储
+                    $file_size = input('post.file_size', $_FILES['file']['size'], 'trim');
+                    $file_name = input('post.file_name', $_FILES['file']['name'], 'trim,strval');
+                    $root_path = sprintf('%s/', 'Swanlake/avatar');
+                    $save_file = $root_path . date('His') . '_' . (ClString::toCrc32($file_size . $file_name)) . '_' . ClFile::getSuffix($userInfo['username']) . ClFile::getSuffix($file_name);
+                    $awsResult = CLAwsUpload::AwsS3PutObject($fileResult['file'], $file_name, $file_size, $save_file);
+                    if ($awsResult && $awsResult['result']) {
+                        $avatar_img_url = $awsResult['file'];
+                        @unlink($fileResult['file']); //删除旧目录下的文件
+                    } else {
+                        return $this->as_json('70001', '$2 图片上传失败');
+                    }
+                } else {
+                    return $this->as_json('70001', '$1 图片上传失败');
+                }
+            }
+        }
+        $updateArr = [];
+        if($nickname && $nickname !== '') {
+            $updateArr = ['nickname' => $nickname];
+        }
+        if($avatar_img_url && $avatar_img_url !== '') {
+            $updateArr = ['avatar' => $avatar_img_url];
+        }
+        $result = User::saveUserInfo($userInfo['id'], $updateArr);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, '添加失败');
+        }
+    }
+
+    /**
      * 根据钱包地址获取用户信息
      * @author qinlh
      * @since 2022-05-29

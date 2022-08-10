@@ -130,6 +130,9 @@ class User extends Base
                 @self::resetUserRewardBalance($address, $rewardBalance);
                 $data['wallet_balance'] = $rewardBalance;
             }
+            if(empty($data['avatar']) || $data['avatar'] == '') {
+                $data['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
+            }
             return $data;
         }
         return [];
@@ -192,6 +195,39 @@ class User extends Base
             }
         }
         return false;
+    }
+
+     /**
+     * 修改用户信息
+     * @author qinlh
+     * @since 2022-03-18
+     */
+    public static function saveUserInfo($userId=0, $updateArr=[])
+    {
+        self::startTrans();
+        try {
+            if ($userId > 0 && count($updateArr) > 0) {
+                $oldUserInfo = self::getUserInfoOne($userId);
+                $res = self::where("id", $userId)->update($updateArr);
+                if (false !== $res) {
+                    if(isset($updateArr['avatar']) && $updateArr['avatar'] !== '') {
+                        $oldAvatar = $oldUserInfo['avatar']; //旧的照片地址
+                        if($oldAvatar && $oldAvatar !== '') {
+                            @CLAwsUpload::AwsS3DeleateObject($oldAvatar); //删除云端旧的照片
+                        }
+                    }
+                    self::commit();
+                    return true;
+                }
+                return false;
+            }
+            self::rollback();
+            return false;
+        } catch ( PDOException $e) {
+            self::rollback();
+            // p($e->getMessage())
+            return false;
+        }
     }
 
     /**
