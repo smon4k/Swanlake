@@ -108,19 +108,20 @@ class QuestionController extends BaseController
     }
 
     /**
-     * 获取排行榜数据列表
+     * 获取排行榜今日数据列表
      * @author qinlh
      * @since 2022-08-10
      */
-    public function getUserLeaderboardList(Request $request) {
+    public function getUserTodayLeaderboardList(Request $request) {
         $address = $request->request('address', '', 'trim');
         $page = $request->request('page', 1, 'intval');
         $limit = $request->request('limit', 20, 'intval');
         $where = [];
+        $where['a.date'] = date('Y-m-d');
         if ($address == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = Answer::getUserLeaderboardList($where, $page, $limit);
+        $result = Answer::getUserTodayLeaderboardList($where, $page, $limit);
         return $this->as_json($result);
     }
 }

@@ -53,17 +53,24 @@ class Answer extends Base
     }
 
     /**
-     * 获取排行榜数据
+     * 获取用户今日排行榜数据
      * @author qinlh
      * @since 2022-08-10
      */
-    public static function getUserLeaderboardList($where, $page, $limit, $order='id desc') {
+    public static function getUserTodayLeaderboardList($where, $page, $limit, $order='id desc') {
         if ($limit <= 0) {
             $limit = config('paginate.list_rows');// 获取总条数
         }
-        $count = self::name('a_answer')->alias('a')->join('s_user b', 'a.user_id=b.id')->where($where)->group('user_id')->order('time desc,score desc')->field('a.*,b.avatar,b.nickname')->count();//计算总页面
+        $count = self::name('a_answer')->alias('a')->join('s_user b', 'a.user_id=b.id')->where($where)->field('a.*,b.avatar,b.nickname')->count();//计算总页面
         $allpage = intval(ceil($count / $limit));
-        $lists = self::name('a_answer')->alias('a')->join('s_user b', 'a.user_id=b.id')->where($where)->group('user_id')->order('time desc,score desc')->field('a.*,b.avatar,b.nickname')->select();
+        $lists = self::name('a_answer')
+                        ->alias('a')
+                        ->join('s_user b', 'a.user_id=b.id')
+                        ->where($where)
+                        ->page($page, $limit)
+                        ->order('a.time desc,a.score desc')
+                        ->field('a.*,b.avatar,b.nickname')
+                        ->select();
         if($lists && count((array)$lists) > 0) {
             foreach ($lists as $key => $val) {
                 if(empty($val['avatar']) || $val['avatar'] == '') {
