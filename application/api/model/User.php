@@ -180,6 +180,8 @@ class User extends Base
                     'time' => date('Y-m-d H:i:s'),
                     'local_balance' => $local_balance,
                     'wallet_balance' => 0,
+                    'h2o_local_balance' => 0,
+                    'h2o_wallet_balance' => 0,
                     'status' => 1,
                 ];
                 $userId = self::insertGetId($insertData);

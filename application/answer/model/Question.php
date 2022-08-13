@@ -114,6 +114,7 @@ class Question extends Base
                         $awardRes = Award::setTodayUserAwardInfo($userId, $userTicketId, $num, $score, $award_num);
                         if($awardRes) {
                             $isUserBalance = User::setUserCurrencyLocalBalance($address, $award_num, 1, 'h2o');
+                            p($isUserBalance);
                             if($isUserBalance) {
                                 self::commit();
                                 return ['correct_num' => $num, 'score' => $score, 'times' => $times];
