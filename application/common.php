@@ -276,10 +276,10 @@ function CurlRequest($url, $header, $content=array(), $backHeader=0, $cookie='')
      * 输出信息
      */
     function getEnvs() {
-        if ($_SERVER['HTTP_HOST'] === 'www.h2omedia.com') { //测试环境
-            return 'dev';
-        } else {
+        if ($_SERVER['HTTP_HOST'] === 'www.swanlake.club') { //正式环境
             return 'prod';
+        } else {
+            return 'dev';
         }
     }
 

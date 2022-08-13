@@ -166,6 +166,7 @@ class User extends Base
         if ($address !== '') {
             self::startTrans();
             try {
+                $local_balance = getEnvs() === 'dev' ? 1000 : 0;
                 $insertData = [
                     'username' => '',
                     'password' => '',
@@ -177,9 +178,9 @@ class User extends Base
                     'birthday' => '',
                     'background_img' => '',
                     'time' => date('Y-m-d H:i:s'),
-                    'local_balance' => 0,
+                    'local_balance' => $local_balance,
                     'wallet_balance' => 0,
-                    'status' => 1
+                    'status' => 1,
                 ];
                 $userId = self::insertGetId($insertData);
                 if ($userId > 0) {
