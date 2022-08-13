@@ -308,7 +308,7 @@ class User extends Base
                             'amount' => $amount,
                             'type' => $type,
                         ];
-                        if($isSaveMediaBalance) {
+                        if($isSaveMediaBalance && getEnvs() === 'prod') {
                             $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/setUserUsdtLocalBalance', http_build_query($params));
                             // $dataArr = json_decode($response_string, true);
                             if($dataArr && $dataArr['code'] == 10000) {
@@ -464,17 +464,22 @@ class User extends Base
                 }
                 $res = self::where('address', $address)->update([$field=>$balance]);
                 if($res) {
-                    $params = [
-                        'address' => $address,
-                        'amount' => $balance
-                    ];
-                    if($currency === 'usdt') { //如果是USDT 同步短视频usdt余额
-                        $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/resetUserUsdfWallettBalance', http_build_query($params));
-                        // $dataArr = json_decode($response_string, true);
-                        if($dataArr && $dataArr['code'] == 10000) {
+                    if(getEnvs() === 'prod') {
+                        $params = [
+                            'address' => $address,
+                            'amount' => $balance
+                        ];
+                        if($currency === 'usdt') { //如果是USDT 同步短视频usdt余额
+                            $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/resetUserUsdfWallettBalance', http_build_query($params));
+                            // $dataArr = json_decode($response_string, true);
+                            if($dataArr && $dataArr['code'] == 10000) {
+                                self::commit();
+                                return true;
+                            } 
+                        } else {
                             self::commit();
                             return true;
-                        } 
+                        }
                     } else {
                         self::commit();
                         return true;
