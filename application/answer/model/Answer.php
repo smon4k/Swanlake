@@ -43,13 +43,17 @@ class Answer extends Base
     public static function getUserTodayIsAnswer($address='') {
         $date = date('Y-m-d');
         $userId = User::getUserAddress($address);
-        $data = self::name('a_answer')->where(['user_id' => $userId, 'date'=>$date])->find();
-        if($data && count((array)$data) > 0) {
-            return false;
+        $userTicketId = UserTicket::getUserStartTicket($userId);
+        if($userTicketId) {
+            $data = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->find();
+            if($data && count((array)$data) > 0) {
+                return 3;
+            } else {
+                return 1;
+            }
         } else {
-            return true;
+            return 2;
         }
-        return false;
     }
 
     /**
@@ -70,14 +74,40 @@ class Answer extends Base
                         ->page($page, $limit)
                         ->order('a.time desc,a.score desc')
                         ->field('a.*,b.avatar,b.nickname')
-                        ->select();
+                        ->select()
+                        ->toArray();
         if($lists && count((array)$lists) > 0) {
+            $userArray = [];
             foreach ($lists as $key => $val) {
-                if(empty($val['avatar']) || $val['avatar'] == '') {
-                    $lists[$key]['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
-                }
+                $userArray[$val['user_id']][] = $val;
             }
-            return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+            // p($newArray);
+            $newArray = [];
+            foreach ($userArray as $key => $val) {
+                $count_score = 0;
+                $arr = [];
+                foreach ($val as $kk => $vv) {
+                    $count_score += $vv['score'];
+                    $arr['id'] = $vv['id'];
+                    $arr['user_id'] = $vv['user_id'];
+                    $arr['language'] = $vv['language'];
+                    $arr['consuming'] = $vv['consuming'];
+                    $arr['date'] = $vv['date'];
+                    $arr['avatar'] = $vv['avatar'];
+                    $arr['nickname'] = $vv['nickname'];
+                    if(empty($vv['avatar']) || $vv['avatar'] == '') {
+                        $arr['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
+                    }
+                }
+                $arr['score'] = $count_score;
+                $newArray[] = $arr;
+                // if(empty($val['avatar']) || $val['avatar'] == '') {
+                //     $lists[$key]['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
+                // }
+            }
+            $ages = array_column($newArray, 'score');
+            array_multisort($ages, SORT_DESC, $newArray);
+            return ['count'=>$count,'allpage'=>$allpage,'lists'=>$newArray];
         }
     }
 }

@@ -23,7 +23,7 @@ class FillingRecord extends Base
      * @author qinlh
      * @since 2022-06-23
      */
-    public static function setDepositWithdrawRecord($address='', $amount=0, $type=0, $localBalance=0, $walletBalance=0, $hash='')
+    public static function setDepositWithdrawRecord($address='', $amount=0, $type=0, $localBalance=0, $walletBalance=0, $hash='', $currency='usdt')
     {
         if ($address !== '' && $amount > 0 && $type > 0) {
             if ($type == 2) { //如果是提取的话 校验 amount 必须 <= gs_balance+cs_balance
@@ -40,17 +40,18 @@ class FillingRecord extends Base
                     'wallet_balance' => $walletBalance,
                     'type' => $type,
                     'hash' => $hash,
+                    'currency' => $currency,
                     'time' => date('Y-m-d H:i:s'),
                     // 'status' => $type == 1 ? 2 : 1 //提取的话 状态为进行中 1 否则为执行成功
                     'status' => 1 //提取的话 状态为进行中 1 否则为执行成功
                 ];
                 $insertId = self::insertGetId($insertData);
                 if ($insertId && $insertId > 0) {
-                    $isRes = User::saveNotifyStatus($address, 1);
+                    $isRes = User::saveNotifyStatus($address, 1, true);
                     if ($isRes) {
                         if ($type == 1) { //存的话 直接通知更新余额
                             // @User::saveNotifyStatus($address, 0);
-                            $command = 'app\api\model\FillingRecord::asyncSetDepWithdrawStatus(' . "'" . $address . "'" . ',' . $insertId . ');';
+                            $command = 'app\api\model\FillingRecord::asyncSetDepWithdrawStatus(' . "'" . $address . "'" . ',' . $insertId . ',' . "'" . $currency . "'" .');';
                             TaskContract::addTaskData($address, $hash, $command, '监听充值机器人执行状态');
                             self::commit();
                         } else {
@@ -152,7 +153,7 @@ class FillingRecord extends Base
             $res = self::where("id", $withdrawId)->field('id,address,status')->find();
             if ($res || count($res) > 0) {
                 if ($res['status'] == 2) {
-                    $isRes = User::saveNotifyStatus($res['address'], 0);
+                    $isRes = User::saveNotifyStatus($res['address'], 0, true);
                     if($isRes) {
                         return ['code' => 1, 'message' => '提取机器人执行已完成'];
                     } else {
@@ -174,12 +175,12 @@ class FillingRecord extends Base
      * @author qinlh
      * @since 2022-04-11
      */
-    public static function setDepWithdrawStatus($address='', $deWithId=0, $status=0, $isGsGetBalance=true)
+    public static function setDepWithdrawStatus($address='', $deWithId=0, $status=0, $isGsGetBalance=true, $currency='usdt')
     {
         if ($deWithId > 0) {
             $res = self::where('id', $deWithId)->setField('status', $status);
             if (false !== $res) {
-                $isRes = User::saveNotifyStatus($address, 0);
+                $isRes = User::saveNotifyStatus($address, 0, true, $currency);
                 if ($isRes) {
                     // if ($status == 2 && $isGsGetBalance) { //如果是非重提状态 且 允许通知NFT更新打赏余额
                     //     $rewardBalance = User::getUserContractBalance($address);
@@ -201,7 +202,7 @@ class FillingRecord extends Base
      * @author qinlh
      * @since 2022-04-11
      */
-    public static function asyncSetDepWithdrawStatus($address='', $deWithId=0)
+    public static function asyncSetDepWithdrawStatus($address='', $deWithId=0, $currency='usdt')
     {
         if ($deWithId > 0) {
             self::startTrans();
@@ -213,11 +214,11 @@ class FillingRecord extends Base
                 }
                 $saveRes = self::where('id', $deWithId)->setField('status', 2);
                 if (false !== $saveRes) {
-                    $isRes = User::saveNotifyStatus($address, 0);
+                    $isRes = User::saveNotifyStatus($address, 0, true);
                     if ($isRes) { 
-                        $rewardBalance = User::getUserContractBalance($address);
+                        $rewardBalance = User::getUserContractBalance($address, $currency);
                         if ($rewardBalance) {
-                            @User::resetUserRewardBalance($address, $rewardBalance);
+                            @User::resetUserRewardBalance($address, $rewardBalance, $currency);
                             self::commit();
                             return ['code' => 1, 'message' => 'ok'];
                         }

@@ -125,11 +125,15 @@ class User extends Base
                 $userinfo = self::insertUserData($address);
                 $data = $userinfo;
             }
-            $rewardBalance = self::getUserContractBalance($address); //重置链上余额
-            if ($rewardBalance) {
-                @self::resetUserRewardBalance($address, $rewardBalance);
-                $data['wallet_balance'] = $rewardBalance;
-            }
+            $rewardBalance = self::getUserContractBalance($address, 'usdt'); //重置链上余额
+            @self::resetUserRewardBalance($address, $rewardBalance, 'usdt');
+            $data['wallet_balance'] = $rewardBalance;
+
+            $rewardH2oBalance = self::getUserContractBalance($address, 'h2o'); //重置链上余额
+            // if ($rewardH2oBalance !== 0) {
+                @self::resetUserRewardBalance($address, $rewardH2oBalance, 'h2o');
+                $data['h2o_wallet_balance'] = $rewardH2oBalance;
+            // }
             if(empty($data['avatar']) || $data['avatar'] == '') {
                 $data['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
             }
@@ -277,7 +281,7 @@ class User extends Base
     }
 
     /**
-     * 修改用户余额
+     * 修改用户余额 - USDT
      * @params address 用户地址
      * @params amount 数量
      * @params type 1：加 2：减
@@ -328,6 +332,45 @@ class User extends Base
     }
 
     /**
+     * 修改用户余额 - 其他币种
+     * @params address 用户地址
+     * @params amount 数量
+     * @params type 1：加 2：减
+     * @params currency 币种
+     * @author qinlh
+     * @since 2022-06-14
+     */
+    public static function setUserCurrencyLocalBalance($address='', $amount=0, $type=0, $currency='')
+    {
+        if ($address && $address !== '' && $amount > 0 && $type > 0 && $currency !== '') {
+            self::startTrans();
+            try {
+                $field = $currency . "_local_balance";
+                $userInfo = self::getUserAddressInfo($address);
+                if ($userInfo && count((array)$userInfo)) {
+                    if ($type == 1) {
+                        $res = self::where('address', $address)->setInc($field, $amount);
+                    }
+                    if ($type == 2) {
+                        $res = self::where('address', $address)->setDec($field, $amount);
+                    }
+                    if ($res) {
+                        self::commit();
+                        return true;
+                    }
+                }
+                self::rollback();
+                return false;
+            } catch (PDOException $e) {
+                p($e);
+                self::rollback();
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 获取用户名是否已存在
      * @author qinlh
      * @since 2022-05-29
@@ -358,15 +401,15 @@ class User extends Base
      * @author qinlh
      * @since 2022-03-19
      */
-    public static function saveNotifyStatus($address='', $status=0, $isGsGetBalance=true)
+    public static function saveNotifyStatus($address='', $status=0, $isGsGetBalance=true, $currency='usdt')
     {
         if ($address !== '' && $status <= 1) {
             $res = self::where('address', $address)->setField('dw_status', $status);
             if (false !== $res) {
                 if ($status == 0 && $isGsGetBalance) { //如果是非重提状态 且 允许通知NFT更新打赏余额
-                    $rewardBalance = self::getUserContractBalance($address);
+                    $rewardBalance = self::getUserContractBalance($address, $currency);
                     if ($rewardBalance) {
-                        @self::resetUserRewardBalance($address, $rewardBalance);
+                        @self::resetUserRewardBalance($address, $rewardBalance, $currency);
                     }
                 }
                 return true;
@@ -380,12 +423,19 @@ class User extends Base
      * @author qinlh
      * @since 2022-03-21
      */
-    public static function getUserContractBalance($address='')
+    public static function getUserContractBalance($address='', $currency='usdt')
     {
         $balance = 0;
         if ($address !== '') {
             $params = array('address' => $address);
-            $response_string = RequestService::doJsonCurlPost(Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_uri'], json_encode($params));
+            $url = '';
+            if($currency === 'usdt') {
+                $url = Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_uri'];
+            } 
+            if($currency === 'h2o') {
+                $url = Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_h2o_uri'];
+            }
+            $response_string = RequestService::doJsonCurlPost($url, json_encode($params));
             $balance = (float)json_decode($response_string, true);
             if ($balance) {
                 return $balance;
@@ -399,24 +449,35 @@ class User extends Base
      * @author qinlh
      * @since 2022-04-25
      */
-    public static function resetUserRewardBalance($address='', $balance=0)
+    public static function resetUserRewardBalance($address='', $balance=0, $currency='usdt')
     {
         if ($address && $address !== '') {
             self::startTrans();
             try {
                 // return self::where('address', $address)->update(['wallet_balance'=>$balance]);
-                $res = self::where('address', $address)->update(['wallet_balance'=>$balance]);
+                $field = "wallet_balance";
+                if($currency === 'usdt') {
+                    $field = "wallet_balance";
+                } else {
+                    $field = $currency . "_wallet_balance";
+                }
+                $res = self::where('address', $address)->update([$field=>$balance]);
                 if($res) {
                     $params = [
                         'address' => $address,
                         'amount' => $balance
                     ];
-                    $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/resetUserUsdfWallettBalance', http_build_query($params));
-                    // $dataArr = json_decode($response_string, true);
-                    if($dataArr && $dataArr['code'] == 10000) {
+                    if($currency === 'usdt') { //如果是USDT 同步短视频usdt余额
+                        $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/resetUserUsdfWallettBalance', http_build_query($params));
+                        // $dataArr = json_decode($response_string, true);
+                        if($dataArr && $dataArr['code'] == 10000) {
+                            self::commit();
+                            return true;
+                        } 
+                    } else {
                         self::commit();
                         return true;
-                    } 
+                    }
                 }
                 self::rollback();
                 return false;
@@ -425,31 +486,6 @@ class User extends Base
                 return false;
             }
         }
-    }
-
-    /**
-     * 获取用户余额
-     * @author qinlh
-     * @since 2022-06-23
-     */
-    public static function getUserBalance($userId=0)
-    {
-        $balance = 0;
-        if ($userId > 0) {
-            $wallet_balance = 0;
-            $local_balance = 0;
-            $userInfo = self::getUserInfo($userId);
-            if ($userInfo['wallet_balance'] <= 0) {
-                $wallet_balance = self::getUserContractBalance($userInfo['address']);
-            } else {
-                $wallet_balance = $userInfo['wallet_balance'];
-            }
-            if ($userInfo['local_balance'] > 0) {
-                $local_balance = $userInfo['local_balance'];
-            }
-            $balance = (float)$wallet_balance + (float)$local_balance;
-        }
-        return $balance;
     }
 
     /**
@@ -473,12 +509,12 @@ class User extends Base
             }
             $result['status'] = $userinfo['dw_status'];
             if ($result && count((array)$result) > 0) {
-                $resBlanceArr = FillingRecord::getUserBalance($address);
+                $resBlanceArr = FillingRecord::getUserBalance($userinfo['id']);
                 // p($resBlanceArr);
                 $result['gsBalance'] = $resBlanceArr['gsBalance'];
                 $result['csBalance'] = $resBlanceArr['csBalance'];
                 // $result['isGame'] = self::getIsInTheGame($address);
-                $isDeWithdrawRes = FillingRecord::getUserIsInWithdraw($address); //是否充提中的记录
+                $isDeWithdrawRes = FillingRecord::getUserIsInWithdraw($userinfo['id']); //是否充提中的记录
                 $result['isDeWith'] = false; //是否充提中的记录
                 $result['isDeWithStatusId'] = 0; //正在充提中的状态id
                 $result['isDeWithType'] = '';

@@ -74,10 +74,11 @@ class DepositwithdrawalController extends BaseController
         $address = $request->request('address', '', 'trim');
         $status = $request->request('status', 0, 'intval');
         $isGsGetBalance = $request->request('type', 1, 'intval');
+        $currency = $request->request('currency', 'usdt', 'trim');
         if (!$address || $address == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = User::saveNotifyStatus($address, $status, $isGsGetBalance);
+        $result = User::saveNotifyStatus($address, $status, $isGsGetBalance, $currency);
         return $this->as_json($result);
     }
 
@@ -116,10 +117,11 @@ class DepositwithdrawalController extends BaseController
         $status = $request->request('status', 0, 'intval');
         $deWithId = $request->request('deWithId', 0, 'intval');
         $isGsGetBalance = $request->request('type', 1, 'intval');
+        $currency = $request->request('currency', 'usdt', 'trim');
         if (!$address || $address == '' || $status <= 0 || $deWithId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = FillingRecord::setDepWithdrawStatus($address, $deWithId, $status, $isGsGetBalance);
+        $result = FillingRecord::setDepWithdrawStatus($address, $deWithId, $status, $isGsGetBalance, $currency);
         return $this->as_json($result);
     }
 
@@ -176,10 +178,11 @@ class DepositwithdrawalController extends BaseController
         $walletBalance = $request->post('wallet_balance', '', 'trim');
         $hash = $request->post('hash', '', 'trim');
         $type = $request->post('type', 0, 'intval');
+        $currency = $request->post('currency', 'usdt', 'trim');
         if (!$address || $address == '' || $amount <= 0 || $type <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = FillingRecord::setDepositWithdrawRecord($address, $amount, $type, $localBalance, $walletBalance, $hash);
+        $result = FillingRecord::setDepositWithdrawRecord($address, $amount, $type, $localBalance, $walletBalance, $hash, $currency);
         return $this->as_json($result);
     }
 
