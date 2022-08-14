@@ -166,7 +166,7 @@ class User extends Base
         if ($address !== '') {
             self::startTrans();
             try {
-                $local_balance = getEnvs() === 'dev' ? 1000 : 0;
+                $local_balance = getEnvs() === 'dev' ? 3000 : 0;
                 $insertData = [
                     'username' => '',
                     'password' => '',
