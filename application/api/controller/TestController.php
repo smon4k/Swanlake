@@ -3,6 +3,7 @@ namespace app\api\controller;
 
 use think\Request;
 use think\Controller;
+use okex\okv5;
 use RequestService\RequestService;
 
 class TestController extends BaseController
@@ -162,6 +163,42 @@ class TestController extends BaseController
                 $newArray[$letterArr[$key]] = $val;
             }
             return $newArray;
+        }
+    }
+
+    /**
+     * 下单
+     * @author qinlh
+     * @since 2022-06-29
+     */
+    public static function tradeOrder() {
+        // $vendor_name = "ccxt.ccxt";
+        // Vendor($vendor_name);
+
+        // $className = "\ccxt\\okex5";
+        // $exchange  = new $className(array(
+        //     'apiKey' => 'a5e6eaf0-59ad-4fd6-abe1-7b48c18ed1a8',
+        //     'secret' => '91C03B9A3F134598FB3BA801A248D9AF',
+        //     'password' => 'Zx112211@',
+        // ));
+        $rpc = new okv5(array(
+            'apiKey' => 'a5e6eaf0-59ad-4fd6-abe1-7b48c18ed1a8',
+            'apiSecret' => '91C03B9A3F134598FB3BA801A248D9AF',
+            'passphrase' => 'Zx112211@',
+        ));
+        $params = [
+            'instId' => 'BTC-USDT',
+            'clOrdId' => '202208151011007',
+            'tdMode' => 'cash',
+            'side' => 'buy',
+            'ordType' => 'market',
+            'sz' => '100',
+        ];
+        try {  
+            $result = $rpc->request('/api/v5/trade/order', $params, 'POST');
+            var_dump($result);
+        } catch (\Exception $e) {
+            return array(0, $e->getMessage());
         }
     }
 }

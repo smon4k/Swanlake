@@ -4,6 +4,7 @@ namespace app\tools\controller;
 use app\tools\model\Reptile;
 use app\api\model\FundMonitoring;
 use app\tools\model\MaticReptile;
+use app\tools\model\Okx;
 use app\api\model\Task;
 use app\api\model\TaskContract;
 use app\api\model\User;
@@ -146,6 +147,15 @@ class TaskController extends ToolsBaseController
         $local_absolute_file = DOCUMENT_ROOT_PATH . "/upload/h2o-media/download/111.mp4";
         $res = CLFile::catchRemote($remote_file_url,$local_absolute_file);
         echo $res . "s\n";
+        return (time() - $begin_time) . "s\n";
+    }
+
+    
+    public function getOkxDeal() {
+        $begin_time = time();
+
+        $data = Okx::tradeOrder();
+        p($data);
         return (time() - $begin_time) . "s\n";
     }
 }
