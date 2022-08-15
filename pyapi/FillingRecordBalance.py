@@ -27,7 +27,7 @@ class JDSpider(object):
         try:
             num = 0
             contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.gamesFillingAddress), abi=self.gameFillingABI)
-            result = contract.functions.userInfo(address).call()
+            result = contract.functions.userInfo(Web3.toChecksumAddress(address)).call()
             num = fromWei(result[0], 18)
             if result[1]:
                 num = float("-"+num)
@@ -40,7 +40,7 @@ class JDSpider(object):
         try:
             num = 0
             contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.h2oFillingAddress), abi=self.gameFillingABI)
-            result = contract.functions.userInfo(address).call()
+            result = contract.functions.userInfo(Web3.toChecksumAddress(address)).call()
             num = fromWei(result[0], 18)
             if result[1]:
                 num = float("-"+num)
