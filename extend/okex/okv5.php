@@ -19,6 +19,32 @@ class okv5
         self::setParams($configs);
     }
 
+    function curl($url,$postdata=[]) {
+		// $proxy='http://127.0.0.1:7890';
+		$proxy='';
+		$ch = curl_init();
+		curl_setopt($ch,CURLOPT_URL, $url);
+		if ($this->req_method == 'POST') {
+			curl_setopt($ch, CURLOPT_POST, 1);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postdata));
+		}
+		curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+		curl_setopt($ch,CURLOPT_HEADER,0);
+		curl_setopt($ch, CURLOPT_TIMEOUT,60);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+		if(!empty($proxy)) {
+			curl_setopt($ch, CURLOPT_PROXY, $proxy); 
+		} 
+		curl_setopt ($ch, CURLOPT_HTTPHEADER, [
+			"Content-Type: application/json",
+			]);
+		$output = curl_exec($ch);
+		$info = curl_getinfo($ch);
+		curl_close($ch);
+		return $output;
+	}
+
     public  static  function request($requestPath, $params, $method, $cursor = false)
     {
 
@@ -34,72 +60,86 @@ class okv5
 
         $body = $params ? json_encode($params, JSON_UNESCAPED_SLASHES) : '';
         $timestamp = self::getTimestamp();
-
         $sign = self::signature($timestamp, $method, $requestPath, $body, self::$apiSecret);
         if (!empty(self::$apiKey)){
-            $headers = self::getHeader(self::$apiKey, self::$paper,$sign, $timestamp, self::$passphrase, self::$textToSign);
+            $headers = self::getHeader(self::$apiKey, self::$paper, $sign, $timestamp, self::$passphrase, self::$textToSign);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         }
-
-        if($method == "POST") {
+        // p($headers);
+        curl_setopt($ch, CURLOPT_ENCODING, '');
+        if ($method == 'GET') {
+            curl_setopt($ch, CURLOPT_HTTPGET, true);
+        } elseif ($method == "POST") {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         }
-
+        // p($ch);
         // 设置超时时间
-//        curl_setopt($ch, CURLOPT_TIMEOUT_MS,60);
+        // curl_setopt($ch, CURLOPT_TIMEOUT_MS,60);
 
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+        // curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLINFO_HEADER_OUT,true);
+
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_FAILONERROR, false);
+
+        // // match the same http version as python and js
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
         // 头信息
         curl_setopt($ch, CURLOPT_HEADER, true);
-//        curl_setopt($ch, CURLOPT_NOBODY,true);
+        // curl_setopt($ch, CURLOPT_NOBODY,true);
 
-        $return = curl_exec($ch);
-        var_dump($return);die;
-        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $headerTotal = strlen($return);
-        $bodySize = $headerTotal - $headerSize;
+        $response = curl_exec($ch);
+        $headers_length = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
 
-        $body = substr($return, $headerSize, $bodySize);
+        $raw_headers = mb_substr($response, 0, $headers_length);
+        p($raw_headers);
+        $info = curl_getinfo($ch);
+        curl_close($ch);
+        // $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        // p($headerSize);
+        // $headerTotal = strlen($return);
+        // $bodySize = $headerTotal - $headerSize;
 
-        if(!curl_errno($ch))
-        {
-            $info = curl_getinfo($ch,CURLINFO_HEADER_OUT);
-            if (Config::$debug)
-            {
+        // $body = substr($return, $headerSize, $bodySize);
 
-            }
+//         if(!curl_errno($ch))
+//         {
+//             $info = curl_getinfo($ch,CURLINFO_HEADER_OUT);
+//             // if (Config::$debug)
+//             // {
 
-            switch (true)
-            {
-                // 全部debug
-                case Config::$debug==1;
-                    echo ($info);
+//             // }
 
-                    // 获得响应结果里的：头大小
-                $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-//                // 根据头大小去获取头信息内容
-//                $header = substr($return, 0, $headerSize);
+//             switch (true)
+//             {
+//                 // 全部debug
+//                 case Config::$debug==1;
+//                     echo ($info);
 
-                    print_r(substr($return, 0, $headerSize-2));
-                    print_r("TIMESTAMP: ".self::getTimestamp());
-                    print_r("\n\n");
+//                     // 获得响应结果里的：头大小
+//                 $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+// //                // 根据头大小去获取头信息内容
+// //                $header = substr($return, 0, $headerSize);
 
-                    print_r($body);
-                    print_r("\n\n");
-                    break;
+//                     print_r(substr($return, 0, $headerSize-2));
+//                     print_r("TIMESTAMP: ".self::getTimestamp());
+//                     print_r("\n\n");
 
-                // 仅 response body
-                case Config::$debug==2;
-                    $ntime = self::getTimestamp();
-                    print_r($ntime." $body\n");
-                    break;
-            }
-        }
+//                     print_r($body);
+//                     print_r("\n\n");
+//                     break;
+
+//                 // 仅 response body
+//                 case Config::$debug==2;
+//                     $ntime = self::getTimestamp();
+//                     print_r($ntime." $body\n");
+//                     break;
+//             }
+//         }
 
 //        $body = substr($sContent, $headerSize, $bodySize);
 
@@ -107,10 +147,10 @@ class okv5
 //        print_r("headerSize:".$headerSize."\n");
 //        print_r("headerTotal:".$headerTotal."\n");
 //        print_r("bodySize:".$bodySize."\n");
+        p($info);
+        // $body = json_decode($body,true);
 
-        $body = json_decode($body,true);
-
-        return $body;
+        return $info;
     }
 
     public static function getHeader($apiKey, $paper, $sign, $timestamp, $passphrase, $textToSign)

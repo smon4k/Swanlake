@@ -132,6 +132,20 @@ class TaskController extends ToolsBaseController
         return (time() - $begin_time) . "s\n";
     }
 
+
+    /**
+     * Okx 平衡仓位 下单
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function OkxPiggybankOrder() {
+        $begin_time = time();
+
+        Okx::balancePositionOrder();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
     public function awsUpload() {
         $video_url = DOCUMENT_ROOT_PATH . "/upload/h2o-media/2022/06/08/qinlh.mp4";
         $videoInfo = CLFfmpeg::getVideoInfo($video_url);
@@ -147,15 +161,6 @@ class TaskController extends ToolsBaseController
         $local_absolute_file = DOCUMENT_ROOT_PATH . "/upload/h2o-media/download/111.mp4";
         $res = CLFile::catchRemote($remote_file_url,$local_absolute_file);
         echo $res . "s\n";
-        return (time() - $begin_time) . "s\n";
-    }
-
-    
-    public function getOkxDeal() {
-        $begin_time = time();
-
-        $data = Okx::tradeOrder();
-        p($data);
         return (time() - $begin_time) . "s\n";
     }
 }

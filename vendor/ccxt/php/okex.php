@@ -113,6 +113,7 @@ class okex extends Exchange {
                         'public/underlying',
                         'public/interest-rate-loan-quota',
                         'system/status',
+                        'rubik/stat/taker-volume'
                     ),
                 ),
                 'private' => array(
@@ -1338,6 +1339,20 @@ class okex extends Exchange {
     }
     
     /**
+     * 获取账户余额
+     * @author qinlh
+     * @since 2022-08-16
+     */
+    public function fetch_account_balance($ccy='', $params = array()) {
+        $request = array(
+            'ccy' => $ccy,
+        );
+        $response = $this->privateGetAccountBalance(array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->safe_value($response, 0);
+    }
+
+    /**
      * 获取子账户列表
      * @author qinlh
      * @since 2022-07-16
@@ -1381,6 +1396,74 @@ class okex extends Exchange {
         $result = $this->safe_value($response, 'data', array());
         // p($result);
         return $result;
+    }
+
+    /**
+     * 下单
+     * @author qinlh
+     * @since 2022-08-16
+     */
+    public function create_trade_order($symbol, $clientOrderId, $type, $side, $amount, $params = array ()) {
+        $request = array(
+            'instId' => $symbol,
+            'clOrdId' => $clientOrderId,
+            'tdMode' => 'cross',
+            'side' => $side,
+            'ordType' => $type,
+            'sz' => $amount,
+        );
+        // p($request );
+        $response = $this->privatePostTradeOrder (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->safe_value($data, 0);
+    }
+
+    /**
+     * 获取行情数据-指数行情
+     * @author qinlh
+     * @since 2022-08-16
+     */
+    public function fetch_market_index_tickers($instId=null, $params = array ()) {
+        $request = array(
+            'instId' => $instId,
+        );
+        $response = $this->publicGetMarketIndexTickers(array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->safe_value($response, 0);
+    }
+
+    /**
+     * 获取主动买入/卖出情况
+     * @author qinlh
+     * @since 2022-08-16
+     */
+    public function fetch_rubik_stat_taker_valume($ccy='', $instType='', $begin=null, $end=null, $period=null, $params = array ()) {
+        $request = array(
+            'ccy' => $ccy,
+            'instType' => $instType,
+            'begin' => $begin,
+            'end' => $end,
+            'period' => $period,
+        );
+        $response = $this->publicGetRubikStatTakerVolume(array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->safe_value($response, 0);
+    }
+
+    /**
+     * 获取衍生品仓位档位/卖出情况
+     * @author qinlh
+     * @since 2022-08-16
+     */
+    public function fetch_position_tiers($instType='', $tdMode='cross', $instId='',  $params = array ()) {
+        $request = array(
+            'instType' => $instType,
+            'tdMode' => $tdMode,
+            'instId' => $instId,
+        );
+        $response = $this->publicGetPublicPositionTiers(array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->safe_value($response, 0);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
