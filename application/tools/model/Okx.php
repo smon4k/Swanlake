@@ -122,7 +122,7 @@ class Okx extends Base
                                 'quote_ccy' => $quote_ccy,
                                 'type' => 1,
                                 'order_type' => 'market',
-                                'amount' => $btcSellOrdersNumber,
+                                'amount' => $usdtSellOrdersNumber,
                                 'price' => $btcPrice,
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
