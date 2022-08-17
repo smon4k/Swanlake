@@ -138,10 +138,23 @@ class TaskController extends ToolsBaseController
      * @author qinlh
      * @since 2022-08-17
      */
-    public function OkxPiggybankOrder() {
+    public function okxPiggybankOrder() {
         $begin_time = time();
 
         Okx::balancePositionOrder();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * Okx 平衡仓位 每日数据统计
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function okxPiggybankDate() {
+        $begin_time = time();
+
+        Okx::piggybankDate();
 
         return (time() - $begin_time) . "s\n";
     }
