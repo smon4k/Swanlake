@@ -21,9 +21,9 @@ use okex\okv5;
 class Okx extends Base
 {
 
-    public $apiKey = '036e3cdd-7dbc-467b-aaa7-75618a3afb83';
-    public $secret = '02AD3DEE63EA35889654616031797F22';
-    public $password = 'Zx112211@';
+    public static $apiKey = '036e3cdd-7dbc-467b-aaa7-75618a3afb83';
+    public static $secret = '02AD3DEE63EA35889654616031797F22';
+    public static $password = 'Zx112211@';
 
     /**
      * 平衡仓位 - 下单
