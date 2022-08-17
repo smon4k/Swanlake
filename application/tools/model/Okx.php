@@ -79,10 +79,11 @@ class Okx extends Base
                 $usdtValuation = $usdtBalance;
             }
             // p($btcPrice);
-            $changeRatio = 0;
-            $changeRatio = abs($btcValuation / $usdtValuation);
+            // $changeRatio = 0;
+            $changeRatio01 = abs($btcValuation / $usdtValuation);
+            $changeRatio02 = abs($usdtValuation / $btcValuation);
             $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
-            if($changeRatio > $changeRatioNum) { //涨跌大于1%
+            if($changeRatio01 > $changeRatioNum || $changeRatio02 > $changeRatioNum) { //涨跌大于1%
                 // p($usdtValuation);
                 if($btcValuation > $usdtValuation) { //btc的估值超过usdt时候，卖btc换成u
                     $btcSellNum = ($btcValuation - $usdtValuation) / 2;
