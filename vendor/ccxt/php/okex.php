@@ -1429,7 +1429,7 @@ class okex extends Exchange {
         );
         $response = $this->publicGetMarketIndexTickers(array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->safe_value($response, 0);
+        return $this->safe_value($data, 0);
     }
 
     /**
@@ -1447,7 +1447,7 @@ class okex extends Exchange {
         );
         $response = $this->publicGetRubikStatTakerVolume(array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->safe_value($response, 0);
+        return $this->safe_value($data, 0);
     }
 
     /**
@@ -1463,7 +1463,7 @@ class okex extends Exchange {
         );
         $response = $this->publicGetPublicPositionTiers(array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->safe_value($response, 0);
+        return $this->safe_value($data, 0);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
