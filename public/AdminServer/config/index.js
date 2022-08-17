@@ -26,13 +26,13 @@ module.exports = {
   },
   dev: {
     env: require('./dev.env'),
-    port: process.env.PORT || 8080,
+    port: process.env.PORT || 8009,
     autoOpenBrowser: false, //浏览器自动运行
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
       "/Api": {
-        target: "http://www.h2omedia.com",
+        target: "http://www.swan.com",
         changeOrigin: true,
         pathRewrite: {
           "^/Api": "/Api"
@@ -40,29 +40,13 @@ module.exports = {
         timeout: 600000,
       },
       "/Admin": {
-        target: "http://www.h2omedia.com",
+        target: "http://www.swan.com",
         changeOrigin: true,
         pathRewrite: {
           "^/Admin": "/Admin"
         },
         timeout: 600000,
       },
-      "/H2omarketplace": {
-        target: "http://www.h2omedia.com",
-        changeOrigin: true,
-        pathRewrite: {
-          "^/H2omarketplace": "/H2omarketplace"
-        },
-        timeout: 600000,
-      },
-      "/matic": {
-        target: "http://www.h2omedia.com",
-        changeOrigin: true,
-        pathRewrite: {
-          "^/matic": "/matic"
-        },
-        timeout: 600000,
-      }
     },
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README

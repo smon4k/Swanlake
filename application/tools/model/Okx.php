@@ -211,13 +211,13 @@ class Okx extends Base
             $totalAssets = $btcValuation + $usdtValuation;
             
             //获取总的利润
-            $countProfit = Db::name('okx_piggybank')->sum('profit');
+            $countProfit = Db::where('product_name', $transactionCurrency)->name('okx_piggybank')->sum('profit');
             $date = date('Y-m-d');
-            $data = Db::name('okx_piggybank_date')->where('date', $date)->find();
+            $data = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->find();
             if($data && count((array)$data) > 0) {
-                $res = Db::name('okx_piggybank_date')->where('date', $date)->update(['count_market_value'=>$totalAssets, 'grid_spread' => $countProfit]);
+                $res = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->update(['count_market_value'=>$totalAssets, 'grid_spread' => $countProfit]);
             } else {
-                $res = Db::name('okx_piggybank_date')->insertGetId(['date'=>$date, 'count_market_value'=>$totalAssets, 'grid_spread' => $countProfit]);
+                $res = Db::name('okx_piggybank_date')->insertGetId(['product_name' => $transactionCurrency, 'date'=>$date, 'count_market_value'=>$totalAssets, 'grid_spread' => $countProfit]);
             }
             if($res !== false) {
                 return true;

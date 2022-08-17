@@ -133,11 +133,11 @@ class AdminUser extends Base
             $limits = config('paginate.list_rows');// 获取总条数
         }
         // p($where);
-        $count = self::where($where)->alias("au")->join("m_auth_group ag", "au.groupid=ag.id")->count();//计算总页面
+        $count = self::where($where)->alias("au")->join("s_auth_group ag", "au.groupid=ag.id")->count();//计算总页面
         $allpage = intval(ceil($count / $limits));
         $lists = self::name('admin_user')
                     ->alias("au")
-                    ->join("m_auth_group ag", "au.groupid=ag.id")
+                    ->join("s_auth_group ag", "au.groupid=ag.id")
                     ->field("au.id,au.user_name,au.real_name,au.ceil_phone,au.email,au.groupid,au.create_at,ag.title as group_name")
                     ->where($where)
                     ->page($page, $limits)
@@ -239,7 +239,7 @@ class AdminUser extends Base
     public static function getUserInfoGroupName($user_id=0) {
         if($user_id && $user_id > 0) {
             // $where = [''];
-            $return = self::alias("u")->where(['u.id'=>$user_id])->join("m_auth_group ag", "u.groupid=ag.id")->field("u.real_name,u.user_name,ag.title")->find();
+            $return = self::alias("u")->where(['u.id'=>$user_id])->join("s_auth_group ag", "u.groupid=ag.id")->field("u.real_name,u.user_name,ag.title")->find();
             if($return) {
                 return $return;
             } else {

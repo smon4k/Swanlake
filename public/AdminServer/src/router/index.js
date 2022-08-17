@@ -9,16 +9,13 @@ const AuthGroupList = () => import('@/pages/AdminUser/AuthGroupList.vue')
 const AuthMenuRuleList = () => import('@/pages/AdminUser/AuthMenuRuleList.vue')
 const AuthRuleList = () => import('@/pages/AdminUser/AuthRuleList.vue')
 
-const NotesList = () => import('@/pages/Notes/list.vue')
-
-const TicketList = () => import('@/pages/Ticket/list.vue')
-const TicketListDetails = () => import('@/pages/Ticket/details.vue')
-const TicketStatistics = () => import('@/pages/Ticket/statistics.vue')
-
 const UserList = () => import('@/pages/User/list.vue')
 
 const FillingH2oList = () => import('@/pages/Filling/h2olist.vue')
 const FillingUsdtList = () => import('@/pages/Filling/usdtlist.vue')
+
+const PiggybankOrder = () => import('@/pages/Piggybank/list.vue')
+const PiggybankDate = () => import('@/pages/Piggybank/date.vue')
 
 Vue.use(Router)
 
@@ -78,42 +75,6 @@ const router = new Router({
           }
         },
         {
-          path: 'notes/list',
-          name: 'NotesList',
-          component: NotesList,
-          meta: {
-            name: '笔记列表',
-            notKeepAlive: true
-          }
-        },
-        {
-          path: 'ticket/list',
-          name: 'TicketList',
-          component: TicketList,
-          meta: {
-            name: '门票列表',
-            notKeepAlive: true
-          }
-        },
-        {
-          path: 'ticket/list/details',
-          name: 'TicketListDetails',
-          component: TicketListDetails,
-          meta: {
-            name: '门票明细',
-            notKeepAlive: true
-          }
-        },
-        {
-          path: 'ticket/statistics',
-          name: 'TicketStatistics',
-          component: TicketStatistics,
-          meta: {
-            name: '数据统计',
-            notKeepAlive: true
-          }
-        },
-        {
           path: 'filling/h2olist',
           name: 'FillingH2oList',
           component: FillingH2oList,
@@ -128,6 +89,25 @@ const router = new Router({
           component: FillingUsdtList,
           meta: {
             name: 'USDT充提记录',
+            notKeepAlive: true
+          }
+        },
+        // 存钱罐管理
+        {
+          path: 'piggybank/order',
+          name: 'PiggybankOrder',
+          component: PiggybankOrder,
+          meta: {
+            name: '订单列表',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'piggybank/date',
+          name: 'PiggybankDate',
+          component: PiggybankDate,
+          meta: {
+            name: '产品统计',
             notKeepAlive: true
           }
         },
