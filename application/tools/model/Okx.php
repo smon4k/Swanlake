@@ -87,9 +87,11 @@ class Okx extends Base
                         if($result['sCode'] == 0) {
                             //获取上一次是否成对出现
                             $isPair = false;
-                            $res = Db::name('okx_piggybank')->order('id desc')->limit(1);
-                            if($res && $res['type'] == 1) {
+                            $profit = 0;
+                            $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
+                            if($res && $res['type'] == 1) { //计算利润
                                 $isPair = true;
+                                $profit = ($btcSellOrdersNumber * $btcPrice) - ((float)$res['amount'] * (float)$res['price']);
                             }
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
@@ -101,6 +103,7 @@ class Okx extends Base
                                 'order_type' => 'market',
                                 'amount' => $btcSellOrdersNumber,
                                 'price' => $btcPrice,
+                                'profit' => $profit,
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
                                 'time' => date('Y-m-d H:i:s'),
@@ -122,9 +125,11 @@ class Okx extends Base
                         if($result['sCode'] == 0) {
                             //获取上一次是否成对出现
                             $isPair = false;
-                            $res = Db::name('okx_piggybank')->order('id desc')->limit(1);
+                            $profit = 0;
+                            $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
                             if($res && $res['type'] == 2) {
                                 $isPair = true;
+                                $profit = ((float)$res['amount'] * (float)$res['price']) - ($usdtSellOrdersNumber * $btcPrice);
                             }
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
@@ -136,6 +141,7 @@ class Okx extends Base
                                 'order_type' => 'market',
                                 'amount' => $usdtSellOrdersNumber,
                                 'price' => $btcPrice,
+                                'profit' => $profit,
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
                                 'time' => date('Y-m-d H:i:s'),
