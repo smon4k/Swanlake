@@ -55,8 +55,8 @@
       </el-table-column>
       <el-table-column prop="type" label="类型" align="center">
         <template slot-scope="scope">
-          <span v-if="scope.row.type == 1">购买</span>
-          <span v-else>出售</span>
+          <span v-if="scope.row.type == 1" style="color:#05C48E">买入</span>
+          <span v-else style="color:#df473d;">卖出</span>
         </template>
       </el-table-column>
        <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
