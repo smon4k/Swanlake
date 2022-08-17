@@ -85,6 +85,12 @@ class Okx extends Base
                     if($btcSellOrdersNumber > $minSizeOrderNum) {
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'sell', $btcSellOrdersNumber, []);
                         if($result['sCode'] == 0) {
+                            //获取上一次是否成对出现
+                            $isPair = false;
+                            $res = Db::name('okx_piggybank')->order('id desc')->limit(1);
+                            if($res && $res['type'] == 1) {
+                                $isPair = true;
+                            }
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
                                 'order_number' => $clientOrderId,
@@ -114,6 +120,12 @@ class Okx extends Base
                     if($usdtSellOrdersNumber > $minSizeOrderNum) {
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'buy', $usdtSellOrdersNumber, []);
                         if($result['sCode'] == 0) {
+                            //获取上一次是否成对出现
+                            $isPair = false;
+                            $res = Db::name('okx_piggybank')->order('id desc')->limit(1);
+                            if($res && $res['type'] == 2) {
+                                $isPair = true;
+                            }
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
                                 'order_number' => $clientOrderId,

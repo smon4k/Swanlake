@@ -1349,7 +1349,7 @@ class okex extends Exchange {
         );
         $response = $this->privateGetAccountBalance(array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->safe_value($response, 0);
+        return $this->safe_value($data, 0);
     }
 
     /**
