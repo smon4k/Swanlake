@@ -1418,6 +1418,23 @@ class okex extends Exchange {
         return $this->safe_value($data, 0);
     }
 
+     /**
+     * 查询订单详情
+     * @author qinlh
+     * @since 2022-08-18
+     */
+    public function fetch_trade_order($id, $clOrdId = null, $orderId=null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'instId' => $id,
+            'ordId' => $orderId,
+            'clOrdId' => $clOrdId,
+        );
+        $response = $this->privateGetTradeOrder(array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->safe_value($data, 0);
+    }
+
     /**
      * 获取行情数据-指数行情
      * @author qinlh

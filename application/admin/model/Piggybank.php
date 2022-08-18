@@ -41,9 +41,38 @@ class Piggybank extends Base
                     ->page($page, $limits)
                     ->field('a.*')
                     ->order("id desc")
-                    ->select();
+                    ->select()
+                    ->toArray();
         // p($lists);
-        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+        $newArrayData = [];
+        foreach ($lists as $key => $val) {
+            if($key < count((array)$lists) - 1) {
+                $supData = $lists[$key + 1];
+                if($val['type'] !== $supData['type']) { //组对
+                    $newArrayData[$val['time']][0] = $val;
+                    $newArrayData[$val['time']][1] = $supData;
+                } else {
+                    $newArrayData[$val['time']][] = $val;
+                }
+            }
+        }
+        $resultArray = [];
+        foreach ($newArrayData as $key => $val) {
+            $resultArray[$key]['time'] = $key;
+            $price = 0;
+            $profit = $val[0]['profit'];
+            if(isset($val[1])) {
+                $price = $val[0]['price'] -  $val[1]['price'];
+            } else {
+                $price = $val[0]['price'];
+            }
+            $resultArray[$key]['price'] = $price;
+            $resultArray[$key]['profit'] = $profit;
+            $resultArray[$key]['lists'] = $val;
+        }
+        $newResultArray = array_values($resultArray);
+        // p($newResultArray);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$newResultArray    ];
     }
 
     /**
@@ -69,7 +98,8 @@ class Piggybank extends Base
                     ->page($page, $limits)
                     ->field('a.*')
                     ->order("id desc")
-                    ->select();
+                    ->select()
+                    ->toArray();
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }

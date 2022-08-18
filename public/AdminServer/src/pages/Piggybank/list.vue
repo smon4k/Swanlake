@@ -6,61 +6,72 @@
         <el-breadcrumb-item to="">订单列表</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">
-      <el-form :inline="true" class="demo-form-inline" size="mini">
+        <h2>BTC/USDT 策略详情</h2>
+      <!-- <el-form :inline="true" class="demo-form-inline" size="mini">
         <el-form-item label="产品名称:">
           <el-input clearable placeholder="产品名称" v-model="product_name"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="SearchClick()">搜索</el-button>
-          <!-- <el-button class="pull-right" type="primary" @click="AddUserInfoShow()">添加NFT</el-button> -->
         </el-form-item>
-      </el-form>
+      </el-form> -->
     </div>
-    <el-table :data="tableData" style="width: 100%;">
-      <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column>
-      <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
-      <el-table-column prop="order_number" label="订单号" align="center" width="200"></el-table-column>
-      <!-- <el-table-column prop="td_mode" label="交易模式" align="center"></el-table-column>
-      <el-table-column prop="order_type" label="订单类型" align="center">
-        <template slot-scope="scope">
-          <span v-if="scope.row.order_type == 'market'">市价单</span>
-          <span v-else>其他</span>
-        </template>
-      </el-table-column> -->
-      <!-- <el-table-column prop="base_ccy" label="交易货币币种" align="center"></el-table-column>
-      <el-table-column prop="quote_ccy" label="计价货币币种" align="center"></el-table-column> -->
-      <el-table-column prop="amount" label="委托数量" align="center" width="150">
-        <template slot-scope="scope">
-          <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} {{scope.row.quote_ccy}}</span>
-          <br>
-          <span>{{ keepDecimalNotRounding(scope.row.amount / scope.row.price, 8, true) }} {{scope.row.base_ccy}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="capped" label="价格" align="center">
-        <template slot-scope="scope">
-          <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} {{scope.row.base_ccy}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="" label="币种权益" align="center" width="200">
-        <template slot-scope="scope">
-          <span>{{ keepDecimalNotRounding(scope.row.currency1, 4, true) }} | ${{ keepDecimalNotRounding(scope.row.currency1 * scope.row.price, 4, true)}} {{scope.row.base_ccy}}</span>
-          <br>
-          <span>{{ keepDecimalNotRounding(scope.row.currency2, 4, true) }} | ${{ keepDecimalNotRounding(scope.row.currency2, 4, true) }} {{scope.row.quote_ccy}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="profit" label="利润" align="center" width="150">
-        <template slot-scope="scope">
-          <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} USDT</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="type" label="类型" align="center">
-        <template slot-scope="scope">
-          <span v-if="scope.row.type == 1" style="color:#05C48E">买入</span>
-          <span v-else style="color:#df473d;">卖出</span>
-        </template>
-      </el-table-column>
-       <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
-    </el-table>
+
+    <el-collapse v-model="activeNames" @change="handleChange" v-for="(item, index) in tableData" :key="index">
+        <el-collapse-item :title="item.time" :name="index">
+            <template slot="title">
+                <div style="margin-right:100px;">{{ item.time }}</div>
+                <div style="margin-right:100px;">价格：{{ keepDecimalNotRounding(item.price, 4, true) }} BTC</div>
+                <div>利润：{{ keepDecimalNotRounding(item.profit, 8, true) }} USDT</div>
+            </template>
+            <el-table :data="item.lists" style="width: 100%;" v-show="true">
+                <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column> -->
+                <!-- <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
+                <!-- <el-table-column prop="order_number" label="订单号" align="center" width="200"></el-table-column> -->
+                <!-- <el-table-column prop="td_mode" label="交易模式" align="center"></el-table-column>
+                <el-table-column prop="order_type" label="订单类型" align="center">
+                    <template slot-scope="scope">
+                    <span v-if="scope.row.order_type == 'market'">市价单</span>
+                    <span v-else>其他</span>
+                    </template>
+                </el-table-column> -->
+                <!-- <el-table-column prop="base_ccy" label="交易货币币种" align="center"></el-table-column>
+                <el-table-column prop="quote_ccy" label="计价货币币种" align="center"></el-table-column> -->
+                <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
+                <el-table-column prop="type" label="方向" align="center">
+                    <template slot-scope="scope">
+                    <span v-if="scope.row.type == 1" style="color:#05C48E">买入</span>
+                    <span v-else style="color:#df473d;">卖出</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="amount" label="委托数量" align="center" width="150">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} {{scope.row.quote_ccy}}</span>
+                    <br>
+                    <span>{{ keepDecimalNotRounding(scope.row.amount / scope.row.price, 8, true) }} {{scope.row.base_ccy}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="capped" label="价格" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} {{scope.row.base_ccy}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="币种权益" align="center" width="200">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.currency1, 4, true) }} | ${{ keepDecimalNotRounding(scope.row.currency1 * scope.row.price, 4, true)}} {{scope.row.base_ccy}}</span>
+                    <br>
+                    <span>{{ keepDecimalNotRounding(scope.row.currency2, 4, true) }} | ${{ keepDecimalNotRounding(scope.row.currency2, 4, true) }} {{scope.row.quote_ccy}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="profit" label="利润" align="center" width="150">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-collapse-item>
+    </el-collapse>
+
     <el-row class="pages">
       <el-col :span="24">
         <div style="float:right;">
@@ -144,6 +155,7 @@ export default {
       imagesUrls: [],
       videoUrl: '',
       videoPoster: '',
+      activeNames: ['1'],
     };
   },
   methods: {
@@ -276,6 +288,9 @@ export default {
               ticket_name: row.name
           }
       })
+    },
+    handleChange() {
+
     }
 
   },
@@ -289,6 +304,10 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+  .project-top {
+    margin-bottom: 20px;
+    margin-top: 20px;
+  }
   .avatar-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     border-radius: 6px;

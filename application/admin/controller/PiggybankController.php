@@ -37,6 +37,7 @@ class PiggybankController extends BaseController
         $count = $data['count'];
         $allpage = $data['allpage'];
         $lists = $data['lists'];
+        // p($lists);
         return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
     }
 

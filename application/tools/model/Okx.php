@@ -45,7 +45,7 @@ class Okx extends Base
             'secret' => self::$secret,
             'password' => self::$password,
         ));
-        try { 
+        try {
             $balanceDetails = $exchange->fetch_account_balance();
             // p($balance);
             $btcBalance = 0;
@@ -91,13 +91,18 @@ class Okx extends Base
                     if($btcSellOrdersNumber > $minSizeOrderNum) {
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'sell', $btcSellOrdersNumber, []);
                         if($result['sCode'] == 0) {
+                            $orderDetails = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null); //获取成交数量
+                            $clinch_number = 0;
+                            if($orderDetails && $orderDetails['fillSz']) {
+                                $clinch_number = $orderDetails['fillSz']; //最新成交数量
+                            }
                             //获取上一次是否成对出现
                             $isPair = false;
                             $profit = 0;
                             $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
                             if($res && $res['type'] == 1) { //计算利润
                                 $isPair = true;
-                                $profit = ($btcSellOrdersNumber * $btcPrice) - ((float)$res['amount'] * (float)$res['price']);
+                                $profit = ($clinch_number * $btcPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
                             }
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
@@ -108,6 +113,7 @@ class Okx extends Base
                                 'type' => 2,
                                 'order_type' => 'market',
                                 'amount' => $btcSellOrdersNumber,
+                                'clinch_number' => $clinch_number,
                                 'price' => $btcPrice,
                                 'profit' => $profit,
                                 'currency1' => $btcBalance,
@@ -130,12 +136,17 @@ class Okx extends Base
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'buy', $usdtSellOrdersNumber, []);
                         if($result['sCode'] == 0) {
                             //获取上一次是否成对出现
+                            $orderDetails = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null); //获取成交数量
+                            $clinch_number = 0;
+                            if($orderDetails && $orderDetails['fillSz']) {
+                                $clinch_number = $orderDetails['fillSz']; //最新成交数量
+                            }
                             $isPair = false;
                             $profit = 0;
                             $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
                             if($res && $res['type'] == 2) {
                                 $isPair = true;
-                                $profit = ((float)$res['amount'] * (float)$res['price']) - ($usdtSellOrdersNumber * $btcPrice);
+                                $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $btcPrice);
                             }
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
@@ -146,6 +157,7 @@ class Okx extends Base
                                 'type' => 1,
                                 'order_type' => 'market',
                                 'amount' => $usdtSellOrdersNumber,
+                                'clinch_number' => $clinch_number,
                                 'price' => $btcPrice,
                                 'profit' => $profit,
                                 'currency1' => $btcBalance,
