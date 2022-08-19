@@ -37,15 +37,23 @@
                 </el-table-column> -->
                 <!-- <el-table-column prop="base_ccy" label="交易货币币种" align="center"></el-table-column>
                 <el-table-column prop="quote_ccy" label="计价货币币种" align="center"></el-table-column> -->
-                <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
+                <el-table-column prop="" label="时间" align="center" width="200">
+                    <template slot-scope="scope">
+                      <span>{{ scope.row.time ? scope.row.time : "--"}}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="type" label="方向" align="center">
                     <template slot-scope="scope">
-                    <span v-if="scope.row.type == 1" style="color:#05C48E">买入</span>
-                    <span v-else style="color:#df473d;">卖出</span>
+                      <div v-if="scope.row.type">
+                        <span v-if="scope.row.type == 1" style="color:#05C48E">买入</span>
+                        <span v-else style="color:#df473d;">卖出</span>
+                      </div>
+                      <div v-else>{{ scope.row.type_str }}</div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="amount" label="委托数量" align="center" width="150">
                     <template slot-scope="scope">
+                      <div v-if="scope.row.clinch_number">
                         <div v-if="scope.row.type == 1">
                             <span>{{ keepDecimalNotRounding(scope.row.clinch_number, 8, true) }} {{scope.row.quote_ccy}}</span>
                             <br>
@@ -56,28 +64,42 @@
                             <br>
                             <span>{{ keepDecimalNotRounding(scope.row.clinch_number * scope.row.price, 8, true) }} {{scope.row.quote_ccy}}</span>
                         </div>
+                      </div>
+                      <div v-else>——</div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="capped" label="成交数量" align="center">
                     <template slot-scope="scope">
-                        <span>{{ keepDecimalNotRounding(scope.row.clinch_number, 8, true) }} {{scope.row.base_ccy}}</span>
+                        <div v-if="scope.row.clinch_number">
+                          <span>{{ keepDecimalNotRounding(scope.row.clinch_number, 8, true) }} {{scope.row.base_ccy}}</span>
+                        </div>
+                        <div v-else>——</div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="capped" label="价格" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} {{scope.row.quote_ccy}}</span>
+                      <div v-if="scope.row.price">
+                        <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} {{scope.row.quote_ccy}}</span>
+                      </div>
+                      <div v-else>——</div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="币种权益" align="center" width="200">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.currency1, 4, true) }} | ${{ keepDecimalNotRounding(scope.row.currency1 * scope.row.price, 4, true)}} {{scope.row.base_ccy}}</span>
-                    <br>
-                    <span>{{ keepDecimalNotRounding(scope.row.currency2, 4, true) }} | ${{ keepDecimalNotRounding(scope.row.currency2, 4, true) }} {{scope.row.quote_ccy}}</span>
+                      <div v-if="scope.row.currency1 && scope.row.currency2">
+                        <span>{{ keepDecimalNotRounding(scope.row.currency1, 4, true) }} | ${{ keepDecimalNotRounding(scope.row.currency1 * scope.row.price, 4, true)}} {{scope.row.base_ccy}}</span>
+                        <br>
+                        <span>{{ keepDecimalNotRounding(scope.row.currency2, 4, true) }} | ${{ keepDecimalNotRounding(scope.row.currency2, 4, true) }} {{scope.row.quote_ccy}}</span>
+                      </div>
+                      <div v-else>——</div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="profit" label="利润" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.profit, 8, true) }} USDT</span>
+                      <div v-if="scope.row.profit">
+                        <span>{{ keepDecimalNotRounding(scope.row.profit, 8, true) }} USDT</span>
+                      </div>
+                      <div v-else>——</div>
                     </template>
                 </el-table-column>
             </el-table>

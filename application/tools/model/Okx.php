@@ -121,7 +121,7 @@ class Okx extends Base
                             Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if ($insertId) {
-                                $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->setField('pair', $insertId);
+                                $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->update(['pair' => $res[0]['id'], 'profit' => $profit]);
                                 if ($isPair) {
                                     Db::commit();
                                     return true;
@@ -173,12 +173,13 @@ class Okx extends Base
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
                                 'balanced_valuation' => $usdtValuationPoise,
+                                'pair' => $res[0]['id'],
                                 'time' => date('Y-m-d H:i:s'),
                             ];
                             Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if($insertId) {
-                                $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->setField('pair', $insertId);
+                                $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->update(['pair' => $res[0]['id'], 'profit' => $profit]);
                                 if ($isPair) {
                                     Db::commit();
                                     return true;
