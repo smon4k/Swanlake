@@ -60,6 +60,8 @@ class Okx extends Base
             $changeRatioNum = 1; //涨跌比例
 
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+            $btcBalance = $tradeValuation['btcBalance'];
+            $usdtBalance = $tradeValuation['usdtBalance'];
             $btcValuation = $tradeValuation['btcValuation'];
             $usdtValuation = $tradeValuation['usdtValuation'];
             $btcPrice = $tradeValuation['btcPrice'];
@@ -151,7 +153,7 @@ class Okx extends Base
                             if($res && count((array)$res) > 0) { //计算利润
                                 $isPair = true;
                                 // $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $btcPrice);
-                                $profit = (float)$res['clinch_number'] * ((float)$res['price'] - $btcPrice); //卖出的成交数量 * 价差
+                                $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $btcPrice); //卖出的成交数量 * 价差
                             }
                             //获取平衡状态下的USDT估值
                             $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
@@ -335,7 +337,7 @@ class Okx extends Base
             $btcValuation = $btcBalance * (float)$marketIndexTickers['idxPx'];
             $usdtValuation = $usdtBalance;
         }
-        return ['btcPrice' => $btcPrice, 'btcValuation' => $btcValuation, 'usdtValuation' => $usdtValuation];
+        return ['btcPrice' => $btcPrice, 'usdtBalance' => $usdtBalance, 'btcBalance' => $btcBalance, 'btcValuation' => $btcValuation, 'usdtValuation' => $usdtValuation];
     }
 
 
