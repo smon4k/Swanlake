@@ -69,7 +69,7 @@ class Okx extends Base
             // $changeRatio01 = abs($btcValuation / $usdtValuation);
             // $changeRatio02 = abs($usdtValuation / $btcValuation);
             $balancedValuation = self::getLastBalancedValuation();
-            $changeRatio = abs($btcValuation - $usdtValuation) / $balancedValuation;
+            $changeRatio = $balancedValuation > 0 ? abs($btcValuation - $usdtValuation) / $balancedValuation * 100 : abs($btcValuation / $usdtValuation);
             $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
             if($changeRatio > $changeRatioNum) { //涨跌大于1%
                 // p($usdtValuation);
