@@ -53,7 +53,7 @@
                 </el-table-column>
                 <el-table-column prop="capped" label="成交数量" align="center">
                     <template slot-scope="scope">
-                        <span>{{ keepDecimalNotRounding(scope.row.clinch_number, 4, true) }} {{scope.row.base_ccy}}</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.clinch_number, 8, true) }} {{scope.row.base_ccy}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="capped" label="价格" align="center">
