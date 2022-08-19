@@ -46,44 +46,32 @@ class Okx extends Base
             'password' => self::$password,
         ));
         try {
-            $balanceDetails = $exchange->fetch_account_balance();
-            // p($balance);
-            $btcBalance = 0;
-            $usdtBalance = 0;
-            foreach ($balanceDetails['details'] as $k => $v) {
-                if(isset($v['eq'])) {
-                    if($v['ccy'] == 'BTC' || $v['ccy'] == 'USDT') {
-                        if($v['ccy'] == 'BTC' && (float)$v['eq'] > 0) {
-                            $btcBalance += (float)$v['eq'];
-                        }
-                        if($v['ccy'] == 'USDT' && (float)$v['eq'] > 0) {
-                            $usdtBalance += (float)$v['eq'];
-                        }
-                    }
-                }
-            }
+            // $balanceDetails = self::getTradeValuation($transactionCurrency);
+            // $btcBalance = $balanceDetails['btcBalance'];
+            // $usdtBalance = $balanceDetails['usdtBalance'];
+
             // p($btcBalance);
             //获取最小下单数量
             $rubikStatTakerValume = $exchange->fetch_markets_by_type('SPOT', ['instId'=>$transactionCurrency]);
             $minSizeOrderNum = isset($rubikStatTakerValume[0]['info']['minSz']) ? $rubikStatTakerValume[0]['info']['minSz'] : 0; //最小下单数量
             $base_ccy = isset($rubikStatTakerValume[0]['info']['baseCcy']) ? $rubikStatTakerValume[0]['info']['baseCcy'] : ''; //交易货币币种
             $quote_ccy = isset($rubikStatTakerValume[0]['info']['quoteCcy']) ? $rubikStatTakerValume[0]['info']['quoteCcy'] : ''; //计价货币币种
-            $btcValuation = 0; //BTC估值
-            $usdtValuation = 0; //USDT估值
-            $btcPrice = 0;//BTC价格
+
             $changeRatioNum = 1; //涨跌比例
-            $marketIndexTickers = $exchange->fetch_market_index_tickers($transactionCurrency); //获取交易BTC价格
-            if($marketIndexTickers && $marketIndexTickers['idxPx'] > 0) {
-                $btcPrice = (float)$marketIndexTickers['idxPx'];
-                $btcValuation = $btcBalance * (float)$marketIndexTickers['idxPx'];
-                $usdtValuation = $usdtBalance;
-            }
+
+            $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+            $btcValuation = $tradeValuation['btcValuation'];
+            $usdtValuation = $tradeValuation['usdtValuation'];
+            $btcPrice = $tradeValuation['btcPrice'];
+
             // p($btcPrice);
             // $changeRatio = 0;
-            $changeRatio01 = abs($btcValuation / $usdtValuation);
-            $changeRatio02 = abs($usdtValuation / $btcValuation);
+            // $changeRatio01 = abs($btcValuation / $usdtValuation);
+            // $changeRatio02 = abs($usdtValuation / $btcValuation);
+            $balancedValuation = self::getLastBalancedValuation();
+            $changeRatio = abs($btcValuation - $usdtValuation) / $balancedValuation;
             $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
-            if($changeRatio01 > $changeRatioNum) { //涨跌大于1%
+            if($changeRatio > $changeRatioNum) { //涨跌大于1%
                 // p($usdtValuation);
                 if($btcValuation > $usdtValuation) { //btc的估值超过usdt时候，卖btc换成u
                     $btcSellNum = ($btcValuation - $usdtValuation) / 2;
@@ -99,12 +87,17 @@ class Okx extends Base
                             //获取上一次是否成对出现
                             $isPair = false;
                             $profit = 0;
-                            $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
-                            if($res && $res['type'] == 1) { //计算利润
+                            // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
+                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs($btcPrice-`price`) LIMIT 1;";
+                            $res = Db::query($sql);
+                            if($res && count((array)$res) > 0) { //计算利润
                                 $isPair = true;
                                 // $profit = ($clinch_number * $btcPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
-                                $profit = $clinch_number * ($btcPrice - (float)$res['price']); // 卖出的成交数量 * 价差
+                                $profit = $clinch_number * ($btcPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
                             }
+                            //获取平衡状态下的USDT估值
+                            $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
+                            $usdtValuationPoise = $tradeValuationPoise['usdtValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
                                 'order_number' => $clientOrderId,
@@ -117,15 +110,24 @@ class Okx extends Base
                                 'clinch_number' => $clinch_number,
                                 'price' => $btcPrice,
                                 'profit' => $profit,
+                                'pair' => $res[0]['id'],
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
+                                'balanced_valuation' => $usdtValuationPoise,
                                 'time' => date('Y-m-d H:i:s'),
                             ];
+                            Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
-                            if($insertId) {                    
-                                return true;
+                            if ($insertId) {
+                                $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->setField('pair', $insertId);
+                                if ($isPair) {
+                                    Db::commit();
+                                    return true;
+                                }
                             }
+                            Db::rollback();
                         }
+                        return false;
                     } else {
                         return false;
                     }
@@ -144,12 +146,16 @@ class Okx extends Base
                             }
                             $isPair = false;
                             $profit = 0;
-                            $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
-                            if($res && $res['type'] == 2) {
+                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs($btcPrice-`price`) LIMIT 1;";
+                            $res = Db::query($sql);
+                            if($res && count((array)$res) > 0) { //计算利润
                                 $isPair = true;
                                 // $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $btcPrice);
                                 $profit = (float)$res['clinch_number'] * ((float)$res['price'] - $btcPrice); //卖出的成交数量 * 价差
                             }
+                            //获取平衡状态下的USDT估值
+                            $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
+                            $usdtValuationPoise = $tradeValuationPoise['usdtValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
                                 'order_number' => $clientOrderId,
@@ -164,13 +170,21 @@ class Okx extends Base
                                 'profit' => $profit,
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
+                                'balanced_valuation' => $usdtValuationPoise,
                                 'time' => date('Y-m-d H:i:s'),
                             ];
+                            Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if($insertId) {
-                                return true;
+                                $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->setField('pair', $insertId);
+                                if ($isPair) {
+                                    Db::commit();
+                                    return true;
+                                }
                             }
+                            Db::rollback();
                         }
+                        return false;
                     } else {
                         return false;
                     }
@@ -241,6 +255,100 @@ class Okx extends Base
             // p($e);
             return array(0, $e->getMessage());
         }
+    }
+
+    /**
+     * 获取交易对余额
+     * @author qinlh
+     * @since 2022-08-19
+     */
+    public static function getTradePairBalance($transactionCurrency) {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\okex5";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+            'password' => self::$password,
+        ));
+        try {
+            $balanceDetails = $exchange->fetch_account_balance();
+            // p($balance);
+            $btcBalance = 0;
+            $usdtBalance = 0;
+            foreach ($balanceDetails['details'] as $k => $v) {
+                if(isset($v['eq'])) {
+                    if($v['ccy'] == 'BTC' || $v['ccy'] == 'USDT') {
+                        if($v['ccy'] == 'BTC' && (float)$v['eq'] > 0) {
+                            $btcBalance += (float)$v['eq'];
+                        }
+                        if($v['ccy'] == 'USDT' && (float)$v['eq'] > 0) {
+                            $usdtBalance += (float)$v['eq'];
+                        }
+                    }
+                }
+            }
+            return ['btcBalance' => $btcBalance, 'usdtBalance' => $usdtBalance];
+        } catch (\Exception $e) {
+            return array(0, $e->getMessage());
+        }
+    }
+
+    /**
+     * 获取获取行情数据
+     * @author qinlh
+     * @since 2022-08-19
+     */
+    public static function fetchMarketIndexTickers($transactionCurrency) {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\okex5";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+            'password' => self::$password,
+        ));
+        try {
+            $marketIndexTickers = $exchange->fetch_market_index_tickers($transactionCurrency); //获取交易BTC价格
+            return $marketIndexTickers;
+        } catch (\Exception $e) {
+            return array(0, $e->getMessage());
+        }
+    }
+
+    /**
+     * 获取交易对估值
+     * @author qinlh
+     * @since 2022-08-19
+     */
+    public static function getTradeValuation() {
+        $balanceDetails = self::getTradePairBalance($transactionCurrency);
+        $usdtBalance = $balanceDetails['usdtBalance'];
+        $usdtBalance = $balanceDetails['usdtBalance'];
+        $marketIndexTickers = self::fetchMarketIndexTickers($transactionCurrency); //获取交易BTC价格
+        $btcPrice = 1;
+        $btcValuation = 0;
+        $usdtValuation = 0;
+        if($marketIndexTickers && $marketIndexTickers['idxPx'] > 0) {
+            $btcPrice = (float)$marketIndexTickers['idxPx'];
+            $btcValuation = $btcBalance * (float)$marketIndexTickers['idxPx'];
+            $usdtValuation = $usdtBalance;
+        }
+        return ['btcPrice' => $btcPrice, 'btcValuation' => $btcValuation, 'usdtValuation' => $usdtValuation];
+    }
+
+
+    /**
+     * 获取上一次平衡估值
+     * @author qinlh
+     * @since 2022-08-19
+     */
+    public  static function getLastBalancedValuation() {
+        $data = Db::name('okx_piggybank')->order('id desc, time desc')->find();
+        if($data && count((array)$data) > 0) {
+            return $data['balanced_valuation'];
+        }
+        return 0;
     }
     
 }

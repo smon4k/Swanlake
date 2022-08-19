@@ -141,8 +141,8 @@ export default {
   components: { vFooter },
   methods: {
     getUserMenu() { //获取当前用户菜单功能
-      var token = localStorage.getItem("token");
-      get('/Admin/Adminuser/getUserMenu', {token: token, status: 1, is_format: 1}, (json) => {
+      // var token = localStorage.getItem("token");
+      get('/Admin/Adminuser/getUserMenu', {status: 1, is_format: 1}, (json) => {
         if(json && json.data.code == 10000) {
           this.MenuList = json.data.data;
           // console.log(this.MenuList);
