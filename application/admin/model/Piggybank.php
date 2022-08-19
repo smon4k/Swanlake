@@ -29,16 +29,16 @@ class Piggybank extends Base
             $limits = config('paginate.list_rows');// 获取总条数
         }
         // p($where);
-        $count = self::name("okx_piggybank")
-                    ->alias("a")
-                    ->where($where)
-                    ->count();//计算总页面
+        // $count = self::name("okx_piggybank")
+        //             ->alias("a")
+        //             ->where($where)
+        //             ->count();//计算总页面
         // p($count);
-        $allpage = intval(ceil($count / $limits));
+        // $allpage = intval(ceil($count / $limits));
         $lists = self::name("okx_piggybank")
                     ->alias("a")
                     ->where($where)
-                    ->page($page, $limits)
+                    // ->page($page, $limits)
                     ->field('a.*')
                     ->order("id desc")
                     ->select()
@@ -72,7 +72,14 @@ class Piggybank extends Base
         // p($resultArray);
         $newResultArray = array_values($resultArray);
         // p($newResultArray);
-        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$newResultArray];
+        //总数
+        $total = count($newResultArray);
+        $allpage = intval(ceil($total / $limits));
+        //分页
+        $start = ($page - 1) * $limits;
+        $returnArr = array_slice($newResultArray, $start, $limits);
+        // p($returnArr);
+        return ['count'=>$total,'allpage'=>$allpage,'lists'=>$returnArr];
     }
 
     /**
