@@ -58,6 +58,8 @@ class Okx extends Base
             $quote_ccy = isset($rubikStatTakerValume[0]['info']['quoteCcy']) ? $rubikStatTakerValume[0]['info']['quoteCcy'] : ''; //计价货币币种
 
             $changeRatioNum = 1; //涨跌比例
+            $balanceRatio = '1:1'; //平衡比例
+            $balanceRatioArr = explode(':', $balanceRatio);
 
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
             $btcBalance = $tradeValuation['btcBalance'];
@@ -76,7 +78,8 @@ class Okx extends Base
             if($changeRatio > $changeRatioNum) { //涨跌大于1%
                 // p($usdtValuation);
                 if($btcValuation > $usdtValuation) { //btc的估值超过usdt时候，卖btc换成u
-                    $btcSellNum = ($btcValuation - $usdtValuation) / 2;
+                    // $btcSellNum = ($btcValuation - $usdtValuation) / 2;
+                    $btcSellNum = $balanceRatioArr[0] * (($btcValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                     $btcSellOrdersNumber = $btcSellNum / $btcPrice;
                     if($btcSellOrdersNumber > $minSizeOrderNum) {
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'sell', $btcSellOrdersNumber, []);
@@ -142,7 +145,8 @@ class Okx extends Base
                     }
                 }
                 if($btcValuation < $usdtValuation) { //btc的估值低于usdt时，买btc，u换成btc
-                    $usdtBuyNum = ($usdtValuation - $btcValuation) / 2;
+                    // $usdtBuyNum = ($usdtValuation - $btcValuation) / 2;
+                    $usdtBuyNum = $balanceRatioArr[1] * (($usdtValuation - $btcValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
                     $usdtSellOrdersNumber = $usdtBuyNum;
                     if($usdtSellOrdersNumber > $minSizeOrderNum) {
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'buy', $usdtSellOrdersNumber, []);
