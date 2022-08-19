@@ -21,7 +21,7 @@
         <el-collapse-item :title="item.time" :name="index">
             <template slot="title">
                 <div style="margin-right:100px;">{{ item.time }}</div>
-                <div style="margin-right:100px;">价格：{{ keepDecimalNotRounding(item.price, 4, true) }} BTC</div>
+                <div style="margin-right:100px;">价差：{{ keepDecimalNotRounding(item.price, 4, true) }} USDT</div>
                 <div>利润：{{ keepDecimalNotRounding(item.profit, 8, true) }} USDT</div>
             </template>
             <el-table :data="item.lists" style="width: 100%;" v-show="true">
@@ -58,7 +58,7 @@
                 </el-table-column>
                 <el-table-column prop="capped" label="价格" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} {{scope.row.base_ccy}}</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} {{scope.row.quote_ccy}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="币种权益" align="center" width="200">
