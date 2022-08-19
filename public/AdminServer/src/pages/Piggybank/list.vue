@@ -46,9 +46,14 @@
                 </el-table-column>
                 <el-table-column prop="amount" label="委托数量" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} {{scope.row.quote_ccy}}</span>
-                    <br>
-                    <span>{{ keepDecimalNotRounding(scope.row.amount / scope.row.price, 8, true) }} {{scope.row.base_ccy}}</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} {{scope.row.type == 1 ? scope.row.quote_ccy : scope.row.base_ccy}}</span>
+                        <br>
+                        <span>{{ keepDecimalNotRounding(scope.row.amount / scope.row.price, 8, true) }} {{scope.row.base_ccy}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="capped" label="成交数量" align="center">
+                    <template slot-scope="scope">
+                        <span>{{ keepDecimalNotRounding(scope.row.clinch_number, 4, true) }} {{scope.row.base_ccy}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="capped" label="价格" align="center">
@@ -65,7 +70,7 @@
                 </el-table-column>
                 <el-table-column prop="profit" label="利润" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} USDT</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.profit, 8, true) }} USDT</span>
                     </template>
                 </el-table-column>
             </el-table>
