@@ -92,7 +92,9 @@ class Okx extends Base
                             // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
                             $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs('$btcPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
+                            $pairId = 0;
                             if($res && count((array)$res) > 0) { //计算利润
+                                $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ($clinch_number * $btcPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
                                 $profit = $clinch_number * ($btcPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
@@ -112,7 +114,7 @@ class Okx extends Base
                                 'clinch_number' => $clinch_number,
                                 'price' => $btcPrice,
                                 'profit' => $profit,
-                                'pair' => $res[0]['id'],
+                                'pair' => $pairId,
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
                                 'balanced_valuation' => $usdtValuationPoise,
@@ -121,8 +123,13 @@ class Okx extends Base
                             Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if ($insertId) {
-                                $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->update(['pair' => $res[0]['id'], 'profit' => $profit]);
-                                if ($isPair) {
+                                if(isset($res[0]) && $res[0]['id'] > 0) {
+                                    $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->update(['pair' => $res[0]['id'], 'profit' => $profit]);
+                                    if ($isPair) {
+                                        Db::commit();
+                                        return true;
+                                    }
+                                } else {
                                     Db::commit();
                                     return true;
                                 }
@@ -150,7 +157,9 @@ class Okx extends Base
                             $profit = 0;
                             $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=2 AND pair = 0 ORDER BY abs('$btcPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
+                            $pairId = 0;
                             if($res && count((array)$res) > 0) { //计算利润
+                                $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $btcPrice);
                                 $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $btcPrice); //卖出的成交数量 * 价差
@@ -173,14 +182,19 @@ class Okx extends Base
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
                                 'balanced_valuation' => $usdtValuationPoise,
-                                'pair' => $res[0]['id'],
+                                'pair' => $pairId,
                                 'time' => date('Y-m-d H:i:s'),
                             ];
                             Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if($insertId) {
-                                $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->update(['pair' => $res[0]['id'], 'profit' => $profit]);
-                                if ($isPair) {
+                                if (isset($res[0]) && $res[0]['id'] > 0) {
+                                    $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->update(['pair' => $res[0]['id'], 'profit' => $profit]);
+                                    if ($isPair) {
+                                        Db::commit();
+                                        return true;
+                                    }
+                                } else {
                                     Db::commit();
                                     return true;
                                 }
