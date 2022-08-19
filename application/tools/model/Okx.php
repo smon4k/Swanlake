@@ -83,7 +83,7 @@ class Okx extends Base
             $changeRatio01 = abs($btcValuation / $usdtValuation);
             $changeRatio02 = abs($usdtValuation / $btcValuation);
             $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
-            if($changeRatio01 > $changeRatioNum || $changeRatio02 > $changeRatioNum) { //涨跌大于1%
+            if($changeRatio01 > $changeRatioNum) { //涨跌大于1%
                 // p($usdtValuation);
                 if($btcValuation > $usdtValuation) { //btc的估值超过usdt时候，卖btc换成u
                     $btcSellNum = ($btcValuation - $usdtValuation) / 2;
@@ -102,7 +102,8 @@ class Okx extends Base
                             $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
                             if($res && $res['type'] == 1) { //计算利润
                                 $isPair = true;
-                                $profit = ($clinch_number * $btcPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
+                                // $profit = ($clinch_number * $btcPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
+                                $profit = $clinch_number * ($btcPrice - (float)$res['price']); // 卖出的成交数量 * 价差
                             }
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
@@ -146,7 +147,8 @@ class Okx extends Base
                             $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
                             if($res && $res['type'] == 2) {
                                 $isPair = true;
-                                $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $btcPrice);
+                                // $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $btcPrice);
+                                $profit = (float)$res['clinch_number'] * ((float)$res['price'] - $btcPrice); //卖出的成交数量 * 价差
                             }
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
