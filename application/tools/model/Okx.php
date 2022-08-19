@@ -88,7 +88,7 @@ class Okx extends Base
                             $isPair = false;
                             $profit = 0;
                             // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
-                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs($btcPrice-`price`) LIMIT 1;";
+                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs('$btcPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             if($res && count((array)$res) > 0) { //计算利润
                                 $isPair = true;
@@ -146,7 +146,7 @@ class Okx extends Base
                             }
                             $isPair = false;
                             $profit = 0;
-                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs($btcPrice-`price`) LIMIT 1;";
+                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=2 AND pair = 0 ORDER BY abs('$btcPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             if($res && count((array)$res) > 0) { //计算利润
                                 $isPair = true;
@@ -194,6 +194,7 @@ class Okx extends Base
             }
             return false;
         } catch (\Exception $e) {
+            p($e);
             return array(0, $e->getMessage());
         }
     }
@@ -321,10 +322,10 @@ class Okx extends Base
      * @author qinlh
      * @since 2022-08-19
      */
-    public static function getTradeValuation() {
+    public static function getTradeValuation($transactionCurrency) {
         $balanceDetails = self::getTradePairBalance($transactionCurrency);
         $usdtBalance = $balanceDetails['usdtBalance'];
-        $usdtBalance = $balanceDetails['usdtBalance'];
+        $btcBalance = $balanceDetails['btcBalance'];
         $marketIndexTickers = self::fetchMarketIndexTickers($transactionCurrency); //获取交易BTC价格
         $btcPrice = 1;
         $btcValuation = 0;
