@@ -225,7 +225,8 @@ class Piggybank extends Base
      */
     public static function getPiggybankStandard($standard=0) {
         if($standard > 0) {
-            $total = self::name('okx_piggybank_date')->where('standard', $standard)->sum('principal');
+            $date = date('Y-m-d');
+            $total = self::name('okx_piggybank_date')->where(['standard' => $standard, 'date' => ['<>', $date]])->sum('principal');
             if($total) {
                 return $total;
             }
