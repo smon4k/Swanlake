@@ -16,6 +16,7 @@ const FillingUsdtList = () => import('@/pages/Filling/usdtlist.vue')
 
 const PiggybankOrder = () => import('@/pages/Piggybank/list.vue')
 const PiggybankDate = () => import('@/pages/Piggybank/date.vue')
+const GoldIndex = () => import('@/pages/Gold/index.vue')
 
 Vue.use(Router)
 
@@ -108,6 +109,15 @@ const router = new Router({
           component: PiggybankDate,
           meta: {
             name: '产品统计',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'gold/index',
+          name: 'GoldIndex',
+          component: GoldIndex,
+          meta: {
+            name: '出入金',
             notKeepAlive: true
           }
         },

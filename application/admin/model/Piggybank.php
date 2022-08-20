@@ -206,8 +206,11 @@ class Piggybank extends Base
                     $saveBres = self::name('okx_piggybank_date')->insertGetId($insertDataB);
                 }
                 if($saveBres !== false) {
-                    self::commit();
-                    return true;
+                    $isIntOut = self::setInoutGoldRecord($amount, $direction, $remark);
+                    if($isIntOut) {
+                        self::commit();
+                        return true;
+                    }
                 }
             }
             self::rollback();
@@ -253,5 +256,67 @@ class Piggybank extends Base
             return $countProfit;
         }
         return 0;
+    }
+
+    /**
+     * 记录出入金记录
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function setInoutGoldRecord($amount='', $type=0, $remark='') {
+        if($amount !== 0 && $type > 0) {
+            $insertData = [
+                'amount' => $amount,
+                'type' => $type,
+                'total_balance' => self::getInoutGoldTotalBalance() + (float)$amount,
+                'remark' => $remark,
+                'time' => date('Y-m-d H:i:s'),
+            ];
+            $res = self::name('s_okx_inout_gold')->insertGetId($insertData);
+            if($res) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取出入金总结余
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function getInoutGoldTotalBalance() {
+        $count = self::name('s_okx_inout_gold')->sum('amount');
+        if($count !== 0) {
+            return $count;
+        }
+        return 0;
+    }
+
+    /**
+    * 获取出入金记录
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public static function getInoutGoldList($where, $page, $limits=0) {
+        if($limits == 0) {
+            $limits = config('paginate.list_rows');// 获取总条数
+        }
+        // p($where);
+        $count = self::name("okx_inout_gold")
+                    ->where($where)
+                    ->count();//计算总页面
+        // p($count);
+        $allpage = intval(ceil($count / $limits));
+        $lists = self::name("okx_inout_gold")
+                    ->where($where)
+                    ->page($page, $limits)
+                    ->field('*')
+                    ->order("id desc")
+                    ->select()
+                    ->toArray();
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
 }

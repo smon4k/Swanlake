@@ -12,7 +12,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="SearchClick()">搜索</el-button>
-          <el-button class="pull-right" type="primary" @click="DepositWithdrawalShow()">出/入金</el-button>
+          <!-- <el-button class="pull-right" type="primary" @click="DepositWithdrawalShow()">出/入金</el-button> -->
         </el-form-item>
       </el-form>
     </div>
