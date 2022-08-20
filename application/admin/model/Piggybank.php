@@ -135,12 +135,17 @@ class Piggybank extends Base
         $BinsertData = [];
 
         //本金
+        $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
         if($direction == 1) {
-            $countUstandardPrincipal = (float)$UstandardPrincipal + (float)$amount;
-            $countBstandardPrincipal = (float)$UstandardPrincipal + ((float)$amount / $btcPrice);
+            // $countUstandardPrincipal = (float)$UstandardPrincipal + (float)$amount;
+            // $countBstandardPrincipal = (float)$UstandardPrincipal + ((float)$amount / $btcPrice);
+            $countUstandardPrincipal = (float)$total_balance + (float)$amount;
+            $countBstandardPrincipal = ((float)$total_balance / $btcPrice) + ((float)$amount / $btcPrice);
         } else {
-            $countUstandardPrincipal = (float)$UstandardPrincipal - (float)$amount;
-            $countBstandardPrincipal = (float)$UstandardPrincipal - ((float)$amount / $btcPrice);
+            // $countUstandardPrincipal = (float)$UstandardPrincipal - (float)$amount;
+            // $countBstandardPrincipal = (float)$UstandardPrincipal - ((float)$amount / $btcPrice);
+            $countUstandardPrincipal = (float)$total_balance - (float)$amount;
+            $countBstandardPrincipal = ((float)$total_balance / $btcPrice) - ((float)$amount / $btcPrice);
         }
 
         //总结余

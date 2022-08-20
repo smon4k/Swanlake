@@ -3,7 +3,7 @@
     <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item to="">存钱罐管理</el-breadcrumb-item>
-        <el-breadcrumb-item to="">出入金</el-breadcrumb-item>
+        <el-breadcrumb-item to="">出/入金</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">
       <el-form :inline="true" class="demo-form-inline" size="mini">
