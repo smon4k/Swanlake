@@ -176,4 +176,17 @@ class TaskController extends ToolsBaseController
         echo $res . "s\n";
         return (time() - $begin_time) . "s\n";
     }
+
+    /**
+     * Okx 获取订单信息
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function fetchTradeOrder() {
+        $begin_time = time();
+
+        Okx::fetchTradeOrder();
+
+        return (time() - $begin_time) . "s\n";
+    }
 }

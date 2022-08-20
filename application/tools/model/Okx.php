@@ -325,7 +325,29 @@ class Okx extends Base
     }
 
     /**
-     * 获取获取行情数据
+     * 获取订单数据
+     * @author qinlh
+     * @since 2022-08-19
+     */
+    public static function fetchTradeOrder($transactionCurrency="BTC-USDT", $clientOrderId='Zx2022082010055985') {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\okex5";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+            'password' => self::$password,
+        ));
+        try {
+            $tradeOrder = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null);
+            return $tradeOrder;
+        } catch (\Exception $e) {
+            return array(0, $e->getMessage());
+        }
+    }
+
+    /**
+     * 获取订单数据
      * @author qinlh
      * @since 2022-08-19
      */
