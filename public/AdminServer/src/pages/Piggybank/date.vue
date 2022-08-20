@@ -16,34 +16,98 @@
         </el-form-item>
       </el-form>
     </div>
-    <el-table :data="tableData" style="width: 100%;">
-      <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column>
-      <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
-      <el-table-column prop="date" label="日期" align="center"></el-table-column>
-      <el-table-column prop="amount" label="总市值" align="center">
-        <template slot-scope="scope">
-          <span>{{ keepDecimalNotRounding(scope.row.count_market_value, 8, true) }} USDT</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="grid_spread" label="网格差价" align="center">
-        <template slot-scope="scope">
-          <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 4, true) }} {{scope.row.base_ccy}} USDT</span>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-row class="pages">
-      <el-col :span="24">
-        <div style="float:right;">
-          <wbc-page
-            :total="total"
-            :pageSize="pageSize"
-            :currPage="currPage"
-            @changeLimit="limitPaging"
-            @changeSkip="skipPaging"
-          ></wbc-page>
-        </div>
-      </el-col>
-    </el-row>
+    <el-tabs type="border-card">
+        <el-tab-pane label="U本位">
+            <el-table :data="tableData" style="width: 100%;">
+                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column>
+                <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                <el-table-column prop="date" label="日期" align="center"></el-table-column>
+                <el-table-column prop="amount" label="总市值" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.count_market_value, 8, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="grid_spread" label="网格差价" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 4, true) }} {{scope.row.base_ccy}} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="principal" label="累计本金" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} {{scope.row.base_ccy}} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="total_balance" label="总结余" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} {{scope.row.base_ccy}} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="total_balance" label="利润" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} {{scope.row.base_ccy}} USDT</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-row class="pages">
+            <el-col :span="24">
+                <div style="float:right;">
+                <wbc-page
+                    :total="total"
+                    :pageSize="pageSize"
+                    :currPage="currPage"
+                    @changeLimit="limitPaging"
+                    @changeSkip="skipPaging"
+                ></wbc-page>
+                </div>
+            </el-col>
+            </el-row>
+        </el-tab-pane>
+        <el-tab-pane label="币本位">
+            <el-table :data="BtableData" style="width: 100%;">
+                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column>
+                <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                <el-table-column prop="date" label="日期" align="center"></el-table-column>
+                <el-table-column prop="amount" label="总市值" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.count_market_value, 8, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="grid_spread" label="网格差价" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 4, true) }} {{scope.row.base_ccy}} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="principal" label="累计本金" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} {{scope.row.base_ccy}} BTC</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="total_balance" label="总结余" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} {{scope.row.base_ccy}} BTC</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="total_balance" label="利润" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} {{scope.row.base_ccy}} BTC</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-row class="pages">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="Btotal"
+                        :pageSize="BpageSize"
+                        :currPage="BcurrPage"
+                        @changeLimit="BlimitPaging"
+                        @changeSkip="BskipPaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
+        </el-tab-pane>
+    </el-tabs>
 
     <el-dialog
         title="出/入金"
@@ -80,7 +144,11 @@ export default {
         currPage: 1, //当前页
         pageSize: 20, //每页显示条数
         total: 100, //总条数
+        BcurrPage: 1, //当前页
+        BpageSize: 20, //每页显示条数
+        Btotal: 100, //总条数
         PageSearchWhere: [], //分页搜索数组
+        BPageSearchWhere: [], //分页搜索数组
         product_name: "BTC-USDT",
         address: "",
         status: "",
@@ -88,6 +156,7 @@ export default {
         imageUrl: '',
         fileObjData: {},
         tableData: [],
+        BtableData: [],
         srcList: [], //列表存放大图路径
         dialogVisibleShow: false,
         DialogTitle: '添加',
@@ -119,12 +188,13 @@ export default {
     };
   },
   methods: {
-    getListData(ServerWhere) {
+    getListData(ServerWhere) { //获取U本位数据
       var that = this.$data;
       if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
         ServerWhere = {
           limit: that.pageSize,
           page: that.currPage,
+          standard: 1,
         };
       }
       get("/Admin/Piggybank/getPiggybankOrderDateList", ServerWhere, json => {
@@ -137,16 +207,25 @@ export default {
         }
       });
     },
-    // getClassList() {
-    //   get("/H2omarketplace/H2onft/getClassList", {}, (json) => {
-    //       // console.log(json);
-    //     if (json.data.code == 10000) {
-    //       this.ClassArr = json.data.data;
-    //     } else {
-    //       this.$message.error("加载数据失败");
-    //     }
-    //   });
-    // },
+    getBListData(ServerWhere) { //获取B本位数据
+      var that = this.$data;
+      if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+        ServerWhere = {
+          limit: that.BpageSize,
+          page: that.BcurrPage,
+          standard: 2,
+        };
+      }
+      get("/Admin/Piggybank/getPiggybankOrderDateList", ServerWhere, json => {
+          console.log(json);
+        if (json.data.code == 10000) {
+          this.BtableData = json.data.data.data;
+          this.Btotal = json.data.data.count;
+        } else {
+          this.$message.error("加载数据失败");
+        }
+      });
+    },
     SearchClick() {
       //搜索事件
       var SearchWhere = {
@@ -187,6 +266,28 @@ export default {
       }
       this.getListData(this.PageSearchWhere); //刷新列表
     },
+    BlimitPaging(limit) {
+      //赋值当前条数
+      this.BpageSize = limit;
+      if (
+        this.BPageSearchWhere.limit &&
+        this.BPageSearchWhere.limit !== undefined
+      ) {
+        this.BPageSearchWhere.limit = limit;
+      }
+      this.getBListData(this.BPageSearchWhere); //刷新列表
+    },
+    BskipPaging(page) {
+      //赋值当前页数
+      this.BcurrPage = page;
+      if (
+        this.BPageSearchWhere.page &&
+        this.BPageSearchWhere.page !== undefined
+      ) {
+        this.BPageSearchWhere.page = page;
+      }
+      this.getBListData(this.PageSearchWhere); //刷新列表
+    },
     submitForm(formName) {
         this.$refs[formName].validate((valid) => {
             if (valid) {
@@ -223,6 +324,7 @@ export default {
   },
   created() {
     this.getListData();
+    this.getBListData();
     this.UserAuthUid = localStorage.getItem("UserAuthUid");
   },
   components: {

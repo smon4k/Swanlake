@@ -52,7 +52,9 @@ class PiggybankController extends BaseController
         $limits = $request->request('limit', 1, 'intval');
         $product_name = $request->request('product_name', '', 'trim');
         $order_number = $request->request('order_number', '', 'trim');
+        $standard = $request->request('standard', 0, 'intval');
         $where = [];
+        $where['standard'] = $standard;
         $data = Piggybank::getPiggybankDateList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
