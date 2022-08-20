@@ -59,5 +59,22 @@ class PiggybankController extends BaseController
         $lists = $data['lists'];
         return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
     }
+    
+    /**
+     * 出入金计算
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public function calcDepositAndWithdrawal(Request $request) {
+        $product_name = $request->request('product_name', '', '');
+        $type = $request->request('type', 0, 'intval');
+        $amount = $request->request('amount', '', 'trim');
+        $remark = $request->request('remark', '', '');
+        if($type <= 0 || $amount == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = Piggybank::calcDepositAndWithdrawal($product_name, $type, $amount, $remark);
+        return $this->as_json($newArray);
+    }
 
 }

@@ -12,7 +12,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="SearchClick()">搜索</el-button>
-          <!-- <el-button class="pull-right" type="primary" @click="AddUserInfoShow()">添加NFT</el-button> -->
+          <el-button class="pull-right" type="primary" @click="DepositWithdrawalShow()">出/入金</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -45,39 +45,29 @@
       </el-col>
     </el-row>
 
-
     <el-dialog
-      title=""
-      :visible.sync="previewFilesShow"
-      :width="dialogWidth"
-      :before-close="previewFilesShowClose"
-      class="preview-class">
-      <div v-if="fileTempType == 1">
-          <el-carousel :interval="5000" :autoplay="false" arrow="always">
-            <el-carousel-item v-for="item in imagesUrls" :key="item">
-              <!-- <h3>{{ item }}</h3> -->
-              <img :src="item" alt="" srcset="">
-            </el-carousel-item>
-          </el-carousel>
-      </div>
-      <div v-if="fileTempType == 2">
-        <video 
-          id="videoPlay"
-          ref="player" 
-          class="video"
-          controls 
-          autoplay
-          preload="auto"
-          :src="videoUrl"
-          :poster="videoPoster"
-          v-if="videoUrl"
-          controlslist="noplaybackrate nodownload nofullscreen noremoteplayback"
-          disablePictureInPicture="true"></video>
-      </div>
-      <!-- <span slot="footer" class="dialog-footer">
-        <el-button @click="previewFilesShow = false">取 消</el-button>
-        <el-button type="primary" @click="previewFilesShow = false">确 定</el-button>
-      </span> -->
+        title="出/入金"
+        :visible.sync="dialogVisibleShow"
+        width="30%"
+        :before-close="handleClose">
+        <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="80px">
+            <el-form-item label="方向" prop="direction">
+                <el-radio-group v-model="ruleForm.direction">
+                <el-radio label="入金"></el-radio>
+                <el-radio label="出金"></el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="金额" prop="name">
+                <el-input v-model="ruleForm.name"></el-input>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input v-model="ruleForm.remark"></el-input>
+            </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisibleShow = false">取 消</el-button>
+            <el-button type="primary" @click="submitForm('ruleForm')">确 定</el-button>
+        </span>
     </el-dialog>
   </div>
 </template>
@@ -87,33 +77,45 @@ import { get, post, upload } from "@/common/axios.js";
 export default {
   data() {
     return {
-      currPage: 1, //当前页
-      pageSize: 20, //每页显示条数
-      total: 100, //总条数
-      PageSearchWhere: [], //分页搜索数组
-      product_name: "",
-      address: "",
-      status: "",
-      class_id: "",
-      imageUrl: '',
-      fileObjData: {},
-      tableData: [],
-      srcList: [], //列表存放大图路径
-      dialogVisibleShow: false,
-      DialogTitle: '添加',
-      is_save_add_start: 1, //1：添加 2：修改
-      is_img_upload: 0, 
-      id: '', //球队id
-      type: '', //球队类型
-      GradeArr: [], //等级数据
-      ClassArr: [], //分类数据
-      UserAuthUid: 0, //当前登录用户id
-      previewFilesShow: false,
-      fileTempType: 2,
-      dialogWidth: '50%',
-      imagesUrls: [],
-      videoUrl: '',
-      videoPoster: '',
+        currPage: 1, //当前页
+        pageSize: 20, //每页显示条数
+        total: 100, //总条数
+        PageSearchWhere: [], //分页搜索数组
+        product_name: "",
+        address: "",
+        status: "",
+        class_id: "",
+        imageUrl: '',
+        fileObjData: {},
+        tableData: [],
+        srcList: [], //列表存放大图路径
+        dialogVisibleShow: false,
+        DialogTitle: '添加',
+        is_save_add_start: 1, //1：添加 2：修改
+        is_img_upload: 0, 
+        id: '', //球队id
+        type: '', //球队类型
+        GradeArr: [], //等级数据
+        ClassArr: [], //分类数据
+        UserAuthUid: 0, //当前登录用户id
+        fileTempType: 2,
+        dialogWidth: '50%',
+        imagesUrls: [],
+        videoUrl: '',
+        videoPoster: '',
+        ruleForm: {
+            direction: '',
+            name: '',
+            remark: '',
+        },
+        rules: {
+          name: [
+            { required: true, message: '请输入金额', trigger: 'blur' },
+          ],
+          direction: [
+            { required: true, message: '请选择方向', trigger: 'change' }
+          ],
+        }
     };
   },
   methods: {
@@ -185,67 +187,24 @@ export default {
       }
       this.getListData(this.PageSearchWhere); //刷新列表
     },
-    DelData(row) { //删除管理员
-        this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-        }).then(() => {
-            get('/Admin/Notes/delNotesRow', {id: row.id}, (json) => {
-                if (json && json.data.code == 10000) {
-                    this.getListData();
-                    this.$message({
-                        type: 'success',
-                        message: '删除成功!'
-                    });
-                } else if(json.data.code == 10007) {
-                  this.$message.error(json.data.msg);
-                } else {
-                    this.$message.error(json.data.msg);
-                }
-            })
-        }).catch(() => {
-            this.$message({
-                type: 'info',
-                message: '已取消删除'
-            });
+    submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+            if (valid) {
+                alert('submit!');
+            } else {
+                console.log('error submit!!');
+                return false;
+            }
         });
     },
     resetForm(formName) {
-      // console.log(this.$refs[formName])
-      this.$refs[formName].resetFields();
-      this.dialogVisibleShow = false;
+        this.$refs[formName].resetFields();
     },
-    rackUpStart(row, status) { //审批 修改状态
-        get('/Admin/Notes/rackUpStart', {id: row.id, status: status}, (json) => {
-            if(json.data.code == 10000) {
-                this.$message({
-                    message: '操作成功',
-                    type: 'success'
-                });
-                this.getListData();
-            } else if(json.data.code == 10007) {
-                this.$message.error(json.data.msg);
-            } else {
-                this.$message.error('修改失败');
-            }
-        })
+    DepositWithdrawalShow() { //出入金 弹框显示
+        this.dialogVisibleShow = true;
     },
-    previewFilesShowClose() {
-      if(this.fileTempType == 2) {
-        this.$refs.player.pause();//暂停
-      }
-      this.previewFilesShow = false;
-    },
-    getTicketDetails(row) { //预览
-      // console.log(row);
-      this.$router.push({
-          name: 'TicketListDetails',
-          query: {
-              ticket_id: row.id,
-              ticket_name: row.name
-          }
-      })
+    handleClose() {
+        this.dialogVisibleShow = false;
     }
 
   },

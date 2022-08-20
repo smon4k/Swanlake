@@ -15,6 +15,7 @@ namespace app\admin\model;
 use lib\ClCrypt;
 use think\Cache;
 use app\api\model\Reward;
+use app\tools\model\Okx;
 
 class Piggybank extends Base
 {   
@@ -109,5 +110,142 @@ class Piggybank extends Base
                     ->toArray();
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
+    
+    /**
+     * 出入金计算
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function calcDepositAndWithdrawal($product_name='', $type=0, $amount='', $remark='') {
+        $totalAssets = 0;
+        $balanceDetails = Okx::getTradeValuation($product_name);
+        $totalAssets = $balanceDetails['btcValuation'] + $balanceDetails['usdtValuation']; //总市值
+
+        $countProfit = self::getUStandardProfit($product_name); //获取总的利润 网格利润
+        
+        $UstandardPrincipal = self::getPiggybankStandard(1); //U本位总本金
+        $BstandardPrincipal = self::getPiggybankStandard(2); //币本位总本金
+        $marketIndexTickers = Okx::fetchMarketIndexTickers($product_name); //获取交易BTC价格
+        $btcPrice = 0;
+        if($marketIndexTickers && $marketIndexTickers['idxPx'] > 0) {
+            $btcPrice = (float)$marketIndexTickers['idxPx'];
+        }
+        $UinsertData = [];
+        $BinsertData = [];
+
+        //本金
+        $countUstandardPrincipal = (float)$UstandardPrincipal + (float)$amount;
+        $countBstandardPrincipal = (float)$UstandardPrincipal + ((float)$amount / $btcPrice);
+
+        //总结余
+        $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余
+        $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtValuation']; //币本位总结余
+        
+        //利润 = 总结余 - 本金
+        $UProfit = $UTotalBalance - $countUstandardPrincipal;
+        $BProfit = $BTotalBalance - $countBstandardPrincipal;
+
+        $date = date('Y-m-d');
+        self::startTrans();
+        try { 
+            $URes = self::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date, 'standard' => 1])->find();
+            if($URes && count((array)$URes) > 0) {
+                $upDataU = [
+                    'count_market_value' => $totalAssets,
+                    'grid_spread' => $countProfit,
+                    'principal' => $countUstandardPrincipal,
+                    'total_balance' => $UTotalBalance,
+                    'profit' => $UProfit,
+                    'up_time' => date('Y-m-d H:i:s')
+                ];
+                $saveUres = self::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date, 'standard' => 1])->update($upDataU);
+            } else {
+                $insertDataU = [
+                    'product_name' => $product_name,
+                    'standard' => 1,
+                    'date' => $date,
+                    'count_market_value' => $totalAssets,
+                    'grid_spread' => $countProfit,
+                    'principal' => $countUstandardPrincipal,
+                    'total_balance' => $UTotalBalance,
+                    'profit' => $UProfit,
+                    'up_time' => date('Y-m-d H:i:s')
+                ];
+                $saveUres = self::name('okx_piggybank_date')->insertGetId($insertDataU);
+            }
+            if($saveUres !== false) {
+                $BRes = self::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date, 'standard' => 2])->find();
+                if($BRes && count((array)$BRes) > 0) {
+                    $upDataB = [
+                        'count_market_value' => $totalAssets,
+                        'grid_spread' => $countProfit,
+                        'principal' => $countBstandardPrincipal,
+                        'total_balance' => $BTotalBalance,
+                        'profit' => $BProfit,
+                        'up_time' => date('Y-m-d H:i:s')
+                    ];
+                    $saveBres = self::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date, 'standard' => 2])->update($upDataB);
+                } else {
+                    $insertDataB = [
+                        'product_name' => $product_name,
+                        'standard' => 2,
+                        'date' => $date,
+                        'count_market_value' => $totalAssets,
+                        'grid_spread' => $countProfit,
+                        'principal' => $countBstandardPrincipal,
+                        'total_balance' => $BTotalBalance,
+                        'profit' => $BProfit,
+                        'up_time' => date('Y-m-d H:i:s')
+                    ];
+                    $saveUres = self::name('okx_piggybank_date')->insertGetId($insertDataB);
+                }
+                if($saveUres !== false) {
+                    self::commit();
+                    return true;
+                }
+            }
+            self::rollback();
+            return false;
+        } catch (\Exception $e) {
+            self::rollback();
+            return false;
+        }
+    }
+
+    /**
+     * 获取U本位币本位累计本金
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function getPiggybankStandard($standard=0) {
+        if($standard > 0) {
+            $total = self::name('okx_piggybank_date')->where('standard', $standard)->sum('principal');
+            if($total) {
+                return $total;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 获取总的利润
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function getUStandardProfit($product_name='', $standard=1) {
+        $data = self::name('okx_piggybank')->where(['pair'=> ['>', 0], 'product_name' => $product_name])->select()->toArray();
+        if($data) {
+            $newArray = [];
+            foreach ($data as $key => $val) {
+                $newArray[$val['pair']] = $val;
+            }
+            $countProfit = 0;
+            foreach ($newArray as $key => $val) {
+                $countProfit += $val['profit'];
+            }
+            return $countProfit;
+        }
+        return 0;
     }
 }
