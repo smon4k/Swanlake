@@ -272,7 +272,7 @@ class Piggybank extends Base
                 'remark' => $remark,
                 'time' => date('Y-m-d H:i:s'),
             ];
-            $res = self::name('s_okx_inout_gold')->insertGetId($insertData);
+            $res = self::name('okx_inout_gold')->insertGetId($insertData);
             if($res) {
                 return true;
             }
@@ -286,7 +286,7 @@ class Piggybank extends Base
      * @since 2022-08-20
      */
     public static function getInoutGoldTotalBalance() {
-        $count = self::name('s_okx_inout_gold')->sum('amount');
+        $count = self::name('okx_inout_gold')->sum('amount');
         if($count !== 0) {
             return $count;
         }
