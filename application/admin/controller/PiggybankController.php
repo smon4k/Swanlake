@@ -67,13 +67,13 @@ class PiggybankController extends BaseController
      */
     public function calcDepositAndWithdrawal(Request $request) {
         $product_name = $request->request('product_name', '', '');
-        $type = $request->request('type', 0, 'intval');
+        $direction = $request->request('direction', 0, 'intval');
         $amount = $request->request('amount', '', 'trim');
         $remark = $request->request('remark', '', '');
-        if($type <= 0 || $amount == '') {
+        if($direction <= 0 || $amount == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = Piggybank::calcDepositAndWithdrawal($product_name, $type, $amount, $remark);
+        $result = Piggybank::calcDepositAndWithdrawal($product_name, $direction, $amount, $remark);
         return $this->as_json($newArray);
     }
 

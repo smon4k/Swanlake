@@ -53,12 +53,12 @@
         <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="80px">
             <el-form-item label="方向" prop="direction">
                 <el-radio-group v-model="ruleForm.direction">
-                <el-radio label="入金"></el-radio>
-                <el-radio label="出金"></el-radio>
+                <el-radio label="1">入金</el-radio>
+                <el-radio label="2">出金</el-radio>
                 </el-radio-group>
             </el-form-item>
-            <el-form-item label="金额" prop="name">
-                <el-input v-model="ruleForm.name"></el-input>
+            <el-form-item label="金额" prop="amount">
+                <el-input v-model="ruleForm.amount"></el-input>
             </el-form-item>
             <el-form-item label="备注">
                 <el-input v-model="ruleForm.remark"></el-input>
@@ -81,7 +81,7 @@ export default {
         pageSize: 20, //每页显示条数
         total: 100, //总条数
         PageSearchWhere: [], //分页搜索数组
-        product_name: "",
+        product_name: "BTC-USDT",
         address: "",
         status: "",
         class_id: "",
@@ -105,11 +105,11 @@ export default {
         videoPoster: '',
         ruleForm: {
             direction: '',
-            name: '',
+            amount: '',
             remark: '',
         },
         rules: {
-          name: [
+          amount: [
             { required: true, message: '请输入金额', trigger: 'blur' },
           ],
           direction: [
@@ -190,7 +190,20 @@ export default {
     submitForm(formName) {
         this.$refs[formName].validate((valid) => {
             if (valid) {
-                alert('submit!');
+                get('/Admin/Piggybank/calcDepositAndWithdrawal', {
+                    product_name: this.product_name,
+                    direction: this.ruleForm.direction,
+                    amount: this.ruleForm.amount,
+                    remark: this.ruleForm.remark,
+                }, (json) => {
+                    if (json && json.data.code == 10000) {
+                        this.$message.success('更新成功');
+                        this.$refs[formName].resetFields();
+                        this.dialogVisibleShow = false;
+                    } else {
+                        this.$message.error(json.data.msg);
+                    }
+                })
             } else {
                 console.log('error submit!!');
                 return false;

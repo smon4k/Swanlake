@@ -117,7 +117,7 @@ class Piggybank extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function calcDepositAndWithdrawal($product_name='', $type=0, $amount='', $remark='') {
+    public static function calcDepositAndWithdrawal($product_name='', $direction=0, $amount='', $remark='') {
         $totalAssets = 0;
         $balanceDetails = Okx::getTradeValuation($product_name);
         $totalAssets = $balanceDetails['btcValuation'] + $balanceDetails['usdtValuation']; //总市值
@@ -135,8 +135,13 @@ class Piggybank extends Base
         $BinsertData = [];
 
         //本金
-        $countUstandardPrincipal = (float)$UstandardPrincipal + (float)$amount;
-        $countBstandardPrincipal = (float)$UstandardPrincipal + ((float)$amount / $btcPrice);
+        if($direction == 1) {
+            $countUstandardPrincipal = (float)$UstandardPrincipal + (float)$amount;
+            $countBstandardPrincipal = (float)$UstandardPrincipal + ((float)$amount / $btcPrice);
+        } else {
+            $countUstandardPrincipal = (float)$UstandardPrincipal - (float)$amount;
+            $countBstandardPrincipal = (float)$UstandardPrincipal - ((float)$amount / $btcPrice);
+        }
 
         //总结余
         $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余
