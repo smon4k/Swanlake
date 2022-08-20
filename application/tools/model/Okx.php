@@ -85,22 +85,26 @@ class Okx extends Base
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'sell', $btcSellOrdersNumber, []);
                         if($result['sCode'] == 0) {
                             $orderDetails = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null); //获取成交数量
-                            $clinch_number = 0;
-                            if($orderDetails && $orderDetails['fillSz']) {
-                                $clinch_number = $orderDetails['fillSz']; //最新成交数量
+                            $theDealPrice = $btcPrice; //成交均价
+                            $clinch_number = 0; //累计成交数量
+                            if($orderDetails && $orderDetails['accFillSz']) {
+                                $clinch_number = $orderDetails['accFillSz']; //最新成交数量
+                            }
+                            if($orderDetails && $orderDetails['avgPx']) {
+                                $theDealPrice = $orderDetails['avgPx']; //成交均价
                             }
                             //获取上一次是否成对出现
                             $isPair = false;
                             $profit = 0;
                             // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
-                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs('$btcPrice'-`price`) LIMIT 1;";
+                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs('$theDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             $pairId = 0;
                             if($res && count((array)$res) > 0) { //计算利润
                                 $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ($clinch_number * $btcPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
-                                $profit = $clinch_number * ($btcPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
+                                $profit = $clinch_number * ($theDealPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
                             }
                             //获取平衡状态下的USDT估值
                             $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
@@ -115,7 +119,7 @@ class Okx extends Base
                                 'order_type' => 'market',
                                 'amount' => $btcSellOrdersNumber,
                                 'clinch_number' => $clinch_number,
-                                'price' => $btcPrice,
+                                'price' => $theDealPrice,
                                 'profit' => $profit,
                                 'pair' => $pairId,
                                 'currency1' => $btcBalance,
@@ -153,20 +157,24 @@ class Okx extends Base
                         if($result['sCode'] == 0) {
                             //获取上一次是否成对出现
                             $orderDetails = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null); //获取成交数量
-                            $clinch_number = 0;
-                            if($orderDetails && $orderDetails['fillSz']) {
-                                $clinch_number = $orderDetails['fillSz']; //最新成交数量
+                            $theDealPrice = $btcPrice; //成交均价
+                            $clinch_number = 0; //累计成交数量
+                            if($orderDetails && $orderDetails['accFillSz']) {
+                                $clinch_number = $orderDetails['accFillSz']; //最新成交数量
+                            }
+                            if($orderDetails && $orderDetails['avgPx']) {
+                                $theDealPrice = $orderDetails['avgPx']; //成交均价
                             }
                             $isPair = false;
                             $profit = 0;
-                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=2 AND pair = 0 ORDER BY abs('$btcPrice'-`price`) LIMIT 1;";
+                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=2 AND pair = 0 ORDER BY abs('$theDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             $pairId = 0;
                             if($res && count((array)$res) > 0) { //计算利润
                                 $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $btcPrice);
-                                $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $btcPrice); //卖出的成交数量 * 价差
+                                $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $theDealPrice); //卖出的成交数量 * 价差
                             }
                             //获取平衡状态下的USDT估值
                             $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
@@ -181,7 +189,7 @@ class Okx extends Base
                                 'order_type' => 'market',
                                 'amount' => $usdtSellOrdersNumber,
                                 'clinch_number' => $clinch_number,
-                                'price' => $btcPrice,
+                                'price' => $theDealPrice,
                                 'profit' => $profit,
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
