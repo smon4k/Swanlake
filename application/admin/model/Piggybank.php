@@ -203,9 +203,9 @@ class Piggybank extends Base
                         'profit' => $BProfit,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
-                    $saveUres = self::name('okx_piggybank_date')->insertGetId($insertDataB);
+                    $saveBres = self::name('okx_piggybank_date')->insertGetId($insertDataB);
                 }
-                if($saveUres !== false) {
+                if($saveBres !== false) {
                     self::commit();
                     return true;
                 }
