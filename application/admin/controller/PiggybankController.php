@@ -76,7 +76,11 @@ class PiggybankController extends BaseController
             return $this->as_json('70001', 'Missing parameters');
         }
         $result = Piggybank::calcDepositAndWithdrawal($product_name, $direction, $amount, $remark);
-        return $this->as_json($result);
+        if($result) {
+            return $this->as_json('ok');
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
     }
 
     /**
