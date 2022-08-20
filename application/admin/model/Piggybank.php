@@ -154,7 +154,7 @@ class Piggybank extends Base
         $date = date('Y-m-d');
         self::startTrans();
         try { 
-            $URes = self::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date, 'standard' => 1])->find();
+            $URes = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
             if($URes && count((array)$URes) > 0) {
                 $upDataU = [
                     'count_market_value' => $totalAssets,
@@ -164,7 +164,7 @@ class Piggybank extends Base
                     'profit' => $UProfit,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
-                $saveUres = self::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date, 'standard' => 1])->update($upDataU);
+                $saveUres = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update($upDataU);
             } else {
                 $insertDataU = [
                     'product_name' => $product_name,
@@ -180,7 +180,7 @@ class Piggybank extends Base
                 $saveUres = self::name('okx_piggybank_date')->insertGetId($insertDataU);
             }
             if($saveUres !== false) {
-                $BRes = self::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date, 'standard' => 2])->find();
+                $BRes = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->find();
                 if($BRes && count((array)$BRes) > 0) {
                     $upDataB = [
                         'count_market_value' => $totalAssets,
@@ -190,7 +190,7 @@ class Piggybank extends Base
                         'profit' => $BProfit,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
-                    $saveBres = self::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date, 'standard' => 2])->update($upDataB);
+                    $saveBres = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update($upDataB);
                 } else {
                     $insertDataB = [
                         'product_name' => $product_name,
