@@ -150,7 +150,7 @@ class Piggybank extends Base
         $date = date('Y-m-d');
         //总结余
         $balanceDetails = Okx::getTradeValuation($product_name);
-        $btcPrice = $tradeValuation['btcPrice'];
+        $btcPrice = $balanceDetails['btcPrice'];
         
         //本金
         $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
