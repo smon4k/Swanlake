@@ -29,12 +29,17 @@
                 </el-table-column>
                 <el-table-column prop="grid_spread" label="网格日利润" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 4, true) }} {{scope.row.base_ccy}} USDT</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread, 4, true) }} {{scope.row.base_ccy}} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="网格日利润率" align="center">
                     <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.grid_spread / scope.row.count_market_value * 100, 4, true) }} %</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="网格总利润" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 4, true) }} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="principal" label="累计本金" align="center">
