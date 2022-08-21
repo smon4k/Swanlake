@@ -148,6 +148,9 @@ class Piggybank extends Base
      */
     public static function calcDepositAndWithdrawal($product_name='', $direction=0, $amount=0, $remark='') {
         $date = date('Y-m-d');
+        //总结余
+        $balanceDetails = Okx::getTradeValuation($product_name);
+        $btcPrice = $tradeValuation['btcPrice'];
         
         //本金
         $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
@@ -163,8 +166,6 @@ class Piggybank extends Base
             $countBstandardPrincipal = ((float)$total_balance / $btcPrice) - ((float)$amount / $btcPrice);
         }
         
-        //总结余
-        $balanceDetails = Okx::getTradeValuation($product_name);
         $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余
         $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtValuation']; //币本位总结余
         
