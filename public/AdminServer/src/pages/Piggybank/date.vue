@@ -75,14 +75,19 @@
                                 <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} USDT</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="total_balance" label="总结余" align="center">
+                            <el-table-column prop="" label="总结余" align="center">
                                 <template slot-scope="scope">
                                 <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="total_balance" label="利润" align="center">
+                            <el-table-column prop="" label="利润" align="center">
                                 <template slot-scope="scope">
                                 <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="" label="利润率" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.profit_rate, 4, true) }}%</span>
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -115,14 +120,19 @@
                                 <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} BTC</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="total_balance" label="总结余" align="center">
+                            <el-table-column prop="" label="总结余" align="center">
                                 <template slot-scope="scope">
                                 <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} BTC</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="total_balance" label="利润" align="center">
+                            <el-table-column prop="" label="利润" align="center">
                                 <template slot-scope="scope">
                                 <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} BTC</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="" label="利润率" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.profit_rate, 4, true) }}%</span>
                                 </template>
                             </el-table-column>
                         </el-table>
