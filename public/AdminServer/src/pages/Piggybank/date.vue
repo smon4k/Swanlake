@@ -65,74 +65,82 @@
         <el-tab-pane label="币种统计">
             <el-tabs tab-position="left">
                 <el-tab-pane label="U本位">
-                    <el-table :data="UtableData" style="width: 100%;">
-                        <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
-                        <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
-                        <el-table-column prop="date" label="日期" align="center"></el-table-column>
-                        <el-table-column prop="principal" label="累计本金" align="center">
-                            <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} USDT</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="total_balance" label="总结余" align="center">
-                            <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="total_balance" label="利润" align="center">
-                            <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} USDT</span>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                    <el-row class="pages">
-                        <el-col :span="24">
-                            <div style="float:right;">
-                            <wbc-page
-                                :total="Utotal"
-                                :pageSize="UpageSize"
-                                :currPage="UcurrPage"
-                                @changeLimit="UlimitPaging"
-                                @changeSkip="UskipPaging"
-                            ></wbc-page>
-                            </div>
-                        </el-col>
-                    </el-row>
+                    <div v-if="UtableData.length">
+                        <el-table :data="UtableData" style="width: 100%;">
+                            <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
+                            <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                            <el-table-column prop="date" label="日期" align="center"></el-table-column>
+                            <el-table-column prop="principal" label="累计本金" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="total_balance" label="总结余" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="total_balance" label="利润" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <el-row class="pages">
+                            <el-col :span="24">
+                                <div style="float:right;">
+                                <wbc-page
+                                    :total="Utotal"
+                                    :pageSize="UpageSize"
+                                    :currPage="UcurrPage"
+                                    @changeLimit="UlimitPaging"
+                                    @changeSkip="UskipPaging"
+                                ></wbc-page>
+                                </div>
+                            </el-col>
+                        </el-row>
+                    </div>
+                    <div v-else>
+                        <el-empty description="数据为空"></el-empty>
+                    </div>
                 </el-tab-pane>
                 <el-tab-pane label="币本位">
-                    <el-table :data="BtableData" style="width: 100%;">
-                        <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
-                        <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
-                        <el-table-column prop="date" label="日期" align="center"></el-table-column>
-                        <el-table-column prop="principal" label="累计本金" align="center">
-                            <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} BTC</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="total_balance" label="总结余" align="center">
-                            <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} BTC</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="total_balance" label="利润" align="center">
-                            <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} BTC</span>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                    <el-row class="pages">
-                        <el-col :span="24">
-                            <div style="float:right;">
-                            <wbc-page
-                                :total="Btotal"
-                                :pageSize="BpageSize"
-                                :currPage="BcurrPage"
-                                @changeLimit="BlimitPaging"
-                                @changeSkip="BskipPaging"
-                            ></wbc-page>
-                            </div>
-                        </el-col>
-                    </el-row>
+                    <div v-if="BtableData.length">
+                        <el-table :data="BtableData" style="width: 100%;">
+                            <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
+                            <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                            <el-table-column prop="date" label="日期" align="center"></el-table-column>
+                            <el-table-column prop="principal" label="累计本金" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} BTC</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="total_balance" label="总结余" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} BTC</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="total_balance" label="利润" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} BTC</span>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <el-row class="pages">
+                            <el-col :span="24">
+                                <div style="float:right;">
+                                <wbc-page
+                                    :total="Btotal"
+                                    :pageSize="BpageSize"
+                                    :currPage="BcurrPage"
+                                    @changeLimit="BlimitPaging"
+                                    @changeSkip="BskipPaging"
+                                ></wbc-page>
+                                </div>
+                            </el-col>
+                        </el-row>
+                    </div>
+                    <div v-else><el-empty description="没有数据"></el-empty></div>
                 </el-tab-pane>
             </el-tabs>
         </el-tab-pane>
