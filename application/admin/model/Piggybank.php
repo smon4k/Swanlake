@@ -118,11 +118,13 @@ class Piggybank extends Base
      * @since 2022-08-20
      */
     public static function calcDepositAndWithdrawal($product_name='', $direction=0, $amount='', $remark='') {
+        $date = date('Y-m-d');
         $totalAssets = 0;
         $balanceDetails = Okx::getTradeValuation($product_name);
         $totalAssets = $balanceDetails['btcValuation'] + $balanceDetails['usdtValuation']; //总市值
 
         $countProfit = self::getUStandardProfit($product_name); //获取总的利润 网格利润
+        $dayProfit = self::getUStandardProfit($product_name, $date); //获取总的利润 网格利润
         
         $UstandardPrincipal = self::getPiggybankStandard(1); //U本位总本金
         $BstandardPrincipal = self::getPiggybankStandard(2); //币本位总本金
@@ -156,7 +158,6 @@ class Piggybank extends Base
         $UProfit = $UTotalBalance - $countUstandardPrincipal;
         $BProfit = $BTotalBalance - $countBstandardPrincipal;
 
-        $date = date('Y-m-d');
         self::startTrans();
         try { 
             $URes = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
@@ -164,6 +165,7 @@ class Piggybank extends Base
                 $upDataU = [
                     'count_market_value' => $totalAssets,
                     'grid_spread' => $countProfit,
+                    'grid_day_spread' => $dayProfit,
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
                     'profit' => $UProfit,
@@ -177,6 +179,7 @@ class Piggybank extends Base
                     'date' => $date,
                     'count_market_value' => $totalAssets,
                     'grid_spread' => $countProfit,
+                    'grid_day_spread' => $dayProfit,
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
                     'profit' => $UProfit,
@@ -190,6 +193,7 @@ class Piggybank extends Base
                     $upDataB = [
                         'count_market_value' => $totalAssets,
                         'grid_spread' => $countProfit,
+                        'grid_day_spread' => $dayProfit,
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
                         'profit' => $BProfit,
@@ -203,6 +207,7 @@ class Piggybank extends Base
                         'date' => $date,
                         'count_market_value' => $totalAssets,
                         'grid_spread' => $countProfit,
+                        'grid_day_spread' => $dayProfit,
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
                         'profit' => $BProfit,
@@ -243,11 +248,19 @@ class Piggybank extends Base
     }
 
     /**
-     * 获取总的利润
+     * 获取总的利润或者今日利润
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function getUStandardProfit($product_name='', $standard=1) {
+    public static function getUStandardProfit($product_name='', $date='') {
+        $where = [];
+        $where['pair'] = ['>', 0];
+        $where['product_name'] = $product_name;
+        if($date && $date !== '') {
+            $start_date = $date . ' 00:00:00';
+            $end_date = $date . ' 23:59:59';
+            $where['time'] = ['between time', [$start_date, $end_date]];
+        }
         $data = self::name('okx_piggybank')->where(['pair'=> ['>', 0], 'product_name' => $product_name])->select()->toArray();
         if($data) {
             $newArray = [];
