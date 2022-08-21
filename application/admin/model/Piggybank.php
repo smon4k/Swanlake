@@ -166,12 +166,16 @@ class Piggybank extends Base
             $countBstandardPrincipal = ((float)$total_balance / $btcPrice) - ((float)$amount / $btcPrice);
         }
         
-        $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余
-        $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtValuation']; //币本位总结余
+        $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余 = USDT数量+BTC数量*价格
+        $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtBalance'] / $btcPrice; //币本位结余 = BTC数量+USDT数量/价格
         
         //利润 = 总结余 - 本金
         $UProfit = $UTotalBalance - $countUstandardPrincipal;
         $BProfit = $BTotalBalance - $countBstandardPrincipal;
+
+        //利润率 = 利润 / 本金
+        $UProfitRate = $UProfit / $countUstandardPrincipal;
+        $BProfitRate = $BProfit / $countBstandardPrincipal;
 
         self::startTrans();
         try { 
@@ -181,6 +185,7 @@ class Piggybank extends Base
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
                     'profit' => $UProfit,
+                    'profit_rate' => $UProfitRate,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $saveUres = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update($upDataU);
@@ -192,6 +197,7 @@ class Piggybank extends Base
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
                     'profit' => $UProfit,
+                    'profit_rate' => $UProfitRate,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $saveUres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataU);
@@ -203,6 +209,7 @@ class Piggybank extends Base
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
                         'profit' => $BProfit,
+                        'profit_rate' => $BProfitRate,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
                     $saveBres = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update($upDataB);
@@ -214,6 +221,7 @@ class Piggybank extends Base
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
                         'profit' => $BProfit,
+                        'profit_rate' => $BProfitRate,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
                     $saveBres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataB);
