@@ -269,10 +269,11 @@ class Okx extends Base
             }
             $totalAssets = $btcValuation + $usdtValuation;
             
+            $date = date('Y-m-d');
+            
             //获取总的利润
             $countProfit = Piggybank::getUStandardProfit($transactionCurrency); //获取总的利润 网格利润
             $dayProfit = Piggybank::getUStandardProfit($transactionCurrency, $date); //获取总的利润 网格利润
-            $date = date('Y-m-d');
             $data = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->find();
             if($data && count((array)$data) > 0) {
                 $upData = [
