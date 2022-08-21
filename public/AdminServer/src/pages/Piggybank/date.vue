@@ -16,10 +16,10 @@
         </el-form-item>
       </el-form>
     </div>
-    <el-tabs type="border-card">
-        <el-tab-pane label="U本位">
+    <el-tabs type="card" @tab-click="tabClick">
+        <el-tab-pane label="网格数据">
             <el-table :data="tableData" style="width: 100%;">
-                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column>
+                <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
                 <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
                 <el-table-column prop="date" label="日期" align="center"></el-table-column>
                 <el-table-column prop="amount" label="总市值" align="center">
@@ -34,7 +34,7 @@
                 </el-table-column>
                 <el-table-column prop="" label="网格日利润率" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread / scope.row.count_market_value * 100, 4, true) }} %</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="网格总利润" align="center">
@@ -42,19 +42,9 @@
                     <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 4, true) }} USDT</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="principal" label="累计本金" align="center">
+                <el-table-column prop="" label="网格总利润率" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} {{scope.row.base_ccy}} USDT</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="total_balance" label="总结余" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} {{scope.row.base_ccy}} USDT</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="total_balance" label="利润" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} {{scope.row.base_ccy}} USDT</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
                     </template>
                 </el-table-column>
             </el-table>
@@ -72,60 +62,79 @@
             </el-col>
             </el-row>
         </el-tab-pane>
-        <el-tab-pane label="币本位">
-            <el-table :data="BtableData" style="width: 100%;">
-                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column>
-                <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
-                <el-table-column prop="date" label="日期" align="center"></el-table-column>
-                <el-table-column prop="amount" label="总市值" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.count_market_value, 8, true) }} USDT</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="grid_spread" label="网格日利润" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread, 4, true) }} {{scope.row.base_ccy}} USDT</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="" label="网格日利润率" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread / scope.row.count_market_value * 100, 4, true) }} %</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="" label="网格总利润" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 4, true) }} USDT</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="principal" label="累计本金" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} {{scope.row.base_ccy}} BTC</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="total_balance" label="总结余" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} {{scope.row.base_ccy}} BTC</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="total_balance" label="利润" align="center">
-                    <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} {{scope.row.base_ccy}} BTC</span>
-                    </template>
-                </el-table-column>
-            </el-table>
-            <el-row class="pages">
-                <el-col :span="24">
-                    <div style="float:right;">
-                    <wbc-page
-                        :total="Btotal"
-                        :pageSize="BpageSize"
-                        :currPage="BcurrPage"
-                        @changeLimit="BlimitPaging"
-                        @changeSkip="BskipPaging"
-                    ></wbc-page>
-                    </div>
-                </el-col>
-            </el-row>
+        <el-tab-pane label="币种统计">
+            <el-tabs tab-position="left">
+                <el-tab-pane label="U本位">
+                    <el-table :data="UtableData" style="width: 100%;">
+                        <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
+                        <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                        <el-table-column prop="date" label="日期" align="center"></el-table-column>
+                        <el-table-column prop="principal" label="累计本金" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} USDT</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_balance" label="总结余" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_balance" label="利润" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} USDT</span>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <el-row class="pages">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                            <wbc-page
+                                :total="Utotal"
+                                :pageSize="UpageSize"
+                                :currPage="UcurrPage"
+                                @changeLimit="UlimitPaging"
+                                @changeSkip="UskipPaging"
+                            ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-tab-pane>
+                <el-tab-pane label="币本位">
+                    <el-table :data="BtableData" style="width: 100%;">
+                        <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
+                        <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                        <el-table-column prop="date" label="日期" align="center"></el-table-column>
+                        <el-table-column prop="principal" label="累计本金" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} BTC</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_balance" label="总结余" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} BTC</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_balance" label="利润" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} BTC</span>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <el-row class="pages">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                            <wbc-page
+                                :total="Btotal"
+                                :pageSize="BpageSize"
+                                :currPage="BcurrPage"
+                                @changeLimit="BlimitPaging"
+                                @changeSkip="BskipPaging"
+                            ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-tab-pane>
+            </el-tabs>
         </el-tab-pane>
     </el-tabs>
 
@@ -164,10 +173,14 @@ export default {
         currPage: 1, //当前页
         pageSize: 20, //每页显示条数
         total: 100, //总条数
+        UcurrPage: 1, //当前页
+        UpageSize: 20, //每页显示条数
+        Utotal: 100, //总条数
         BcurrPage: 1, //当前页
         BpageSize: 20, //每页显示条数
         Btotal: 100, //总条数
         PageSearchWhere: [], //分页搜索数组
+        UPageSearchWhere: [], //分页搜索数组
         BPageSearchWhere: [], //分页搜索数组
         product_name: "BTC-USDT",
         address: "",
@@ -176,6 +189,7 @@ export default {
         imageUrl: '',
         fileObjData: {},
         tableData: [],
+        UtableData: [],
         BtableData: [],
         srcList: [], //列表存放大图路径
         dialogVisibleShow: false,
@@ -208,13 +222,22 @@ export default {
     };
   },
   methods: {
-    getListData(ServerWhere) { //获取U本位数据
+    tabClick(item) {
+        console.log(item);
+        if(item.label === '币种统计') {
+            this.getUListData();
+            this.getBListData();
+        }
+        if(item.label === '网格数据') {
+            this.getListData();
+        }
+    },
+    getListData(ServerWhere) { //获取网格数据
       var that = this.$data;
       if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
         ServerWhere = {
           limit: that.pageSize,
           page: that.currPage,
-          standard: 1,
         };
       }
       get("/Admin/Piggybank/getPiggybankOrderDateList", ServerWhere, json => {
@@ -222,6 +245,25 @@ export default {
         if (json.data.code == 10000) {
           this.tableData = json.data.data.data;
           this.total = json.data.data.count;
+        } else {
+          this.$message.error("加载数据失败");
+        }
+      });
+    },
+    getUListData(ServerWhere) { //获取U本位数据
+      var that = this.$data;
+      if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+        ServerWhere = {
+          limit: that.UpageSize,
+          page: that.UcurrPage,
+          standard: 1,
+        };
+      }
+      get("/Admin/Piggybank/getUBPiggybankOrderDateList", ServerWhere, json => {
+          console.log(json);
+        if (json.data.code == 10000) {
+          this.UtableData = json.data.data.data;
+          this.Utotal = json.data.data.count;
         } else {
           this.$message.error("加载数据失败");
         }
@@ -236,7 +278,7 @@ export default {
           standard: 2,
         };
       }
-      get("/Admin/Piggybank/getPiggybankOrderDateList", ServerWhere, json => {
+      get("/Admin/Piggybank/getUBPiggybankOrderDateList", ServerWhere, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.BtableData = json.data.data.data;
@@ -286,6 +328,28 @@ export default {
       }
       this.getListData(this.PageSearchWhere); //刷新列表
     },
+    UlimitPaging(limit) {
+      //赋值当前条数
+      this.UpageSize = limit;
+      if (
+        this.UPageSearchWhere.limit &&
+        this.UPageSearchWhere.limit !== undefined
+      ) {
+        this.UPageSearchWhere.limit = limit;
+      }
+      this.getUListData(this.UPageSearchWhere); //刷新列表
+    },
+    UskipPaging(page) {
+      //赋值当前页数
+      this.UcurrPage = page;
+      if (
+        this.UPageSearchWhere.page &&
+        this.UPageSearchWhere.page !== undefined
+      ) {
+        this.UPageSearchWhere.page = page;
+      }
+      this.getUListData(this.UPageSearchWhere); //刷新列表
+    },
     BlimitPaging(limit) {
       //赋值当前条数
       this.BpageSize = limit;
@@ -306,7 +370,7 @@ export default {
       ) {
         this.BPageSearchWhere.page = page;
       }
-      this.getBListData(this.PageSearchWhere); //刷新列表
+      this.getBListData(this.BPageSearchWhere); //刷新列表
     },
     submitForm(formName) {
         this.$refs[formName].validate((valid) => {
@@ -344,7 +408,6 @@ export default {
   },
   created() {
     this.getListData();
-    this.getBListData();
     this.UserAuthUid = localStorage.getItem("UserAuthUid");
   },
   components: {

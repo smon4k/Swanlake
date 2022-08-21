@@ -17,6 +17,7 @@ use think\Db;
 use RequestService\RequestService;
 use hbdm\hbdm;
 use okex\okv5;
+use app\admin\model\Piggybank;
 
 class Okx extends Base
 {
@@ -269,13 +270,28 @@ class Okx extends Base
             $totalAssets = $btcValuation + $usdtValuation;
             
             //获取总的利润
-            $countProfit = Db::where('product_name', $transactionCurrency)->name('okx_piggybank')->sum('profit');
+            $countProfit = Piggybank::getUStandardProfit($product_name); //获取总的利润 网格利润
+            $dayProfit = Piggybank::getUStandardProfit($product_name, $date); //获取总的利润 网格利润
             $date = date('Y-m-d');
             $data = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->find();
             if($data && count((array)$data) > 0) {
-                $res = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->update(['count_market_value'=>$totalAssets, 'grid_spread' => $countProfit]);
+                $upData = [
+                    'count_market_value'=>$totalAssets, 
+                    'grid_spread' => $countProfit,
+                    'grid_day_spread' => $dayProfit,
+                    'up_time' => date('Y-m-d H:i:s')
+                ];
+                $res = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->update($upData);
             } else {
-                $res = Db::name('okx_piggybank_date')->insertGetId(['product_name' => $transactionCurrency, 'date'=>$date, 'count_market_value'=>$totalAssets, 'grid_spread' => $countProfit]);
+                $insertData = [
+                    'product_name' => $transactionCurrency, 
+                    'date'=>$date, 
+                    'count_market_value'=>$totalAssets, 
+                    'grid_spread' => $countProfit,
+                    'grid_day_spread' => $dayProfit,
+                    'up_time' => date('Y-m-d H:i:s')
+                ];
+                $res = Db::name('okx_piggybank_date')->insertGetId($insertData);
             }
             if($res !== false) {
                 return true;

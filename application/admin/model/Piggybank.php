@@ -84,7 +84,7 @@ class Piggybank extends Base
     }
 
     /**
-    * 获取每日统计数据
+    * 获取存钱罐每日统计数据
     * @param  [post] [description]
     * @return [type] [description]
     * @author [qinlh] [WeChat QinLinHui0706]
@@ -111,31 +111,44 @@ class Piggybank extends Base
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
+
+    /**
+    * 获取U币本位统计数据
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public static function getUBPiggybankDateList($page, $where, $limits=0) {
+        if($limits == 0) {
+            $limits = config('paginate.list_rows');// 获取总条数
+        }
+        // p($where);
+        $count = self::name("okx_piggybank_currency_date")
+                    ->alias("a")
+                    ->where($where)
+                    ->count();//计算总页面
+        // p($count);
+        $allpage = intval(ceil($count / $limits));
+        $lists = self::name("okx_piggybank_currency_date")
+                    ->alias("a")
+                    ->where($where)
+                    ->page($page, $limits)
+                    ->field('a.*')
+                    ->order("id desc")
+                    ->select()
+                    ->toArray();
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
     
     /**
      * 出入金计算
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function calcDepositAndWithdrawal($product_name='', $direction=0, $amount='', $remark='') {
+    public static function calcDepositAndWithdrawal($product_name='', $direction=0, $amount=0, $remark='') {
         $date = date('Y-m-d');
-        $totalAssets = 0;
-        $balanceDetails = Okx::getTradeValuation($product_name);
-        $totalAssets = $balanceDetails['btcValuation'] + $balanceDetails['usdtValuation']; //总市值
-
-        $countProfit = self::getUStandardProfit($product_name); //获取总的利润 网格利润
-        $dayProfit = self::getUStandardProfit($product_name, $date); //获取总的利润 网格利润
         
-        $UstandardPrincipal = self::getPiggybankStandard(1); //U本位总本金
-        $BstandardPrincipal = self::getPiggybankStandard(2); //币本位总本金
-        $marketIndexTickers = Okx::fetchMarketIndexTickers($product_name); //获取交易BTC价格
-        $btcPrice = 0;
-        if($marketIndexTickers && $marketIndexTickers['idxPx'] > 0) {
-            $btcPrice = (float)$marketIndexTickers['idxPx'];
-        }
-        $UinsertData = [];
-        $BinsertData = [];
-
         //本金
         $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
         if($direction == 1) {
@@ -149,8 +162,9 @@ class Piggybank extends Base
             $countUstandardPrincipal = (float)$total_balance - (float)$amount;
             $countBstandardPrincipal = ((float)$total_balance / $btcPrice) - ((float)$amount / $btcPrice);
         }
-
+        
         //总结余
+        $balanceDetails = Okx::getTradeValuation($product_name);
         $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余
         $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtValuation']; //币本位总结余
         
@@ -160,60 +174,48 @@ class Piggybank extends Base
 
         self::startTrans();
         try { 
-            $URes = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
+            $URes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
             if($URes && count((array)$URes) > 0) {
                 $upDataU = [
-                    'count_market_value' => $totalAssets,
-                    'grid_spread' => $countProfit,
-                    'grid_day_spread' => $dayProfit,
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
                     'profit' => $UProfit,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
-                $saveUres = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update($upDataU);
+                $saveUres = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update($upDataU);
             } else {
                 $insertDataU = [
                     'product_name' => $product_name,
                     'standard' => 1,
                     'date' => $date,
-                    'count_market_value' => $totalAssets,
-                    'grid_spread' => $countProfit,
-                    'grid_day_spread' => $dayProfit,
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
                     'profit' => $UProfit,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
-                $saveUres = self::name('okx_piggybank_date')->insertGetId($insertDataU);
+                $saveUres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataU);
             }
             if($saveUres !== false) {
-                $BRes = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->find();
+                $BRes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->find();
                 if($BRes && count((array)$BRes) > 0) {
                     $upDataB = [
-                        'count_market_value' => $totalAssets,
-                        'grid_spread' => $countProfit,
-                        'grid_day_spread' => $dayProfit,
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
                         'profit' => $BProfit,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
-                    $saveBres = self::name('okx_piggybank_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update($upDataB);
+                    $saveBres = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update($upDataB);
                 } else {
                     $insertDataB = [
                         'product_name' => $product_name,
                         'standard' => 2,
                         'date' => $date,
-                        'count_market_value' => $totalAssets,
-                        'grid_spread' => $countProfit,
-                        'grid_day_spread' => $dayProfit,
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
                         'profit' => $BProfit,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
-                    $saveBres = self::name('okx_piggybank_date')->insertGetId($insertDataB);
+                    $saveBres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataB);
                 }
                 if($saveBres !== false) {
                     $isIntOut = self::setInoutGoldRecord($amount, $direction, $remark);
@@ -239,7 +241,7 @@ class Piggybank extends Base
     public static function getPiggybankStandard($standard=0) {
         if($standard > 0) {
             $date = date('Y-m-d');
-            $total = self::name('okx_piggybank_date')->where(['standard' => $standard, 'date' => ['<>', $date]])->sum('principal');
+            $total = self::name('okx_piggybank_currency_date')->where(['standard' => $standard, 'date' => ['<>', $date]])->sum('principal');
             if($total) {
                 return $total;
             }
@@ -261,7 +263,7 @@ class Piggybank extends Base
             $end_date = $date . ' 23:59:59';
             $where['time'] = ['between time', [$start_date, $end_date]];
         }
-        $data = self::name('okx_piggybank')->where(['pair'=> ['>', 0], 'product_name' => $product_name])->select()->toArray();
+        $data = self::name('okx_piggybank')->where($where)->select()->toArray();
         if($data) {
             $newArray = [];
             foreach ($data as $key => $val) {

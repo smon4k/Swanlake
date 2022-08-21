@@ -42,7 +42,7 @@ class PiggybankController extends BaseController
     }
 
     /**
-    * 获取每日统计数据
+    * 获取存钱罐每日统计数据
     * @param  [post] [description]
     * @return [type] [description]
     * @author [qinlh] [WeChat QinLinHui0706]
@@ -52,10 +52,31 @@ class PiggybankController extends BaseController
         $limits = $request->request('limit', 1, 'intval');
         $product_name = $request->request('product_name', '', 'trim');
         $order_number = $request->request('order_number', '', 'trim');
+        // $standard = $request->request('standard', 0, 'intval');
+        $where = [];
+        // $where['standard'] = $standard;
+        $data = Piggybank::getPiggybankDateList($page, $where, $limits);
+        $count = $data['count'];
+        $allpage = $data['allpage'];
+        $lists = $data['lists'];
+        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+    }
+
+    /**
+    * 获取存钱罐每日统计数据
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public function getUBPiggybankOrderDateList(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 1, 'intval');
+        $product_name = $request->request('product_name', '', 'trim');
+        $order_number = $request->request('order_number', '', 'trim');
         $standard = $request->request('standard', 0, 'intval');
         $where = [];
         $where['standard'] = $standard;
-        $data = Piggybank::getPiggybankDateList($page, $where, $limits);
+        $data = Piggybank::getUBPiggybankDateList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
         $lists = $data['lists'];
