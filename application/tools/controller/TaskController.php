@@ -10,6 +10,7 @@ use app\api\model\TaskContract;
 use app\api\model\User;
 use app\api\model\MyProduct;
 use app\api\model\DayNetworth;
+use app\admin\model\Piggybank;
 use ClassLibrary\ClFieldVerify;
 use ClassLibrary\CLFfmpeg;
 use ClassLibrary\CLFile;
@@ -155,6 +156,20 @@ class TaskController extends ToolsBaseController
         $begin_time = time();
 
         Okx::piggybankDate();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+     /**
+     * Okx 出入金 币种统计
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function calcDepositAndWithdrawal() {
+        $begin_time = time();
+
+        $transactionCurrency = "BTC-USDT"; //交易币种
+        Piggybank::calcDepositAndWithdrawal($transactionCurrency, 1, 0);
 
         return (time() - $begin_time) . "s\n";
     }
