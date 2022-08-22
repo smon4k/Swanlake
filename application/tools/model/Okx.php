@@ -100,8 +100,8 @@ class Okx extends Base
                             // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
                             $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs('$theDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
-                            $pairId = 0;
-                            if($res && count((array)$res) > 0) { //计算利润
+                            $pairId = 0; //配对ID
+                            if($res && count((array)$res) > 0 && $btcPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
                                 $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ($clinch_number * $btcPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
@@ -131,8 +131,8 @@ class Okx extends Base
                             Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if ($insertId) {
-                                if(isset($res[0]) && $res[0]['id'] > 0) {
-                                    $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->update(['pair' => $res[0]['id'], 'profit' => $profit]);
+                                if(isset($pairId) && $pairId > 0) {
+                                    $isPair = Db::name('okx_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
                                     if ($isPair) {
                                         Db::commit();
                                         return true;
@@ -171,7 +171,7 @@ class Okx extends Base
                             $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=2 AND pair = 0 ORDER BY abs('$theDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             $pairId = 0;
-                            if($res && count((array)$res) > 0) { //计算利润
+                            if($res && count((array)$res) > 0 && $btcPrice < $res[0]['price']) { //计算利润
                                 $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $btcPrice);
@@ -201,8 +201,8 @@ class Okx extends Base
                             Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if($insertId) {
-                                if (isset($res[0]) && $res[0]['id'] > 0) {
-                                    $isPair = Db::name('okx_piggybank')->where('id', $res[0]['id'])->update(['pair' => $res[0]['id'], 'profit' => $profit]);
+                                if (isset($pairId) && $pairId > 0) {
+                                    $isPair = Db::name('okx_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
                                     if ($isPair) {
                                         Db::commit();
                                         return true;
@@ -270,7 +270,7 @@ class Okx extends Base
             $totalAssets = $btcValuation + $usdtValuation;
             
             $date = date('Y-m-d');
-            
+
             //获取总的利润
             $countProfit = Piggybank::getUStandardProfit($transactionCurrency); //获取总的利润 网格利润
             $dayProfit = Piggybank::getUStandardProfit($transactionCurrency, $date); //获取总的利润 网格利润
