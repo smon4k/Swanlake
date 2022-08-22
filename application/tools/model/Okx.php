@@ -98,7 +98,7 @@ class Okx extends Base
                             $isPair = false;
                             $profit = 0;
                             // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
-                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY abs('$theDealPrice'-`price`) LIMIT 1;";
+                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY `time` DESC,abs('$theDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             $pairId = 0; //配对ID
                             if($res && count((array)$res) > 0 && $btcPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
@@ -168,7 +168,7 @@ class Okx extends Base
                             }
                             $isPair = false;
                             $profit = 0;
-                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=2 AND pair = 0 ORDER BY abs('$theDealPrice'-`price`) LIMIT 1;";
+                            $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$theDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             $pairId = 0;
                             if($res && count((array)$res) > 0 && $btcPrice < $res[0]['price']) { //计算利润
