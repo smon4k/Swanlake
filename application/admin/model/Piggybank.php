@@ -227,8 +227,13 @@ class Piggybank extends Base
                     $saveBres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataB);
                 }
                 if($saveBres !== false) {
-                    $isIntOut = self::setInoutGoldRecord($amount, $direction, $remark);
-                    if($isIntOut) {
+                    if($amount > 0) {
+                        $isIntOut = self::setInoutGoldRecord($amount, $direction, $remark);
+                        if($isIntOut) {
+                            self::commit();
+                            return true;
+                        }
+                    } else {
                         self::commit();
                         return true;
                     }
