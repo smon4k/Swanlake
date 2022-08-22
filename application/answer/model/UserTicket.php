@@ -257,7 +257,12 @@ class UserTicket extends Base
     public static function getUserTicketDetail($user_ticket_id=0) {
       try {
         if($user_ticket_id) {
-          $data = self::name('a_user_ticket')->where('a.id', $user_ticket_id)->alias('a')->join('s_a_ticket b', 'a.ticket_id=b.id')->field('a.ticket_id,a.time,a.insurance_amount,b.*')->find();
+          $data = self::name('a_user_ticket')
+                      ->where('a.id', $user_ticket_id)
+                      ->alias('a')
+                      ->join('s_a_ticket b', 'a.ticket_id=b.id')
+                      ->field('a.ticket_id,a.time,a.insurance_amount,a.buy_price,b.*')
+                      ->find();
         } else {
           $data = self::name('a_ticket')->where('id', 1)->field('*,id as ticket_id')->find();
         }

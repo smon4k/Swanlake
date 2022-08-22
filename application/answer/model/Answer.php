@@ -26,10 +26,24 @@ class Answer extends Base
      */
     public static function insertAnswerData($insertData=[]) {
         if($insertData) {
-            self::name('a_answer')->insert($insertData);
-            $insertId = self::name('a_answer')->getLastInsID();
-            if($insertId && $insertId > 0) {
-                return true;
+            $isRes = self::name('a_answer')->where(['user_id' => $insertData['user_id'], 'user_ticket_id' => $insertData['user_ticket_id'], 'date'=>$insertData['date'], 'is_relive' => 1])->find();
+            if($isRes && count((array)$isRes) > 0) { //如果已经复活
+                $updateData = [
+                    'score' => $insertData['score'], 
+                    'consuming' => $insertData['consuming'],
+                    'up_time' => date('Y-m-d H:i:s'),
+                    'is_relive' => 0,
+                ];
+                $res = self::name('a_answer')->where(['user_id' => $insertData['user_id'], 'user_ticket_id' => $insertData['user_ticket_id'], 'date'=>$insertData['date'], 'is_relive' => 1])->update($updateData);
+                if($res !== false) {
+                    return true;
+                }
+            } else {
+                $res = self::name('a_answer')->insert($insertData);
+                $insertId = self::name('a_answer')->getLastInsID();
+                if($insertId && $insertId > 0) {
+                    return true;
+                }
             }
         }
         return false;
@@ -47,11 +61,15 @@ class Answer extends Base
         if($userTicketId >= 0) {
             $data = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->find();
             if($data && count((array)$data) > 0) {
-                return 3;
-            } else {
+                if($data['is_relive'] == 1) { //用户已复活
+                    return 1;
+                } else { //今日已作答
+                    return 3;
+                }
+            } else { //今日未作答
                 return 1;
             }
-        } else {
+        } else { //用户没有门票
             return 2;
         }
     }
@@ -109,5 +127,35 @@ class Answer extends Base
             array_multisort($ages, SORT_DESC, $newArray);
             return ['count'=>$count,'allpage'=>$allpage,'lists'=>$newArray];
         }
+    }
+
+    /**
+     * 用户购买机会进行复活 重新作答
+     * @author qinlh
+     * @since 2022-08-22
+     */
+    public static function buyResurrection($address='') {
+        $date = date('Y-m-d');
+        $userId = User::getUserAddress($address);
+        $userTicketId = UserTicket::getUserStartTicket($userId);
+        if($userTicketId >= 0) {
+            self::startTrans();
+            try {
+                $isUpdate = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->setField('is_relive', 1);
+                if($isUpdate !== false) {
+                    $isUpUserBalance = User::setUserLocalBalance($address, config('award_config.resurrection'), 2);
+                    if($isUpUserBalance) {
+                        self::commit();
+                        return true;
+                    }
+                }
+                self::rollback();
+                return false;
+            } catch (PDOException $e) {
+                self::rollback();
+                return false;
+            }
+        }
+        return false;
     }
 }

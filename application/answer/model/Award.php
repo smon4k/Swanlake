@@ -29,7 +29,16 @@ class Award extends Base
             $timeRes = self::getDateTime();
             $res = self::name('a_award')->where(['date'=>$timeRes, 'user_id' => $userId, 'user_ticket_id' => $userTicketId])->find();
             if($res) {
-                $isRes = self::name('a_award')->where(['date'=>$timeRes, 'user_id' => $userId, 'user_ticket_id' => $userTicketId])->update(['question_num' => $question_num, 'score' => $score, 'award_num' => $award_num]);
+                $updateData = [
+                    'question_num' => $question_num,
+                    'score' => $score, 
+                    'award_num' => (float)$res['award_num'] + $award_num,
+                ];
+                $isRes = self::name('a_award')->where([
+                    'date'=>$timeRes, 
+                    'user_id' => $userId, 
+                    'user_ticket_id' => $userTicketId
+                ])->update($updateData);
             } else {
                 $insertData = [
                     'user_id' => $userId,
@@ -43,7 +52,7 @@ class Award extends Base
                 ];
                 $isRes = self::name('a_award')->insertGetId($insertData);
             }
-            if ($isRes && $isRes !== false) {
+            if ($isRes !== false) {
                 return true;
             }
             return false;

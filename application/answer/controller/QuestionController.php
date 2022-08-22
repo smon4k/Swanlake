@@ -89,8 +89,26 @@ class QuestionController extends BaseController
         if ($address == '' || count((array)$answers) <= 0 || $language == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = Question::calcQuestionAnswer($address, $answers, $times, $language);
+        $result = Question::calcQuestionAnswer($address, $answers, $times, $language, $is_relive);
         return $this->as_json($result);
+    }
+
+    /**
+     * 购买复活机会重新作答
+     * @author qinlh
+     * @since 2022-08-22
+     */
+    public function buyResurrection(Request $request) {
+        $address = $request->request('address', '', 'trim');
+        if ($address == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = Answer::buyResurrection($address);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, '购买失败');
+        }
     }
 
     /**

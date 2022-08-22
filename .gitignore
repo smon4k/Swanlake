@@ -19,3 +19,5 @@ database.php
 /.env
 /public/upload
 /runtime
+/runtime/cache
+

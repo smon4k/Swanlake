@@ -345,7 +345,7 @@ class User extends Base
      */
     public static function setUserCurrencyLocalBalance($address='', $amount=0, $type=0, $currency='')
     {
-        if ($address && $address !== '' && $amount > 0 && $type > 0 && $currency !== '') {
+        if ($address && $address !== '' && $amount >= 0 && $type > 0 && $currency !== '') {
             self::startTrans();
             try {
                 $field = $currency . "_local_balance";
@@ -357,9 +357,9 @@ class User extends Base
                     if ($type == 2) {
                         $res = self::where('address', $address)->setDec($field, $amount);
                     }
-                    if ($res) {
+                    if ($res !== false) {
                         self::commit();
-                        return true;
+                        return true;    
                     }
                 }
                 self::rollback();
