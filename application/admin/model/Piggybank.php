@@ -62,7 +62,7 @@ class Piggybank extends Base
             $price = 0;
             $profit = $val[0]['profit'];
             if(isset($val[1]) && count((array)$val[1]) > 1) {
-                $price = $val[0]['price'] -  $val[1]['price'];
+                $price = abs($val[0]['price'] -  $val[1]['price']);
             } else {
                 $price = $val[0]['price'];
             }
