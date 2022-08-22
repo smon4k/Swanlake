@@ -30,21 +30,37 @@ class Ticket extends Base
             // $limit = 10;
             $data = self::name('a_ticket')
                         ->alias("a")
+                        ->join('a_ticket_discount b', 'a.id=b.ticket_id', 'LEFT')
                         ->where($where)
-                        ->field("a.*")
+                        ->field("a.*,b.price as discount_price, b.start_time,b.end_time")
                         ->limit($limit)
                         ->order("a.id asc")
-                        ->select();
+                        ->select()
+                        ->toArray();
             if ($data == array()) {
                 return json_encode(['code'=>1005,'msg'=>'Query Data Error']);
             }
             if (false == $data) {
                 return ['code'=>1003,'msg'=>'Query Error'];
             }
-            // p($data->toArray());
-            // $base = new BaseModel();
-            // $arr = $base->RecursionTree($data,0,"comment_id","leave_pid");
-            // p($arr->toArray());
+            $time = time();
+            foreach ($data as $key => $val) {
+                $data[$key]['is_discount'] = 0;
+                if($val['discount_price'] && $val['discount_price'] > 0) { //折扣活动
+                    $data[$key]['is_discount'] = 1;
+                    $start_time = strtotime($val['start_time']);
+                    $end_time = strtotime($val['end_time']);
+                    if($start_time > $time && $end_time > $time) { //未开始
+                        $data[$key]['discount_status'] = 1;
+                    } else if($start_time < $time && $end_time > $time) { //进行中
+                        $data[$key]['discount_status'] = 2;
+                    } else if($time > $start_time && $time > $end_time) { //已结束
+                        $data[$key]['discount_status'] = 3;
+                    } else { //未知状态
+                        $data[$key]['discount_status'] = 0;
+                    }
+                }
+            }
             return ['code'=>1001,'lists'=>$data,'msg'=>'Query Success'];
         } catch (PDOException $e) {
             return ['code' => 0, 'data' => '', 'msg' => $e->getMessage()];
@@ -61,12 +77,36 @@ class Ticket extends Base
     {
         try {
             if ($ticketId) {
-                $data = self::name('a_ticket')->where('id', $ticketId)->find();
+                $data = self::name('a_ticket')
+                            ->alias("a")
+                            ->join('a_ticket_discount b', 'a.id=b.ticket_id', 'LEFT')
+                            ->where('a.id', $ticketId)
+                            ->field("a.*,b.price as discount_price, b.start_time,b.end_time")
+                            ->find();
             } else {
                 $data = self::name('a_ticket')->where('id', 1)->find();
             }
+            $time = time();
             if ($data && count((array)$data) > 0) {
-                return $data->toArray();
+                $returnData = $data->toArray();
+                $returnData['is_discount'] = 0;
+                $returnData['new_price'] = $data['price'];
+                if($returnData['discount_price'] && $returnData['discount_price'] > 0) { //折扣活动
+                    $returnData['is_discount'] = 1;
+                    $start_time = strtotime($returnData['start_time']);
+                    $end_time = strtotime($returnData['end_time']);
+                    if($start_time > $time && $end_time > $time) { //未开始
+                        $returnData['discount_status'] = 1;
+                    } else if($start_time < $time && $end_time > $time) { //进行中
+                        $returnData['discount_status'] = 2;
+                        $returnData['new_price'] = $data['discount_price'];
+                    } else if($time > $start_time && $time > $end_time) { //已结束
+                        $returnData['discount_status'] = 3;
+                    } else { //未知状态
+                        $returnData['discount_status'] = 0;
+                    }
+                }
+                return $returnData;
             }
             return [];
         } catch (PDOException $e) {

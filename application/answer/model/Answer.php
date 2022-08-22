@@ -44,7 +44,7 @@ class Answer extends Base
         $date = date('Y-m-d');
         $userId = User::getUserAddress($address);
         $userTicketId = UserTicket::getUserStartTicket($userId);
-        if($userTicketId) {
+        if($userTicketId >= 0) {
             $data = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->find();
             if($data && count((array)$data) > 0) {
                 return 3;

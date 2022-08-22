@@ -25,7 +25,7 @@ class Award extends Base
      */
     public static function setTodayUserAwardInfo($userId=0, $userTicketId=0, $question_num=0, $score=0, $award_num=0)
     {
-        if ($userId > 0 && $userTicketId > 0) {
+        if ($userId > 0) {
             $timeRes = self::getDateTime();
             $res = self::name('a_award')->where(['date'=>$timeRes, 'user_id' => $userId, 'user_ticket_id' => $userTicketId])->find();
             if($res) {

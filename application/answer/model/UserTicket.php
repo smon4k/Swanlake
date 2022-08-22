@@ -33,6 +33,7 @@ class UserTicket extends Base
             $userInfo = UserV2::getUserInfoOne($userId);
             $ticketInfo = Ticket::getTicketDetail($ticket_id);
             // p($userId);
+            $buyPrice = (float)$ticketInfo['new_price'];
             self::startTrans();
             try {
                 $userTicketNum = self::getUserTicketNum($userId);
@@ -40,6 +41,7 @@ class UserTicket extends Base
                   'user_id' => $userId,
                   'ticket_id' => $ticket_id,
                   'insurance_amount' => $insurance_amount,
+                  'buy_price' => $buyPrice,
                   'time' => date('Y-m-d H:i:s'),
                   'state' => 1,
                   'is_start' => $userTicketNum <= 0 ? 1 : 0,
@@ -47,18 +49,17 @@ class UserTicket extends Base
                 self::name('a_user_ticket')->insert($insertData);
                 $insertId = self::name('a_user_ticket')->getLastInsID();
                 if($insertId) {
-                    $buyPrice = (float)$ticketInfo['price'];
                     if($insurance_amount > 0) {
-                      $buyPrice = (float)$ticketInfo['price'] + ((float)$ticketInfo['price'] * ((float)$insurance_amount / 100)); //计算购买USDT数量
+                      $clinchPrice = $buyPrice + ($buyPrice * ((float)$insurance_amount / 100)); //计算购买USDT数量
                     } else {
-                      $buyPrice = (float)$ticketInfo['price'];
+                      $clinchPrice = $buyPrice;
                     }
-                    $params = [
-                        'address' => $userInfo['address'],
-                        'amount' => $buyPrice,
-                        'type' => 2,
-                    ];
-                    $dataArr = UserV2::setUserLocalBalance($userInfo['address'], $buyPrice, 2, false);
+                    // $params = [
+                    //     'address' => $userInfo['address'],
+                    //     'amount' => $buyPrice,
+                    //     'type' => 2,
+                    // ];
+                    $dataArr = UserV2::setUserLocalBalance($userInfo['address'], $clinchPrice, 2, false);
                     // p($dataArr);
                     // $dataArr = json_decode($response_string, true);
                     if($dataArr) {
@@ -70,7 +71,8 @@ class UserTicket extends Base
                           'ticket_id' => $ticket_id,
                           'insurance_amount' => $insurance_amount,
                           'is_start' => $userTicketNum <= 0 ? 1 : 0,
-                          'price' => $buyPrice,
+                          'buy_price' => $buyPrice,
+                          'price' => $clinchPrice,
                           'type' => 1,
                         ];
                         @Ticket::addTicketLogData($ticket_id, $userId, $insertId, $buyPrice, $logArray, 1, "购买门票");
@@ -109,7 +111,7 @@ class UserTicket extends Base
           }
           try {
               if($userTicketInfo['insurance_amount'] > 0) {
-                $redemptionPrice = (float)$userTicketInfo['price'] * ((float)$userTicketInfo['insurance_amount'] * 10 / 100); //计算赎回USDT数量
+                $redemptionPrice = (float)$userTicketInfo['buy_price'] * ((float)$userTicketInfo['insurance_amount'] * 10 / 100); //计算赎回USDT数量
               }
               $dataArr = UserV2::setUserLocalBalance($userInfo['address'], $redemptionPrice, 1, false);
               // $dataArr = json_decode($response_string, true);

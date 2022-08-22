@@ -109,8 +109,12 @@ class Question extends Base
                     $answerRes = Answer::insertAnswerData($insertUserAnswer);
                     if($answerRes) {
                         //开始分配奖励
-                        $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
-                        $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num);
+                        if($userTicketId > 0) { //如果有门票
+                            $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
+                            $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num);
+                        } else { //如果没有门票
+                            $award_num = self::getAwardNumConfig(0, $num);
+                        }
                         $awardRes = Award::setTodayUserAwardInfo($userId, $userTicketId, $num, $score, $award_num);
                         if($awardRes) {
                             $isUserBalance = User::setUserCurrencyLocalBalance($address, $award_num, 1, 'h2o');
@@ -132,31 +136,53 @@ class Question extends Base
 
     /**
      * 根据答对题目数量获取奖励
-     * 答对1道题就给70%，答对2到80%；答对3到90%，答对4道95%，答对5道题给100%
+     * // 答对1道题就给70%，答对2到80%；答对3到90%，答对4道95%，答对5道题给100%
+     * 完成答题奖励80%，全部答对5道题给100%
      * @author qinlh
      * @since 2022-08-12
      */
     public static function getAwardNumConfig($capped=0, $num=0) {
         $award_num = 0;
-        if($capped > 0 && $num > 0) {
+        if($capped && $capped > 0) {
             switch ($num) {
                 case '1':
-                    $award_num = $capped * 0.7;
+                    $award_num = $capped * 0.8;
                     break;
                 case '2':
                     $award_num = $capped * 0.8;
                     break;
                 case '3':
-                    $award_num = $capped * 0.9;
+                    $award_num = $capped * 0.8;
                     break;
                 case '4':
-                    $award_num = $capped * 0.95;
+                    $award_num = $capped * 0.8;
                     break;
                 case '5':
                     $award_num = $capped * 1;
                     break;
                 default:
-                    $award_num = $capped * 1;
+                    $award_num = $capped * 0;
+                    break;
+            }
+        } else {
+            switch ($num) {
+                case '1':
+                    $award_num = 0.01;
+                    break;
+                case '2':
+                    $award_num = 0.01;
+                    break;
+                case '3':
+                    $award_num = 0.01;
+                    break;
+                case '4':
+                    $award_num = 0.01;
+                    break;
+                case '5':
+                    $award_num = 0.1;
+                    break;
+                default:
+                    $award_num = 0;
                     break;
             }
         }

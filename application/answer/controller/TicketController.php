@@ -42,7 +42,7 @@ class TicketController extends BaseController
         //     return $this->as_json('70001', 'Missing parameters');
         // }
         $where = [];
-        $where['state'] = 1;
+        $where['a.state'] = 1;
         $order = '';
         $result = Ticket::getTicketList($where, $page, $limit, $order);
         return $this->as_json($result);

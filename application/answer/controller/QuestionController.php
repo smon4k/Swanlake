@@ -85,6 +85,7 @@ class QuestionController extends BaseController
         $answers = $request->post('answers/a', '', []);
         $times = $request->post('times', '', 'trim');
         $language = $request->post('language', 'zh', 'trim');
+        $is_relive = $request->post('is_relive', 0, 'intval');
         if ($address == '' || count((array)$answers) <= 0 || $language == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
