@@ -138,12 +138,14 @@ class Answer extends Base
         $date = date('Y-m-d');
         $userId = User::getUserAddress($address);
         $userTicketId = UserTicket::getUserStartTicket($userId);
+        $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
+        $consumeNum = (float)$ticketDetails['capped'] * (float)config('award_config.resurrection');
         if($userTicketId >= 0) {
             self::startTrans();
             try {
                 $isUpdate = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->setField('is_relive', 1);
                 if($isUpdate !== false) {
-                    $isUpUserBalance = User::setUserLocalBalance($address, config('award_config.resurrection'), 2);
+                    $isUpUserBalance = User::setUserCurrencyLocalBalance($address, $consumeNum, 2, 'h2o');
                     if($isUpUserBalance) {
                         self::commit();
                         return true;

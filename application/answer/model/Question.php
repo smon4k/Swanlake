@@ -111,9 +111,13 @@ class Question extends Base
                     $answerRes = Answer::insertAnswerData($insertUserAnswer);
                     if($answerRes) {
                         //开始分配奖励
+                        $is_possible_resurrection = 0; //是否可以复活 有门票才可以复活
+                        $consumeNumber = 0; //复活消耗Token数量
                         if($userTicketId > 0) { //如果有门票
+                            $is_possible_resurrection = 1;
                             $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
                             $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
+                            $consumeNumber = (float)$ticketDetails['capped'] * (float)config('award_config.resurrection'); //获取复活消耗Token数量 5%
                         } else { //如果没有门票
                             $award_num = self::getAwardNumConfig(0, $num, $is_relive);
                         }
@@ -122,7 +126,13 @@ class Question extends Base
                             $isUserBalance = User::setUserCurrencyLocalBalance($address, $award_num, 1, 'h2o');
                             if($isUserBalance) {
                                 self::commit();
-                                return ['correct_num' => $num, 'score' => $score, 'times' => $times];
+                                return [
+                                    'correct_num' => $num,
+                                    'score' => $score, 
+                                    'times' => $times, 
+                                    'is_possible_resurrection' => $is_possible_resurrection,
+                                    'consumeNumber' => $consumeNumber
+                                ];
                             }
                         }
                     }
@@ -147,25 +157,25 @@ class Question extends Base
         $award_num = 0;
         if($is_relive) { //如果是复活作答
             if($num == 5) {
-                $award_num = $capped * 0.2;
+                $award_num = config('award_config.resurrection_award');
             }
         } else {
             if($capped && $capped > 0) {
                 switch ($num) {
                     case '1':
-                        $award_num = $capped * 0.8;
+                        $award_num = $capped * config('award_config.award_completed');
                         break;
                     case '2':
-                        $award_num = $capped * 0.8;
+                        $award_num = $capped * config('award_config.award_completed');
                         break;
                     case '3':
-                        $award_num = $capped * 0.8;
+                        $award_num = $capped * config('award_config.award_completed');
                         break;
                     case '4':
-                        $award_num = $capped * 0.8;
+                        $award_num = $capped * config('award_config.award_completed');
                         break;
                     case '5':
-                        $award_num = $capped * 1;
+                        $award_num = $capped * config('award_config.all_award_correct');
                         break;
                     default:
                         $award_num = $capped * 0;
@@ -174,19 +184,19 @@ class Question extends Base
             } else {
                 switch ($num) {
                     case '1':
-                        $award_num = 0.01;
+                        $award_num = config('award_config.no_ticket_award_completed_num');
                         break;
                     case '2':
-                        $award_num = 0.01;
+                        $award_num = config('award_config.no_ticket_award_completed_num');
                         break;
                     case '3':
-                        $award_num = 0.01;
+                        $award_num = config('award_config.no_ticket_award_completed_num');
                         break;
                     case '4':
-                        $award_num = 0.01;
+                        $award_num = config('award_config.no_ticket_award_completed_num');
                         break;
                     case '5':
-                        $award_num = 0.1;
+                        $award_num = config('award_config.no_ticket_award_correct_num');
                         break;
                     default:
                         $award_num = 0;
