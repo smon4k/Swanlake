@@ -32,7 +32,7 @@ class Ticket extends Base
                         ->alias("a")
                         ->join('a_ticket_discount b', 'a.id=b.ticket_id', 'LEFT')
                         ->where($where)
-                        ->field("a.*,b.price as discount_price, b.start_time,b.end_time")
+                        ->field("a.*,b.price as discount_price,b.discount, b.start_time,b.end_time")
                         ->limit($limit)
                         ->order("a.id asc")
                         ->select()
