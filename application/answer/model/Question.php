@@ -116,14 +116,16 @@ class Question extends Base
                         if($userTicketId > 0) { //如果有门票
                             $is_possible_resurrection = 1;
                             $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
-                            $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
+                            // $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
+                            $awardConfig = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
                             $consumeNumber = (float)$ticketDetails['capped'] * (float)config('award_config.resurrection'); //获取复活消耗Token数量 5%
                         } else { //如果没有门票
-                            $award_num = self::getAwardNumConfig(0, $num, $is_relive);
+                            $ticketDetails = UserTicket::getUserTicketDetail(0);
+                            $awardConfig = self::getAwardNumConfig(0, $num, $is_relive);
                         }
-                        $awardRes = Award::setTodayUserAwardInfo($userId, $userTicketId, $num, $score, $award_num);
+                        $awardRes = Award::setTodayUserAwardInfo($userId, $userTicketId, $num, $score, $awardConfig['award_num']);
                         if($awardRes) {
-                            $isUserBalance = User::setUserCurrencyLocalBalance($address, $award_num, 1, 'h2o');
+                            $isUserBalance = User::setUserCurrencyLocalBalance($address, $awardConfig['award_num'], 1, 'h2o');
                             if($isUserBalance) {
                                 self::commit();
                                 return [
@@ -131,7 +133,10 @@ class Question extends Base
                                     'score' => $score, 
                                     'times' => $times, 
                                     'is_possible_resurrection' => $is_possible_resurrection,
-                                    'consumeNumber' => $consumeNumber
+                                    'consumeNumber' => $consumeNumber,
+                                    'capped_num' => (float)$ticketDetails['capped'], //总的门票名义奖励值 分配奖励总数
+                                    'award_num' => $awardConfig['award_num'], //分配奖励数量
+                                    'award_rate' => $awardConfig['award_rate'], //分配奖励比例
                                 ];
                             }
                         }
@@ -155,27 +160,34 @@ class Question extends Base
      */
     public static function getAwardNumConfig($capped=0, $num=0, $is_relive=0) {
         $award_num = 0;
+        $award_rate = 0;
         if($is_relive) { //如果是复活作答
             if($num == 5) {
                 $award_num = config('award_config.resurrection_award');
+                $award_rate = config('award_config.resurrection_award') * 100;
             }
         } else {
             if($capped && $capped > 0) {
                 switch ($num) {
                     case '1':
                         $award_num = $capped * config('award_config.award_completed');
+                        $award_rate = config('award_config.award_completed') * 100;
                         break;
                     case '2':
                         $award_num = $capped * config('award_config.award_completed');
+                        $award_rate = config('award_config.award_completed') * 100;
                         break;
                     case '3':
                         $award_num = $capped * config('award_config.award_completed');
+                        $award_rate = config('award_config.award_completed') * 100;
                         break;
                     case '4':
                         $award_num = $capped * config('award_config.award_completed');
+                        $award_rate = config('award_config.award_completed') * 100;
                         break;
                     case '5':
                         $award_num = $capped * config('award_config.all_award_correct');
+                        $award_rate = config('award_config.all_award_correct') * 100;
                         break;
                     default:
                         $award_num = $capped * 0;
@@ -185,25 +197,31 @@ class Question extends Base
                 switch ($num) {
                     case '1':
                         $award_num = config('award_config.no_ticket_award_completed_num');
+                        $award_rate = config('award_config.no_ticket_award_completed_num') * 100;
                         break;
                     case '2':
                         $award_num = config('award_config.no_ticket_award_completed_num');
+                        $award_rate = config('award_config.no_ticket_award_completed_num') * 100;
                         break;
                     case '3':
                         $award_num = config('award_config.no_ticket_award_completed_num');
+                        $award_rate = config('award_config.no_ticket_award_completed_num') * 100;
                         break;
                     case '4':
                         $award_num = config('award_config.no_ticket_award_completed_num');
+                        $award_rate = config('award_config.no_ticket_award_completed_num') * 100;
                         break;
                     case '5':
                         $award_num = config('award_config.no_ticket_award_correct_num');
+                        $award_rate = config('award_config.no_ticket_award_correct_num') * 100;
                         break;
                     default:
                         $award_num = 0;
+                        $award_rate = 0;
                         break;
                 }
             }
         }
-        return $award_num;
+        return ['award_num' => $award_num, 'award_rate' => $award_rate];
     }
 }

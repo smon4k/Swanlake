@@ -75,6 +75,27 @@ class Answer extends Base
     }
 
     /**
+     * 获取用户门票ID是否今日是否作答
+     * @author qinlh
+     * @since 2022-08-24
+     */
+    public static function getUserTicketIdIsAnswer($userTicketId=0) {
+        if($userTicketId > 0) {
+            $date = date('Y-m-d');
+            $data = self::name('a_answer')->where(['user_ticket_id' => $userTicketId, 'date'=>$date])->find();
+            if($data && count((array)$data) > 0) {
+                if($data['is_relive'] == 1) { //用户已复活
+                    return 1;
+                } else { //今日已作答
+                    return 3;
+                }
+            } else { //今日未作答
+                return 1;
+            }
+        }
+    }
+
+    /**
      * 获取用户今日排行榜数据
      * @author qinlh
      * @since 2022-08-10

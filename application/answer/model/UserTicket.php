@@ -157,7 +157,8 @@ class UserTicket extends Base
         }
         $count = self::name('a_user_ticket')->alias('a')->join('s_a_ticket b', 'a.ticket_id = b.id')->where($where)->count();//计算总页面
         $allpage = intval(ceil($count / $limit));
-        $lists = self::name('a_user_ticket')->alias('a')
+        $lists = self::name('a_user_ticket')
+                    ->alias('a')
                     ->join('s_a_ticket b', 'a.ticket_id = b.id')
                     ->field("a.*,b.name,b.price,b.annualized,b.capped")
                     ->where($where)
@@ -169,26 +170,10 @@ class UserTicket extends Base
             ['count'=>0,'allpage'=>0,'lists'=>[]];
         }
         // p($lists);
-        // foreach ($lists as $key => $val) {
-        //     $awardArray = Awardv2::getUserTicketTodayAward($userId, $val['id']);
-        //     $browse_award = 0;
-        //     $comment_award = 0;
-        //     $like_award = 0;
-        //     $reward_award = 0;
-        //     if($awardArray && count((array)$awardArray) > 0) {
-        //       $browse_award = $awardArray['browse_num'] >= 0 ? $awardArray['browse_num'] * $awardArray['browse_amount'] : 0;
-        //       $comment_award = $awardArray['comment_num'] >= 0 ? $awardArray['comment_num'] * $awardArray['comment_amount'] : 0;
-        //       $like_award = $awardArray['like_num'] >= 0 ? $awardArray['like_num'] * $awardArray['like_amount'] : 0;
-        //       $reward_award = $awardArray['reward_num'] >= 0 ? $awardArray['reward_num'] * $awardArray['reward_amount'] : 0;
-        //     }
-        //     // p($awardArray);
-        //     $count_award = $browse_award + $comment_award + $like_award + $reward_award;
-        //     $lists[$key]['browse_award'] = $browse_award;
-        //     $lists[$key]['comment_award'] = $comment_award;
-        //     $lists[$key]['like_award'] = $like_award;
-        //     $lists[$key]['reward_award'] = $reward_award;
-        //     $lists[$key]['count_award'] = $count_award;
-        // }
+        foreach ($lists as $key => $val) {
+          $userTicketIsAnswer = Answer::getUserTicketIdIsAnswer($val['id']);
+          $lists[$key]['is_answer'] = $userTicketIsAnswer;
+        }
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
 
