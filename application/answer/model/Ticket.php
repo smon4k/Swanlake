@@ -175,6 +175,26 @@ class Ticket extends Base
     }
 
     /**
+     * 获取总的出售门票数量
+     * @author qinlh
+     * @since 2022-08-25
+     */
+    public static function getCountSellNumber() {
+        $count = self::name('a_ticket')->sum('sell_number');
+        return $count;
+    }
+
+    /**
+     * 获取年化平均值
+     * @author qinlh
+     * @since 2022-08-25
+     */
+    public static function getAnnualizedAvg() {
+        $num = self::name('a_ticket')->avg('annualized');
+        return $num;
+    }
+
+    /**
      * 添加日志操作记录数据
      * @author qinlh
      * @since 2022-07-30

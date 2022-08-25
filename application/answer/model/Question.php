@@ -65,10 +65,20 @@ class Question extends Base
             $userId = User::getUserAddress($address);
             $newAnswer = [];//用户选择的答案
             $questionIds = [];//题目id集
+            if(!$answers || count((array)$answers) < 0) {
+                return [
+                    'correct_num' => 0,
+                    'score' => 0, 
+                    'times' => $times, 
+                    'is_possible_resurrection' => 0,
+                    'consumeNumber' => 0,
+                ];
+            }
             foreach ($answers as $key => $val) {
                 $newAnswer[$val['id']] = $val['answer'];
                 $questionIds[] = $val['id'];
             }
+            // p($newAnswer);
             $questionAnswerList = self::getQuestionAnswer($language, $questionIds); //获取答案
             $num = 0; //答对题目数量
             $score = 0; //最后所得分数
@@ -93,6 +103,7 @@ class Question extends Base
                     'time' => date('Y-m-d H:i:s')
                 ];
             }
+            // p($insertUserAnswerDetails);
             //批量写入用户作答记录明细表数据
             if($insertUserAnswerDetails && count((array)$insertUserAnswerDetails) > 0) {
                 $rowRes = AnswerRecord::insertAllAnswerRecordData($insertUserAnswerDetails);

@@ -100,7 +100,7 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-10
      */
-    public static function getUserTodayLeaderboardList($where, $page, $limit, $order='id desc') {
+    public static function getUserTodayLeaderboardList($where, $times, $page, $limit, $order='id desc') {
         if ($limit <= 0) {
             $limit = config('paginate.list_rows');// 获取总条数
         }
@@ -109,7 +109,8 @@ class Answer extends Base
         $lists = self::name('a_answer')
                         ->alias('a')
                         ->join('s_user b', 'a.user_id=b.id')
-                        ->where($where)
+                        // ->where($where)
+                        ->whereTime('a.date', $times)
                         ->page($page, $limit)
                         ->order('a.time desc,a.score desc')
                         ->field('a.*,b.avatar,b.nickname')
@@ -120,12 +121,14 @@ class Answer extends Base
             foreach ($lists as $key => $val) {
                 $userArray[$val['user_id']][] = $val;
             }
-            // p($newArray);
+            // p($userArray);
             $newArray = [];
             foreach ($userArray as $key => $val) {
                 $count_score = 0;
                 $arr = [];
+                $numberAnswers = 0;
                 foreach ($val as $kk => $vv) {
+                    $numberAnswers ++;
                     $count_score += $vv['score'];
                     $arr['id'] = $vv['id'];
                     $arr['user_id'] = $vv['user_id'];
@@ -139,6 +142,8 @@ class Answer extends Base
                     }
                 }
                 $arr['score'] = $count_score;
+                $arr['number_answers'] = $numberAnswers;
+                $arr['award_num'] = Award::getUserDayCountAwardAmount($key);
                 $newArray[] = $arr;
                 // if(empty($val['avatar']) || $val['avatar'] == '') {
                 //     $lists[$key]['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
@@ -148,6 +153,29 @@ class Answer extends Base
             array_multisort($ages, SORT_DESC, $newArray);
             return ['count'=>$count,'allpage'=>$allpage,'lists'=>$newArray];
         }
+        return [];
+    }
+
+    /**
+     * 获取总的排行数据
+     * @author qinlh
+     * @since 2022-08-25
+     */
+    public static function getCountRankingData() {
+        $return = [];
+        $countSellNumber = Ticket::getCountSellNumber(); //获取总的出售门票数量 TVL
+        $annualizedAvg = Ticket::getAnnualizedAvg(); //获取总的算术平均->年化平均 APR
+        $answerCountUser = self::getUserAnswerCount(); //获取参与答题用户数
+        $answerCount = self::getAnswerCount(); //获取共完成答题数量
+        $answerCorrectCount = self::getAnswerCorrectCount();//获取作答正确数量
+        $result = [
+            'count_sell_number' => $countSellNumber,
+            'annualized_avg' => $annualizedAvg,
+            'answer_count_user' => $answerCountUser,
+            'answer_count' => $answerCount,
+            'answer_correct_count' => $answerCorrectCount,
+        ];
+        return $result;
     }
 
     /**
@@ -180,5 +208,35 @@ class Answer extends Base
             }
         }
         return false;
+    }
+    
+    /**
+     * 获取参与答题用户人数
+     * @author qinlh
+     * @since 2022-08-25
+     */
+    public static function getUserAnswerCount() {
+        $count = self::name('a_answer')->group('user_id')->count();
+        return $count;
+    }
+
+    /**
+     * 获取作答题目数量
+     * @author qinlh
+     * @since 2022-08-25
+     */
+    public static function getAnswerCount() {
+        $count = self::name('a_answer_record')->count();
+        return $count;
+    }
+
+    /**
+     * 获取作答题目作答正确数量
+     * @author qinlh
+     * @since 2022-08-25
+     */
+    public static function getAnswerCorrectCount() {
+        $count = self::name('a_answer_record')->where(['score'=>['eq', 20]])->count();
+        return $count;
     }
 }

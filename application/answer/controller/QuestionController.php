@@ -86,9 +86,9 @@ class QuestionController extends BaseController
         $times = $request->post('times', '', 'trim');
         $language = $request->post('language', 'zh', 'trim');
         $is_relive = $request->post('is_relive', 0, 'intval');
-        if ($address == '' || count((array)$answers) <= 0 || $language == '') {
-            return $this->as_json('70001', 'Missing parameters');
-        }
+        // if ($address == '' || count((array)$answers) <= 0 || $language == '') {
+        //     return $this->as_json('70001', 'Missing parameters');
+        // }
         $result = Question::calcQuestionAnswer($address, $answers, $times, $language, $is_relive);
         return $this->as_json($result);
     }
@@ -125,6 +125,22 @@ class QuestionController extends BaseController
         $result = Answer::getUserTodayIsAnswer($address);
         return $this->as_json($result);
     }
+    
+    /**
+     * 获取总的排行榜数据
+     * @author qinlh
+     * @since 2022-08-10
+     */
+    public function getCountRankingData(Request $request) {
+        $address = $request->request('address', '', 'trim');
+        $page = $request->request('page', 1, 'intval');
+        $where = [];
+        if ($address == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = Answer::getCountRankingData($where);
+        return $this->as_json($result);
+    }
 
     /**
      * 获取排行榜今日数据列表
@@ -135,12 +151,14 @@ class QuestionController extends BaseController
         $address = $request->request('address', '', 'trim');
         $page = $request->request('page', 1, 'intval');
         $limit = $request->request('limit', 20, 'intval');
+        $times = $request->request('times', '', 'trim');
         $where = [];
-        $where['a.date'] = date('Y-m-d');
+        $whereTime = "";
+        // $where['a.date'] = date('Y-m-d');
         if ($address == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = Answer::getUserTodayLeaderboardList($where, $page, $limit);
+        $result = Answer::getUserTodayLeaderboardList($where, $times, $page, $limit);
         return $this->as_json($result);
     }
 }

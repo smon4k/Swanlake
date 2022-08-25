@@ -140,45 +140,45 @@ class Award extends Base
      * @author qinlh
      * @since 2022-05-01
      */
-    public static function getMiningRankingAwardList($where, $page, $limit=1000)
-    {
-        if ($limit <= 0) {
-            $limit = config('paginate.list_rows');// 获取总条数
-        }
-        $count = self::where($where)->count();//计算总页面
-        $allpage = intval(ceil($count / $limit));
-        $lists = self::where($where)->page($page, $limit)->select()->toArray();
-        if (!$lists) {
-            return false;
-        }
-        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
-    }
+    // public static function getMiningRankingAwardList($where, $page, $limit=1000)
+    // {
+    //     if ($limit <= 0) {
+    //         $limit = config('paginate.list_rows');// 获取总条数
+    //     }
+    //     $count = self::where($where)->count();//计算总页面
+    //     $allpage = intval(ceil($count / $limit));
+    //     $lists = self::where($where)->page($page, $limit)->select()->toArray();
+    //     if (!$lists) {
+    //         return false;
+    //     }
+    //     return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    // }
 
     /**
      * 记录今天的数据记录
      * @author qinlh
      * @since 2022-04-30
      */
-    public static function insertTodayData($userId=0, $userTicketId=0)
-    {
-        if ($userId > 0) {
-            $date = self::getDateTime();
-            $insertData = [
-                'user_id' => $userId,
-                'user_ticket_id' => $user_ticket_id,
-                'date' => $date,
-                'question_num' => 0,
-                'score' => 0,
-                'award_num' => 0,
-                'status' => 0,
-                'up_time' => date('Y-m-d H:i:s')
-            ];
-            $insertId = self::insertGetId($insertData);
-            $insertData['id'] = $insertId;
-            return $insertData;
-        }
-        return false;
-    }
+    // public static function insertTodayData($userId=0, $userTicketId=0)
+    // {
+    //     if ($userId > 0) {
+    //         $date = self::getDateTime();
+    //         $insertData = [
+    //             'user_id' => $userId,
+    //             'user_ticket_id' => $user_ticket_id,
+    //             'date' => $date,
+    //             'question_num' => 0,
+    //             'score' => 0,
+    //             'award_num' => 0,
+    //             'status' => 0,
+    //             'up_time' => date('Y-m-d H:i:s')
+    //         ];
+    //         $insertId = self::insertGetId($insertData);
+    //         $insertData['id'] = $insertId;
+    //         return $insertData;
+    //     }
+    //     return false;
+    // }
 
     /**
      * 判断当前时间是否查过中午12点
@@ -241,13 +241,9 @@ class Award extends Base
         $count_award = 0;
         if ($userId > 0) {
             $timeRes = self::getDateTime();
-            $data = self::where(['user_id'=>$userId, 'date'=>$timeRes])->find();
+            $data = self::name('a_award')->where(['user_id'=>$userId, 'date'=>$timeRes])->find();
             if ($data && count((array)$data) > 0) {
-                $publish_images_award = (float)$data['publish_images_num'] * (float)$data['publish_images_amount'];
-                $publish_video_award = (float)$data['publish_video_num'] * (float)$data['publish_video_amount'];
-                $browse_num_award = (float)$data['browse_num'] * (float)$data['browse_amount'];
-                $be_browse_award = (float)$data['be_browse_num'] * (float)$data['be_browse_amount'];
-                $count_award = (float)$publish_images_award + (float)$publish_video_award + (float)$browse_num_award + (float)$be_browse_award;
+                $count_award = (float)$data['award_num'];
             }
         }
         return $count_award;
