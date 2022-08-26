@@ -59,7 +59,11 @@ class UserTicket extends Base
                     //     'amount' => $buyPrice,
                     //     'type' => 2,
                     // ];
-                    $dataArr = UserV2::setUserLocalBalance($userInfo['address'], $clinchPrice, 2, false);
+                    if(isset($userInfo['address']) && $userInfo['address'] !== '') {
+                      $dataArr = UserV2::setUserLocalBalance($userInfo['address'], $clinchPrice, 2, false);
+                    } else {
+                      $dataArr = true;
+                    }
                     // p($dataArr);
                     // $dataArr = json_decode($response_string, true);
                     if($dataArr) {
@@ -67,7 +71,7 @@ class UserTicket extends Base
                       if($incSellRes) {
                         $logArray = [
                           'user_id' => $userId,
-                          'address' => $userInfo['address'],
+                          'address' => isset($userInfo['address']) ? $userInfo['address'] : '',
                           'ticket_id' => $ticket_id,
                           'insurance_amount' => $insurance_amount,
                           'is_start' => $userTicketNum <= 0 ? 1 : 0,
@@ -160,7 +164,7 @@ class UserTicket extends Base
         $lists = self::name('a_user_ticket')
                     ->alias('a')
                     ->join('s_a_ticket b', 'a.ticket_id = b.id')
-                    ->field("a.*,b.name,b.price,b.annualized,b.capped")
+                    ->field("a.*,b.name,b.price,b.annualized,b.capped,b.denomination")
                     ->where($where)
                     ->page($page, $limit)
                     ->order($order)

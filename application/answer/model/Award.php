@@ -236,15 +236,12 @@ class Award extends Base
      * @author qinlh
      * @since 2022-06-28
      */
-    public static function getUserDayCountAwardAmount($userId=0)
+    public static function getUserDayCountAwardAmount($userId=0, $times='1')
     {
         $count_award = 0;
         if ($userId > 0) {
             $timeRes = self::getDateTime();
-            $data = self::name('a_award')->where(['user_id'=>$userId, 'date'=>$timeRes])->find();
-            if ($data && count((array)$data) > 0) {
-                $count_award = (float)$data['award_num'];
-            }
+            $count_award = self::name('a_award')->where(['user_id'=>$userId])->whereTime('date', $times)->sum('award_num');
         }
         return $count_award;
     }

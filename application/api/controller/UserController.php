@@ -46,14 +46,19 @@ class UserController extends BaseController
     public function getUserInfo(Request $request)
     {
         $address = $request->request('address', '', 'trim');
-        if ($address == '') {
+        $userId = $request->request('userId', 0, 'intval');
+        if ($address == '' && $userId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $userInfo = User::getUserAddressInfo($address);
+        if($address && $address !== '') {
+            $userInfo = User::getUserAddressInfo($address);
+        } else {
+            $userInfo = User::getUserInfo($userId);
+        }
         if($userInfo) {
             // p($favorite_num);
             // if($userInfo && (float)$userInfo['wallet_balance'] <= 0) {
-            if($userInfo || (float)$userInfo['wallet_balance'] <= 0) {
+            if(($userInfo || (float)$userInfo['wallet_balance'] <= 0) && $userInfo['address'] !== '') {
                 $rewardBalance = User::getUserContractBalance($userInfo['address']);
                 if ($rewardBalance) {
                     $userInfo['wallet_balance'] = $rewardBalance;
@@ -77,6 +82,67 @@ class UserController extends BaseController
         }
     }
 
+     /**
+     * 注册账号
+     * @author qinlh
+     * @since 2022-05-29
+     */
+    public function createAccount(Request $request) {
+        $username = $request->post('username', '', 'trim');
+        $password = $request->post('password', '', 'trim');
+        $qr_password = $request->post('qr_password', '', 'trim');
+        $invite_address = $request->post('invite_address', '', 'trim'); //邀请人地址
+        if ($username == '' || $password == '' || $qr_password == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        if($password !== $qr_password) {
+            return $this->as_json('70001', 'The two passwords are inconsistent');
+        }
+        $isExistence = User::getUserNameIsExistence($username);
+        if($isExistence) {
+            return $this->as_json('10001', '用户名已存在');
+        }
+        $result = User::createAccount($username, $password, $invite_address);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, '创建失败');
+        }
+    }
+
+    /**
+     * 用户登录
+     * @author qinlh
+     * @since 2022-05-30
+     */
+    public function login(Request $request) {
+        $username = $request->post('username', '', 'trim');
+        $password = $request->post('password', '', 'trim');
+        if ($username == '' || $password == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $user = User::checkLogin($username, $password);
+        if (is_object($user)) {
+            $token = User::getToken($user->id);
+            // p($auth_group);
+            $return = [
+                'token' => $token,
+                'address' => $user->address,
+                'uid' => $user->id,
+                'user_name' => $user->username,
+                'token_duration' => 24 * 3600
+            ];
+            Cookie::set('token', $token);
+            return $this->as_json($return);
+        } else {
+            if ($user == -1) {
+                return $this->as_json(70002, '账号不存在');
+            } else {
+                return $this->as_json(70003, '密码错误');
+            }
+        }
+    }
+    
     /**
      * 修改用户信息
      * @author qinlh
@@ -85,12 +151,19 @@ class UserController extends BaseController
     public function saveUserInfo(Request $request)
     {
         $address = $request->post('address', '', 'trim');
+        $userId = $request->post('userId', 0, 'intval');
+        $username = $request->post('username', '', 'trim');
+        $password = $request->post('password', '', 'trim');
         $nickname = $request->post('nickname', '', 'trim');
         $images_key = $request->post('images_key', '', 'trim');
-        if ($address == '') {
+        if ($address == '' && $userId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $userInfo = User::getUserAddressInfo($address);
+        if($address && $address !== '') {
+            $userInfo = User::getUserAddressInfo($address);
+        } else {
+            $userInfo = User::getUserInfo($userId);
+        }
         $avatar_img_url = "";
         if ($images_key && $images_key !== '') {
             if($images_key == "avatar") {
@@ -115,6 +188,23 @@ class UserController extends BaseController
         $updateArr = [];
         if($nickname && $nickname !== '') {
             $updateArr = ['nickname' => $nickname];
+        }
+        if($username && $username !== '') {
+            if($userInfo['username'] && $userInfo['username'] !== '') {
+                return $this->as_json('10002', '该用户已经绑定用户名，不能重复绑定');
+            }
+            $res = User::getUsernameInfo($username);
+            if($res) {
+                if($res['address'] && $res['address'] !== '') {
+                    return $this->as_json('10002', '用户名已被绑定');
+                } else {
+                    return $this->as_json('10001', '用户名已存在');
+                }
+            }
+            $updateArr = ['username' => $username];
+        }
+        if($password && $password !== '') {
+            $updateArr = ['password' => encryptionPassword($password)];
         }
         if($avatar_img_url && $avatar_img_url !== '') {
             $updateArr = ['avatar' => $avatar_img_url];

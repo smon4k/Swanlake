@@ -54,9 +54,9 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-09
      */
-    public static function getUserTodayIsAnswer($address='') {
+    public static function getUserTodayIsAnswer($userId=0) {
         $date = date('Y-m-d');
-        $userId = User::getUserAddress($address);
+        // $userId = User::getUserAddress($address);
         $userTicketId = UserTicket::getUserStartTicket($userId);
         if($userTicketId >= 0) {
             $data = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->find();
@@ -143,7 +143,7 @@ class Answer extends Base
                 }
                 $arr['score'] = $count_score;
                 $arr['number_answers'] = $numberAnswers;
-                $arr['award_num'] = Award::getUserDayCountAwardAmount($key);
+                $arr['award_num'] = Award::getUserDayCountAwardAmount($key, $times);
                 $newArray[] = $arr;
                 // if(empty($val['avatar']) || $val['avatar'] == '') {
                 //     $lists[$key]['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
@@ -183,9 +183,9 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-22
      */
-    public static function buyResurrection($address='') {
+    public static function buyResurrection($userId=0) {
         $date = date('Y-m-d');
-        $userId = User::getUserAddress($address);
+        // $userId = User::getUserAddress($address);
         $userTicketId = UserTicket::getUserStartTicket($userId);
         $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
         $consumeNum = (float)$ticketDetails['capped'] * (float)config('award_config.resurrection');

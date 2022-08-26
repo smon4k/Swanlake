@@ -31,12 +31,12 @@ class QuestionController extends BaseController
      */
     public function getUserQuestionList(Request $request)
     {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
         $language = $request->request('language', '', 'trim');
-        if ($address == '' || $language == '') {
+        if ($userId <= 0 || $language == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $userId = User::getUserAddress($address);
+        // $userId = User::getUserAddress($address);
         $questionList = Question::getUserQuestionList($language);
         $answeredArr = AnswerRecord::getUserAnsweredQuestion($userId); //用户已作答题目id
         // p($answeredArr);
@@ -56,7 +56,7 @@ class QuestionController extends BaseController
                 $newQuestionList[$val['id']] = $val;
             }
         }
-        if(empty($newQuestionList)) {
+        if(empty($newQuestionList) || count((array)$newQuestionList) < 5) {
             $newQuestionList = $questionList;
         }
         // p($newQuestionList);
@@ -81,7 +81,8 @@ class QuestionController extends BaseController
      */
     public function calcQuestionAnswer(Request $request)
     {
-        $address = $request->post('address', '', 'trim');
+        $userId = $request->post('userId', 0, 'intval');
+        // $address = $request->post('address', '', 'trim');
         $answers = $request->post('answers/a', '', []);
         $times = $request->post('times', '', 'trim');
         $language = $request->post('language', 'zh', 'trim');
@@ -89,7 +90,7 @@ class QuestionController extends BaseController
         // if ($address == '' || count((array)$answers) <= 0 || $language == '') {
         //     return $this->as_json('70001', 'Missing parameters');
         // }
-        $result = Question::calcQuestionAnswer($address, $answers, $times, $language, $is_relive);
+        $result = Question::calcQuestionAnswer($userId, $answers, $times, $language, $is_relive);
         return $this->as_json($result);
     }
 
@@ -99,11 +100,11 @@ class QuestionController extends BaseController
      * @since 2022-08-22
      */
     public function buyResurrection(Request $request) {
-        $address = $request->request('address', '', 'trim');
-        if ($address == '') {
+        $userId = $request->request('userId', 0, 'intval');
+        if ($userId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = Answer::buyResurrection($address);
+        $result = Answer::buyResurrection($userId);
         if($result) {
             return $this->as_json($result);
         } else {
@@ -119,10 +120,11 @@ class QuestionController extends BaseController
     public function getUserTodayIsAnswer(Request $request)
     {
         $address = $request->request('address', '', 'trim');
-        if ($address == '') {
+        $userId = $request->request('userId', 0, 'intval');
+        if ($address == '' && $userId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = Answer::getUserTodayIsAnswer($address);
+        $result = Answer::getUserTodayIsAnswer($userId);
         return $this->as_json($result);
     }
     
@@ -132,10 +134,10 @@ class QuestionController extends BaseController
      * @since 2022-08-10
      */
     public function getCountRankingData(Request $request) {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
         $page = $request->request('page', 1, 'intval');
         $where = [];
-        if ($address == '') {
+        if ($userId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $result = Answer::getCountRankingData($where);
@@ -148,14 +150,14 @@ class QuestionController extends BaseController
      * @since 2022-08-10
      */
     public function getUserTodayLeaderboardList(Request $request) {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
         $page = $request->request('page', 1, 'intval');
         $limit = $request->request('limit', 20, 'intval');
         $times = $request->request('times', '', 'trim');
         $where = [];
         $whereTime = "";
         // $where['a.date'] = date('Y-m-d');
-        if ($address == '') {
+        if ($userId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $result = Answer::getUserTodayLeaderboardList($where, $times, $page, $limit);

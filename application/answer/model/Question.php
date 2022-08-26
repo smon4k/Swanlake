@@ -59,21 +59,23 @@ class Question extends Base
      * @author qinlh
      * @since 2022-08-09
      */
-    public static function calcQuestionAnswer($address='', $answers=[], $times='', $language='zh', $is_relive=0) {
+    public static function calcQuestionAnswer($userId=0, $answers=[], $times='', $language='zh', $is_relive=0) {
         self::startTrans();
         try {
-            $userId = User::getUserAddress($address);
+            // $userId = User::getUserAddress($address);
+            $userInfo = User::getUserInfoOne($userId);
+            $userTicketId = UserTicket::getUserStartTicket($userId);
             $newAnswer = [];//用户选择的答案
             $questionIds = [];//题目id集
-            if(!$answers || count((array)$answers) < 0) {
-                return [
-                    'correct_num' => 0,
-                    'score' => 0, 
-                    'times' => $times, 
-                    'is_possible_resurrection' => 0,
-                    'consumeNumber' => 0,
-                ];
-            }
+            // if(!$answers || count((array)$answers) < 0) {
+            //     return [
+            //         'correct_num' => 0,
+            //         'score' => 0, 
+            //         'times' => $times, 
+            //         'is_possible_resurrection' => 0,
+            //         'consumeNumber' => 0,
+            //     ];
+            // }
             foreach ($answers as $key => $val) {
                 $newAnswer[$val['id']] = $val['answer'];
                 $questionIds[] = $val['id'];
@@ -91,7 +93,6 @@ class Question extends Base
                     $score += 20;
                     $qScore = 20;
                 }
-                $userTicketId = UserTicket::getUserStartTicket($userId);
                 $insertUserAnswerDetails[] = [
                     'user_id' => $userId,
                     'user_ticket_id' => $userTicketId,
@@ -105,51 +106,57 @@ class Question extends Base
             }
             // p($insertUserAnswerDetails);
             //批量写入用户作答记录明细表数据
-            if($insertUserAnswerDetails && count((array)$insertUserAnswerDetails) > 0) {
+            if ($insertUserAnswerDetails && count((array)$insertUserAnswerDetails) > 0) {
                 $rowRes = AnswerRecord::insertAllAnswerRecordData($insertUserAnswerDetails);
-                if($rowRes) {
-                    $insertUserAnswer = [
-                        'user_id' => $userId,
-                        'user_ticket_id' => $userTicketId,
-                        'is_relive' => 0,
-                        'score' => $score,
-                        'language' => $language,
-                        'consuming' => $times,
-                        'date' => date('Y-m-d'),
-                        'time' => date("Y-m-d H:i:s"),
-                        'up_time' => date("Y-m-d H:i:s")
-                    ];
-                    $answerRes = Answer::insertAnswerData($insertUserAnswer);
-                    if($answerRes) {
-                        //开始分配奖励
-                        $is_possible_resurrection = 0; //是否可以复活 有门票才可以复活
-                        $consumeNumber = 0; //复活消耗Token数量
-                        if($userTicketId > 0) { //如果有门票
-                            $is_possible_resurrection = 1;
-                            $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
-                            // $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
-                            $awardConfig = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
-                            $consumeNumber = (float)$ticketDetails['capped'] * (float)config('award_config.resurrection'); //获取复活消耗Token数量 5%
-                        } else { //如果没有门票
-                            $ticketDetails = UserTicket::getUserTicketDetail(0);
-                            $awardConfig = self::getAwardNumConfig(0, $num, $is_relive);
+            } else { //一道题没作答 不记录答题记录
+                $rowRes = true;
+            }
+            if($rowRes) {
+                $insertUserAnswer = [
+                    'user_id' => $userId,
+                    'user_ticket_id' => $userTicketId,
+                    'is_relive' => 0,
+                    'score' => $score,
+                    'language' => $language,
+                    'consuming' => $times,
+                    'date' => date('Y-m-d'),
+                    'time' => date("Y-m-d H:i:s"),
+                    'up_time' => date("Y-m-d H:i:s")
+                ];
+                $answerRes = Answer::insertAnswerData($insertUserAnswer);
+                if($answerRes) {
+                    //开始分配奖励
+                    $is_possible_resurrection = 0; //是否可以复活 有门票才可以复活
+                    $consumeNumber = 0; //复活消耗Token数量
+                    if($userTicketId > 0) { //如果有门票
+                        $is_possible_resurrection = 1;
+                        $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
+                        // $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
+                        $awardConfig = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
+                        $consumeNumber = (float)$ticketDetails['capped'] * (float)config('award_config.resurrection'); //获取复活消耗Token数量 5%
+                    } else { //如果没有门票
+                        $ticketDetails = UserTicket::getUserTicketDetail(0);
+                        $awardConfig = self::getAwardNumConfig(0, $num, $is_relive);
+                    }
+                    $awardRes = Award::setTodayUserAwardInfo($userId, $userTicketId, $num, $score, $awardConfig['award_num']);
+                    if($awardRes) {
+                        if(isset($userInfo['address']) && $userInfo['address'] !== '') {
+                            $isUserBalance = User::setUserCurrencyLocalBalance($userInfo['address'], $awardConfig['award_num'], 1, 'h2o');
+                        } else {
+                            $isUserBalance = true;
                         }
-                        $awardRes = Award::setTodayUserAwardInfo($userId, $userTicketId, $num, $score, $awardConfig['award_num']);
-                        if($awardRes) {
-                            $isUserBalance = User::setUserCurrencyLocalBalance($address, $awardConfig['award_num'], 1, 'h2o');
-                            if($isUserBalance) {
-                                self::commit();
-                                return [
-                                    'correct_num' => $num,
-                                    'score' => $score, 
-                                    'times' => $times, 
-                                    'is_possible_resurrection' => $is_possible_resurrection,
-                                    'consumeNumber' => $consumeNumber,
-                                    'capped_num' => (float)$ticketDetails['capped'], //总的门票名义奖励值 分配奖励总数
-                                    'award_num' => $awardConfig['award_num'], //分配奖励数量
-                                    'award_rate' => $awardConfig['award_rate'], //分配奖励比例
-                                ];
-                            }
+                        if($isUserBalance) {
+                            self::commit();
+                            return [
+                                'correct_num' => $num,
+                                'score' => $score, 
+                                'times' => $times, 
+                                'is_possible_resurrection' => $is_possible_resurrection,
+                                'consumeNumber' => $consumeNumber,
+                                'capped_num' => (float)$ticketDetails['capped'], //总的门票名义奖励值 分配奖励总数
+                                'award_num' => $awardConfig['award_num'], //分配奖励数量
+                                'award_rate' => $awardConfig['award_rate'], //分配奖励比例
+                            ];
                         }
                     }
                 }
@@ -157,6 +164,7 @@ class Question extends Base
             self::rollback();
             return false;
         } catch (PDOException $e) {
+            p($e);
             self::rollback();
             return false;
         }

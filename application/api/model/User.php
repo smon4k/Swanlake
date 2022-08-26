@@ -91,6 +91,25 @@ class User extends Base
     }
 
     /**
+     * 获取用户token
+     * @param $uid
+     * @return string
+     */
+    public static function getToken($uid)
+    {
+        $token = Cache::get('token_' . $uid);
+        $duration = 24 * 3600;
+        if (empty($token)) {
+            $token = ClCrypt::encrypt(json_encode([
+                'uid' => $uid
+            ]), self::CRYPT_KEY, $duration);
+            //存储
+            Cache::set('token_' . $uid, $token, $duration - 600);
+        }
+        return md5($token) . $token;
+    }
+
+    /**
      * 查询用户钱包地址是否已绑定
      * @author qinlh
      * @since 2022-06-18
@@ -200,6 +219,41 @@ class User extends Base
                 self::rollback();
                 return false;
             }
+        }
+        return false;
+    }
+
+      /**
+     * 开始添加用户信息
+     * @author qinlh
+     * @since 2022-03-18
+     */
+    public static function createAccount($username='', $password='', $invite_address='')
+    {
+        if ($username !== '' && $password !== '') {
+            $local_balance = getEnvs() === 'dev' ? 3000 : 0;
+            $insertData = [
+                'username' => $username,
+                'password' => encryptionPassword($password),
+                'address' => '',
+                'nickname' => '',
+                'introduction' => '',
+                'avatar' => '',
+                'sex' => 0,
+                'birthday' => '',
+                'background_img' => '',
+                'time' => date('Y-m-d H:i:s'),
+                'local_balance' => $local_balance,
+                'wallet_balance' => 0,
+                'h2o_local_balance' => 0,
+                'h2o_wallet_balance' => 0,
+                'status' => 1,
+            ];
+            $userId = self::insertGetId($insertData);
+            // if($invite_address && $invite_address !== '') { //如果含有邀请人地址的话 创建推荐关系
+            //     self::createRecommend($userId, $invite_address); //创建推荐关系
+            // }
+            return $userId;
         }
         return false;
     }
@@ -393,6 +447,28 @@ class User extends Base
             }
         }
         // return true;
+    }
+
+    /**
+     * 根据用户名获取用户信息
+     * @author qinlh
+     * @since 2022-03-21
+     */
+    public static function getUsernameInfo($username='', $userId=0)
+    {
+        if ($username && $username !== '') {
+            if($userId > 0) {
+                $res = self::where('username', $username)->whereNotIn("id", $userId)->find();
+            } else {
+                $res = self::where('username', $username)->find();
+            }
+            if ($res && count((array)$res) > 0) {
+                return $res;
+            } else {
+                return [];
+            }
+        }
+        return [];
     }
 
 

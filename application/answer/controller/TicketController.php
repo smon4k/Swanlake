@@ -35,7 +35,7 @@ class TicketController extends BaseController
      * @since 2022-07-28
      */
     public function getTicketList(Request $request) {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
         $page = $request->request('page', 1, 'intval');
         $limit = $request->request('limit', 20, 'intval');
         // if ($userId <= 0) {
@@ -54,7 +54,7 @@ class TicketController extends BaseController
      * @since 2022-07-28
      */
     public function getTicketDetail(Request $request) {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
         $ticketId = $request->request('ticketId', 0, 'intval');
         if ($ticketId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
@@ -69,10 +69,10 @@ class TicketController extends BaseController
      * @since 2022-07-28
      */
     public function getUserTicketDetail(Request $request) {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
         $ticketId = $request->request('ticketId', 0, 'intval');
         $userTicketId = $request->request('userTicketId', 0, 'intval');
-        if ($userTicketId <= 0 || $address < 0) {
+        if ($userTicketId <= 0 || $userId < 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $result = UserTicket::getUserTicketDetail($userTicketId);
@@ -85,15 +85,15 @@ class TicketController extends BaseController
      * @since 2022-07-29
      */
     public function startBuyTicket(Request $request) {
-        $address = $request->post('address', '', 'trim');
+        $userId = $request->post('userId', 0, 'intval');
         $ticket_id = $request->post('ticket_id', 0, 'intval');
         $insurance_amount = $request->post('insurance_amount', '', 'trim');
         $type = $request->post('type', 1, 'intval');
-        if($address == '' || $ticket_id <= 0) {
+        if($userId <= 0 || $ticket_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $userInfo = User::getUserAddressInfo($address);
-        $result = UserTicket::startBuyTicket($userInfo['id'], $ticket_id, $insurance_amount, $type);
+        // $userInfo = User::getUserAddressInfo($userId);
+        $result = UserTicket::startBuyTicket($userId, $ticket_id, $insurance_amount, $type);
         return $this->as_json($result);
     }
 
@@ -103,14 +103,14 @@ class TicketController extends BaseController
      * @since 2022-07-29
      */
     public function startRedemptionTicket(Request $request) {
-        $address = $request->post('address', '', 'trim');
+        $userId = $request->post('userId', 0, 'intval');
         $ticket_id = $request->post('ticket_id', 0, 'intval');
         $user_ticket_id = $request->post('user_ticket_id', 0, 'intval');
-        if($address == '' || $ticket_id <= 0) {
+        if($userId <= 0 || $ticket_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $userInfo = User::getUserAddressInfo($address);
-        $result = UserTicket::startRedemptionTicket($userInfo['id'], $ticket_id, $user_ticket_id);
+        // $userInfo = User::getUserAddressInfo($address);
+        $result = UserTicket::startRedemptionTicket($userId, $ticket_id, $user_ticket_id);
         return $this->as_json($result);
     }
 
@@ -120,17 +120,17 @@ class TicketController extends BaseController
      * @since 2022-07-29
      */
     public function getMyTicketList(Request $request) {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
         $page = $request->request('page', 1, 'intval');
         $limit = $request->request('limit', 20, 'intval');
         $where = [];
         $order = 'a.is_start desc,a.id desc';
-        if($address == '') {
+        if($userId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $userInfo = User::getUserAddressInfo($address);
-        $where['a.user_id'] = $userInfo['id'];
-        $result = UserTicket::getMyTicketList($where, $page, $limit, $order, $userInfo['id']);
+        // $userInfo = User::getUserAddressInfo($address);
+        $where['a.user_id'] = $userId;
+        $result = UserTicket::getMyTicketList($where, $page, $limit, $order, $userId);
         return $this->as_json($result);
     }
 
@@ -140,14 +140,14 @@ class TicketController extends BaseController
      * @since 2022-07-29
      */
     public function startTicket(Request $request) {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
         $ticket_id = $request->request('ticket_id', 0, 'intval');
         $user_ticket_id = $request->request('user_ticket_id', 0, 'intval');
-        if($address == '' || $user_ticket_id <= 0) {
+        if($userId <= 0 || $user_ticket_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $userInfo = User::getUserAddressInfo($address);
-        $result = UserTicket::startTicket($userInfo['id'], $ticket_id, $user_ticket_id);
+        // $userInfo = User::getUserAddressInfo($address);
+        $result = UserTicket::startTicket($userId, $ticket_id, $user_ticket_id);
         return $this->as_json($result);
     }
 
@@ -157,17 +157,18 @@ class TicketController extends BaseController
      * @since 2022-07-30
      */
     public function getUserTicketTodayAward(Request $request) {
-        $address = $request->request('address', '', 'trim');
+        $userId = $request->request('userId', 0, 'intval');
+        // $address = $request->request('address', '', 'trim');
         $user_ticket_id = $request->request('user_ticket_id', 0, 'intval');
         $page = $request->request('page', 1, 'intval');
         $limit = $request->request('limit', 20, 'intval');
         $where = [];
-        if($address == '' || $user_ticket_id <= 0) {
+        if($userId <= 0 || $user_ticket_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $userInfo = User::getUserAddressInfo($address);
+        // $userInfo = User::getUserAddressInfo($address);
         $order = 'date desc';
-        $where['user_id'] = $userInfo['id'];
+        $where['user_id'] = $userId;
         $where['user_ticket_id'] = $user_ticket_id;
         $result = UserTicket::getUserTicketTodayAward($where, $page, $limit, $order);
         return $this->as_json($result);
