@@ -68,6 +68,18 @@ class Ticket extends Base
     }
 
     /**
+     * 获取门票年化列表
+     * @author qinlh
+     * @since 2022-08-27
+     */
+    public static function getTicketAnnualizedLists() {
+        $data = self::name('a_ticket')->where('id', 'gt', 1)->field('annualized')->select()->toArray();
+        if($data) {
+            return array_column($data, 'annualized');
+        }
+    }
+
+    /**
     * [getTicketDetail] [获取门票详情]
     * @param [$where] [查询条件]
     * @return [array] [数组]
@@ -221,5 +233,21 @@ class Ticket extends Base
             }
         }
         return false;
+    }
+
+    /**
+     * 获取H2O价格
+     * @author qinlh
+     * @since 2022-08-03
+     */
+    public static function getH2OPrice() {
+        $price = 0;
+        $params = [];
+        $response_string = RequestService::doJsonCurlPost(config('www_reptile_game_filling').config('reptile_service')['get_h2o_price'], json_encode($params));
+        $price = (float)json_decode($response_string, true);
+        if ($price) {
+            return $price;
+        }
+        return $price;
     }
 }

@@ -164,7 +164,16 @@ class Answer extends Base
     public static function getCountRankingData() {
         $return = [];
         $countSellNumber = UserTicket::getCountSellAmount(); //获取总的出售门票数量 TVL
-        $annualizedAvg = Ticket::getAnnualizedAvg(); //获取总的算术平均->年化平均 APR
+        $ticketLists = Ticket::getTicketAnnualizedLists(); //获取年化列表
+        $ticketListsCount = count((array)$ticketLists);
+        $annualizedAvg = 0;
+        $h2oPrice = Ticket::getH2OPrice();
+        $coefficient = $h2oPrice / 0.0001;
+        $countNum = 0;
+        foreach ($ticketLists as $val) {
+            $countNum += $val * $coefficient;
+        }
+        $annualizedAvg = $ticketListsCount > 0 ? $countNum / $ticketListsCount : 0;
         $answerCountUser = self::getUserAnswerCount(); //获取参与答题用户数
         $answerCount = self::getAnswerCount(); //获取共完成答题数量
         $answerCorrectCount = self::getAnswerCorrectCount();//获取作答正确数量
@@ -194,7 +203,7 @@ class Answer extends Base
             try {
                 $isUpdate = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->setField('is_relive', 1);
                 if($isUpdate !== false) {
-                    $isUpUserBalance = User::setUserCurrencyLocalBalance($address, $consumeNum, 2, 'h2o');
+                    $isUpUserBalance = User::setUserIdCurrencyLocalBalance($userId, $consumeNum, 2, 'h2o');
                     if($isUpUserBalance) {
                         self::commit();
                         return true;

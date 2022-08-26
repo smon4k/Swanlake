@@ -18,9 +18,14 @@ class JDSpider(object):
         self.web3Client = Web3(HTTPProvider(self.rpcUrls))
         self.h2oFillingAddress = "0xdA9A81cf2000fc4df10362bA58EF4607d82E57BE"
         self.gamesFillingAddress = "0x079bDC8845D0C6878716A3f5219f1D0DcdF15308"
+        self.routerContractAddress = "0x96948447D1521260c24fCdE281d09364BdC5A2d0"
+        self.H2O = "0xC446c2B48328e5D2178092707F8287289ED7e8D6"
+        self.USDT = "0x55d398326f99059fF775485246999027B3197955"
         #读取abi文件
         with open(str(os.path.join('./abis/gameFillingABI.json')), 'r') as abi_definition:   
             self.gameFillingABI = json.load(abi_definition)
+        with open(str(os.path.join('./abis/mdexABI.json')), 'r') as abi_definition:   
+            self.mdexABI = json.load(abi_definition)
 
     # 获取CS余额
     def getGameFillingBalance(self, address):
@@ -48,6 +53,21 @@ class JDSpider(object):
         except Exception as re:
             print('functions getHTokenAddress error %s' %re)
 
+    # 获取估值 01
+    def getToken2TokenPrice(self):
+        Gwei1 = 1000000000
+        try:
+            price = 0
+            contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.routerContractAddress), abi=self.mdexABI)
+            result = contract.functions.getAmountsOut(Gwei1, [self.H2O , self.USDT]).call()
+            # print(result)
+            if(result or result[1]):
+                price = result[1] / Gwei1
+            else:
+                print('getToken2TokenPrice_err')
+            return price
+        except Exception as re:
+            print('functions getToken2TokenPrice->getAmountsOut error %s' %re)
 
 # if __name__ == "__main__":
 #     # searchName = sys.argv[1] # 接受参数
@@ -75,6 +95,18 @@ def getGameFillingH2OBalance():
     pageJson = request.json
     spider = JDSpider()
     data = spider.getGameFillingH2OBalance(pageJson['address'])
+    # print(data)
+    # json_str = json.dumps(data)
+    response = make_response(jsonify(data))
+    response.mimetype = 'application/json'
+    return response
+
+@app.route('/v1.0/get_h2o_price', methods=['POST'])
+def getH2OPrice():
+    # if request.content_type == 'application/json':
+    # pageJson = request.json
+    spider = JDSpider()
+    data = spider.getToken2TokenPrice()
     # print(data)
     # json_str = json.dumps(data)
     response = make_response(jsonify(data))
