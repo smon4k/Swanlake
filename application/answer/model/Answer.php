@@ -163,7 +163,7 @@ class Answer extends Base
      */
     public static function getCountRankingData() {
         $return = [];
-        $countSellNumber = Ticket::getCountSellNumber(); //获取总的出售门票数量 TVL
+        $countSellNumber = UserTicket::getCountSellAmount(); //获取总的出售门票数量 TVL
         $annualizedAvg = Ticket::getAnnualizedAvg(); //获取总的算术平均->年化平均 APR
         $answerCountUser = self::getUserAnswerCount(); //获取参与答题用户数
         $answerCount = self::getAnswerCount(); //获取共完成答题数量

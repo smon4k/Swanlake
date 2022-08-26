@@ -175,7 +175,7 @@ class Ticket extends Base
     }
 
     /**
-     * 获取总的出售门票数量
+     * 获取总的出售门票额度
      * @author qinlh
      * @since 2022-08-25
      */

@@ -392,4 +392,14 @@ class UserTicket extends Base
       $count = self::name('a_user_ticket')->where('a.is_ransom', 1)->alias('a')->join('m_ticket b', 'a.ticket_id=b.id')->field('a.ticket_id, b.capped')->sum('b.price');
       return $count;
     }
+
+    /**
+     * 获取总的出售门票额度
+     * @author qinlh
+     * @since 2022-08-25
+     */
+    public static function getCountSellAmount() {
+      $amount = self::name('a_user_ticket')->sum('buy_price');
+      return $amount;
+  }
 }
