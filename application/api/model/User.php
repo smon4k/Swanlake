@@ -428,6 +428,45 @@ class User extends Base
     }
 
     /**
+     * 修改用户余额 - 根据用户ID - 其他币种
+     * @params userId 用户ID
+     * @params amount 数量
+     * @params type 1：加 2：减
+     * @params currency 币种
+     * @author qinlh
+     * @since 2022-08-26
+     */
+    public static function setUserIdCurrencyLocalBalance($userId=0, $amount=0, $type=0, $currency='')
+    {
+        if ($userId > 0 && $amount >= 0 && $type > 0 && $currency !== '') {
+            self::startTrans();
+            try {
+                $field = $currency . "_local_balance";
+                $userInfo = self::getUserInfo($userId);
+                if ($userInfo && count((array)$userInfo)) {
+                    if ($type == 1) {
+                        $res = self::where('id', $userId)->setInc($field, $amount);
+                    }
+                    if ($type == 2) {
+                        $res = self::where('id', $userId)->setDec($field, $amount);
+                    }
+                    if ($res !== false) {
+                        self::commit();
+                        return true;    
+                    }
+                }
+                self::rollback();
+                return false;
+            } catch (PDOException $e) {
+                p($e);
+                self::rollback();
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 获取用户名是否已存在
      * @author qinlh
      * @since 2022-05-29

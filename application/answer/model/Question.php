@@ -132,19 +132,15 @@ class Question extends Base
                         $is_possible_resurrection = 1;
                         $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
                         // $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
-                        $awardConfig = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
+                        $awardConfig = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive, $userTicketId);
                         $consumeNumber = (float)$ticketDetails['capped'] * (float)config('award_config.resurrection'); //获取复活消耗Token数量 5%
                     } else { //如果没有门票
                         $ticketDetails = UserTicket::getUserTicketDetail(0);
-                        $awardConfig = self::getAwardNumConfig(0, $num, $is_relive);
+                        $awardConfig = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive, $userTicketId);
                     }
                     $awardRes = Award::setTodayUserAwardInfo($userId, $userTicketId, $num, $score, $awardConfig['award_num']);
                     if($awardRes) {
-                        if(isset($userInfo['address']) && $userInfo['address'] !== '') {
-                            $isUserBalance = User::setUserCurrencyLocalBalance($userInfo['address'], $awardConfig['award_num'], 1, 'h2o');
-                        } else {
-                            $isUserBalance = true;
-                        }
+                        $isUserBalance = User::setUserIdCurrencyLocalBalance($userId, $awardConfig['award_num'], 1, 'h2o');
                         if($isUserBalance) {
                             self::commit();
                             return [
@@ -177,7 +173,7 @@ class Question extends Base
      * @author qinlh
      * @since 2022-08-12
      */
-    public static function getAwardNumConfig($capped=0, $num=0, $is_relive=0) {
+    public static function getAwardNumConfig($capped=0, $num=0, $is_relive=0, $userTicketId=0) {
         $award_num = 0;
         $award_rate = 0;
         if($is_relive) { //如果是复活作答
@@ -186,7 +182,7 @@ class Question extends Base
                 $award_rate = config('award_config.resurrection_award') * 100;
             }
         } else {
-            if($capped && $capped > 0) {
+            if($capped && $capped > 0 && $userTicketId > 0) {
                 switch ($num) {
                     case '1':
                         $award_num = $capped * config('award_config.award_completed');
@@ -215,24 +211,24 @@ class Question extends Base
             } else {
                 switch ($num) {
                     case '1':
-                        $award_num = config('award_config.no_ticket_award_completed_num');
-                        $award_rate = config('award_config.no_ticket_award_completed_num') * 100;
+                        $award_num = $capped * config('award_config.no_ticket_award_completed');
+                        $award_rate = config('award_config.no_ticket_award_completed') * 100;
                         break;
                     case '2':
-                        $award_num = config('award_config.no_ticket_award_completed_num');
-                        $award_rate = config('award_config.no_ticket_award_completed_num') * 100;
+                        $award_num = $capped * config('award_config.no_ticket_award_completed');
+                        $award_rate = config('award_config.no_ticket_award_completed') * 100;
                         break;
                     case '3':
-                        $award_num = config('award_config.no_ticket_award_completed_num');
-                        $award_rate = config('award_config.no_ticket_award_completed_num') * 100;
+                        $award_num = $capped * config('award_config.no_ticket_award_completed');
+                        $award_rate = config('award_config.no_ticket_award_completed') * 100;
                         break;
                     case '4':
-                        $award_num = config('award_config.no_ticket_award_completed_num');
-                        $award_rate = config('award_config.no_ticket_award_completed_num') * 100;
+                        $award_num = $capped * config('award_config.no_ticket_award_completed');
+                        $award_rate = config('award_config.no_ticket_award_completed') * 100;
                         break;
                     case '5':
-                        $award_num = config('award_config.no_ticket_award_correct_num');
-                        $award_rate = config('award_config.no_ticket_award_correct_num') * 100;
+                        $award_num = $capped * config('award_config.all_award_correct');
+                        $award_rate = config('award_config.all_award_correct') * 100;
                         break;
                     default:
                         $award_num = 0;
