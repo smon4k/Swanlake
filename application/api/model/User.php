@@ -162,6 +162,38 @@ class User extends Base
     }
 
     /**
+     * 获取用户信息
+     * @author qinlh
+     * @since 2022-03-18
+     */
+    public static function getUserIdInfo($userId=0)
+    {
+        if ($userId > 0) {
+            $data = [];
+            $userinfo = self::where('id', $userId)->find();
+            if ($userinfo && count((array)$userinfo) > 0) {
+                $data = $userinfo->toArray();
+                if(isset($userinfo['address']) && $userinfo['address'] !== '') {
+                    $rewardBalance = self::getUserContractBalance($userinfo['address'], 'usdt'); //重置链上余额
+                    @self::resetUserRewardBalance($userinfo['address'], $rewardBalance, 'usdt');
+                    $data['wallet_balance'] = $rewardBalance;
+        
+                    $rewardH2oBalance = self::getUserContractBalance($userinfo['address'], 'h2o'); //重置链上余额
+                    // if ($rewardH2oBalance !== 0) {
+                        @self::resetUserRewardBalance($userinfo['address'], $rewardH2oBalance, 'h2o');
+                        $data['h2o_wallet_balance'] = $rewardH2oBalance;
+                    // }
+                }
+                if(empty($data['avatar']) || $data['avatar'] == '') {
+                    $data['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
+                }
+                return $data;
+            }
+            return [];
+        }
+    }
+
+    /**
      * 获取单条用户信息
      * @author qinlh
      * @since 2022-03-22

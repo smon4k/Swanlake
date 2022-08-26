@@ -39,22 +39,29 @@ class DepositwithdrawalController extends BaseController
     public function getFillingRecordUserInfo(Request $request)
     {
         $address = $request->request('address', '', 'trim');
-        if ($address == '') {
+        $userId = $request->request('userId', 0, 'intval');
+        if ($address == '' && $userId <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = User::getUserAddressInfo($address);
+        if($address && $address !== '') {
+            $result = User::getUserAddressInfo($address);
+        } else {
+            $result = User::getUserIdInfo($userId);
+        }
         if($result) {
-            $isDeWithdrawRes = FillingRecord::getUserIsInWithdraw($address); //是否充提中的记录
             $result['isDeWith'] = false; //是否充提中的记录
             $result['isDeWithStatusId'] = 0; //正在充提中的状态id
             $result['isDeWithType'] = '';
             $result['isDeWithHash'] = '';
-            // p($isDeWithdrawRes);
-            if ($isDeWithdrawRes && count((array)$isDeWithdrawRes) > 0) {
-                $result['isDeWith'] = true;
-                $result['isDeWithStatusId'] = $isDeWithdrawRes['id'];
-                $result['isDeWithType'] = $isDeWithdrawRes['type'];
-                $result['isDeWithHash'] = $isDeWithdrawRes['hash'];
+            if(isset($result['address']) && $result['address'] !== '') {
+                $isDeWithdrawRes = FillingRecord::getUserIsInWithdraw($address); //是否充提中的记录
+                // p($isDeWithdrawRes);
+                if ($isDeWithdrawRes && count((array)$isDeWithdrawRes) > 0) {
+                    $result['isDeWith'] = true;
+                    $result['isDeWithStatusId'] = $isDeWithdrawRes['id'];
+                    $result['isDeWithType'] = $isDeWithdrawRes['type'];
+                    $result['isDeWithHash'] = $isDeWithdrawRes['hash'];
+                }
             }
             return $this->as_json($result);
         } else {
