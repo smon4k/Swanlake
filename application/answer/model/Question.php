@@ -178,7 +178,7 @@ class Question extends Base
         $award_rate = 0;
         if($is_relive) { //如果是复活作答
             if($num == 5) {
-                $award_num = config('award_config.resurrection_award');
+                $award_num = $capped * config('award_config.resurrection_award');
                 $award_rate = config('award_config.resurrection_award') * 100;
             }
         } else {
