@@ -94,7 +94,11 @@ class TicketController extends BaseController
         }
         // $userInfo = User::getUserAddressInfo($userId);
         $result = UserTicket::startBuyTicket($userId, $ticket_id, $insurance_amount, $type);
-        return $this->as_json($result);
+        if($result) {
+            return $this->as_json('ok');
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
     }
 
     /**
@@ -148,7 +152,11 @@ class TicketController extends BaseController
         }
         // $userInfo = User::getUserAddressInfo($address);
         $result = UserTicket::startTicket($userId, $ticket_id, $user_ticket_id);
-        return $this->as_json($result);
+        if($result) {
+            return $this->as_json('ok');
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
     }
 
     /**

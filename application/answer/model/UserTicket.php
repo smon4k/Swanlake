@@ -44,7 +44,8 @@ class UserTicket extends Base
                   'buy_price' => $buyPrice,
                   'time' => date('Y-m-d H:i:s'),
                   'state' => 1,
-                  'is_start' => $userTicketNum <= 0 ? 1 : 0,
+                  // 'is_start' => $userTicketNum <= 0 ? 1 : 0,
+                  'is_start' => 0,
                 ];
                 self::name('a_user_ticket')->insert($insertData);
                 $insertId = self::name('a_user_ticket')->getLastInsID();
@@ -174,9 +175,18 @@ class UserTicket extends Base
             ['count'=>0,'allpage'=>0,'lists'=>[]];
         }
         // p($lists);
+        $pastTime = 60 * 60 * config('award_config.ticket_activation_time');
         foreach ($lists as $key => $val) {
           $userTicketIsAnswer = Answer::getUserTicketIdIsAnswer($val['id']);
           $lists[$key]['is_answer'] = $userTicketIsAnswer;
+          $buyTime = strtotime($val['time']);
+          $lists[$key]['is_activation'] = 0;
+          $lists[$key]['activation_time'] = config('award_config.ticket_activation_time');
+          if(time() < $buyTime + $pastTime) { //判断门票是否超过激活时间 0：待激活 1：已激活
+            $lists[$key]['is_activation'] = 0;
+          } else {
+            $lists[$key]['is_activation'] = 1;
+          }
         }
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
@@ -203,6 +213,14 @@ class UserTicket extends Base
      */
     public static function startTicket($user_id=0, $ticket_id=0, $user_ticket_id=0) {
         if($user_id > 0 && $ticket_id > 0 && $user_ticket_id > 0) {
+          $ticketRes = self::name('a_user_ticket')->where(['id' => $user_ticket_id])->find();
+          if($ticketRes) {
+            $buyTime = strtotime($ticketRes['time']);
+            $pastTime = 60 * 60 * config('award_config.ticket_activation_time');
+            if(time() < $buyTime + $pastTime) {
+              return false;
+            }
+          }
           self::startTrans();
             try {
               $isUpdateRes = self::name('a_user_ticket')->where('user_id', $user_id)->setField('is_start', 0); //首先关闭所有
