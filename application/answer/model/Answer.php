@@ -104,7 +104,7 @@ class Answer extends Base
         if ($limit <= 0) {
             $limit = config('paginate.list_rows');// 获取总条数
         }
-        $count = self::name('a_answer')->alias('a')->join('s_user b', 'a.user_id=b.id')->where($where)->field('a.*,b.avatar,b.nickname')->count();//计算总页面
+        $count = self::name('a_answer')->alias('a')->join('s_user b', 'a.user_id=b.id')->where($where)->field('a.*,b.id as user_id,b.avatar,b.nickname')->count();//计算总页面
         $allpage = intval(ceil($count / $limit));
         $lists = self::name('a_answer')
                         ->alias('a')
@@ -137,6 +137,9 @@ class Answer extends Base
                     $arr['date'] = $vv['date'];
                     $arr['avatar'] = $vv['avatar'];
                     $arr['nickname'] = $vv['nickname'];
+                    if(empty($vv['nickname']) || $vv['nickname'] == '') {
+                        $arr['nickname'] = "User-" . $vv['user_id'];
+                    }
                     if(empty($vv['avatar']) || $vv['avatar'] == '') {
                         $arr['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
                     }
