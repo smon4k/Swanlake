@@ -151,20 +151,25 @@ class Piggybank extends Base
         //总结余
         $balanceDetails = Okx::getTradeValuation($product_name);
         $btcPrice = $balanceDetails['btcPrice'];
-        
-        //本金
-        $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
-        if($direction == 1) {
-            // $countUstandardPrincipal = (float)$UstandardPrincipal + (float)$amount;
-            // $countBstandardPrincipal = (float)$UstandardPrincipal + ((float)$amount / $btcPrice);
-            $countUstandardPrincipal = (float)$total_balance + (float)$amount;
-            $countBstandardPrincipal = ((float)$total_balance / $btcPrice) + ((float)$amount / $btcPrice);
+        $countUstandardPrincipal = 0;
+        $countBstandardPrincipal = 0;
+        if(!$amount || $amount == 0) {
+            $uPrincipalRes = self::getPiggybankCurrencyPrincipal(1); //获取昨天的U累计本金
+            $bPrincipalRes = self::getPiggybankCurrencyPrincipal(2); //获取昨天的B累计本金
+            $countUstandardPrincipal = $uPrincipalRes['principal'];
+            $countBstandardPrincipal = $bPrincipalRes['principal'];
         } else {
-            // $countUstandardPrincipal = (float)$UstandardPrincipal - (float)$amount;
-            // $countBstandardPrincipal = (float)$UstandardPrincipal - ((float)$amount / $btcPrice);
-            $countUstandardPrincipal = (float)$total_balance - (float)$amount;
-            $countBstandardPrincipal = ((float)$total_balance / $btcPrice) - ((float)$amount / $btcPrice);
+            //本金
+            $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
+            if($direction == 1) {
+                $countUstandardPrincipal = (float)$total_balance + (float)$amount;
+                $countBstandardPrincipal = ((float)$total_balance / $btcPrice) + ((float)$amount / $btcPrice);
+            } else {
+                $countUstandardPrincipal = (float)$total_balance - (float)$amount;
+                $countBstandardPrincipal = ((float)$total_balance / $btcPrice) - ((float)$amount / $btcPrice);
+            }
         }
+
         
         $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余 = USDT数量+BTC数量*价格
         $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtBalance'] / $btcPrice; //币本位结余 = BTC数量+USDT数量/价格
@@ -228,7 +233,7 @@ class Piggybank extends Base
                 }
                 if($saveBres !== false) {
                     if($amount > 0) {
-                        $isIntOut = self::setInoutGoldRecord($amount, $direction, $remark);
+                        $isIntOut = self::setInoutGoldRecord($amount, $$btcPrice, $direction, $remark);
                         if($isIntOut) {
                             self::commit();
                             return true;
@@ -297,10 +302,11 @@ class Piggybank extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function setInoutGoldRecord($amount='', $type=0, $remark='') {
+    public static function setInoutGoldRecord($amount='', $price, $type=0, $remark='') {
         if($amount !== 0 && $type > 0) {
             $insertData = [
                 'amount' => $amount,
+                'price' => $price,
                 'type' => $type,
                 'total_balance' => self::getInoutGoldTotalBalance() + (float)$amount,
                 'remark' => $remark,
@@ -325,6 +331,22 @@ class Piggybank extends Base
             return $count;
         }
         return 0;
+    }
+
+    /**
+     * 获取昨天累计本金
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function getPiggybankCurrencyPrincipal($standard=0) {
+        if($standard > 0) {
+            $date = date("Y-m-d", strtotime("-1 day")); //获取昨天的时间
+            $res = self::name('okx_piggybank_currency_date')->where(['date' => $date, 'standard' => $standard])->find();
+            if($res && count((array)$res) > 0) {
+                return $res;
+            }
+        }
+        return [];
     }
 
     /**
