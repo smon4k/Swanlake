@@ -251,4 +251,46 @@ class Answer extends Base
         $count = self::name('a_answer_record')->where(['score'=>['eq', 20]])->count();
         return $count;
     }
+
+    /**
+     * 合并用户作答记录
+     * @author qinlh
+     * @since 2022-08-31
+     */
+    public static function mergeUserAnswer($user_id=0, $marge_id=0) {
+        if($user_id > 0 && $marge_id > 0) {
+            $data = self::name('a_answer')->where('user_id', $marge_id)->select();
+            if($data && count((array)$data) > 0) {
+                foreach ($data as $key => $val) {
+                    if($val['user_ticket_id'] == 0) {
+                        $date = $val['date'];
+                        $user_ticket_id = $val['user_ticket_id'];
+                        $userAwardArr = self::name('a_answer')->where(['user_id'=>$user_id, 'date' => $date, 'user_ticket_id' => 0])->find();
+                        if($userAwardArr && count((array)$userAwardArr) > 0) { //如果同一天两个用户账号都有门票为0的数据 开始合并奖励数量
+                            $score = (float)$userAwardArr['score'] + (float)$val['score'];
+                            $consuming = (float)$userAwardArr['consuming'] + (float)$val['consuming'];
+                            $res = self::name('a_answer')->where(['user_id'=>$user_id, 'date' => $date, 'user_ticket_id' => 0])->update([
+                                'score' => $score,
+                                'consuming' => $consuming,
+                                'up_time' => date('Y-m-d H:i:s')
+                            ]);
+                            if($res !== false) {
+                                @self::name('a_answer')->where(['user_id'=>$marge_id, 'date' => $date, 'user_ticket_id' => 0])->delete();
+                            }
+                        } else {
+                            $res = self::name('a_answer')->where(['user_id'=>$marge_id, 'date' => $date, 'user_ticket_id' => 0])->setField('user_id', $user_id);
+                        }
+                    } else {
+                        $res = self::name('a_answer')->where(['user_id'=>$marge_id, 'date' => $date, 'user_ticket_id' => $user_ticket_id])->setField('user_id', $user_id);
+                    }
+                    if($res !== false) {
+                        return true;
+                    }
+                }
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
 }

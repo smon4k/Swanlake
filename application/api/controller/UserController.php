@@ -217,6 +217,38 @@ class UserController extends BaseController
         }
     }
 
+     /**
+     * 已存在的账号进行合并
+     * @author qinlh
+     * @since 2022-06-19
+     */
+    public function marginUsername(Request $request) {
+        $userId = $request->post('userId', 0, 'intval');
+        $username = $request->post('username', '', 'trim');
+        $password = $request->post('password', '', 'trim');
+        if(!$username || $username == '' || $password == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        } 
+        $userExist = User::getUsernameInfo($username);
+        if($userExist && $userExist['address'] !== '') {
+            return $this->as_json(70001, '用户名已被绑定');
+        }
+        $user = User::checkLogin($username, $password);
+        // p($user);
+        if ($user === -1) {
+            return $this->as_json(70002, '账号不存在');
+        } 
+        if ($user === -2) {
+            return $this->as_json(70003, '密码错误');
+        }
+        $result = User::AccountMerge($userId, $userExist['id'], $userExist['username'], $userExist['password'], $userExist['local_balance'], $userExist['h2o_local_balance']);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, '绑定失败');
+        }
+    }
+
     /**
      * 根据钱包地址获取用户信息
      * @author qinlh

@@ -63,7 +63,7 @@ class UserTicket extends Base
                     if(isset($userInfo['address']) && $userInfo['address'] !== '') {
                       $dataArr = UserV2::setUserLocalBalance($userInfo['address'], $clinchPrice, 2, false);
                     } else {
-                      $dataArr = true;
+                      $dataArr = UserV2::setUserIdCurrencyLocalBalance($userId, $clinchPrice, 2, 'usdt');
                     }
                     // p($dataArr);
                     // $dataArr = json_decode($response_string, true);

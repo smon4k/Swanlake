@@ -271,4 +271,48 @@ class Award extends Base
         // array_multisort($num_count, SORT_DESC, $lists);//对多个数组或多维数组进行排序
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
+
+    /**
+     * 合并用户奖励
+     * @author qinlh
+     * @since 2022-08-31
+     */
+    public static function mergeUserAward($user_id=0, $marge_id=0) {
+        if($user_id > 0 && $marge_id > 0) {
+            $data = self::name('a_award')->where('user_id', $marge_id)->select();
+            if($data && count((array)$data) > 0) {
+                foreach ($data as $key => $val) {
+                    if($val['user_ticket_id'] == 0) {
+                        $date = $val['date'];
+                        $user_ticket_id = $val['user_ticket_id'];
+                        $userAwardArr = self::name('a_award')->where(['user_id'=>$user_id, 'date' => $date, 'user_ticket_id' => 0])->find();
+                        if($userAwardArr && count((array)$userAwardArr) > 0) { //如果同一天两个用户账号都有门票为0的数据 开始合并奖励数量
+                            $question_num = (float)$userAwardArr['question_num'] + (float)$val['question_num'];
+                            $score = (float)$userAwardArr['score'] + (float)$val['score'];
+                            $award_num = (float)$userAwardArr['award_num'] + (float)$val['award_num'];
+                            $res = self::name('a_award')->where(['user_id'=>$user_id, 'date' => $date, 'user_ticket_id' => 0])->update([
+                                'question_num' => $question_num,
+                                'score' => $score,
+                                'award_num' => $award_num,
+                                'up_time' => date('Y-m-d H:i:s')
+                            ]);
+                            if($res !== false) {
+                                @self::name('a_award')->where(['user_id'=>$marge_id, 'date' => $date, 'user_ticket_id' => 0])->delete();
+                            }
+                        } else {
+                            $res = self::name('a_award')->where(['user_id'=>$marge_id, 'date' => $date, 'user_ticket_id' => 0])->setField('user_id', $user_id);
+                        }
+                    } else {
+                        $res = self::name('a_award')->where(['user_id'=>$marge_id, 'date' => $date, 'user_ticket_id' => $user_ticket_id])->setField('user_id', $user_id);
+                    }
+                    if($res !== false) {
+                        return true;
+                    }
+                }
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
 }

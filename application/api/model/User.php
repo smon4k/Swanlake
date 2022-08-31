@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | 文件说明：用户 笔记 Model
 // +----------------------------------------------------------------------
@@ -10,6 +11,7 @@
 // +----------------------------------------------------------------------
 // | Date: 2022-05-18
 // +----------------------------------------------------------------------
+
 namespace app\api\model;
 
 use think\Model;
@@ -26,6 +28,9 @@ use ClassLibrary\ClString;
 use ClassLibrary\CLFfmpeg;
 use ClassLibrary\CLAwsUpload;
 use RequestService\RequestService;
+use app\answer\model\Answer;
+use app\answer\model\Award;
+
 
 class User extends Base
 {
@@ -150,10 +155,10 @@ class User extends Base
 
             $rewardH2oBalance = self::getUserContractBalance($address, 'h2o'); //重置链上余额
             // if ($rewardH2oBalance !== 0) {
-                @self::resetUserRewardBalance($address, $rewardH2oBalance, 'h2o');
-                $data['h2o_wallet_balance'] = $rewardH2oBalance;
+            @self::resetUserRewardBalance($address, $rewardH2oBalance, 'h2o');
+            $data['h2o_wallet_balance'] = $rewardH2oBalance;
             // }
-            if(empty($data['avatar']) || $data['avatar'] == '') {
+            if (empty($data['avatar']) || $data['avatar'] == '') {
                 $data['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
             }
             return $data;
@@ -173,18 +178,18 @@ class User extends Base
             $userinfo = self::where('id', $userId)->find();
             if ($userinfo && count((array)$userinfo) > 0) {
                 $data = $userinfo->toArray();
-                if(isset($userinfo['address']) && $userinfo['address'] !== '') {
+                if (isset($userinfo['address']) && $userinfo['address'] !== '') {
                     $rewardBalance = self::getUserContractBalance($userinfo['address'], 'usdt'); //重置链上余额
                     @self::resetUserRewardBalance($userinfo['address'], $rewardBalance, 'usdt');
                     $data['wallet_balance'] = $rewardBalance;
-        
+
                     $rewardH2oBalance = self::getUserContractBalance($userinfo['address'], 'h2o'); //重置链上余额
                     // if ($rewardH2oBalance !== 0) {
-                        @self::resetUserRewardBalance($userinfo['address'], $rewardH2oBalance, 'h2o');
-                        $data['h2o_wallet_balance'] = $rewardH2oBalance;
+                    @self::resetUserRewardBalance($userinfo['address'], $rewardH2oBalance, 'h2o');
+                    $data['h2o_wallet_balance'] = $rewardH2oBalance;
                     // }
                 }
-                if(empty($data['avatar']) || $data['avatar'] == '') {
+                if (empty($data['avatar']) || $data['avatar'] == '') {
                     $data['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
                 }
                 return $data;
@@ -255,7 +260,7 @@ class User extends Base
         return false;
     }
 
-      /**
+    /**
      * 开始添加用户信息
      * @author qinlh
      * @since 2022-03-18
@@ -290,11 +295,11 @@ class User extends Base
         return false;
     }
 
-     /**
-     * 修改用户信息
-     * @author qinlh
-     * @since 2022-03-18
-     */
+    /**
+    * 修改用户信息
+    * @author qinlh
+    * @since 2022-03-18
+    */
     public static function saveUserInfo($userId=0, $updateArr=[])
     {
         self::startTrans();
@@ -303,9 +308,9 @@ class User extends Base
                 $oldUserInfo = self::getUserInfoOne($userId);
                 $res = self::where("id", $userId)->update($updateArr);
                 if (false !== $res) {
-                    if(isset($updateArr['avatar']) && $updateArr['avatar'] !== '') {
+                    if (isset($updateArr['avatar']) && $updateArr['avatar'] !== '') {
                         $oldAvatar = $oldUserInfo['avatar']; //旧的照片地址
-                        if($oldAvatar && $oldAvatar !== '') {
+                        if ($oldAvatar && $oldAvatar !== '') {
                             @CLAwsUpload::AwsS3DeleateObject($oldAvatar); //删除云端旧的照片
                         }
                     }
@@ -316,7 +321,7 @@ class User extends Base
             }
             self::rollback();
             return false;
-        } catch ( PDOException $e) {
+        } catch (PDOException $e) {
             self::rollback();
             // p($e->getMessage())
             return false;
@@ -396,10 +401,10 @@ class User extends Base
                             'amount' => $amount,
                             'type' => $type,
                         ];
-                        if($isSaveMediaBalance && getEnvs() === 'prod') {
+                        if ($isSaveMediaBalance && getEnvs() === 'prod') {
                             $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/setUserUsdtLocalBalance', http_build_query($params));
                             // $dataArr = json_decode($response_string, true);
-                            if($dataArr && $dataArr['code'] == 10000) {
+                            if ($dataArr && $dataArr['code'] == 10000) {
                                 self::commit();
                                 return true;
                             }
@@ -445,7 +450,7 @@ class User extends Base
                     }
                     if ($res !== false) {
                         self::commit();
-                        return true;    
+                        return true;
                     }
                 }
                 self::rollback();
@@ -473,7 +478,11 @@ class User extends Base
         if ($userId > 0 && $amount >= 0 && $type > 0 && $currency !== '') {
             self::startTrans();
             try {
-                $field = $currency . "_local_balance";
+                if($currency === 'usdt') {
+                    $field = "local_balance";
+                } else {
+                    $field = $currency . "_local_balance";
+                }
                 $userInfo = self::getUserInfo($userId);
                 if ($userInfo && count((array)$userInfo)) {
                     if ($type == 1) {
@@ -484,7 +493,7 @@ class User extends Base
                     }
                     if ($res !== false) {
                         self::commit();
-                        return true;    
+                        return true;
                     }
                 }
                 self::rollback();
@@ -528,7 +537,7 @@ class User extends Base
     public static function getUsernameInfo($username='', $userId=0)
     {
         if ($username && $username !== '') {
-            if($userId > 0) {
+            if ($userId > 0) {
                 $res = self::where('username', $username)->whereNotIn("id", $userId)->find();
             } else {
                 $res = self::where('username', $username)->find();
@@ -579,10 +588,10 @@ class User extends Base
         if ($address !== '') {
             $params = array('address' => $address);
             $url = '';
-            if($currency === 'usdt') {
+            if ($currency === 'usdt') {
                 $url = Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_uri'];
-            } 
-            if($currency === 'h2o') {
+            }
+            if ($currency === 'h2o') {
                 $url = Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_h2o_uri'];
             }
             $response_string = RequestService::doJsonCurlPost($url, json_encode($params));
@@ -606,25 +615,25 @@ class User extends Base
             try {
                 // return self::where('address', $address)->update(['wallet_balance'=>$balance]);
                 $field = "wallet_balance";
-                if($currency === 'usdt') {
+                if ($currency === 'usdt') {
                     $field = "wallet_balance";
                 } else {
                     $field = $currency . "_wallet_balance";
                 }
                 $res = self::where('address', $address)->update([$field=>$balance]);
-                if($res) {
-                    if(getEnvs() === 'prod') {
+                if ($res) {
+                    if (getEnvs() === 'prod') {
                         $params = [
                             'address' => $address,
                             'amount' => $balance
                         ];
-                        if($currency === 'usdt') { //如果是USDT 同步短视频usdt余额
+                        if ($currency === 'usdt') { //如果是USDT 同步短视频usdt余额
                             $dataArr = postCurl(Config::get('h2omedia_api_url').'/api/User/resetUserUsdfWallettBalance', http_build_query($params));
                             // $dataArr = json_decode($response_string, true);
-                            if($dataArr && $dataArr['code'] == 10000) {
+                            if ($dataArr && $dataArr['code'] == 10000) {
                                 self::commit();
                                 return true;
-                            } 
+                            }
                         } else {
                             self::commit();
                             return true;
@@ -685,5 +694,65 @@ class User extends Base
             }
         }
         return [];
+    }
+
+    /**
+    * 账号合并
+    * @author qinlh
+    * @since 2022-06-19
+    */
+    public static function AccountMerge($userId=0, $marge_id=0, $username='', $password='', $local_balance=0, $h2o_local_balance=0)
+    {
+        if ($userId > 0 && $marge_id > 0 && $username !== '') {
+            $userInfo = User::getUserInfo($userId);
+            self::startTrans();
+            try {
+                //合并笔记数据
+                $Res01 = self::name('a_user_ticket')->where('user_id', $marge_id)->setField('user_id', $userId);
+                if ($Res01 !== false) {
+                    $Res02 = self::name('a_ticket_log')->where('user_id', $marge_id)->setField('user_id', $userId);
+                    if ($Res02 !== false) {
+                        $Res03 = self::name('a_answer_record')->where('user_id', $marge_id)->setField('user_id', $userId);
+                        if ($Res03 !== false) {
+                            $Res04 = Answer::mergeUserAnswer($userId, $marge_id);
+                            // $Res04 = self::name('a_answer')->where('user_id', $marge_id)->setField('user_id', $userId);
+                            if ($Res04 !== false) {
+                                $Res05 = Award::mergeUserAward($userId, $marge_id);
+                                // $Res05 = self::name('a_award')->where('user_id', $marge_id)->setField('user_id', $userId);
+                                if ($Res05 !== false) {
+                                    //开始合并用户信息
+                                    if ($local_balance > 0) {
+                                        $userrUsdtRes = self::setUserLocalBalance($userInfo['address'], $local_balance, 1); //合并USDT余额
+                                    } else {
+                                        $userrUsdtRes = true;
+                                    }
+                                    if ($h2o_local_balance > 0) {
+                                        $userrH2oRes = self::setUserCurrencyLocalBalance($userInfo['address'], $h2o_local_balance, 1, 'h2o'); //合并H2O余额
+                                    } else {
+                                        $userrH2oRes = true;
+                                    }
+                                    if ($userrUsdtRes && $userrH2oRes) {
+                                        $saveUserNmae = self::where('id', $userId)->update(['username'=>$username, 'password'=>$password]);
+                                        if ($saveUserNmae) {
+                                            $delRes = self::where('id', $marge_id)->delete(); //删除用户信息
+                                            if ($delRes) {
+                                                self::commit();
+                                                return true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                self::rollback();
+                return false;
+            } catch (\Exception $e) {
+                p($e);
+                self::rollback();
+                return false;
+            }
+        }
     }
 }
