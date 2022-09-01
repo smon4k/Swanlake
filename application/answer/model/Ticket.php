@@ -236,14 +236,30 @@ class Ticket extends Base
     }
 
     /**
-     * 获取H2O价格
+     * 获取SCT价格
      * @author qinlh
      * @since 2022-08-03
      */
-    public static function getH2OPrice() {
+    public static function getSCTPrice() {
         $price = 0;
         $params = [];
-        $response_string = RequestService::doJsonCurlPost(config('www_reptile_game_filling').config('reptile_service')['get_h2o_price'], json_encode($params));
+        $response_string = RequestService::doJsonCurlPost(config('www_reptile_game_filling').config('reptile_service')['get_sct_price'], json_encode($params));
+        $price = (float)json_decode($response_string, true);
+        if ($price) {
+            return $price;
+        }
+        return $price;
+    }
+
+    /**
+     * 获取SST价格
+     * @author qinlh
+     * @since 2022-08-03
+     */
+    public static function getSSTPrice() {
+        $price = 0;
+        $params = [];
+        $response_string = RequestService::doJsonCurlPost(config('www_reptile_game_filling').config('reptile_service')['get_sst_price'], json_encode($params));
         $price = (float)json_decode($response_string, true);
         if ($price) {
             return $price;

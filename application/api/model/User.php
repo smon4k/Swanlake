@@ -153,11 +153,15 @@ class User extends Base
             @self::resetUserRewardBalance($address, $rewardBalance, 'usdt');
             $data['wallet_balance'] = $rewardBalance;
 
-            $rewardH2oBalance = self::getUserContractBalance($address, 'h2o'); //重置链上余额
+            $rewardSCTBalance = self::getUserContractBalance($address, 'sct'); //重置链上余额
             // if ($rewardH2oBalance !== 0) {
-            @self::resetUserRewardBalance($address, $rewardH2oBalance, 'h2o');
-            $data['h2o_wallet_balance'] = $rewardH2oBalance;
+            @self::resetUserRewardBalance($address, $rewardSCTBalance, 'sct');
+            $data['sct_wallet_balance'] = $rewardSCTBalance;
             // }
+
+            $rewardSSTBalance = self::getUserContractBalance($userinfo['address'], 'sst'); //重置链上余额
+            @self::resetUserRewardBalance($userinfo['address'], $rewardSSTBalance, 'sst');
+            $data['sst_wallet_balance'] = $rewardSSTBalance;
             if (empty($data['avatar']) || $data['avatar'] == '') {
                 $data['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
             }
@@ -183,11 +187,14 @@ class User extends Base
                     @self::resetUserRewardBalance($userinfo['address'], $rewardBalance, 'usdt');
                     $data['wallet_balance'] = $rewardBalance;
 
-                    $rewardH2oBalance = self::getUserContractBalance($userinfo['address'], 'h2o'); //重置链上余额
+                    $rewardSCTBalance = self::getUserContractBalance($userinfo['address'], 'sct'); //重置链上余额
                     // if ($rewardH2oBalance !== 0) {
-                    @self::resetUserRewardBalance($userinfo['address'], $rewardH2oBalance, 'h2o');
-                    $data['h2o_wallet_balance'] = $rewardH2oBalance;
-                    // }
+                    @self::resetUserRewardBalance($userinfo['address'], $rewardSCTBalance, 'sct');
+                    $data['sct_wallet_balance'] = $rewardSCTBalance;
+
+                    $rewardSSTBalance = self::getUserContractBalance($userinfo['address'], 'sst'); //重置链上余额
+                    @self::resetUserRewardBalance($userinfo['address'], $rewardSCTBalance, 'sst');
+                    $data['sst_wallet_balance'] = $rewardSSTBalance;
                 }
                 if (empty($data['avatar']) || $data['avatar'] == '') {
                     $data['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
@@ -236,8 +243,10 @@ class User extends Base
                     'time' => date('Y-m-d H:i:s'),
                     'local_balance' => $local_balance,
                     'wallet_balance' => 0,
-                    'h2o_local_balance' => 0,
-                    'h2o_wallet_balance' => 0,
+                    'sct_local_balance' => 0,
+                    'sct_wallet_balance' => 0,
+                    'sst_local_balance' => 0,
+                    'sst_wallet_balance' => 0,
                     'status' => 1,
                 ];
                 $userId = self::insertGetId($insertData);
@@ -282,8 +291,10 @@ class User extends Base
                 'time' => date('Y-m-d H:i:s'),
                 'local_balance' => $local_balance,
                 'wallet_balance' => 0,
-                'h2o_local_balance' => 0,
-                'h2o_wallet_balance' => 0,
+                'sct_local_balance' => 0,
+                'sct_wallet_balance' => 0,
+                'sst_local_balance' => 0,
+                'sst_wallet_balance' => 0,
                 'status' => 1,
             ];
             $userId = self::insertGetId($insertData);
@@ -591,8 +602,11 @@ class User extends Base
             if ($currency === 'usdt') {
                 $url = Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_uri'];
             }
-            if ($currency === 'h2o') {
-                $url = Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_h2o_uri'];
+            if ($currency === 'sct') {
+                $url = Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_sct_uri'];
+            }
+            if ($currency === 'sst') {
+                $url = Config::get('www_reptile_game_filling').Config::get('reptile_service')['filling_sst_uri'];
             }
             $response_string = RequestService::doJsonCurlPost($url, json_encode($params));
             $balance = (float)json_decode($response_string, true);
@@ -701,7 +715,7 @@ class User extends Base
     * @author qinlh
     * @since 2022-06-19
     */
-    public static function AccountMerge($userId=0, $marge_id=0, $username='', $password='', $local_balance=0, $h2o_local_balance=0)
+    public static function AccountMerge($userId=0, $marge_id=0, $username='', $password='', $local_balance=0, $sct_local_balance=0, $sst_local_balance=0)
     {
         if ($userId > 0 && $marge_id > 0 && $username !== '') {
             $userInfo = User::getUserInfo($userId);
@@ -726,12 +740,17 @@ class User extends Base
                                     } else {
                                         $userrUsdtRes = true;
                                     }
-                                    if ($h2o_local_balance > 0) {
-                                        $userrH2oRes = self::setUserCurrencyLocalBalance($userInfo['address'], $h2o_local_balance, 1, 'h2o'); //合并H2O余额
+                                    if ($sct_local_balance > 0) {
+                                        $userrSCTRes = self::setUserCurrencyLocalBalance($userInfo['address'], $sct_local_balance, 1, 'sct'); //合并SCT余额
                                     } else {
-                                        $userrH2oRes = true;
+                                        $userrSCTRes = true;
                                     }
-                                    if ($userrUsdtRes && $userrH2oRes) {
+                                    if ($sst_local_balance > 0) {
+                                        $userrSSTRes = self::setUserCurrencyLocalBalance($userInfo['address'], $sst_local_balance, 1, 'sst'); //合并SST余额
+                                    } else {
+                                        $userrSSTRes = true;
+                                    }
+                                    if ($userrUsdtRes && $userrSCTRes && $userrSSTRes) {
                                         $saveUserNmae = self::where('id', $userId)->update(['username'=>$username, 'password'=>$password]);
                                         if ($saveUserNmae) {
                                             $delRes = self::where('id', $marge_id)->delete(); //删除用户信息

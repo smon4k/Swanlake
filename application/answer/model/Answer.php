@@ -170,8 +170,8 @@ class Answer extends Base
         $ticketLists = Ticket::getTicketAnnualizedLists(); //获取年化列表
         $ticketListsCount = count((array)$ticketLists);
         $annualizedAvg = 0;
-        $h2oPrice = Ticket::getH2OPrice();
-        $coefficient = $h2oPrice / 0.0001;
+        $sctPrice = Ticket::getSCTPrice();
+        $coefficient = $sctPrice / 0.0001;
         $countNum = 0;
         foreach ($ticketLists as $val) {
             $countNum += $val * $coefficient;

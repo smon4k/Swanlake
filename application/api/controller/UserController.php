@@ -58,11 +58,25 @@ class UserController extends BaseController
         if($userInfo) {
             // p($favorite_num);
             // if($userInfo && (float)$userInfo['wallet_balance'] <= 0) {
-            if(($userInfo || (float)$userInfo['wallet_balance'] <= 0) && $userInfo['address'] !== '') {
+            if((float)$userInfo['wallet_balance'] <= 0 && $userInfo['address'] !== '') {
                 $rewardBalance = User::getUserContractBalance($userInfo['address']);
                 if ($rewardBalance) {
                     $userInfo['wallet_balance'] = $rewardBalance;
                     @User::resetUserRewardBalance($address, $rewardBalance);
+                }
+            }
+            if((float)$userInfo['sct_wallet_balance'] <= 0 && $userInfo['address'] !== '') {
+                $rewardSctBalance = User::getUserContractBalance($userInfo['address'], 'sct');
+                if ($rewardSctBalance) {
+                    $userInfo['sct_wallet_balance'] = $rewardSctBalance;
+                    @User::resetUserRewardBalance($address, $rewardSctBalance, 'sct');
+                }
+            }
+            if((float)$userInfo['sst_wallet_balance'] <= 0 && $userInfo['address'] !== '') {
+                $rewardSstBalance = User::getUserContractBalance($userInfo['address'], 'sst');
+                if ($rewardSstBalance) {
+                    $userInfo['sst_wallet_balance'] = $rewardSstBalance;
+                    @User::resetUserRewardBalance($address, $rewardSstBalance, 'sst');
                 }
             }
             $userInfo['total_invest'] = 0;
@@ -241,7 +255,7 @@ class UserController extends BaseController
         if ($user === -2) {
             return $this->as_json(70003, '密码错误');
         }
-        $result = User::AccountMerge($userId, $userExist['id'], $userExist['username'], $userExist['password'], $userExist['local_balance'], $userExist['h2o_local_balance']);
+        $result = User::AccountMerge($userId, $userExist['id'], $userExist['username'], $userExist['password'], $userExist['local_balance'], $userExist['sct_local_balance'], $userExist['sst_local_balance']);
         if($result) {
             return $this->as_json($result);
         } else {

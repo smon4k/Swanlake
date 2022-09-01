@@ -16,10 +16,12 @@ class JDSpider(object):
         self.poolsList = []
         self.rpcUrls = 'https://bsc-dataseed.binance.org'
         self.web3Client = Web3(HTTPProvider(self.rpcUrls))
-        self.h2oFillingAddress = "0xdA9A81cf2000fc4df10362bA58EF4607d82E57BE"
+        self.sctFillingAddress = "0xdA9A81cf2000fc4df10362bA58EF4607d82E57BE"
+        self.sstFillingAddress = "0xdA9A81cf2000fc4df10362bA58EF4607d82E57BE"
         self.gamesFillingAddress = "0x079bDC8845D0C6878716A3f5219f1D0DcdF15308"
         self.routerContractAddress = "0x96948447D1521260c24fCdE281d09364BdC5A2d0"
-        self.H2O = "0xC446c2B48328e5D2178092707F8287289ED7e8D6"
+        self.SCT = "0xC446c2B48328e5D2178092707F8287289ED7e8D6"
+        self.SST = "0xC446c2B48328e5D2178092707F8287289ED7e8D6"
         self.USDT = "0x55d398326f99059fF775485246999027B3197955"
         #读取abi文件
         with open(str(os.path.join('./abis/gameFillingABI.json')), 'r') as abi_definition:   
@@ -40,11 +42,11 @@ class JDSpider(object):
         except Exception as re:
             print('functions getHTokenAddress error %s' %re)
 
-    # 获取H2O余额
-    def getGameFillingH2OBalance(self, address):
+    # 获取SCT余额
+    def getGameFillingSCTBalance(self, address):
         try:
             num = 0
-            contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.h2oFillingAddress), abi=self.gameFillingABI)
+            contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.sctFillingAddress), abi=self.gameFillingABI)
             result = contract.functions.userInfo(Web3.toChecksumAddress(address)).call()
             num = fromWei(result[0], 18)
             if result[1]:
@@ -53,13 +55,26 @@ class JDSpider(object):
         except Exception as re:
             print('functions getHTokenAddress error %s' %re)
 
-    # 获取估值 01
-    def getToken2TokenPrice(self):
+    # 获取SST余额
+    def getGameFillingSSTBalance(self, address):
+        try:
+            num = 0
+            contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.sstFillingAddress), abi=self.gameFillingABI)
+            result = contract.functions.userInfo(Web3.toChecksumAddress(address)).call()
+            num = fromWei(result[0], 18)
+            if result[1]:
+                num = float("-"+num)
+            return num
+        except Exception as re:
+            print('functions getHTokenAddress error %s' %re)
+
+    # 获取SCT估值 01
+    def getSCTTokenPrice(self):
         Gwei1 = 1000000000
         try:
             price = 0
             contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.routerContractAddress), abi=self.mdexABI)
-            result = contract.functions.getAmountsOut(Gwei1, [self.H2O , self.USDT]).call()
+            result = contract.functions.getAmountsOut(Gwei1, [self.SCT , self.USDT]).call()
             # print(result)
             if(result or result[1]):
                 price = result[1] / Gwei1
@@ -68,6 +83,23 @@ class JDSpider(object):
             return price
         except Exception as re:
             print('functions getToken2TokenPrice->getAmountsOut error %s' %re)
+
+    # 获取SST估值 01
+    def getSCSTokenPrice(self):
+        Gwei1 = 1000000000
+        try:
+            price = 0
+            contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.routerContractAddress), abi=self.mdexABI)
+            result = contract.functions.getAmountsOut(Gwei1, [self.SST , self.USDT]).call()
+            # print(result)
+            if(result or result[1]):
+                price = result[1] / Gwei1
+            else:
+                print('getToken2TokenPrice_err')
+            return price
+        except Exception as re:
+            print('functions getToken2TokenPrice->getAmountsOut error %s' %re)
+    
 
 # if __name__ == "__main__":
 #     # searchName = sys.argv[1] # 接受参数
@@ -89,24 +121,48 @@ def getGameFillingBalance():
     response.mimetype = 'application/json'
     return response
 
-@app.route('/v1.0/get_filling_h2o_balance', methods=['POST'])
-def getGameFillingH2OBalance():
+@app.route('/v1.0/get_filling_sct_balance', methods=['POST'])
+def getGameFillingSCTBalance():
     # if request.content_type == 'application/json':
     pageJson = request.json
     spider = JDSpider()
-    data = spider.getGameFillingH2OBalance(pageJson['address'])
+    data = spider.getGameFillingSCTBalance(pageJson['address'])
     # print(data)
     # json_str = json.dumps(data)
     response = make_response(jsonify(data))
     response.mimetype = 'application/json'
     return response
 
-@app.route('/v1.0/get_h2o_price', methods=['POST'])
-def getH2OPrice():
+@app.route('/v1.0/get_filling_sst_balance', methods=['POST'])
+def getGameFillingSSTBalance():
+    # if request.content_type == 'application/json':
+    pageJson = request.json
+    spider = JDSpider()
+    data = spider.getGameFillingSSTBalance(pageJson['address'])
+    # print(data)
+    # json_str = json.dumps(data)
+    response = make_response(jsonify(data))
+    response.mimetype = 'application/json'
+    return response
+
+@app.route('/v1.0/get_sct_price', methods=['POST'])
+def getSCTPrice():
     # if request.content_type == 'application/json':
     # pageJson = request.json
     spider = JDSpider()
-    data = spider.getToken2TokenPrice()
+    data = spider.getSCTTokenPrice()
+    # print(data)
+    # json_str = json.dumps(data)
+    response = make_response(jsonify(data))
+    response.mimetype = 'application/json'
+    return response
+
+@app.route('/v1.0/get_sst_price', methods=['POST'])
+def getSSTPrice():
+    # if request.content_type == 'application/json':
+    # pageJson = request.json
+    spider = JDSpider()
+    data = spider.getSSTTokenPrice()
     # print(data)
     # json_str = json.dumps(data)
     response = make_response(jsonify(data))
