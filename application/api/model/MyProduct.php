@@ -339,11 +339,13 @@ class MyProduct extends Base {
      * @author qinlh
      * @since 2022-07-11
      */
-    public static function saveUserProductData($where=[]) {
+    public static function saveUserProductData($date='', $yestDate='', $where=[]) {
         $data = self::where($where)->select()->toArray();
-        $date = date('Y-m-d');
+        if($date == '' || $yestDate == '') {
+            $date = date('Y-m-d');
+            $yestDate = date('Y-m-d', strtotime("-1 day"));
+        }
         $d1 = strtotime($date);
-        $yestDate = date('Y-m-d', strtotime("-1 day"));
         $insertData = [];
         self::startTrans();
         try {
@@ -425,11 +427,13 @@ class MyProduct extends Base {
      * @author qinlh
      * @since 2022-07-13
      */
-    public static function saveProductListData() {
+    public static function saveProductListData($date='', $yestDate='') {
         $data = self::name('product')->select()->toArray();
-        $date = date('Y-m-d');
+        if($date == '' || $yestDate == '') {
+            $date = date('Y-m-d');
+            $yestDate = date('Y-m-d', strtotime("-1 day"));
+        }
         $d1 = strtotime($date);
-        $yestDate = date('Y-m-d', strtotime("-1 day"));
         $insertData = [];
         self::startTrans();
         try {

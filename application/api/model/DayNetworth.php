@@ -66,12 +66,13 @@ class DayNetworth extends Base
             $newDayNetWorth = valueInterceptStr($dayNetWorth, 6);
             // if ($dayNetWorth > 0) {
                 $date = date("Y-m-d");
+                $yestDate = date("Y-m-d",strtotime("-1 day",strtotime($date)));
                 $res = self::where('date', $date)->find();
                 if ($res && count((array)$res) > 0) {
                     $res = self::where('date', $date)->update(['profit'=>$profit, 'networth'=>$newDayNetWorth, 'time'=>date('Y-m-d H:i:s')]);
                     if ($res !== false) {
-                        $command = 'app\api\model\MyProduct::saveUserProductData();';
-                        $command1 = 'app\api\model\MyProduct::saveProductListData();';
+                        $command = 'app\api\model\MyProduct::saveUserProductData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
+                        $command1 = 'app\api\model\MyProduct::saveProductListData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
                         // p($command);
                         $desc = '更新用户产品历史净值';
                         $desc1 = '更新产品历史净值';
@@ -87,13 +88,13 @@ class DayNetworth extends Base
                         'balance' => $buyNumber['yest_count_balance'],
                         'number' => $buyNumber['count_buy_number'],
                         'networth' => $newDayNetWorth,
-                        'date' => date('Y-m-d'),
+                        'date' => $date,
                         'time' => date('Y-m-d H:i:s')
                     ]);
                     $insertId = self::getLastInsID();
                     if ($insertId > 0) {
-                        $command = 'app\api\model\MyProduct::saveUserProductData();';
-                        $command1 = 'app\api\model\MyProduct::saveProductListData();';
+                        $command = 'app\api\model\MyProduct::saveUserProductData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
+                        $command1 = 'app\api\model\MyProduct::saveProductListData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
                         // p($command);
                         $desc = '更新历史净值';
                         $desc1 = '更新产品历史净值';
