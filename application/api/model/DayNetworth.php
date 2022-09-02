@@ -61,7 +61,7 @@ class DayNetworth extends Base
      */
     public static function saveDayNetworth($address='', $profit=0, $product_id=1)
     {
-        if ($profit > 0) {
+        if ($profit >= 0) {
             $dayNetWorth = MyProduct::calcNewsNetWorth($profit, $product_id);
             $newDayNetWorth = valueInterceptStr($dayNetWorth, 6);
             if ($dayNetWorth > 0) {

@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | 文件说明：H2O-存钱罐-Model
 // +----------------------------------------------------------------------
@@ -10,6 +11,7 @@
 // +----------------------------------------------------------------------
 // | Date: 2022-08-17
 // +----------------------------------------------------------------------
+
 namespace app\admin\model;
 
 use lib\ClCrypt;
@@ -18,15 +20,16 @@ use app\api\model\Reward;
 use app\tools\model\Okx;
 
 class Piggybank extends Base
-{   
+{
     /**
     * 获取订单列表
     * @param  [post] [description]
     * @return [type] [description]
     * @author [qinlh] [WeChat QinLinHui0706]
     */
-    public static function getPiggybankOrderList($page, $where, $limits=0) {
-        if($limits == 0) {
+    public static function getPiggybankOrderList($page, $where, $limits=0)
+    {
+        if ($limits == 0) {
             $limits = config('paginate.list_rows');// 获取总条数
         }
         // p($where);
@@ -47,7 +50,7 @@ class Piggybank extends Base
         // p($lists);
         $newArrayData = [];
         foreach ($lists as $key => $val) {
-            if($val['pair'] > 0) {
+            if ($val['pair'] > 0) {
                 $newArrayData[$val['pair']][] = $val;
             } else {
                 $newArrayData[$val['id']][0] = $val;
@@ -61,7 +64,7 @@ class Piggybank extends Base
             $resultArray[$key]['time'] = $val[0]['time'];
             $price = 0;
             $profit = $val[0]['profit'];
-            if(isset($val[1]) && count((array)$val[1]) > 1) {
+            if (isset($val[1]) && count((array)$val[1]) > 1) {
                 $price = abs($val[0]['price'] -  $val[1]['price']);
             } else {
                 $price = $val[0]['price'];
@@ -89,8 +92,9 @@ class Piggybank extends Base
     * @return [type] [description]
     * @author [qinlh] [WeChat QinLinHui0706]
     */
-    public static function getPiggybankDateList($page, $where, $limits=0) {
-        if($limits == 0) {
+    public static function getPiggybankDateList($page, $where, $limits=0)
+    {
+        if ($limits == 0) {
             $limits = config('paginate.list_rows');// 获取总条数
         }
         // p($where);
@@ -118,8 +122,9 @@ class Piggybank extends Base
     * @return [type] [description]
     * @author [qinlh] [WeChat QinLinHui0706]
     */
-    public static function getUBPiggybankDateList($page, $where, $limits=0) {
-        if($limits == 0) {
+    public static function getUBPiggybankDateList($page, $where, $limits=0)
+    {
+        if ($limits == 0) {
             $limits = config('paginate.list_rows');// 获取总条数
         }
         // p($where);
@@ -140,28 +145,29 @@ class Piggybank extends Base
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
-    
+
     /**
      * 出入金计算
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function calcDepositAndWithdrawal($product_name='', $direction=0, $amount=0, $remark='') {
+    public static function calcDepositAndWithdrawal($product_name='', $direction=0, $amount=0, $remark='')
+    {
         $date = date('Y-m-d');
         //总结余
         $balanceDetails = Okx::getTradeValuation($product_name);
         $btcPrice = $balanceDetails['btcPrice'];
         $countUstandardPrincipal = 0;
         $countBstandardPrincipal = 0;
-        if(!$amount || $amount == 0) {
-            $uPrincipalRes = self::getPiggybankCurrencyPrincipal(1); //获取昨天的U累计本金
-            $bPrincipalRes = self::getPiggybankCurrencyPrincipal(2); //获取昨天的B累计本金
+        $uPrincipalRes = self::getPiggybankCurrencyPrincipal(1); //获取昨天的U数据
+        $bPrincipalRes = self::getPiggybankCurrencyPrincipal(2); //获取昨天的B数据
+        if (!$amount || $amount == 0) {
             $countUstandardPrincipal = $uPrincipalRes['principal'];
             $countBstandardPrincipal = $bPrincipalRes['principal'];
         } else {
             //本金
             $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
-            if($direction == 1) {
+            if ($direction == 1) {
                 $countUstandardPrincipal = (float)$total_balance + (float)$amount;
                 $countBstandardPrincipal = ((float)$total_balance / $btcPrice) + ((float)$amount / $btcPrice);
             } else {
@@ -170,25 +176,39 @@ class Piggybank extends Base
             }
         }
 
-        
+
         $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余 = USDT数量+BTC数量*价格
         $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtBalance'] / $btcPrice; //币本位结余 = BTC数量+USDT数量/价格
-        
-        //利润 = 总结余 - 本金
+
+        //总利润 = 总结余 - 本金
         $UProfit = $UTotalBalance - $countUstandardPrincipal;
         $BProfit = $BTotalBalance - $countBstandardPrincipal;
 
-        //利润率 = 利润 / 本金
+        //总利润率 = 利润 / 本金
         $UProfitRate = $UProfit / $countUstandardPrincipal;
         $BProfitRate = $BProfit / $countBstandardPrincipal;
 
+        //日利润 日利润率
+        $dailyUProfit = 0; //昨日U本位利润
+        $dailyBProfit = 0; //昨日B本位利润
+        $dailyUProfitRate = 0; //昨日B本位利润率
+        $dailyBProfitRate = 0; //昨日B本位利润率
+        $yestUTotalBalance = isset($uPrincipalRes['total_balance']) ? (float)$uPrincipalRes['total_balance'] : 0;
+        $yestBTotalBalance = isset($bPrincipalRes['total_balance']) ? (float)$bPrincipalRes['total_balance'] : 0;
+        $dailyUProfit = $UTotalBalance - $yestUTotalBalance; //U本位日利润 = 今日的总结余-昨日的总结余
+        $dailyBProfit = $BTotalBalance - $yestBTotalBalance; //币本位日利润 = 今日的总结余-昨日的总结余
+        $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance : 0;
+        $dailyBProfitRate = $yestBTotalBalance > 0 ? $dailyBProfit / $yestBTotalBalance : 0;
+
         self::startTrans();
-        try { 
+        try {
             $URes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
-            if($URes && count((array)$URes) > 0) {
+            if ($URes && count((array)$URes) > 0) {
                 $upDataU = [
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
+                    'daily_profit' => $dailyUProfit,
+                    'daily_profit_rate' => $dailyUProfitRate,
                     'profit' => $UProfit,
                     'profit_rate' => $UProfitRate,
                     'up_time' => date('Y-m-d H:i:s')
@@ -201,18 +221,22 @@ class Piggybank extends Base
                     'date' => $date,
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
+                    'daily_profit' => $dailyUProfit,
+                    'daily_profit_rate' => $dailyUProfitRate,
                     'profit' => $UProfit,
                     'profit_rate' => $UProfitRate,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $saveUres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataU);
             }
-            if($saveUres !== false) {
+            if ($saveUres !== false) {
                 $BRes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->find();
-                if($BRes && count((array)$BRes) > 0) {
+                if ($BRes && count((array)$BRes) > 0) {
                     $upDataB = [
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
+                        'daily_profit' => $dailyBProfit,
+                        'daily_profit_rate' => $dailyBProfitRate,
                         'profit' => $BProfit,
                         'profit_rate' => $BProfitRate,
                         'up_time' => date('Y-m-d H:i:s')
@@ -225,16 +249,18 @@ class Piggybank extends Base
                         'date' => $date,
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
+                        'daily_profit' => $dailyBProfit,
+                        'daily_profit_rate' => $dailyBProfitRate,
                         'profit' => $BProfit,
                         'profit_rate' => $BProfitRate,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
                     $saveBres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataB);
                 }
-                if($saveBres !== false) {
-                    if($amount > 0) {
+                if ($saveBres !== false) {
+                    if ($amount > 0) {
                         $isIntOut = self::setInoutGoldRecord($amount, $$btcPrice, $direction, $remark);
-                        if($isIntOut) {
+                        if ($isIntOut) {
                             self::commit();
                             return true;
                         }
@@ -257,11 +283,12 @@ class Piggybank extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function getPiggybankStandard($standard=0) {
-        if($standard > 0) {
+    public static function getPiggybankStandard($standard=0)
+    {
+        if ($standard > 0) {
             $date = date('Y-m-d');
             $total = self::name('okx_piggybank_currency_date')->where(['standard' => $standard, 'date' => ['<>', $date]])->sum('principal');
-            if($total) {
+            if ($total) {
                 return $total;
             }
         }
@@ -273,17 +300,18 @@ class Piggybank extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function getUStandardProfit($product_name='', $date='') {
+    public static function getUStandardProfit($product_name='', $date='')
+    {
         $where = [];
         $where['pair'] = ['>', 0];
         $where['product_name'] = $product_name;
-        if($date && $date !== '') {
+        if ($date && $date !== '') {
             $start_date = $date . ' 00:00:00';
             $end_date = $date . ' 23:59:59';
             $where['time'] = ['between time', [$start_date, $end_date]];
         }
         $data = self::name('okx_piggybank')->where($where)->select()->toArray();
-        if($data) {
+        if ($data) {
             $newArray = [];
             foreach ($data as $key => $val) {
                 $newArray[$val['pair']] = $val;
@@ -302,8 +330,9 @@ class Piggybank extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function setInoutGoldRecord($amount='', $price, $type=0, $remark='') {
-        if($amount !== 0 && $type > 0) {
+    public static function setInoutGoldRecord($amount='', $price, $type=0, $remark='')
+    {
+        if ($amount !== 0 && $type > 0) {
             $insertData = [
                 'amount' => $amount,
                 'price' => $price,
@@ -313,7 +342,7 @@ class Piggybank extends Base
                 'time' => date('Y-m-d H:i:s'),
             ];
             $res = self::name('okx_inout_gold')->insertGetId($insertData);
-            if($res) {
+            if ($res) {
                 return true;
             }
         }
@@ -325,9 +354,10 @@ class Piggybank extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function getInoutGoldTotalBalance() {
+    public static function getInoutGoldTotalBalance()
+    {
         $count = self::name('okx_inout_gold')->sum('amount');
-        if($count !== 0) {
+        if ($count !== 0) {
             return $count;
         }
         return 0;
@@ -338,11 +368,12 @@ class Piggybank extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function getPiggybankCurrencyPrincipal($standard=0) {
-        if($standard > 0) {
+    public static function getPiggybankCurrencyPrincipal($standard=0)
+    {
+        if ($standard > 0) {
             $date = date("Y-m-d", strtotime("-1 day")); //获取昨天的时间
             $res = self::name('okx_piggybank_currency_date')->where(['date' => $date, 'standard' => $standard])->find();
-            if($res && count((array)$res) > 0) {
+            if ($res && count((array)$res) > 0) {
                 return $res;
             }
         }
@@ -355,8 +386,9 @@ class Piggybank extends Base
     * @return [type] [description]
     * @author [qinlh] [WeChat QinLinHui0706]
     */
-    public static function getInoutGoldList($where, $page, $limits=0) {
-        if($limits == 0) {
+    public static function getInoutGoldList($where, $page, $limits=0)
+    {
+        if ($limits == 0) {
             $limits = config('paginate.list_rows');// 获取总条数
         }
         // p($where);
