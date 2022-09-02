@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | 文件说明：题库-作答记录 Model
 // +----------------------------------------------------------------------
@@ -10,6 +11,7 @@
 // +----------------------------------------------------------------------
 // | Date: 2022-08-09
 // +----------------------------------------------------------------------
+
 namespace app\answer\model;
 
 use think\Model;
@@ -24,24 +26,25 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-09
      */
-    public static function insertAnswerData($insertData=[]) {
-        if($insertData) {
+    public static function insertAnswerData($insertData=[])
+    {
+        if ($insertData) {
             $isRes = self::name('a_answer')->where(['user_id' => $insertData['user_id'], 'user_ticket_id' => $insertData['user_ticket_id'], 'date'=>$insertData['date'], 'is_relive' => 1])->find();
-            if($isRes && count((array)$isRes) > 0) { //如果已经复活
+            if ($isRes && count((array)$isRes) > 0) { //如果已经复活
                 $updateData = [
-                    'score' => $insertData['score'], 
+                    'score' => $insertData['score'],
                     'consuming' => $insertData['consuming'],
                     'up_time' => date('Y-m-d H:i:s'),
                     'is_relive' => 0,
                 ];
                 $res = self::name('a_answer')->where(['user_id' => $insertData['user_id'], 'user_ticket_id' => $insertData['user_ticket_id'], 'date'=>$insertData['date'], 'is_relive' => 1])->update($updateData);
-                if($res !== false) {
+                if ($res !== false) {
                     return true;
                 }
             } else {
                 $res = self::name('a_answer')->insert($insertData);
                 $insertId = self::name('a_answer')->getLastInsID();
-                if($insertId && $insertId > 0) {
+                if ($insertId && $insertId > 0) {
                     return true;
                 }
             }
@@ -54,14 +57,15 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-09
      */
-    public static function getUserTodayIsAnswer($userId=0) {
+    public static function getUserTodayIsAnswer($userId=0)
+    {
         $date = date('Y-m-d');
         // $userId = User::getUserAddress($address);
         $userTicketId = UserTicket::getUserStartTicket($userId);
-        if($userTicketId >= 0) {
+        if ($userTicketId >= 0) {
             $data = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->find();
-            if($data && count((array)$data) > 0) {
-                if($data['is_relive'] == 1) { //用户已复活
+            if ($data && count((array)$data) > 0) {
+                if ($data['is_relive'] == 1) { //用户已复活
                     return 1;
                 } else { //今日已作答
                     return 3;
@@ -79,12 +83,13 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-24
      */
-    public static function getUserTicketIdIsAnswer($userTicketId=0) {
-        if($userTicketId > 0) {
+    public static function getUserTicketIdIsAnswer($userTicketId=0)
+    {
+        if ($userTicketId > 0) {
             $date = date('Y-m-d');
             $data = self::name('a_answer')->where(['user_ticket_id' => $userTicketId, 'date'=>$date])->find();
-            if($data && count((array)$data) > 0) {
-                if($data['is_relive'] == 1) { //用户已复活
+            if ($data && count((array)$data) > 0) {
+                if ($data['is_relive'] == 1) { //用户已复活
                     return 1;
                 } else { //今日已作答
                     return 3;
@@ -100,7 +105,8 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-10
      */
-    public static function getUserTodayLeaderboardList($where, $times, $page, $limit, $order='id desc') {
+    public static function getUserTodayLeaderboardList($where, $times, $page, $limit, $order='id desc')
+    {
         if ($limit <= 0) {
             $limit = config('paginate.list_rows');// 获取总条数
         }
@@ -116,7 +122,7 @@ class Answer extends Base
                         ->field('a.*,b.avatar,b.nickname')
                         ->select()
                         ->toArray();
-        if($lists && count((array)$lists) > 0) {
+        if ($lists && count((array)$lists) > 0) {
             $userArray = [];
             foreach ($lists as $key => $val) {
                 $userArray[$val['user_id']][] = $val;
@@ -137,10 +143,10 @@ class Answer extends Base
                     $arr['date'] = $vv['date'];
                     $arr['avatar'] = $vv['avatar'];
                     $arr['nickname'] = $vv['nickname'];
-                    if(empty($vv['nickname']) || $vv['nickname'] == '') {
+                    if (empty($vv['nickname']) || $vv['nickname'] == '') {
                         $arr['nickname'] = "User-" . $vv['user_id'];
                     }
-                    if(empty($vv['avatar']) || $vv['avatar'] == '') {
+                    if (empty($vv['avatar']) || $vv['avatar'] == '') {
                         $arr['avatar'] = "https://h2o-finance-images.s3.amazonaws.com/h2oMedia/default_avatar.png";
                     }
                 }
@@ -164,7 +170,8 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-25
      */
-    public static function getCountRankingData() {
+    public static function getCountRankingData()
+    {
         $return = [];
         $countSellNumber = UserTicket::getCountSellAmount(); //获取总的出售门票数量 TVL
         $ticketLists = Ticket::getTicketAnnualizedLists(); //获取年化列表
@@ -195,19 +202,20 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-22
      */
-    public static function buyResurrection($userId=0) {
+    public static function buyResurrection($userId=0)
+    {
         $date = date('Y-m-d');
         // $userId = User::getUserAddress($address);
         $userTicketId = UserTicket::getUserStartTicket($userId);
         $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
         $consumeNum = (float)$ticketDetails['capped'] * (float)config('award_config.resurrection');
-        if($userTicketId >= 0) {
+        if ($userTicketId >= 0) {
             self::startTrans();
             try {
                 $isUpdate = self::name('a_answer')->where(['user_id' => $userId, 'user_ticket_id' => $userTicketId, 'date'=>$date])->setField('is_relive', 1);
-                if($isUpdate !== false) {
-                    $isUpUserBalance = User::setUserIdCurrencyLocalBalance($userId, $consumeNum, 2, 'h2o');
-                    if($isUpUserBalance) {
+                if ($isUpdate !== false) {
+                    $isUpUserBalance = User::setUserIdCurrencyLocalBalance($userId, $consumeNum, 2, 'sct');
+                    if ($isUpUserBalance) {
                         self::commit();
                         return true;
                     }
@@ -221,13 +229,14 @@ class Answer extends Base
         }
         return false;
     }
-    
+
     /**
      * 获取参与答题用户人数
      * @author qinlh
      * @since 2022-08-25
      */
-    public static function getUserAnswerCount() {
+    public static function getUserAnswerCount()
+    {
         $count = self::name('a_answer')->group('user_id')->count();
         return $count;
     }
@@ -237,7 +246,8 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-25
      */
-    public static function getAnswerCount() {
+    public static function getAnswerCount()
+    {
         $count = self::name('a_answer_record')->count();
         return $count;
     }
@@ -247,7 +257,8 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-25
      */
-    public static function getAnswerCorrectCount() {
+    public static function getAnswerCorrectCount()
+    {
         $count = self::name('a_answer_record')->where(['score'=>['eq', 20]])->count();
         return $count;
     }
@@ -257,16 +268,17 @@ class Answer extends Base
      * @author qinlh
      * @since 2022-08-31
      */
-    public static function mergeUserAnswer($user_id=0, $marge_id=0) {
-        if($user_id > 0 && $marge_id > 0) {
+    public static function mergeUserAnswer($user_id=0, $marge_id=0)
+    {
+        if ($user_id > 0 && $marge_id > 0) {
             $data = self::name('a_answer')->where('user_id', $marge_id)->select();
-            if($data && count((array)$data) > 0) {
+            if ($data && count((array)$data) > 0) {
                 foreach ($data as $key => $val) {
-                    if($val['user_ticket_id'] == 0) {
+                    if ($val['user_ticket_id'] == 0) {
                         $date = $val['date'];
                         $user_ticket_id = $val['user_ticket_id'];
                         $userAwardArr = self::name('a_answer')->where(['user_id'=>$user_id, 'date' => $date, 'user_ticket_id' => 0])->find();
-                        if($userAwardArr && count((array)$userAwardArr) > 0) { //如果同一天两个用户账号都有门票为0的数据 开始合并奖励数量
+                        if ($userAwardArr && count((array)$userAwardArr) > 0) { //如果同一天两个用户账号都有门票为0的数据 开始合并奖励数量
                             $score = (float)$userAwardArr['score'] + (float)$val['score'];
                             $consuming = (float)$userAwardArr['consuming'] + (float)$val['consuming'];
                             $res = self::name('a_answer')->where(['user_id'=>$user_id, 'date' => $date, 'user_ticket_id' => 0])->update([
@@ -274,7 +286,7 @@ class Answer extends Base
                                 'consuming' => $consuming,
                                 'up_time' => date('Y-m-d H:i:s')
                             ]);
-                            if($res !== false) {
+                            if ($res !== false) {
                                 @self::name('a_answer')->where(['user_id'=>$marge_id, 'date' => $date, 'user_ticket_id' => 0])->delete();
                             }
                         } else {
@@ -283,7 +295,7 @@ class Answer extends Base
                     } else {
                         $res = self::name('a_answer')->where(['user_id'=>$marge_id, 'date' => $date, 'user_ticket_id' => $user_ticket_id])->setField('user_id', $user_id);
                     }
-                    if($res !== false) {
+                    if ($res !== false) {
                         return true;
                     }
                 }

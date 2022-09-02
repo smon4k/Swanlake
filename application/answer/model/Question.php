@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | 文件说明：题库Model
 // +----------------------------------------------------------------------
@@ -10,6 +11,7 @@
 // +----------------------------------------------------------------------
 // | Date: 2022-08-08
 // +----------------------------------------------------------------------
+
 namespace app\answer\model;
 
 use think\Model;
@@ -24,10 +26,11 @@ class Question extends Base
      * @author qinlh
      * @since 2022-08-08
      */
-    public static function getUserQuestionList($language='zh', $limit = 10000) {
+    public static function getUserQuestionList($language='zh', $limit = 10000)
+    {
         $table = "a_question_{$language}";
         $data = self::name($table)->where('state', 1)->order('id desc')->limit($limit)->field('id,title,option,type,state')->select()->toArray();
-        if($data && count((array)$data) > 0) {
+        if ($data && count((array)$data) > 0) {
             return $data;
         }
         return [];
@@ -38,15 +41,17 @@ class Question extends Base
      * @author qinlh
      * @since 2022-08-09
      */
-    public static function getQuestionAnswer($language='zh', $answers=[]) {
+    public static function getQuestionAnswer($language='zh', $answers=[])
+    {
         $table = "a_question_{$language}";
-        if(!empty($answers)) {
+        if (!empty($answers)) {
             $where['id'] = ['in', $answers];
             $data = self::name($table)->where($where)->field('id, answer')->select()->toArray();
-            if($data && count((array)$data) > 0) {
+            if ($data && count((array)$data) > 0) {
                 $newArray = [];
                 foreach ($data as $key => $val) {
-                    $newArray[$val['id']] = json_decode($val['answer'], true);;
+                    $newArray[$val['id']] = json_decode($val['answer'], true);
+                    ;
                 }
                 return $newArray;
             }
@@ -59,7 +64,8 @@ class Question extends Base
      * @author qinlh
      * @since 2022-08-09
      */
-    public static function calcQuestionAnswer($userId=0, $answers=[], $times='', $language='zh', $is_relive=0) {
+    public static function calcQuestionAnswer($userId=0, $answers=[], $times='', $language='zh', $is_relive=0)
+    {
         self::startTrans();
         try {
             // $userId = User::getUserAddress($address);
@@ -70,8 +76,8 @@ class Question extends Base
             // if(!$answers || count((array)$answers) < 0) {
             //     return [
             //         'correct_num' => 0,
-            //         'score' => 0, 
-            //         'times' => $times, 
+            //         'score' => 0,
+            //         'times' => $times,
             //         'is_possible_resurrection' => 0,
             //         'consumeNumber' => 0,
             //     ];
@@ -88,7 +94,7 @@ class Question extends Base
             $insertUserAnswer = [];//用户作答记录表
             foreach ($newAnswer as $questionId => $val) {
                 $qScore = 0;
-                if(!array_diff($val, $questionAnswerList[$questionId]) && !array_diff($questionAnswerList[$questionId], $val)) {
+                if (!array_diff($val, $questionAnswerList[$questionId]) && !array_diff($questionAnswerList[$questionId], $val)) {
                     $num ++;
                     $score += 20;
                     $qScore = 20;
@@ -111,7 +117,7 @@ class Question extends Base
             } else { //一道题没作答 不记录答题记录
                 $rowRes = true;
             }
-            if($rowRes) {
+            if ($rowRes) {
                 $insertUserAnswer = [
                     'user_id' => $userId,
                     'user_ticket_id' => $userTicketId,
@@ -124,11 +130,11 @@ class Question extends Base
                     'up_time' => date("Y-m-d H:i:s")
                 ];
                 $answerRes = Answer::insertAnswerData($insertUserAnswer);
-                if($answerRes) {
+                if ($answerRes) {
                     //开始分配奖励
                     $is_possible_resurrection = 0; //是否可以复活 有门票才可以复活
                     $consumeNumber = 0; //复活消耗Token数量
-                    if($userTicketId > 0) { //如果有门票
+                    if ($userTicketId > 0) { //如果有门票
                         $is_possible_resurrection = 1;
                         $ticketDetails = UserTicket::getUserTicketDetail($userTicketId);
                         // $award_num = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive);
@@ -139,14 +145,14 @@ class Question extends Base
                         $awardConfig = self::getAwardNumConfig($ticketDetails['capped'], $num, $is_relive, $userTicketId);
                     }
                     $awardRes = Award::setTodayUserAwardInfo($userId, $userTicketId, $num, $score, $awardConfig['award_num']);
-                    if($awardRes) {
-                        $isUserBalance = User::setUserIdCurrencyLocalBalance($userId, $awardConfig['award_num'], 1, 'h2o');
-                        if($isUserBalance) {
+                    if ($awardRes) {
+                        $isUserBalance = User::setUserIdCurrencyLocalBalance($userId, $awardConfig['award_num'], 1, 'sct');
+                        if ($isUserBalance) {
                             self::commit();
                             return [
                                 'correct_num' => $num,
-                                'score' => $score, 
-                                'times' => $times, 
+                                'score' => $score,
+                                'times' => $times,
                                 'is_possible_resurrection' => $is_possible_resurrection,
                                 'consumeNumber' => $consumeNumber,
                                 'capped_num' => (float)$ticketDetails['capped'], //总的门票名义奖励值 分配奖励总数
@@ -173,16 +179,17 @@ class Question extends Base
      * @author qinlh
      * @since 2022-08-12
      */
-    public static function getAwardNumConfig($capped=0, $num=0, $is_relive=0, $userTicketId=0) {
+    public static function getAwardNumConfig($capped=0, $num=0, $is_relive=0, $userTicketId=0)
+    {
         $award_num = 0;
         $award_rate = 0;
-        if($is_relive) { //如果是复活作答
-            if($num == 5) {
+        if ($is_relive) { //如果是复活作答
+            if ($num == 5) {
                 $award_num = $capped * config('award_config.resurrection_award');
                 $award_rate = config('award_config.resurrection_award') * 100;
             }
         } else {
-            if($capped && $capped > 0 && $userTicketId > 0) {
+            if ($capped && $capped > 0 && $userTicketId > 0) {
                 switch ($num) {
                     case '1':
                         $award_num = $capped * config('award_config.award_completed');
