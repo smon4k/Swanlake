@@ -64,7 +64,7 @@ class DayNetworth extends Base
         if ($profit >= 0) {
             $dayNetWorth = MyProduct::calcNewsNetWorth($profit, $product_id);
             $newDayNetWorth = valueInterceptStr($dayNetWorth, 6);
-            if ($dayNetWorth > 0) {
+            // if ($dayNetWorth > 0) {
                 $date = date("Y-m-d");
                 $res = self::where('date', $date)->find();
                 if ($res && count((array)$res) > 0) {
@@ -102,7 +102,7 @@ class DayNetworth extends Base
                         return true;
                     }
                 }
-            }
+            // }
         }
         return false;
     }
