@@ -62,11 +62,11 @@ class DayNetworth extends Base
     public static function saveDayNetworth($address='', $profit=0, $product_id=1)
     {
         if ($profit >= 0) {
-            $dayNetWorth = MyProduct::calcNewsNetWorth($profit, $product_id);
+            $date = date("Y-m-d");
+            $yestDate = date("Y-m-d",strtotime("-1 day",strtotime($date)));
+            $dayNetWorth = MyProduct::calcNewsNetWorth($profit, $product_id, $date, $yestDate);
             $newDayNetWorth = valueInterceptStr($dayNetWorth, 6);
             // if ($dayNetWorth > 0) {
-                $date = date("Y-m-d");
-                $yestDate = date("Y-m-d",strtotime("-1 day",strtotime($date)));
                 $res = self::where('date', $date)->find();
                 if ($res && count((array)$res) > 0) {
                     $res = self::where('date', $date)->update(['profit'=>$profit, 'networth'=>$newDayNetWorth, 'time'=>date('Y-m-d H:i:s')]);

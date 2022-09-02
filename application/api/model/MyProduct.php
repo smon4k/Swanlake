@@ -187,7 +187,7 @@ class MyProduct extends Base {
      * @author qinlh
      * @since 2022-07-09
      */
-    public static function getNewsBuyAmount($product_id=0, $userId=0, $iscalcToday=true) {
+    public static function getNewsBuyAmount($product_id=0, $userId=0, $iscalcToday=true, $toDayDate='', $yestDayDate='') {
         if($product_id > 0 || $userId > 0) {
             $sql = "SELECT sum(total_number) AS count_total_number FROM s_my_product WHERE 1=1 ";
             if($product_id) {
@@ -208,9 +208,10 @@ class MyProduct extends Base {
                 $count_total_number = (float)$data[0]['count_total_number']; //总的份数
 
                 // p($toDayNetworth);
-
-                $yestDayDate = date("Y-m-d", strtotime("-1 day"));
-                $toDayDate = date("Y-m-d");
+                if($toDayDate == '' || $yestDayDate == '') {
+                    $yestDayDate = date("Y-m-d", strtotime("-1 day"));
+                    $toDayDate = date("Y-m-d");
+                }
                 $toDayNetworthArr = DayNetworth::getDayNetworth($product_id, $toDayDate);
                 $yestDayNetworthArr = DayNetworth::getDayNetworth($product_id, $yestDayDate);
 
@@ -298,12 +299,12 @@ class MyProduct extends Base {
      * @author qinlh
      * @since 2022-07-09
      */
-    public static function calcNewsNetWorth($count_profit=0, $product_id=0) {
+    public static function calcNewsNetWorth($count_profit=0, $product_id=0, $date='', $yestDate='') {
         $dayNetWorth = 0; //当天净值
         $count_balance = 0; //总结余
         $count_buy_number = 0; //总的份数
         // if($count_profit !== 0) {
-        $data = self::getNewsBuyAmount($product_id, 0, false);
+        $data = self::getNewsBuyAmount($product_id, 0, false, $date, $yestDate);
         if($data) {
             $count_buy_number = $data['count_buy_number']; //总的份数
             // p($data['count_balance']);
