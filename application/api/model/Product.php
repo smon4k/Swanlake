@@ -46,6 +46,7 @@ class Product extends Base
             $annualizedIncome = DayNetworth::getCountAnnualizedIncome($val['id']); //获取年化收益
             $lists[$key]['networth'] = $toDayNetworth; //今日净值
             $lists[$key]['annualized_income'] = $annualizedIncome;
+            $lists[$key]['initial_deposit'] = MyProduct::getSumProductTotalInvest($val['id']); //获取初始入金 = sum(用户购买份额*当时的净值)
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];

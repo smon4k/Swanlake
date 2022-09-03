@@ -57,6 +57,15 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    prop="initial_deposit"
+                    label="初始入金(USDT)"
+                    align="center"
+                    width="150">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.initial_deposit || 0, 2) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     fixed="right"
                     label="操作"
                     align="center">
@@ -90,6 +99,7 @@
                     <el-descriptions-item label="总结余(USDT)">{{ toFixed(Number(item.total_size) * Number(item.networth) || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益(USDT)">{{ toFixed(item.yest_income || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益率">{{ toFixed(item.yest_income_rate || 0, 2) }}%</el-descriptions-item>
+                    <el-descriptions-item label="初始入金(USDT)">{{ toFixed(item.initial_deposit || 0, 2) }}%</el-descriptions-item>
                     <el-descriptions-item>
                         <div class="operate">
                             <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
