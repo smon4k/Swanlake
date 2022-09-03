@@ -11,6 +11,12 @@
                 <el-form-item label="今日利润" prop="profit">
                     <el-input v-model="ruleForm.profit" @input="calcNewsNetWorth" @blur="calcNewsNetWorthBlur" placeholder="请输入今日利润"></el-input>
                 </el-form-item>
+                <el-form-item label="渠道费" prop="channel_fee">
+                    <el-input v-model="ruleForm.channel_fee" placeholder="请输入渠道费"></el-input>
+                </el-form-item>
+                <el-form-item label="管理费" prop="management_fee">
+                    <el-input v-model="ruleForm.management_fee" placeholder="请输入管理费"></el-input>
+                </el-form-item>
                 <el-form-item label="更新后净值" label-width="100px">
                     <span>{{ keepDecimalNotRounding(newDaynetworth || 0, 4) }}</span>
                 </el-form-item>
@@ -41,10 +47,18 @@ export default {
             is_networth: false,
             ruleForm: {
                 profit: '',
+                channel_fee: '',
+                management_fee: '',
             },
             rules: {
                 profit: [
                     { required: true, message: '请输入利润值', trigger: 'input' },
+                ],
+                channel_fee: [
+                    { required: true, message: '请输入渠道费', trigger: 'input' },
+                ],
+                management_fee: [
+                    { required: true, message: '请输入管理费', trigger: 'input' },
                 ],
             }
         }
@@ -74,6 +88,8 @@ export default {
             if (valid) {
                 post(this.apiUrl + "/Api/Product/saveDayNetworth", {
                     profit: this.ruleForm.profit,
+                    channel_fee: this.ruleForm.channel_fee,
+                    management_fee: this.ruleForm.management_fee,
                     address: this.address,
                     product_id: this.product_id,
                 }, json => {
@@ -117,6 +133,8 @@ export default {
         },
         calcNewsNetWorth(amount) { //实时根据利润值计算当天净值
             if(amount && amount !== 0) {
+                this.ruleForm.channel_fee = amount / 2;
+                this.ruleForm.management_fee = amount / 2;
                 get(this.apiUrl + "/Api/Product/calcNewsNetWorth", {
                     address: this.address,
                     profit: amount

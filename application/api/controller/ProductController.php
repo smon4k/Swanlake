@@ -221,6 +221,8 @@ class ProductController extends BaseController
     public function saveDayNetworth(Request $request) {
         $address = $request->post('address', '', 'trim');
         $profit = $request->post('profit', '', 'trim');
+        $channel_fee = $request->post('channel_fee', '', 'trim');
+        $management_fee = $request->post('management_fee', '', 'trim');
         $product_id = $request->post('product_id', 0, 'intval');
         if(!$address || $address == '' || $profit == '' || $product_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
@@ -228,7 +230,7 @@ class ProductController extends BaseController
         if(!getAdminAddress($address)) {
             return $this->as_json('70001', 'no operating authority');
         }
-        $result = DayNetworth::saveDayNetworth($address, $profit, $product_id);
+        $result = DayNetworth::saveDayNetworth($address, $profit, $product_id, $channel_fee, $management_fee);
         if($result) {
             return $this->as_json($result);
         } else {

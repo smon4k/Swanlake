@@ -319,6 +319,10 @@ class FundMonitoring extends Base
                 'summary' => 0,
                 'daily' => 0,
                 'daily_rate' => 0,
+                'channel_fee' => 0,
+                'management_fee' => 0,
+                'total_channel_fee' => 0,
+                'total_management_fee' => 0,
                 'date' => date('Y-m-d'),
                 'time' => date('Y-m-d H:i:s'),
             ];

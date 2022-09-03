@@ -59,7 +59,7 @@ class DayNetworth extends Base
      * @author qinlh
      * @since 2022-07-09
      */
-    public static function saveDayNetworth($address='', $profit=0, $product_id=1)
+    public static function saveDayNetworth($address='', $profit=0, $product_id=1, $channel_fee=0, $management_fee=0)
     {
         if ($profit >= 0) {
             $date = date("Y-m-d");
@@ -78,6 +78,8 @@ class DayNetworth extends Base
                         $desc1 = '更新产品历史净值';
                         Task::addTaskData($address, $command, $desc);
                         Task::addTaskData($address, $command1, $desc1);
+                        //更新资金账户监控 管理费 手续费
+                        
                         return true;
                     }
                 } else {
@@ -100,6 +102,8 @@ class DayNetworth extends Base
                         $desc1 = '更新产品历史净值';
                         Task::addTaskData($address, $command, $desc);
                         Task::addTaskData($address, $command1, $desc1);
+                        //更新资金账户监控 管理费 手续费
+                        
                         return true;
                     }
                 }

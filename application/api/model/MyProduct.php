@@ -177,6 +177,7 @@ class MyProduct extends Base {
                 $lists[$key]['year_rate'] = $buy_days > 0 ? (((float)$toDayNetworth - (float)$val['buy_networth']) / (float)$buy_days) * 365 * 100 : ((float)$toDayNetworth - $val['buy_networth']) / 1 * 365 * 100;  //年化收益率: ((当前最新净值-购买第一天的当日净值)/天数)*365
                 // $lists[$key]['year_rate'] = (float)$averag_daily_rate * 365; // 日均年化: 日均收益率 * 365
             }
+            $lists[$key]['initial_deposit'] = self::getSumProductTotalInvest($val['product_id']); //获取初始入金 = sum(用户购买份额*当时的净值)
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
@@ -520,5 +521,18 @@ class MyProduct extends Base {
             return $cumulative_income;
         }
         return 0;
+    }   
+
+    /**
+     * 获取产品总的投资数量
+     * @author qinlh
+     * @since 2022-09-03
+     */
+    public static function getSumProductTotalInvest($product_id=0) {
+        $num = 0;
+        if($product_id) {
+            $num = self::where('product_id', $product_id)->sum('total_invest');
+        }
+        return $num;
     }
 }
