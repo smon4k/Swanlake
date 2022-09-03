@@ -132,6 +132,8 @@ export default {
             this.calcNewsNetWorth(value);
         },
         calcNewsNetWorth(amount) { //实时根据利润值计算当天净值
+            this.ruleForm.channel_fee = '';
+            this.ruleForm.management_fee = '';
             if(amount && amount !== 0) {
                 this.ruleForm.channel_fee = amount / 2;
                 this.ruleForm.management_fee = amount / 2;

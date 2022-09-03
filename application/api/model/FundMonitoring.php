@@ -459,4 +459,52 @@ class FundMonitoring extends Base
         }
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
+
+    /**
+     * 更新今日渠道费 管理费
+     * @author qinlh
+     * @since 2022-09-03
+     */
+    public static function saveDayChannelManagementFee($date = '', $channel_fee='', $management_fee='') {
+        if($channel_fee !== '' && $management_fee !== '') {
+            if(empty($date) || $date == '') {
+                $date = date('Y-m-d');
+            }
+            $res = self::name('fund_monitoring_account')->where('date', $date)->find();
+            if($res && count((array)$res) > 0) {
+                $count_channel_fee = self::getCountChannelFee($date) + (float)$channel_fee;
+                $count_management_fee = self::getCountManagementFee($date) + (float)$management_fee;;
+                $isSave = self::name('fund_monitoring_account')->where('date', $date)->update([
+                    'channel_fee' => $channel_fee, 
+                    'management_fee' => $management_fee, 
+                    'total_channel_fee' => $count_channel_fee,
+                    'total_management_fee' => $count_management_fee,
+                ]);
+                if($isSave !== false) {
+                    return true;
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * 获取总的渠道费
+     * @author qinlh
+     * @since 2022-09-03
+     */
+    public static function getCountChannelFee($date='') {
+        $count = self::name('fund_monitoring_account')->whereTime('date', '<', $date)->sum('channel_fee');
+        return (float)$count;
+    }
+
+    /**
+     * 获取总的管理费
+     * @author qinlh
+     * @since 2022-09-03
+     */
+    public static function getCountManagementFee($date='') {
+        $count = self::name('fund_monitoring_account')->whereTime('date', '<', $date)->sum('management_fee');
+        return (float)$count;
+    }
 }

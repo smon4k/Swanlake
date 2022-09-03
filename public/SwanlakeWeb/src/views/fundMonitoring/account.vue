@@ -89,6 +89,14 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    prop="channel_fee"
+                    label="当日管理费(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.channel_fee || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     prop="networth"
                     label="日增(USDT)"
                     align="center">
@@ -97,11 +105,35 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    prop="management_fee"
+                    label="当日渠道费(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.management_fee || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     prop="networth"
                     label="日增率"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.daily_rate || 0, 4) }}%</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop="networth"
+                    label="总管理费(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.total_channel_fee || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop="networth"
+                    label="总渠道费(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.total_management_fee || 0, 4) }}</span>
                     </template>
                 </el-table-column>
             </el-table>
@@ -127,8 +159,12 @@
                     <el-descriptions-item label="OKEX账户余额(USDT)">{{ toFixed(item.okex_balance || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="火币账户余额(USDT)">{{ toFixed(item.huobi_balance || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="汇总(USDT)">{{ toFixed(item.summary || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="当日管理费(USDT)">{{ toFixed(item.channel_fee || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="日增(USDT)">{{ toFixed(item.daily || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="当日渠道费(USDT)">{{ toFixed(item.management_fee || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="日增率">{{ toFixed(item.daily_rate || 0, 4) }}%</el-descriptions-item>
+                    <el-descriptions-item label="总管理费(USDT)">{{ toFixed(item.total_channel_fee || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="总渠道费(USDT)">{{ toFixed(item.total_management_fee || 0, 4) }}</el-descriptions-item>
                 </el-descriptions>
             </div>
             <div v-else>
