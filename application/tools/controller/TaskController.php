@@ -174,6 +174,21 @@ class TaskController extends ToolsBaseController
         return (time() - $begin_time) . "s\n";
     }
 
+     /**
+     * Okx 出入金 币种统计
+     * 实时更新币种总结余及价格
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function saveUpdateDayTotalBalance() {
+        $begin_time = time();
+
+        $transactionCurrency = "BTC-USDT"; //交易币种
+        Piggybank::saveUpdateDayTotalBalance($transactionCurrency);
+
+        return (time() - $begin_time) . "s\n";
+    }
+
     public function awsUpload() {
         $video_url = DOCUMENT_ROOT_PATH . "/upload/h2o-media/2022/06/08/qinlh.mp4";
         $videoInfo = CLFfmpeg::getVideoInfo($video_url);

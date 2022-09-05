@@ -211,6 +211,7 @@ class Piggybank extends Base
                     'daily_profit_rate' => $dailyUProfitRate,
                     'profit' => $UProfit,
                     'profit_rate' => $UProfitRate,
+                    'price' => $btcPrice,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $saveUres = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update($upDataU);
@@ -225,6 +226,7 @@ class Piggybank extends Base
                     'daily_profit_rate' => $dailyUProfitRate,
                     'profit' => $UProfit,
                     'profit_rate' => $UProfitRate,
+                    'price' => $btcPrice,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $saveUres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataU);
@@ -239,6 +241,7 @@ class Piggybank extends Base
                         'daily_profit_rate' => $dailyBProfitRate,
                         'profit' => $BProfit,
                         'profit_rate' => $BProfitRate,
+                        'price' => $btcPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
                     $saveBres = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update($upDataB);
@@ -253,6 +256,7 @@ class Piggybank extends Base
                         'daily_profit_rate' => $dailyBProfitRate,
                         'profit' => $BProfit,
                         'profit_rate' => $BProfitRate,
+                        'price' => $btcPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
                     $saveBres = self::name('okx_piggybank_currency_date')->insertGetId($insertDataB);
@@ -276,6 +280,29 @@ class Piggybank extends Base
             self::rollback();
             return false;
         }
+    }
+
+    /**
+     * 实时更新今日总结余 币价
+     * @author qinlh
+     * @since 2022-09-05
+     */
+    public static function saveUpdateDayTotalBalance($product_name='') {
+        $date = date('Y-m-d');
+        //总结余
+        $balanceDetails = Okx::getTradeValuation($product_name);
+        $btcPrice = $balanceDetails['btcPrice'];
+        $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余 = USDT数量+BTC数量*价格
+        $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtBalance'] / $btcPrice; //币本位结余 = BTC数量+USDT数量/价格
+        $URes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
+        if($URes) {
+            self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update(['total_balance' => $$UTotalBalance, 'price' => $btcPrice]);
+        }
+        $BRes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
+        if($BRes) {
+            self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update(['total_balance' => $$BTotalBalance, 'price' => $btcPrice]);
+        }
+        return true;
     }
 
     /**
