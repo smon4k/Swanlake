@@ -296,11 +296,11 @@ class Piggybank extends Base
         $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtBalance'] / $btcPrice; //币本位结余 = BTC数量+USDT数量/价格
         $URes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
         if($URes) {
-            self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update(['total_balance' => $$UTotalBalance, 'price' => $btcPrice]);
+            self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update(['total_balance' => $UTotalBalance, 'price' => $btcPrice]);
         }
-        $BRes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
+        $BRes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->find();
         if($BRes) {
-            self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update(['total_balance' => $$BTotalBalance, 'price' => $btcPrice]);
+            self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update(['total_balance' => $BTotalBalance, 'price' => $btcPrice]);
         }
         return true;
     }
