@@ -137,6 +137,7 @@ class FundMonitoring extends Base
     public static function getAccountBalance()
     {
         try {
+            date_default_timezone_set("Etc/GMT-8");
             $rpc = new hbdm('5f960d81-77e614c8-f60ac2bc-vqgdf4gsga', '58f6f0e0-8577a5f8-900b5b96-fd262', 'https://api.hbdm.com');
             // $result = $rpc->get_account_accounts($uid);
             $result = $rpc->post_swap_balance_valuation();
@@ -177,7 +178,6 @@ class FundMonitoring extends Base
                 $daily = (float)$summary - (float)$yestDetails['summary'];
                 $daily_rate = (float)$yestDetails['summary'] > 0 ? ($daily / (float)$yestDetails['summary']) * 100 : 0;
             }
-            date_default_timezone_set("Etc/GMT-8");
             $result = [
                 'huobi_balance' => $countHuobiBalance, 
                 'okex_balance' => $countOkexBalance, 
@@ -384,6 +384,7 @@ class FundMonitoring extends Base
             if ($res) {
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
+                p($date);
                 $isUpRes = self::name('fund_monitoring_account')->where('date', $date)->update($update);
                 if (false !== $isUpRes) {
                     self::commit();
