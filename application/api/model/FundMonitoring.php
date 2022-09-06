@@ -164,14 +164,15 @@ class FundMonitoring extends Base
             }
             $date = date('Y-m-d');
             $summary = (float)$countHuobiBalance + (float)$countOkexBalance; //计算今日汇总数据
-            // $yestDetailsRes = self::name('fund_monitoring_account')->where('date', '<', $date)->order('date desc')->find(); //获取昨天的数据
-            $yestDetailsRes = self::name('fund_monitoring_account')->whereTime('date', 'yesterday')->select(); //获取昨天的数据
+            $yestDetailsRes = self::name('fund_monitoring_account')->where('date', '<', $date)->order('date desc')->find(); //获取昨天的数据
+            $yestDetailsRes = self::name('fund_monitoring_account')->whereTime('date', 'yesterday')->find(); //获取昨天的数据
             if($yestDetailsRes && count((array)$yestDetailsRes) > 0) {
                 $yestDetails = $yestDetailsRes->toArray();
-            } else {
-                $yestDetailsRes = self::name('fund_monitoring_account')->where('date', '<', $date)->order('date desc')->find(); //获取昨天的数据
-                $yestDetails = $yestDetailsRes->toArray();
             }
+            // else {
+            //     $yestDetailsRes = self::name('fund_monitoring_account')->where('date', '<', $date)->order('date desc')->find(); //获取昨天的数据
+            //     $yestDetails = $yestDetailsRes->toArray();
+            // }
             $daily = 0; //日增
             $daily_rate = 0; //日增率
             if ($yestDetails && count((array)$yestDetails) > 0) {
