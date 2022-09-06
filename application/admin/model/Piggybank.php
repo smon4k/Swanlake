@@ -283,7 +283,7 @@ class Piggybank extends Base
     }
 
     /**
-     * 实时更新今日总结余 币价
+     * 实时更新今日总结余 币价 作废
      * @author qinlh
      * @since 2022-09-05
      */
@@ -294,6 +294,7 @@ class Piggybank extends Base
         $btcPrice = $balanceDetails['btcPrice'];
         $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余 = USDT数量+BTC数量*价格
         $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtBalance'] / $btcPrice; //币本位结余 = BTC数量+USDT数量/价格
+        
         $URes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
         if($URes) {
             self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update(['total_balance' => $UTotalBalance, 'price' => $btcPrice]);

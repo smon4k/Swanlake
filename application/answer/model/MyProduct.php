@@ -88,9 +88,9 @@ class MyProduct extends Base {
                     if($res) {
                         // $userBalance = (float)$networth > 0 ? (float)$number * (float)$networth : $number;
                         if($type == 1) { //投注
-                            $isUserBalance = User::setUserLocalBalance($address, $buy_number, 2); //扣除用户余额
+                            $isUserBalance = User::setUserCurrencyLocalBalance($address, $buy_number, 2, 'sct'); //扣除用户余额
                         } else {//赎回
-                            $isUserBalance = User::setUserLocalBalance($address, $buy_number, 1); //增加用户余额
+                            $isUserBalance = User::setUserCurrencyLocalBalance($address, $buy_number, 1, 'sct'); //增加用户余额
                         }
                         if($isUserBalance) {
                             if($type == 1) { //投注 份数减少
@@ -119,7 +119,7 @@ class MyProduct extends Base {
     }
 
     /**
-     * 获取我的投资理财数据
+     * 获取我的投资理财数据 暂时未使用
      * @author qinlh
      * @since 2022-02-18
      */
@@ -337,7 +337,7 @@ class MyProduct extends Base {
     }
 
     /**
-     * 异步循环计算用户投资产品收益数据
+     * 异步循环计算用户投资产品收益数据 未使用
      * @author qinlh
      * @since 2022-07-11
      */

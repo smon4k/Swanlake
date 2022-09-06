@@ -4,6 +4,7 @@ namespace app\answer\model;
 
 use think\Model;
 use app\api\model\User;
+use app\api\model\Task;
 
 class DayNetworth extends Base
 {
@@ -72,17 +73,13 @@ class DayNetworth extends Base
                 if ($res && count((array)$res) > 0) {
                     $res = self::name('a_day_networth')->where('date', $date)->update(['profit'=>$profit, 'networth'=>$newDayNetWorth, 'time'=>date('Y-m-d H:i:s')]);
                     if ($res !== false) {
-                        $command = 'app\answer\model\MyProduct::saveUserProductData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
+                        // $command = 'app\answer\model\MyProduct::saveUserProductData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
                         $command1 = 'app\answer\model\MyProduct::saveProductListData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
                         // p($command);
                         $desc = '更新用户产品历史净值';
                         $desc1 = '更新产品历史净值';
                         Task::addTaskData($address, $command, $desc);
                         Task::addTaskData($address, $command1, $desc1);
-                        if($channel_fee !== '' && $management_fee !== '') {
-                            //更新资金账户监控 管理费 手续费
-                            FundMonitoring::saveDayChannelManagementFee($date, $channel_fee, $management_fee);
-                        }
                         return true;
                     }
                 } else {
@@ -98,7 +95,7 @@ class DayNetworth extends Base
                     ]);
                     $insertId = self::name('a_day_networth')->getLastInsID();
                     if ($insertId > 0) {
-                        $command = 'app\answer\model\MyProduct::saveUserProductData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
+                        // $command = 'app\answer\model\MyProduct::saveUserProductData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
                         $command1 = 'app\answer\model\MyProduct::saveProductListData(' . "'" . $date . "'" . "," . "'" . $yestDate . "'" . ');';
                         // p($command);
                         $desc = '更新历史净值';

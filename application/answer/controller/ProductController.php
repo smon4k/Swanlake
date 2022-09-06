@@ -175,68 +175,68 @@ class ProductController extends BaseController
         }
     }
 
-    /**
-     * 获取最新的结余和份数
-     * @author qinlh
-     * @since 2022-07-09
-     */
-    public function getNewsBuyAmount(Request $request) {
-        $product_id = $request->post('product_id', 1, 'intval');
-        if($product_id <= 0) {
-            return $this->as_json('70001', 'Missing parameters');
-        }
-        $result = MyProduct::getNewsBuyAmount($product_id);
-        if($result) {
-            return $this->as_json($result);
-        } else {
-            return $this->as_json(70001, 'Error');
-        }
-    }
+    // /**
+    //  * 获取最新的结余和份数
+    //  * @author qinlh
+    //  * @since 2022-07-09
+    //  */
+    // public function getNewsBuyAmount(Request $request) {
+    //     $product_id = $request->post('product_id', 1, 'intval');
+    //     if($product_id <= 0) {
+    //         return $this->as_json('70001', 'Missing parameters');
+    //     }
+    //     $result = MyProduct::getNewsBuyAmount($product_id);
+    //     if($result) {
+    //         return $this->as_json($result);
+    //     } else {
+    //         return $this->as_json(70001, 'Error');
+    //     }
+    // }
 
-    /**
-     * 实时计算最新净值数值
-     * @author qinlh
-     * @since 2022-07-09
-     */
-    public function calcNewsNetWorth(Request $request) {
-        $profit = $request->request('profit', '', 'trim');
-        $address = $request->request('address', '', 'trim');
-        $product_id = $request->post('product_id', 1, 'intval');
-        if($profit == '' || $product_id <= 0) {
-            return $this->as_json('70001', 'Missing parameters');
-        }
-        $result = MyProduct::calcNewsNetWorth($profit, $product_id);
-        if($result) {
-            return $this->as_json($result);
-        } else {
-            return $this->as_json(70001, 'Error');
-        }
-    }
+    // /**
+    //  * 实时计算最新净值数值
+    //  * @author qinlh
+    //  * @since 2022-07-09
+    //  */
+    // public function calcNewsNetWorth(Request $request) {
+    //     $profit = $request->request('profit', '', 'trim');
+    //     $address = $request->request('address', '', 'trim');
+    //     $product_id = $request->post('product_id', 1, 'intval');
+    //     if($profit == '' || $product_id <= 0) {
+    //         return $this->as_json('70001', 'Missing parameters');
+    //     }
+    //     $result = MyProduct::calcNewsNetWorth($profit, $product_id);
+    //     if($result) {
+    //         return $this->as_json($result);
+    //     } else {
+    //         return $this->as_json(70001, 'Error');
+    //     }
+    // }
 
-    /**
-     * 实时更新今日净值
-     * @author qinlh
-     * @since 2022-07-09
-     */
-    public function saveDayNetworth(Request $request) {
-        $address = $request->post('address', '', 'trim');
-        $profit = $request->post('profit', '', 'trim');
-        $channel_fee = $request->post('channel_fee', '', 'trim');
-        $management_fee = $request->post('management_fee', '', 'trim');
-        $product_id = $request->post('product_id', 0, 'intval');
-        if(!$address || $address == '' || $profit == '' || $product_id <= 0) {
-            return $this->as_json('70001', 'Missing parameters');
-        }
-        if(!getAdminAddress($address)) {
-            return $this->as_json('70001', 'no operating authority');
-        }
-        $result = DayNetworth::saveDayNetworth($address, $profit, $product_id, $channel_fee, $management_fee);
-        if($result) {
-            return $this->as_json($result);
-        } else {
-            return $this->as_json(70001, 'Error');
-        }
-    }
+    // /**
+    //  * 实时更新今日净值
+    //  * @author qinlh
+    //  * @since 2022-07-09
+    //  */
+    // public function saveDayNetworth(Request $request) {
+    //     $address = $request->post('address', '', 'trim');
+    //     $profit = $request->post('profit', '', 'trim');
+    //     $channel_fee = $request->post('channel_fee', '', 'trim');
+    //     $management_fee = $request->post('management_fee', '', 'trim');
+    //     $product_id = $request->post('product_id', 0, 'intval');
+    //     if(!$address || $address == '' || $profit == '' || $product_id <= 0) {
+    //         return $this->as_json('70001', 'Missing parameters');
+    //     }
+    //     if(!getAdminAddress($address)) {
+    //         return $this->as_json('70001', 'no operating authority');
+    //     }
+    //     $result = DayNetworth::saveDayNetworth($address, $profit, $product_id, $channel_fee, $management_fee);
+    //     if($result) {
+    //         return $this->as_json($result);
+    //     } else {
+    //         return $this->as_json(70001, 'Error');
+    //     }
+    // }
 
     /**
      * 获取我的产品每天的明细数据
@@ -264,29 +264,6 @@ class ProductController extends BaseController
         }
     }
 
-    /**
-     * 获取产品每天的净值数据
-     * @author qinlh
-     * @since 2022-07-13
-     */
-    public function getProductDetailsList(Request $request) {
-        $address = $request->request('address', '', 'trim');
-        $page = $request->request('page', 1, 'intval');
-        $limit = $request->request('limit', 20, 'intval');
-        $product_id = $request->request('product_id', 0, 'intval');
-        if($address == '' || $product_id <= 0) {
-            return $this->as_json('70001', 'Missing parameters');
-        }
-        $where = [];
-        $where['a.product_id'] = $product_id;
-        $order = 'a.date desc';
-        $result = ProductDetails::getProductDetailsList($where, $page, $limit, $order);
-        if($result) {
-            return $this->as_json($result);
-        } else {
-            return $this->as_json(70001, 'Error');
-        }
-    }
     
     /**
      * 获取产品年化收益

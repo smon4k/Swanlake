@@ -18,6 +18,9 @@ const PiggybankOrder = () => import('@/pages/Piggybank/list.vue')
 const PiggybankDate = () => import('@/pages/Piggybank/date.vue')
 const GoldIndex = () => import('@/pages/Gold/index.vue')
 
+const DayNetworth = () => import('@/pages/AnswerQuestions/DayNetworth.vue')
+const ProductDetails = () => import('@/pages/AnswerQuestions/ProductDetailsList.vue')
+
 Vue.use(Router)
 
 const router = new Router({
@@ -118,6 +121,34 @@ const router = new Router({
           component: GoldIndex,
           meta: {
             name: '出入金',
+            notKeepAlive: true
+          }
+        },
+        // 一站到底
+        {
+          path: 'dayNetworth',
+          name: 'DayNetworth',
+          component: DayNetworth,
+          meta: {
+            name: '净值配置',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'dayNetworth',
+          name: 'DayNetworth',
+          component: DayNetworth,
+          meta: {
+            name: '净值配置',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'product/details',
+          name: 'ProductDetails',
+          component: ProductDetails,
+          meta: {
+            name: '产品明细',
             notKeepAlive: true
           }
         },

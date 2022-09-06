@@ -63,6 +63,7 @@ class Product extends Base
         if ($product_id > 0) {
             $data = self::where('id', $product_id)->find();
             if ($data) {
+                
                 $DayNetworth = DayNetworth::getDayNetworth($product_id);
                 $data['networth'] = 0;
                 if ($DayNetworth) {
@@ -71,7 +72,7 @@ class Product extends Base
                 $userInfo = User::getUserAddressInfo($address);
                 $data['balance'] = 0;
                 if ($userInfo && count((array)$userInfo) > 0) {
-                    $data['balance'] = (float)$userInfo['wallet_balance'] + (float)$userInfo['local_balance'];
+                    $data['balance'] = (float)$userInfo['sct_wallet_balance'] + (float)$userInfo['sct_local_balance'];
                 }
                 $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($product_id);
                 $toDayNetworth = (float)$NewTodayYesterdayNetworth['toDayData']; //今日最新净值
@@ -84,12 +85,17 @@ class Product extends Base
                 $UserTotalInvest = MyProduct::getUserTotalInvest($userInfo['id'], $product_id);
                 $data['total_invest'] = 0;
                 $data['total_number'] = 0;
+                $total_balance = 0; //总结余
+                $interest = 0; //利息
                 if($UserTotalInvest) {
-                    $data['total_invest'] = $UserTotalInvest['total_invest'];
-                    $data['total_number'] = $UserTotalInvest['total_number'];
+                    $data['total_invest'] = $UserTotalInvest['total_invest'];//总投资
+                    $data['total_number'] = $UserTotalInvest['total_number'];//总份数
+                    $total_balance = $data['total_number'] * $toDayNetworth; //	总结余: 总的份数 * 最新净值 （随着净值的变化而变化）
+                    $interest = $total_balance - $data['total_invest']; // 累计收益 利息: 总结余 – 总投资
                 }
                 $annualizedIncome = DayNetworth::getCountAnnualizedIncome($product_id); //获取年化收益
                 $data['annualized_income'] = $annualizedIncome;
+                $data['interest'] = $interest;
                 // $isBet = MyProduct::getMyProduct($product_id, $userId);
                 // if($isBet) {
                 //     $data['is_bet'] = 1;

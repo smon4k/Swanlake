@@ -10,6 +10,7 @@ use app\api\model\TaskContract;
 use app\api\model\User;
 use app\api\model\MyProduct;
 use app\api\model\DayNetworth;
+use app\answer\model\DayNetworth as DayNetworthAnswer;
 use app\admin\model\Piggybank;
 use ClassLibrary\ClFieldVerify;
 use ClassLibrary\CLFfmpeg;
@@ -118,7 +119,7 @@ class TaskController extends ToolsBaseController
     }
 
     /**
-     * 默认更新今天的净值数据 
+     * 天鹅湖 - 默认更新今天的净值数据 
      * 如果今天净值数据不存在 利润默认给0
      * @author qinlh
      * @since 2022-07-31
@@ -129,6 +130,22 @@ class TaskController extends ToolsBaseController
         if(!$isNetWorth) {
             $address = "0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D";
             DayNetworth::saveDayNetworth($address, 0, 1);
+        }
+        return (time() - $begin_time) . "s\n";
+    }
+    
+    /**
+     * 一站到底 - 默认更新今天的净值数据 
+     * 如果今天净值数据不存在 利润默认给0
+     * @author qinlh
+     * @since 2022-07-31
+     */
+    public function saveAnswerTodayNetWorth() {
+        $begin_time = time();
+        $isNetWorth = DayNetworthAnswer::getTodayIsNetWorth();
+        if(!$isNetWorth) {
+            $address = "0x0000000000000000000000000000000000000000";
+            DayNetworthAnswer::saveDayNetworth($address, 0, 1);
         }
         return (time() - $begin_time) . "s\n";
     }
@@ -174,20 +191,20 @@ class TaskController extends ToolsBaseController
         return (time() - $begin_time) . "s\n";
     }
 
-     /**
-     * Okx 出入金 币种统计
-     * 实时更新币种总结余及价格
-     * @author qinlh
-     * @since 2022-08-17
-     */
-    public function saveUpdateDayTotalBalance() {
-        $begin_time = time();
+    //  /**
+    //  * Okx 出入金 币种统计
+    //  * 实时更新币种总结余及价格
+    //  * @author qinlh
+    //  * @since 2022-08-17
+    //  */
+    // public function saveUpdateDayTotalBalance() {
+    //     $begin_time = time();
 
-        $transactionCurrency = "BTC-USDT"; //交易币种
-        Piggybank::saveUpdateDayTotalBalance($transactionCurrency);
+    //     $transactionCurrency = "BTC-USDT"; //交易币种
+    //     Piggybank::saveUpdateDayTotalBalance($transactionCurrency);
 
-        return (time() - $begin_time) . "s\n";
-    }
+    //     return (time() - $begin_time) . "s\n";
+    // }
 
     public function awsUpload() {
         $video_url = DOCUMENT_ROOT_PATH . "/upload/h2o-media/2022/06/08/qinlh.mp4";
