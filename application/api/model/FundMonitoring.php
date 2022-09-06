@@ -385,7 +385,6 @@ class FundMonitoring extends Base
             if ($res) {
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
-                p($date);
                 $isUpRes = self::name('fund_monitoring_account')->where('date', $date)->update($update);
                 if (false !== $isUpRes) {
                     self::commit();
