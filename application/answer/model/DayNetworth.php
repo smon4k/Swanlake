@@ -102,10 +102,10 @@ class DayNetworth extends Base
                         $desc1 = '更新产品历史净值';
                         Task::addTaskData($address, $command, $desc);
                         Task::addTaskData($address, $command1, $desc1);
-                        if($channel_fee !== '' && $management_fee !== '') {
-                            //更新资金账户监控 管理费 手续费
-                            FundMonitoring::saveDayChannelManagementFee($date, $channel_fee, $management_fee);
-                        }
+                        // if($channel_fee !== '' && $management_fee !== '') {
+                        //     //更新资金账户监控 管理费 手续费
+                        //     FundMonitoring::saveDayChannelManagementFee($date, $channel_fee, $management_fee);
+                        // }
 
                         return true;
                     }

@@ -173,6 +173,20 @@ class DepositwithdrawalController extends BaseController
     }
 
     /**
+     * 获取下一个自增id
+     * @author qinlh
+     * @since 2022-09-10
+     */
+    public function getIncreasingId(Request $request) {
+        $address = $request->request('address', '', 'trim');
+        if (!$address || $address == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = FillingRecord::getIncreasingId();
+        return $this->as_json($result);
+    }
+
+    /**
     * 充值或者提现
     * @author qinlh
     * @since 2022-03-18
@@ -186,10 +200,11 @@ class DepositwithdrawalController extends BaseController
         $hash = $request->post('hash', '', 'trim');
         $type = $request->post('type', 0, 'intval');
         $currency = $request->post('currency', 'usdt', 'trim');
+        $orderId = $request->post('orderId', '', 'trim');
         if (!$address || $address == '' || $amount <= 0 || $type <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = FillingRecord::setDepositWithdrawRecord($address, $amount, $type, $localBalance, $walletBalance, $hash, $currency);
+        $result = FillingRecord::setDepositWithdrawRecord($address, $amount, $type, $localBalance, $walletBalance, $hash, $currency, $orderId);
         return $this->as_json($result);
     }
 

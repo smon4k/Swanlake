@@ -260,4 +260,18 @@ class FillingRecord extends Base
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
+
+    /**
+     * 获取自增ID
+     * @author qinlh
+     * @since 2022-09-10
+     */
+    public static function getIncreasingId() {
+        $sql = "SELECT `AUTO_INCREMENT` FROM information_schema.TABLES WHERE `TABLE_NAME`='s_filling_record' LIMIT 1";
+        $data = self::query($sql);
+        if($data && count((array)$data) > 0) {
+            return $data[0]['AUTO_INCREMENT'];
+        }
+        return 0;
+    }
 }
