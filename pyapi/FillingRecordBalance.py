@@ -16,11 +16,11 @@ class JDSpider(object):
         self.poolsList = []
         self.rpcUrls = 'https://bsc-dataseed.binance.org'
         self.web3Client = Web3(HTTPProvider(self.rpcUrls))
-        self.sctFillingAddress = "0xdA9A81cf2000fc4df10362bA58EF4607d82E57BE"
+        self.sctFillingAddress = "0x8B702c622c8C56F00E41AE9E5E37eA0D45f6d6Fc"
         self.sstFillingAddress = "0xdA9A81cf2000fc4df10362bA58EF4607d82E57BE"
         self.gamesFillingAddress = "0x079bDC8845D0C6878716A3f5219f1D0DcdF15308"
         self.routerContractAddress = "0x96948447D1521260c24fCdE281d09364BdC5A2d0"
-        self.SCT = "0xC446c2B48328e5D2178092707F8287289ED7e8D6"
+        self.SCT = "0xb3E1c2780B010b9188183Add05f5b81aB6ee9f0C"
         self.SST = "0xC446c2B48328e5D2178092707F8287289ED7e8D6"
         self.USDT = "0x55d398326f99059fF775485246999027B3197955"
         #读取abi文件
