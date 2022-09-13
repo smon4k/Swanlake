@@ -21,7 +21,7 @@ class JDSpider(object):
         self.gamesFillingAddress = "0x079bDC8845D0C6878716A3f5219f1D0DcdF15308"
         self.routerContractAddress = "0x96948447D1521260c24fCdE281d09364BdC5A2d0"
         self.SCT = "0xb3E1c2780B010b9188183Add05f5b81aB6ee9f0C"
-        self.SST = "0xC446c2B48328e5D2178092707F8287289ED7e8D6"
+        self.SST = "0xb3E1c2780B010b9188183Add05f5b81aB6ee9f0C"
         self.USDT = "0x55d398326f99059fF775485246999027B3197955"
         #读取abi文件
         with open(str(os.path.join('./abis/gameFillingABI.json')), 'r') as abi_definition:   
