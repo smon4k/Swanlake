@@ -16,6 +16,7 @@ class JDSpider(object):
         self.poolsList = []
         self.rpcUrls = 'https://bsc-dataseed.binance.org'
         self.web3Client = Web3(HTTPProvider(self.rpcUrls))
+        self.usdtFillingAddress = "0x8B702c622c8C56F00E41AE9E5E37eA0D45f6d6Fc"
         self.sctFillingAddress = "0x8B702c622c8C56F00E41AE9E5E37eA0D45f6d6Fc"
         self.sstFillingAddress = "0x8B702c622c8C56F00E41AE9E5E37eA0D45f6d6Fc"
         self.gamesFillingAddress = "0xB433036377478dD94f94e4467C14835438b648Db"
@@ -42,7 +43,20 @@ class JDSpider(object):
         except Exception as re:
             print('functions getHTokenAddress error %s' %re)
 
-    # 获取SCT余额
+    # 获取一站到底USDT余额
+    def getGameFillingUSDTBalance(self, address):
+        try:
+            num = 0
+            contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(self.usdtFillingAddress), abi=self.gameFillingABI)
+            result = contract.functions.userInfo(Web3.toChecksumAddress(address)).call()
+            num = fromWei(result[0], 18)
+            if result[1]:
+                num = float("-"+num)
+            return num
+        except Exception as re:
+            print('functions getHTokenAddress error %s' %re)
+
+    # 获取一站到底SCT余额
     def getGameFillingSCTBalance(self, address):
         try:
             num = 0
@@ -55,7 +69,7 @@ class JDSpider(object):
         except Exception as re:
             print('functions getHTokenAddress error %s' %re)
 
-    # 获取SST余额
+    # 获取一站到底SST余额
     def getGameFillingSSTBalance(self, address):
         try:
             num = 0
@@ -115,6 +129,18 @@ def getGameFillingBalance():
     pageJson = request.json
     spider = JDSpider()
     data = spider.getGameFillingBalance(pageJson['address'])
+    # print(data)
+    # json_str = json.dumps(data)
+    response = make_response(jsonify(data))
+    response.mimetype = 'application/json'
+    return response
+
+@app.route('/v1.0/get_filling_usdt_balance', methods=['POST'])
+def getGameFillingUSDTBalance():
+    # if request.content_type == 'application/json':
+    pageJson = request.json
+    spider = JDSpider()
+    data = spider.getGameFillingUSDTBalance(pageJson['address'])
     # print(data)
     # json_str = json.dumps(data)
     response = make_response(jsonify(data))
