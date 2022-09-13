@@ -18,7 +18,7 @@ class JDSpider(object):
         self.web3Client = Web3(HTTPProvider(self.rpcUrls))
         self.sctFillingAddress = "0x8B702c622c8C56F00E41AE9E5E37eA0D45f6d6Fc"
         self.sstFillingAddress = "0x8B702c622c8C56F00E41AE9E5E37eA0D45f6d6Fc"
-        self.gamesFillingAddress = "0x079bDC8845D0C6878716A3f5219f1D0DcdF15308"
+        self.gamesFillingAddress = "0xB433036377478dD94f94e4467C14835438b648Db"
         self.routerContractAddress = "0x96948447D1521260c24fCdE281d09364BdC5A2d0"
         self.SCT = "0xb3E1c2780B010b9188183Add05f5b81aB6ee9f0C"
         self.SST = "0x2Fd43aa3B6dc095C2C6244430fbA75302E51E1C6"
