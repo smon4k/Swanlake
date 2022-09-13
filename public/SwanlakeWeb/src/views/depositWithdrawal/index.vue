@@ -153,7 +153,7 @@
 import { get, post } from "@/common/axios.js";
 import { mapState } from "vuex";
 import { approve, gamesBuyTokenTogToken, gamesGTokenToBuyToken } from "@/wallet/trade";
-import {getBalance,isApproved, getGameFillingBalance, saveNotifyStatus, getGameFillingWithdrawStatus, setDepWithdrawStatus} from "@/wallet/serve";
+import {getBalance,isApproved, getGameFillingBalance, saveNotifyStatus, getGameFillingWithdrawStatus, setDepWithdrawStatus, getFillingIncreasingId} from "@/wallet/serve";
 import { keepDecimalNotRounding } from "@/utils/tools";
 import Address from '@/wallet/address.json'
 export default {
@@ -329,6 +329,7 @@ export default {
             this.trading = true;
             let amount = 0;
             let contractName = '';
+            let orderId = '';
             //检测是否有正在执行中的交易
             await this.getIsInTradeProgress();
             // console.log(isInProgress);
@@ -347,6 +348,10 @@ export default {
                 }
                 amount = this.withdrawForm.amount;
                 contractName = gamesGTokenToBuyToken;
+                orderId = await getFillingIncreasingId();
+                if(!orderId || orderId <= 0) {
+                    this.$notify({ type: 'danger', message: '获取订单id失败' });
+                }
             }
             // let balance = await getGameFillingBalance();
             // let balance = await this.getGameFillingBalanceFun(this.activeName, amount);
@@ -374,9 +379,10 @@ export default {
                 local_balance: this.localBalance,
                 wallet_balance: this.walletBalance,
                 hash: '',
+                orderId: orderId,
                 source: 1, //渠道： 1：天鹅湖 2：短视频 3：一站到底
             };
-            contractName(amount, Address.BUSDT, 18, fillingRecordParams).then(async (hash) => {
+            contractName(amount, Address.BUSDT, 18, fillingRecordParams, orderId).then(async (hash) => {
                 loading.close();
                 if(hash) {
                     if(this.activeName == 1) {//充值的话 二次检测是否充值成功

@@ -165,6 +165,18 @@ export const setUSDTDepositWithdraw = async (params={}) => {
   return false;
 };
 
+//获取游戏-充提系统-获取充提下一个自增id
+export const getFillingIncreasingId = async function(){
+  const apiUrl = __ownInstance__.$store.state.base.apiUrl;
+  const address = __ownInstance__.$store.state.base.address;
+  let status = 0;
+  let data = await $get(apiUrl + '/Api/Depositwithdrawal/getIncreasingId?address='+address);
+  if(data && data.code == 10000) {
+    status = data.data;
+  }
+  return status;
+}
+
 /**
  * 获取BTC爬虫数据
  * @param {*} type 

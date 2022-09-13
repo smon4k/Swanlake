@@ -3,6 +3,7 @@ import {  fromWei , toWei } from '@/utils/tools'
 import { toolNumber } from '@/utils/tools'
 import  tokenABI from './abis/token.json'
 import gameFillingABI from './abis/gameFillingABI.json'
+import gameFillingABIV2 from './abis/gameFillingABIV2.json'
 import {saveNotifyStatus, setUSDTDepositWithdraw} from "@/wallet/serve";
 
 // 领取空投奖励
@@ -153,13 +154,13 @@ export const gamesBuyTokenTogToken = function (gTokenAmt=0, buyToken='', decimal
  * @param {*} fillingRecordParams 记录数据库参数
  * @returns 
  */
-export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimals=18, fillingRecordParams) {
+export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimals=18, fillingRecordParams={}, orderId='') {
   // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
   const address = __ownInstance__.$store.state.base.address;
   const contractAddress = __ownInstance__.$store.state.base.gamesFillingAddress;
-  const contract = new web3.eth.Contract(gameFillingABI, contractAddress);
+  const contract = new web3.eth.Contract(gameFillingABIV2, contractAddress);
   const withdrawAmount = toWei(gTokenAmt, decimals);
-  let encodedABI = contract.methods.gTokenToBuyToken(withdrawAmount, buyToken).encodeABI();
+  let encodedABI = contract.methods.gTokenToBuyToken(withdrawAmount, buyToken, orderId).encodeABI();
   // let value = toWei('0.00201', decimals);
   let value = toWei('0', decimals);
 
