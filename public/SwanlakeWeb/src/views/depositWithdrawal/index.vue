@@ -387,6 +387,7 @@ export default {
                         // await this.setDepositWithdraw(amount, hash);
                         // this.trading = false;
                         saveNotifyStatus(0, false); //提取的话 这里不通知GS获取余额
+                        this.getUserInfo();
                         this.resetForm('depositForm');
                         this.resetForm('withdrawForm');
                     }
