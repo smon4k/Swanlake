@@ -23,7 +23,7 @@ class FillingRecord extends Base
      * @author qinlh
      * @since 2022-06-23
      */
-    public static function setDepositWithdrawRecord($address='', $amount=0, $type=0, $localBalance=0, $walletBalance=0, $hash='', $currency='usdt')
+    public static function setDepositWithdrawRecord($address='', $amount=0, $type=0, $localBalance=0, $walletBalance=0, $hash='', $currency='usdt', $orderId='', $source=1)
     {
         if ($address !== '' && $amount > 0 && $type > 0) {
             if ($type == 2) { //如果是提取的话 校验 amount 必须 <= gs_balance+cs_balance
@@ -43,7 +43,8 @@ class FillingRecord extends Base
                     'currency' => $currency,
                     'time' => date('Y-m-d H:i:s'),
                     // 'status' => $type == 1 ? 2 : 1 //提取的话 状态为进行中 1 否则为执行成功
-                    'status' => 1 //提取的话 状态为进行中 1 否则为执行成功
+                    'status' => 1, //提取的话 状态为进行中 1 否则为执行成功
+                    'source' => $source, //来源：1: 天鹅湖 2：短视频 3：一站到底
                 ];
                 $insertId = self::insertGetId($insertData);
                 if ($insertId && $insertId > 0) {

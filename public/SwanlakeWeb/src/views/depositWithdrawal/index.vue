@@ -415,7 +415,8 @@ export default {
             type: Number(this.activeName),
             local_balance: this.localBalance,
             wallet_balance: this.walletBalance,
-            hash: hash
+            hash: hash,
+            source: 1, //渠道： 1：天鹅湖 2：短视频 3：一站到底
         }, (json) => {
             if (json && json.code == 10000) {
                 this.getUserInfo(true);

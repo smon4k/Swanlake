@@ -201,10 +201,11 @@ class DepositwithdrawalController extends BaseController
         $type = $request->post('type', 0, 'intval');
         $currency = $request->post('currency', 'usdt', 'trim');
         $orderId = $request->post('orderId', '', 'trim');
+        $source = $request->post('source', 1, 'intval');
         if (!$address || $address == '' || $amount <= 0 || $type <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = FillingRecord::setDepositWithdrawRecord($address, $amount, $type, $localBalance, $walletBalance, $hash, $currency, $orderId);
+        $result = FillingRecord::setDepositWithdrawRecord($address, $amount, $type, $localBalance, $walletBalance, $hash, $currency, $orderId, $source);
         return $this->as_json($result);
     }
 
