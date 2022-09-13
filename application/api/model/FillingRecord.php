@@ -55,6 +55,7 @@ class FillingRecord extends Base
                             $command = 'app\api\model\FillingRecord::asyncSetDepWithdrawStatus(' . "'" . $address . "'" . ',' . $insertId . ',' . "'" . $currency . "'" .');';
                             TaskContract::addTaskData($address, $hash, $command, '监听充值机器人执行状态');
                             self::commit();
+                            return true;
                         } else {
                             //监听机器人任务是否执行成功
                             $command = 'app\api\model\FillingRecord::asyncFillingWithdrawStatus(' . $insertId .');';
@@ -67,7 +68,7 @@ class FillingRecord extends Base
                 self::rollback();
                 return false;
             } catch (\Exception $e) {
-                // p($e);
+                p($e);
                 self::rollback();
                 return false;
             }
