@@ -26,6 +26,15 @@ class FillingRecord extends Base
     public static function setDepositWithdrawRecord($address='', $amount=0, $type=0, $localBalance=0, $walletBalance=0, $hash='', $currency='usdt', $orderId='', $source=1)
     {
         if ($address !== '' && $amount > 0 && $type > 0) {
+            $userInfo = User::getUserAddressInfo($address);
+            if($userInfo['dw_status'] == 1) { //检测是否有正在充提记录
+                return false;
+            }
+            $isDeWithdrawRes = self::getUserIsInWithdraw($address); //是否充提中的记录
+            // p($isDeWithdrawRes);
+            if ($isDeWithdrawRes && count((array)$isDeWithdrawRes) > 0) {
+                return false;
+            }
             if ($type == 2) { //如果是提取的话 校验 amount 必须 <= gs_balance+cs_balance
                 if ((float)$amount > ((float)$localBalance + (float)$walletBalance)) {
                     return false;
