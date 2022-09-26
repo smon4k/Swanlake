@@ -531,6 +531,8 @@ class MyProduct extends Base {
         $num = 0;
         if($product_id) {
             $num = self::where('product_id', $product_id)->sum('total_invest');
+        } else {
+            $num = self::sum('total_invest');
         }
         return $num;
     }

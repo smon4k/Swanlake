@@ -329,6 +329,9 @@ class FundMonitoring extends Base
                 'management_fee' => 0,
                 'total_channel_fee' => 0,
                 'total_management_fee' => 0,
+                'total_principal' => 0,
+                'total_cost' => 0,
+                'exposure' => 0,
                 'date' => date('Y-m-d'),
                 'time' => date('Y-m-d H:i:s'),
             ];
@@ -478,13 +481,22 @@ class FundMonitoring extends Base
             }
             $res = self::name('fund_monitoring_account')->where('date', $date)->find();
             if($res && count((array)$res) > 0) {
-                $count_channel_fee = self::getCountChannelFee($date) + (float)$channel_fee;
-                $count_management_fee = self::getCountManagementFee($date) + (float)$management_fee;;
+                $count_channel_fee = self::getCountChannelFee($date) + (float)$channel_fee; //总渠道费
+                $count_management_fee = self::getCountManagementFee($date) + (float)$management_fee; //总管理费
+                $total_cost = $count_channel_fee + $count_management_fee; //总费用 总费用=总渠道费+总管理费；
+                $total_principal = MyProduct::getSumProductTotalInvest(); //产品的总投资额度
+                $exposure = 0; //敞口 
+                if($res['summary'] !== 0) {
+                    $exposure = $res['summary'] - $total_principal - $total_cost; // 敞口=汇总-初始入金-总费用
+                }
                 $isSave = self::name('fund_monitoring_account')->where('date', $date)->update([
                     'channel_fee' => $channel_fee, 
                     'management_fee' => $management_fee, 
                     'total_channel_fee' => $count_channel_fee,
                     'total_management_fee' => $count_management_fee,
+                    'total_principal' => $total_principal,
+                    'total_cost' => $total_cost,
+                    'exposure' => $exposure,
                 ]);
                 if($isSave !== false) {
                     return true;

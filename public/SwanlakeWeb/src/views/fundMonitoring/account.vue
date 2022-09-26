@@ -136,6 +136,30 @@
                         <span>{{ toFixed(scope.row.total_management_fee || 0, 4) }}</span>
                     </template>
                 </el-table-column>
+                <el-table-column
+                    prop="networth"
+                    label="总费用(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.total_cost || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop="networth"
+                    label="总本金(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.total_principal || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop="networth"
+                    label="敞口(USDT)"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.exposure || 0, 4) }}</span>
+                    </template>
+                </el-table-column>
             </el-table>
             <el-row class="pages" v-if="total > pageSize">
                 <el-col :span="24">
@@ -165,6 +189,9 @@
                     <el-descriptions-item label="总管理费(USDT)">{{ toFixed(item.total_channel_fee || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="当日渠道费(USDT)">{{ toFixed(item.management_fee || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="总渠道费(USDT)">{{ toFixed(item.total_management_fee || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="总费用(USDT)">{{ toFixed(item.total_cost || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="总本金(USDT)">{{ toFixed(item.total_principal || 0, 4) }}</el-descriptions-item>
+                    <el-descriptions-item label="敞口(USDT)">{{ toFixed(item.exposure || 0, 4) }}</el-descriptions-item>
                 </el-descriptions>
             </div>
             <div v-else>
