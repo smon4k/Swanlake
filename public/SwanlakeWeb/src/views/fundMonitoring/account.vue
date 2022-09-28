@@ -87,7 +87,8 @@
                 <el-table-column
                     prop="networth"
                     label="汇总"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.summary || 0, 4) }}</span>
                     </template>
@@ -95,7 +96,8 @@
                 <el-table-column
                     prop="networth"
                     label="日增"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.daily || 0, 4) }}</span>
                     </template>
@@ -148,7 +150,8 @@
                 <el-table-column
                     prop="networth"
                     label="总费用"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total_cost || 0, 4) }}</span>
                     </template>
@@ -156,7 +159,8 @@
                 <el-table-column
                     prop="networth"
                     label="总本金"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total_principal || 0, 4) }}</span>
                     </template>
@@ -173,7 +177,8 @@
                 <el-table-column
                     prop="networth"
                     label="敞口"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.exposure || 0, 4) }}</span>
                     </template>
