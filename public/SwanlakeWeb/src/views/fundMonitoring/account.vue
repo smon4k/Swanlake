@@ -55,9 +55,11 @@
                 :data="tableData"
                 style="width: 100%">
                 <el-table-column
+                    fixed
                     prop="date"
                     label="日期"
-                    align="center">
+                    align="center"
+                    width="130">
                 </el-table-column>
                 <!-- <el-table-column
                     prop="account"
@@ -67,7 +69,8 @@
                 <el-table-column
                     prop="account_balance"
                     label="OKEX账户余额"
-                    align="center">
+                    align="center"
+                    width="130">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.okex_balance || 0, 4) }}</span>
                     </template>
@@ -75,7 +78,8 @@
                 <el-table-column
                     prop="networth"
                     label="火币账户余额"
-                    align="center">
+                    align="center"
+                    width="130">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.huobi_balance || 0, 4) }}</span>
                     </template>
@@ -99,7 +103,8 @@
                 <el-table-column
                     prop="networth"
                     label="日增率"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.daily_rate || 0, 4) }}%</span>
                     </template>
@@ -107,7 +112,8 @@
                 <el-table-column
                     prop="channel_fee"
                     label="当日管理费"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.channel_fee || 0, 4) }}</span>
                     </template>
@@ -115,6 +121,7 @@
                 <el-table-column
                     prop="networth"
                     label="总管理费"
+                    width="100"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total_channel_fee || 0, 4) }}</span>
@@ -123,7 +130,8 @@
                 <el-table-column
                     prop="management_fee"
                     label="当日渠道费"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.management_fee || 0, 4) }}</span>
                     </template>
@@ -131,7 +139,8 @@
                 <el-table-column
                     prop="networth"
                     label="总渠道费"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total_management_fee || 0, 4) }}</span>
                     </template>
@@ -155,7 +164,8 @@
                 <el-table-column
                     prop=""
                     label="净值结余"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.equity_balance || 0, 4) }}</span>
                     </template>
