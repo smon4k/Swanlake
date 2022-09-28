@@ -108,7 +108,7 @@ class TaskController extends ToolsBaseController
 
         $res2 = FundMonitoring::getOkexAccountBalance(); //获取okex账户余额
 
-        $res3 = FundMonitoring::getAccountBalance(); //获取okex账户余额
+        $res3 = FundMonitoring::getAccountBalance(); //获取okex 指定 账户余额
 
         if($res1 && $res2 && $res3) {
             FundMonitoring::saveStatisticsData(); //统计数据

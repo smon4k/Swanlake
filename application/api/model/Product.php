@@ -124,4 +124,22 @@ class Product extends Base
         }
         return false;
     }
+
+    /**
+     * 获取所有产品总结余
+     * @author qinlh
+     * @since 2022-09-28
+     */
+    public static function getProductTotalSizeBalance() {
+        $data = self::where('state', 1)->select();
+        $totalBalance = 0;
+        if($data) {
+            foreach ($data as $key => $val) {
+                $NewTodayYesterdayNetworth = DayNetworth::getNewTodayYesterdayNetworth($val['id']);
+                $toDayNetworth = $NewTodayYesterdayNetworth['toDayData']; //今日最新净值
+                $totalBalance += $val['total_size'] * $toDayNetworth;
+            }
+        }
+        return $totalBalance;
+    }
 }

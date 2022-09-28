@@ -485,9 +485,10 @@ class FundMonitoring extends Base
                 $count_management_fee = self::getCountManagementFee($date) + (float)$management_fee; //总管理费
                 $total_cost = $count_channel_fee + $count_management_fee; //总费用 总费用=总渠道费+总管理费；
                 $total_principal = MyProduct::getSumProductTotalInvest(); //产品的总投资额度
+                $equity_balance = Product::getProductTotalSizeBalance(); //总结余 净值结余
                 $exposure = 0; //敞口 
                 if($res['summary'] !== 0) {
-                    $exposure = $res['summary'] - $total_principal - $total_cost; // 敞口=汇总-初始入金-总费用
+                    $exposure = $res['summary'] - $equity_balance - $total_cost; // 敞口=汇总-净值结余-总费用
                 }
                 $isSave = self::name('fund_monitoring_account')->where('date', $date)->update([
                     'channel_fee' => $channel_fee, 
@@ -496,6 +497,7 @@ class FundMonitoring extends Base
                     'total_management_fee' => $count_management_fee,
                     'total_principal' => $total_principal,
                     'total_cost' => $total_cost,
+                    'equity_balance' => $equity_balance,
                     'exposure' => $exposure,
                 ]);
                 if($isSave !== false) {
