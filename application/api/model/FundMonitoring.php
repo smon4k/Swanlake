@@ -389,6 +389,10 @@ class FundMonitoring extends Base
             if ($res) {
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
+                $summary = $update['summary']; //汇总数据
+                $equity_balance = $res['equity_balance']; //净值结余
+                $total_cost = $res['total_cost']; //总费用
+                $update['exposure'] = $summary - $equity_balance - $total_cost;
                 $isUpRes = self::name('fund_monitoring_account')->where('date', $date)->update($update);
                 if (false !== $isUpRes) {
                     self::commit();
