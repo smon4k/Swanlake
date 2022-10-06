@@ -340,11 +340,7 @@ class FundMonitoring extends Base
             if ($userId > 0) {
                 self::commit();
                 $insertData['id'] = $userId;
-                if(getIsCli()) {
-                    return true;
-                } else {
-                    return $insertData;
-                }
+                return $insertData;
             }
             self::rollback();
             return false;
