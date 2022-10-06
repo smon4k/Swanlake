@@ -331,6 +331,7 @@ class FundMonitoring extends Base
                 'total_management_fee' => 0,
                 'total_principal' => 0,
                 'total_cost' => 0,
+                'equity_balance' => 0,
                 'exposure' => 0,
                 'date' => date('Y-m-d'),
                 'time' => date('Y-m-d H:i:s'),
@@ -339,7 +340,11 @@ class FundMonitoring extends Base
             if ($userId > 0) {
                 self::commit();
                 $insertData['id'] = $userId;
-                return $insertData;
+                if(getIsCli()) {
+                    return true;
+                } else {
+                    return $insertData;
+                }
             }
             self::rollback();
             return false;
