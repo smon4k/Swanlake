@@ -9,7 +9,6 @@ from flask import Flask, jsonify, request, make_response
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 import time
-import requests,openpyxl
 from web3 import Web3
 
 app = Flask(__name__)
@@ -35,7 +34,6 @@ class JDSpider(object):
         # self.address = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
         self.url = f'https://bscscan.com/token/'
         
-        self.wb = openpyxl.Workbook()
         self.returnList = {}
 
     # 加载所有数据 屏幕滚动
