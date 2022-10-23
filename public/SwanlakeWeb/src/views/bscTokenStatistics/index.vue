@@ -174,7 +174,7 @@ export default {
             option && myChart.setOption(option);
         },
         getHourDataList() {
-            get(this.apiUrl + "/Api/BscaddressStatistics/getHourDataList", {
+            get(this.apiUrl + "/Api/Bscaddressstatistics/getHourDataList", {
                 name: this.name,
             }, json => {
                 console.log(json);
