@@ -24,7 +24,7 @@ use lib\Filterstring;
 error_reporting(E_ALL);
 set_time_limit(0);
 ini_set('memory_limit', '-1');
-class BscAddressStatisticsController extends BaseController
+class BscaddressStatisticsController extends BaseController
 {
     /**
      * 获取每小时数据
