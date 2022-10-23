@@ -85,6 +85,13 @@ export const constantRoutes = [
           component: () => import('@/views/depositWithdrawal/index'),
           meta: { title: 'depositWithdrawal', keepAlive: false }
         },
+        // BSC 币种统计
+        {
+          path: 'bscTokenStatistics',
+          name: 'bscTokenStatistics',
+          component: () => import('@/views/bscTokenStatistics/index'),
+          meta: { title: 'bscTokenStatistics', keepAlive: false }
+        },
       ]
     },
 ]

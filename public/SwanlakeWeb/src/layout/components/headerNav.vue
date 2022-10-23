@@ -202,9 +202,13 @@ export default {
                     name: '净值配置',
                     path: "/day/networth",
                 },
+                {
+                    name: '币种统计',
+                    path: "/bscTokenStatistics",
+                },
             ];
             if(!this.isAdmin) {
-                arr.splice(arr.length - 2, 2);
+                arr.splice(arr.length - 3, 3);
             }
             return arr;
         }

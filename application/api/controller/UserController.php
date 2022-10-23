@@ -270,11 +270,12 @@ class UserController extends BaseController
      */
     public function getUserAddressInfo(Request $request) {
         $address = $request->request('address', '', 'trim');
+        $source = $request->request('source', '', 'trim');
         $invite_address = $request->request('invite_address', '', 'trim'); //邀请人地址
         if($address == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = User::getUserAddressInfo($address, $invite_address);
+        $result = User::getUserAddressInfo($address, $invite_address, $source);
         if($result) {
             $result['is_admin'] = getAdminAddress($address);
             return $this->as_json($result);

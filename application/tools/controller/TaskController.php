@@ -10,6 +10,7 @@ use app\api\model\TaskContract;
 use app\api\model\User;
 use app\api\model\MyProduct;
 use app\api\model\DayNetworth;
+use app\api\model\BscAddressStatistics;
 use app\answer\model\DayNetworth as DayNetworthAnswer;
 use app\admin\model\Piggybank;
 use ClassLibrary\ClFieldVerify;
@@ -233,6 +234,37 @@ class TaskController extends ToolsBaseController
         $begin_time = time();
 
         Okx::fetchTradeOrder();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * 定时去获取指定币种供应量及价格
+     * @author qinlh
+     * @since 2022-10-22
+     */
+    public function getBscscanTokenHolders() {
+        $begin_time = time();
+        $tokens = array(
+            ['name' => 'Cake', 'token' => '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82'],
+            ['name' => 'BNB', 'token' => '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'],
+        );
+        foreach ($tokens as $key => $val) {
+            $name = $val['name'];
+            $params = ['token' => $val['token']];
+            $returnArray = [];
+            $response_string = RequestService::doJsonCurlPost(Config::get('www_bscscan_contract').Config::get('reptile_service')['get_bsc_token_holders'], json_encode($params));
+            $returnArray = json_decode($response_string, true);
+            BscAddressStatistics::setBscAddressStatistics($name, $val['token'], $returnArray);
+        }
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    public function AnalogData() {
+        $begin_time = time();
+
+        BscAddressStatistics::AnalogData();
 
         return (time() - $begin_time) . "s\n";
     }
