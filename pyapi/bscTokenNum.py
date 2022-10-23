@@ -29,8 +29,8 @@ class JDSpider(object):
         # option = ChromeOptions()
         # option.add_experimental_option('excludeSwitched', ['enable-automaytion'])
         path = "/usr/local/bin/chromedriver"# 注意这个路径需要时可执行路径（chmod 777 dir or 755 dir）
-        self.browser = webdriver.Chrome(executable_path=path, options=chrome_options)
-        # self.browser = webdriver.Chrome(options=chrome_options)
+        # self.browser = webdriver.Chrome(executable_path=path, options=chrome_options)
+        self.browser = webdriver.Chrome(options=chrome_options)
         self.browser.implicitly_wait(5)  # 等5s
         # self.address = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
         self.url = f'https://bscscan.com/token/'
