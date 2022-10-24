@@ -18,6 +18,7 @@
 import { mapGetters, mapState } from "vuex";
 import * as echarts from 'echarts';
 import { get, post } from "@/common/axios.js";
+import { numberFormat } from "@/utils/tools.js";
 export default {
     name: '',
     data() {
@@ -61,13 +62,26 @@ export default {
                     // text: '折线图堆叠'
                 },
                 tooltip: {
-                    trigger: 'item',
+                    trigger: 'axis',
+                    extraCssText: 'width:200px;height:auto;background-color:#fff;color:#333',
                     axisPointer:{       //坐标轴指示器
                         type:'cross',   //十字准星指示器
                     },
+                    formatter: function (params) {
+                        // console.log(params);
+                        let str = params[0].name + '<br/>'
+                        for (let item of params) {
+                            if(item.seriesIndex == 0) {
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>"+item.value+"</span>" + "<br/>"
+                            } else {
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + _this.toFixed(Number(item.value), 2) + "</span>" + "<br/>"
+                            }
+                        }
+                        return str
+                    }
                 },
                 legend: {
-                    data: ['新增地址量', '价格'],
+                    data: ['新增地址量', _this.name + ' 价格'],
                     right: '0'
                 },
                 grid: {
@@ -173,7 +187,7 @@ export default {
                             color: '#F79729',
                         },
                     }, {
-                        name: '价格',
+                        name: _this.name + ' 价格',
                         type: 'line',
                         symbolSize: 5, // 设置折线上圆点大小
                         symbol: 'circle', // 设置拐点为实心圆
@@ -200,13 +214,26 @@ export default {
                     // text: '折线图堆叠'
                 },
                 tooltip: {
-                    trigger: 'item',
+                    trigger: 'axis',
+                    extraCssText: 'width:200px;height:auto;background-color:#fff;color:#333',
                     axisPointer:{       //坐标轴指示器
                         type:'cross',   //十字准星指示器
                     },
+                    formatter: function (params) {
+                        // console.log(params);
+                        let str = params[0].name + '<br/>'
+                        for (let item of params) {
+                            if(item.seriesIndex == 0) {
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + numberFormat(item.value) + "</span>" + "<br/>"
+                            } else {
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + _this.toFixed(Number(item.value), 2) + "</span>" + "<br/>"
+                            }
+                        }
+                        return str
+                    }
                 },
                 legend: {
-                    data: ['总地址量', '价格'],
+                    data: ['总地址量', _this.name + ' 价格'],
                     right: '0'
                 },
                 grid: {
@@ -313,7 +340,7 @@ export default {
                             color: '#F79729',
                         },
                     }, {
-                        name: '价格',
+                        name: _this.name + ' 价格',
                         type: 'line',
                         symbolSize: 5, // 设置折线上圆点大小
                         symbol: 'circle', // 设置拐点为实心圆
