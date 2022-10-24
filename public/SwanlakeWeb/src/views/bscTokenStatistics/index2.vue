@@ -128,8 +128,8 @@ export default {
                         type: 'value',
                         // interval: 1200000,
                         // name: 'k',
-                        min: parseInt(this.dataList.prices.min * 0.9),
-                        max: parseInt(this.dataList.prices.max * 1.1),
+                        min: parseInt(Number(this.dataList.prices.min * 0.9)),
+                        max: parseInt(Number(this.dataList.prices.max * 1.1)),
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
