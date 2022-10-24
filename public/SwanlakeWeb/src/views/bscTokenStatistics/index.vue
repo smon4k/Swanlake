@@ -47,7 +47,7 @@ export default {
             // 获取节点
             const myChart = echarts.init(document.getElementById('main'));
             let option;
-
+            let _this = this;
             option = {
                 title: {
                     // text: '折线图堆叠'
@@ -127,12 +127,12 @@ export default {
                     {
                         type: 'value',
                         // interval: 1,
-                        min: parseInt(this.dataList.prices.min),
-                        max: parseInt(this.dataList.prices.max),
+                        min: this.dataList.prices.min * 0.9,
+                        max: this.dataList.prices.max * 1.1,
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return '$' + value
+                                '$' + _this.toFixed(value, 2)
                             }
                         },
                         //轴线
