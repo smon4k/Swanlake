@@ -35,26 +35,50 @@ class BscAddressStatistics extends Base
             } else {
                 $date = $date_hour;
             }
-            $res = self::where(['name' => $name, 'date' => $date])->find();
-            if($res && count((array)$res) > 0) {
-                $saveRes = self::where(['name' => $name, 'date' => $date])->update(['price' => $data['price'], 'holders' => $data['holders'], 'time' => date('Y-m-d H:i:s')]);
-                if($saveRes !== false) {
-                    return true;
-                }   
+            $lessRes = self::where(['name' => $name, 'date' => ['<', $date]])->order('date desc')->find()->toArray();
+            if($lessRes && count((array)$lessRes) > 0) {
+                $res = self::where(['name' => $name, 'date' => $date])->find();
+                if($res && count((array)$res) > 0) {
+                    $saveRes = self::where(['name' => $name, 'date' => $date])->update([
+                        'price' => $data['price'], 
+                        'holders' => $data['holders'], 
+                        'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
+                        'time' => date('Y-m-d H:i:s')
+                    ]);
+                    if($saveRes !== false) {
+                        return true;
+                    }   
+                } else {
+                    $insertData = [
+                       'name' => $name,
+                       'token' => $token,
+                       'price' => $data['price'],
+                       'holders' => $data['holders'],
+                       'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
+                       'date' => $date,
+                       'time' => date('Y-m-d H:i:s'),
+                    ];
+                    // p($insertData);
+                    $saveRes = self::insertGetId($insertData);
+                    if($saveRes) {
+                        return true;
+                    }
+                }
             } else {
                 $insertData = [
-                   'name' => $name,
-                   'token' => $token,
-                   'price' => $data['price'],
-                   'holders' => $data['holders'],
-                   'date' => $date,
-                   'time' => date('Y-m-d H:i:s'),
-                ];
-                // p($insertData);
-                $saveRes = self::insertGetId($insertData);
-                if($saveRes) {
-                    return true;
-                }
+                    'name' => $name,
+                    'token' => $token,
+                    'price' => $data['price'],
+                    'holders' => $data['holders'],
+                    'add_holders' => 0, 
+                    'date' => $date,
+                    'time' => date('Y-m-d H:i:s'),
+                 ];
+                 // p($insertData);
+                 $saveRes = self::insertGetId($insertData);
+                 if($saveRes) {
+                     return true;
+                 }
             }
         }
     }
@@ -65,26 +89,41 @@ class BscAddressStatistics extends Base
      * @since 2022-10-22
      */
     public static function AnalogData() {
-        $date = "2022-10-23";
+        $date = "2022-10-29";
         $num = 23;
         // $name = 'Cake';
         $name = 'BNB';
         // $token = '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82';
         $token = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
-        for ($i=0; $i <= $num; $i++) { 
-            $price = 0 + mt_rand()/mt_getrandmax() * (1-0);
-            $holders = rand(1000000, 2000000);
+        for ($i=0; $i <= $num; $i++) {
+            $res = self::where(['name' => $name, 'date' => ['<', $date . " " . $i . "00:00"]])->order('date desc')->find();
             $date_val = $date . " " . $i . ":00:00";
-            $insertData = [
-                'name' => $name,
-                'token' => $token,
-                'price' => $price,
-                'holders' => $holders,
-                'date' => $date_val,
-                'time' => date('Y-m-d H:i:s'),
-            ];
-            // p($insertData);
-            self::insertGetId($insertData);
+            if($res && count((array)$res) > 0) {
+                $price = 0 + mt_rand()/mt_getrandmax() * (1-0);
+                $add_holders = rand(20, 80);
+                $insertData = [
+                    'name' => $name,
+                    'token' => $token,
+                    'price' => $res['price'] + $price,
+                    'holders' => $res['holders'] + $add_holders,
+                    'add_holders' => $add_holders,
+                    'date' => $date_val,
+                    'time' => date('Y-m-d H:i:s'),
+                ];
+                // p($insertData);
+                self::insertGetId($insertData);
+            } else {
+                $insertData = [
+                    'name' => $name,
+                    'token' => $token,
+                    'price' => 269.98923355,
+                    'holders' => 1717807,
+                    'add_holders' => 0,
+                    'date' => $date_val,
+                    'time' => date('Y-m-d H:i:s'),
+                ];
+                self::insertGetId($insertData);
+            }
         }
     }
     
@@ -111,12 +150,14 @@ class BscAddressStatistics extends Base
         $times = [];
         $prices = [];
         $holders = [];
+        $addAddress = [];
         foreach ($lists as $key => $val) {
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
             $prices[] = $val['price'];
             $holders[] = $val['holders'];
+            $addAddress[] = $val['add_holders'];
         }
-        return ['times' => $times, 'prices' => $prices, 'holders' => $holders];
+        return ['times' => $times, 'prices' => $prices, 'holders' => $holders, 'addAddress' => $addAddress];
     }
 
     

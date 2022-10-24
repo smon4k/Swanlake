@@ -103,12 +103,13 @@ export default {
                         type: 'value',
                         // name: 'k',
                     //坐标轴最大值、最小值、强制设置数据的步长间隔
-                        // interval: 5,
+                        interval: 20,
+                        min:0, // 起始
                         axisLabel: {
                             //y轴上带的单位
-                            formatter: function(value) { // y轴自定义数据
-                                return parseInt(value / 10000) + 'k'
-                            }
+                            // formatter: function(value) { // y轴自定义数据
+                            //     return parseInt(value / 10000) + 'k'
+                            // }
                         },
                         //轴线
                         axisLine: {
@@ -153,7 +154,7 @@ export default {
                         symbol: 'circle', // 设置拐点为实心圆
                         yAxisIndex: 0,
                         // data: [1158820, 1128820, 1168820, 1258820, 1358820, 1458820, 1459820, 1468820, 1478820, 1488820 ],
-                        data: this.dataList.holders,
+                        data: this.dataList.addAddress,
                         itemStyle: {
                             color: '#F79729',
                         },
