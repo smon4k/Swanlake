@@ -203,8 +203,12 @@ export default {
                     path: "/day/networth",
                 },
                 {
-                    name: '币种统计',
-                    path: "/bscTokenStatistics",
+                    name: '新增地址量',
+                    path: "/bscTokenStatistics1",
+                },
+                {
+                    name: '总地址量',
+                    path: "/bscTokenStatistics2",
                 },
             ];
             if(!this.isAdmin) {
