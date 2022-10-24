@@ -3,13 +3,21 @@
         <el-select size="mini" v-model="name" placeholder="请选择" @change="selectChange">
             <el-option label="Cake" value="Cake"></el-option>
             <el-option label="BNB" value="BNB"></el-option>
+            <el-option label="BSW" value="BSW"></el-option>
+            <el-option label="BABY" value="BABY"></el-option>
+            <el-option label="Alpace" value="Alpace"></el-option>
+            <el-option label="BIFI" value="BIFI"></el-option>
+            <!-- <el-option label="H2O" value="H2O"></el-option>
+            <el-option label="Guru" value="Guru"></el-option> -->
         </el-select>
         <el-tabs v-model="activeName" @tab-click="tabHandleClick">
             <el-tab-pane label="总地址量" name="1">
-                <div v-if="activeName == 1" class="threeBarChart" id="countAddress"></div>
+                <div v-if="activeName == 1 && Object.keys(dataList).length" class="threeBarChart" id="countAddress"></div>
+                <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
             <el-tab-pane label="新增地址量" name="2">
-                <div v-if="activeName == 2" class="threeBarChart" id="addAddress"></div>
+                <div v-if="activeName == 2 && Object.keys(dataList).length" class="threeBarChart" id="addAddress"></div>
+                <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
         </el-tabs>
     </div>
@@ -361,15 +369,19 @@ export default {
             }, json => {
                 console.log(json);
                 if (json.code == 10000) {
-                    this.dataList = json.data;
-                    this.$nextTick(() => {
-                        if(this.activeName == 1) {
-                            this.myCountAddressChart(); 
-                        }    
-                        if(this.activeName == 2) {
-                            this.myAddAddressChart();  
-                        }               
-                    })                  
+                    if(Object.keys(json.data).length) {
+                        this.dataList = json.data;
+                        this.$nextTick(() => {
+                            if(this.activeName == 1) {
+                                this.myCountAddressChart(); 
+                            }    
+                            if(this.activeName == 2) {
+                                this.myAddAddressChart();  
+                            }               
+                        })                  
+                    } else {
+                        this.dataList = [];
+                    }
                 } else {
                     this.$message.error("加载数据失败");
                 }
@@ -382,14 +394,18 @@ export default {
         tabHandleClick(tab, event) {
             console.log(tab, event);
             if(tab.name == 1) {
-                this.$nextTick(() => {
-                    this.myCountAddressChart();
-                })
+                if(Object.keys(this.dataList).length) {
+                    this.$nextTick(() => {
+                        this.myCountAddressChart();
+                    })
+                }
             }
             if(tab.name == 2) {
-                this.$nextTick(() => {
-                    this.myAddAddressChart();
-                })
+                if(Object.keys(this.dataList).length) {
+                    this.$nextTick(() => {
+                        this.myAddAddressChart();
+                    })
+                }
             }
         }
     }

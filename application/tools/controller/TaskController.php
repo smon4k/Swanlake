@@ -248,14 +248,30 @@ class TaskController extends ToolsBaseController
         $tokens = array(
             ['name' => 'Cake', 'token' => '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82'],
             ['name' => 'BNB', 'token' => '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'],
+            ['name' => 'BSW', 'token' => '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1'],
+            ['name' => 'BABY', 'token' => '0x53E562b9B7E5E94b81f10e96Ee70Ad06df3D2657'],
+            ['name' => 'Alpaca', 'token' => '0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F'],
+            ['name' => 'BIFI', 'token' => '0xCa3F508B8e4Dd382eE878A314789373D80A5190A'],
+            // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
+            // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
         );
         foreach ($tokens as $key => $val) {
             $name = $val['name'];
             $params = ['token' => $val['token']];
             $returnArray = [];
             $response_string = RequestService::doJsonCurlPost(Config::get('www_bscscan_contract').Config::get('reptile_service')['get_bsc_token_holders'], json_encode($params));
-            $returnArray = json_decode($response_string, true);
-            BscAddressStatistics::setBscAddressStatistics($name, $val['token'], $returnArray);
+            if($response_string) {
+                echo "====== Success 爬取" . $name . "数据成功 ======" . "\n";
+                $returnArray = json_decode($response_string, true);
+                $setData = BscAddressStatistics::setBscAddressStatistics($name, $val['token'], $returnArray);
+                if($setData) {
+                    echo "====== Success 写入" . $name . "数据成功 ======" . "\n\n";
+                } else {
+                    echo "====== Error 写入" . $name . "数据失败 ======" . "\n\n";
+                }
+            } else {
+                echo "====== Error 爬取" . $name . "数据失败 ======" . "\n";
+            }
         }
 
         return (time() - $begin_time) . "s\n";

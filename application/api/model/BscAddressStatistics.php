@@ -35,7 +35,7 @@ class BscAddressStatistics extends Base
             } else {
                 $date = $date_hour;
             }
-            $lessRes = self::where(['name' => $name, 'date' => ['<', $date]])->order('date desc')->find()->toArray();
+            $lessRes = self::where(['name' => $name, 'date' => ['<', $date]])->order('date desc')->find();
             if($lessRes && count((array)$lessRes) > 0) {
                 $res = self::where(['name' => $name, 'date' => $date])->find();
                 if($res && count((array)$res) > 0) {
@@ -144,8 +144,8 @@ class BscAddressStatistics extends Base
                     ->order($order)
                     ->select()
                     ->toArray();
-        if (!$lists) {
-            ['count'=>0,'allpage'=>0,'lists'=>[]];
+        if (!$lists || count((array)$lists) <= 0) {
+            return [];
         }
         // p($lists);
         $times = [];
