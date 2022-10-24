@@ -103,8 +103,8 @@ export default {
                         type: 'value',
                         // name: 'k',
                     //坐标轴最大值、最小值、强制设置数据的步长间隔
-                        interval: 20,
-                        min:0, // 起始
+                        // interval: 10,
+                        // min:0, // 起始
                         axisLabel: {
                             //y轴上带的单位
                             // formatter: function(value) { // y轴自定义数据
@@ -125,6 +125,7 @@ export default {
                     },
                     {
                         type: 'value',
+                        // interval: 1,
                         // name: 'k',
                         axisLabel: {
                             //y轴上带的单位
