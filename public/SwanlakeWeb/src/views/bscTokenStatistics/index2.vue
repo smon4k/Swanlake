@@ -129,8 +129,8 @@ export default {
                         type: 'value',
                         // interval: 1200000,
                         // name: 'k',
-                        min: this.dataList.prices.min * 0.9,
-                        max: this.dataList.prices.max * 1.1,
+                        min: this.dataList.prices.min,
+                        max: this.dataList.prices.max,
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
