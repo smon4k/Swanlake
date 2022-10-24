@@ -147,17 +147,60 @@ class BscAddressStatistics extends Base
         if (!$lists) {
             ['count'=>0,'allpage'=>0,'lists'=>[]];
         }
+        // p($lists);
         $times = [];
         $prices = [];
         $holders = [];
         $addAddress = [];
+        $min_price = $lists[0]['price'];
+        $max_price = $lists[0]['price'];
+        $min_holders = $lists[0]['holders'];
+        $max_holders = $lists[0]['holders'];
+        $min_addArddress = $lists[0]['add_holders'];
+        $max_addArddress = $lists[0]['add_holders'];
         foreach ($lists as $key => $val) {
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
             $prices[] = $val['price'];
+            if($val['price'] < $min_price) {
+                $min_price = $val['price'];
+            }
+            if($val['price'] > $max_price) {
+                $max_price = $val['price'];
+            }
             $holders[] = $val['holders'];
+            if($val['holders'] < $min_holders) {
+                $min_holders = $val['holders'];
+            }
+            if($val['holders'] > $max_holders) {
+                $max_holders = $val['holders'];
+            }
             $addAddress[] = $val['add_holders'];
+            if($val['add_holders'] < $min_addArddress) {
+                $min_addArddress = $val['add_holders'];
+            }
+            if($val['add_holders'] > $max_addArddress) {
+                $max_addArddress = $val['add_holders'];
+            }
         }
-        return ['times' => $times, 'prices' => $prices, 'holders' => $holders, 'addAddress' => $addAddress];
+        $dataList = [
+            'times' => $times, 
+            'prices' => [
+                'data' => $prices,
+                'min' => $min_price,
+                'max' => $max_price,
+            ], 
+            'holders' => [
+                'data' => $holders,
+                'min' => $min_holders,
+                'max' => $max_holders,
+            ], 
+            'addAddress' => [
+                'data' => $addAddress,
+                'min' => $min_addArddress,
+                'max' => $max_addArddress,
+            ]];
+        // p($dataList);
+        return $dataList;
     }
 
     

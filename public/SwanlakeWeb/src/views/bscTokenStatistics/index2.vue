@@ -103,8 +103,9 @@ export default {
                         type: 'value',
                         // name: 'k',
                     //坐标轴最大值、最小值、强制设置数据的步长间隔
-                        interval: 1200000,
-                        // min:0, // 起始
+                        interval: 1000,
+                        min: parseInt(this.dataList.holders.min),
+                        max: parseInt(this.dataList.holders.max),
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
@@ -127,6 +128,8 @@ export default {
                         type: 'value',
                         // interval: 1200000,
                         // name: 'k',
+                        min: parseInt(this.dataList.prices.min * 0.8),
+                        max: parseInt(this.dataList.prices.max * 1.2),
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
@@ -155,7 +158,7 @@ export default {
                         symbol: 'circle', // 设置拐点为实心圆
                         yAxisIndex: 0,
                         // data: [1158820, 1128820, 1168820, 1258820, 1358820, 1458820, 1459820, 1468820, 1478820, 1488820 ],
-                        data: this.dataList.holders,
+                        data: this.dataList.holders.data,
                         itemStyle: {
                             color: '#F79729',
                         },
@@ -166,7 +169,7 @@ export default {
                         symbol: 'circle', // 设置拐点为实心圆
                         yAxisIndex: 1,
                         // data: [0.32372331,0.11752043,0.97107555,0.62991315,0.16098689,0.59809298,0.28456582,0.14334360,0.78546394,0.00756064 ],
-                        data: this.dataList.prices,
+                        data: this.dataList.prices.data,
                         itemStyle: {
                             color: '#7C7C7C',
                         },

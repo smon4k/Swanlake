@@ -212,7 +212,7 @@ export default {
                 },
             ];
             if(!this.isAdmin) {
-                arr.splice(arr.length - 3, 3);
+                arr.splice(arr.length - 4, 4);
             }
             return arr;
         }
