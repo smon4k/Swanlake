@@ -87,16 +87,10 @@ export const constantRoutes = [
         },
         // BSC 币种统计
         {
-          path: 'bscTokenStatistics1',
-          name: 'bscTokenStatistics1',
+          path: 'bscTokenStatistics',
+          name: 'bscTokenStatistics',
           component: () => import('@/views/bscTokenStatistics/index'),
-          meta: { title: 'bscTokenStatistics1', keepAlive: false }
-        },
-        {
-          path: 'bscTokenStatistics2',
-          name: 'bscTokenStatistics2',
-          component: () => import('@/views/bscTokenStatistics/index2'),
-          meta: { title: 'bscTokenStatistics2', keepAlive: false }
+          meta: { title: 'bscTokenStatistics', keepAlive: false }
         },
       ]
     },
