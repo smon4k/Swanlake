@@ -104,12 +104,12 @@ export default {
                         // name: 'k',
                     //坐标轴最大值、最小值、强制设置数据的步长间隔
                         interval: 1000,
-                        min: parseInt(this.dataList.holders.min),
-                        max: parseInt(this.dataList.holders.max),
+                        min: parseInt(this.dataList.holders.min - 1000),
+                        max: parseInt(this.dataList.holders.max + 1000),
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return parseInt(value / 10000) + 'k'
+                                return parseInt(value / 1000) + 'k'
                             }
                         },
                         //轴线
