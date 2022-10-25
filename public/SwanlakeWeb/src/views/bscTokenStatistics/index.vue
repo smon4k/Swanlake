@@ -7,6 +7,7 @@
             <el-option label="BABY" value="BABY"></el-option>
             <el-option label="Alpace" value="Alpace"></el-option>
             <el-option label="BIFI" value="BIFI"></el-option>
+            <el-option label="QUICK" value="QUICK"></el-option>
             <!-- <el-option label="H2O" value="H2O"></el-option>
             <el-option label="Guru" value="Guru"></el-option> -->
         </el-select>
@@ -194,6 +195,7 @@ export default {
                         itemStyle: {
                             color: '#F79729',
                         },
+                        // areaStyle: {}
                     }, {
                         name: _this.name + ' 价格',
                         type: 'line',

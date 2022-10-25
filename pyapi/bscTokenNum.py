@@ -33,7 +33,8 @@ class JDSpider(object):
         # self.browser = webdriver.Chrome(options=chrome_options)
         self.browser.implicitly_wait(5)  # 等5s
         # self.address = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
-        self.url = f'https://bscscan.com/token/'
+        self.bscscan_url = f'https://bscscan.com/token/'
+        self.polygonscan_url = f'https://bscscan.com/token/'
         
         self.returnList = {}
 
@@ -48,8 +49,9 @@ class JDSpider(object):
         return
 
     # 爬取数据
-    def getListData(self, token):
-        urls = self.url + str(token)
+    def getListData(self, token, chain):
+        # urls = self.bscscan_url + str(token)
+        urls = f'https://{chain}.com/token/' + str(token)
         # print(self.page, self.num, self.count, urls)
         self.browser.get(urls)
         # time.sleep(5)
@@ -76,9 +78,9 @@ class JDSpider(object):
             return flag
 
     # 入口
-    def main(self, token):
+    def main(self, token, chain):
         try:
-            list = self.getListData(token)
+            list = self.getListData(token, chain)
             os.system("killall -9 chrome")
             os.system("killall -9 chromedriver")
             return list
@@ -104,7 +106,7 @@ def get_apy_mars_data():
     # if request.content_type == 'application/json':
     pageJson = request.json
     spider = JDSpider()
-    data = spider.main(pageJson['token'])
+    data = spider.main(pageJson['token'], pageJson['chain'])
     # json_str = json.dumps(data)
     response = make_response(jsonify(data))
     response.mimetype = 'application/json'

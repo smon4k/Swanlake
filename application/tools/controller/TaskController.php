@@ -246,18 +246,19 @@ class TaskController extends ToolsBaseController
     public function getBscscanTokenHolders() {
         $begin_time = time();
         $tokens = array(
-            ['name' => 'Cake', 'token' => '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82'],
-            ['name' => 'BNB', 'token' => '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'],
-            ['name' => 'BSW', 'token' => '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1'],
-            ['name' => 'BABY', 'token' => '0x53E562b9B7E5E94b81f10e96Ee70Ad06df3D2657'],
-            ['name' => 'Alpaca', 'token' => '0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F'],
-            ['name' => 'BIFI', 'token' => '0xCa3F508B8e4Dd382eE878A314789373D80A5190A'],
+            ['name' => 'Cake', 'token' => '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', 'chain' => 'bscscan'],
+            ['name' => 'BNB', 'token' => '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 'chain' => 'bscscan'],
+            ['name' => 'BSW', 'token' => '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1', 'chain' => 'bscscan'],
+            ['name' => 'BABY', 'token' => '0x53E562b9B7E5E94b81f10e96Ee70Ad06df3D2657', 'chain' => 'bscscan'],
+            ['name' => 'Alpaca', 'token' => '0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F', 'chain' => 'bscscan'],
+            ['name' => 'BIFI', 'token' => '0xCa3F508B8e4Dd382eE878A314789373D80A5190A', 'chain' => 'bscscan'],
+            ['name' => 'QUICK', 'token' => '0xb5c064f955d8e7f38fe0460c556a72987494ee17', 'chain' => 'polygonscan'],
             // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
             // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
         );
         foreach ($tokens as $key => $val) {
             $name = $val['name'];
-            $params = ['token' => $val['token']];
+            $params = ['token' => $val['token'], 'chain' => $val['chain']];
             $returnArray = [];
             $response_string = RequestService::doJsonCurlPost(Config::get('www_bscscan_contract').Config::get('reptile_service')['get_bsc_token_holders'], json_encode($params));
             if($response_string) {
