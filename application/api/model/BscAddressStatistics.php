@@ -132,18 +132,21 @@ class BscAddressStatistics extends Base
      * @author qinlh
      * @since 2022-10-23
      */
-    public static function getHourDataList($where, $page, $limit, $order='id desc') {
-        if ($limit <= 0) {
-            $limit = config('paginate.list_rows');// 获取总条数
+    public static function getHourDataList($name='', $time_range='', $this_year='', $start_time='', $end_time='') {
+        // p($time_range);
+        $sql = "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name'";
+        if($time_range && $time_range !== '') {
+            $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
         }
-        $count = self::alias('a')->where($where)->count();//计算总页面
-        $allpage = intval(ceil($count / $limit));
-        $lists = self::alias('a')
-                    ->field("a.*")
-                    ->where($where)
-                    ->order($order)
-                    ->select()
-                    ->toArray();
+        if($this_year && $this_year !== '') {
+            $sql .= " AND YEAR(`time`) = YEAR(NOW())";
+        }
+        if($start_time !== '' && $end_time !== '') {
+            $start_time = $start_time . " 00:00:00";
+            $end_time = $end_time . " 00:00:00";
+            $sql .= " AND `time` >= '$start_time' AND `time` <= '$end_time'";
+        }
+        $lists = self::query($sql);
         if (!$lists || count((array)$lists) <= 0) {
             return [];
         }

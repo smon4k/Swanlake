@@ -32,15 +32,12 @@ class BscaddressStatisticsController extends BaseController
      * @since 2022-10-23
      */
     public function getHourDataList(Request $request) {
-        $page = $request->request('page', 1, 'intval');
-        $limit = $request->request('limit', 1000000, 'intval');
         $name = $request->request('name', '', 'trim');
-        $where = [];
-        if($name && $name !== '') {
-            $where['a.name'] = $name;
-        }
-        $order = 'a.date asc';
-        $result = BscAddressStatistics::getHourDataList($where, $page, $limit, $order);
+        $this_year = $request->request('this_year', "", 'trim');
+        $time_range = $request->request('time_range', "", 'trim');
+        $start_time = $request->request('start_time', "", 'trim');
+        $end_time = $request->request('end_time', "", 'trim');
+        $result = BscAddressStatistics::getHourDataList($name, $time_range, $this_year, $start_time, $end_time);
         return $this->as_json($result);
     }
 }
