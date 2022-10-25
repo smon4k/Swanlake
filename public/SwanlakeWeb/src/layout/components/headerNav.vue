@@ -195,6 +195,10 @@ export default {
                     path: "/depositWithdrawal",
                 },
                 {
+                    name: '币种统计',
+                    path: "/bscTokenStatistics",
+                },
+                {
                     name: '资金账户监控',
                     path: "/fund/monitoring/account",
                 },
@@ -202,13 +206,9 @@ export default {
                     name: '净值配置',
                     path: "/day/networth",
                 },
-                {
-                    name: '币种统计',
-                    path: "/bscTokenStatistics",
-                },
             ];
             if(!this.isAdmin) {
-                arr.splice(arr.length - 3, 3);
+                arr.splice(arr.length - 2, 2);
             }
             return arr;
         }
