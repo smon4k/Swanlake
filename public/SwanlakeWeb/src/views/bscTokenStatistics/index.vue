@@ -15,27 +15,27 @@
             <el-col :span="24" align="center">
                 <div class="search">
                     <span>币种选择：</span>
-                    <div class="button" tabindex="1" @click="selectChange('Cake')">Cake</div>
-                    <div class="button" tabindex="2" @click="selectChange('BNB')">BNB</div>
-                    <div class="button" tabindex="3" @click="selectChange('BSW')">BSW</div>
-                    <div class="button" tabindex="4" @click="selectChange('BABY')">BABY</div>
-                    <div class="button" tabindex="5" @click="selectChange('Alpaca')">Alpaca</div>
-                    <div class="button" tabindex="6" @click="selectChange('BIFI')">BIFI</div>
-                    <div class="button" tabindex="7" @click="selectChange('QUICK')">QUICK</div>
+                    <div :class="['button', {'button-active': currencyIndex == 1}]" tabindex="1" @click="selectChange('Cake', 1)">Cake</div>
+                    <div :class="['button', {'button-active': currencyIndex == 2}]" tabindex="2" @click="selectChange('BNB', 2)">BNB</div>
+                    <div :class="['button', {'button-active': currencyIndex == 3}]" tabindex="3" @click="selectChange('BSW', 3)">BSW</div>
+                    <div :class="['button', {'button-active': currencyIndex == 4}]" tabindex="4" @click="selectChange('BABY', 4)">BABY</div>
+                    <div :class="['button', {'button-active': currencyIndex == 5}]" tabindex="5" @click="selectChange('Alpaca', 5)">Alpaca</div>
+                    <div :class="['button', {'button-active': currencyIndex == 6}]" tabindex="6" @click="selectChange('BIFI', 6)">BIFI</div>
+                    <div :class="['button', {'button-active': currencyIndex == 7}]" tabindex="7" @click="selectChange('QUICK', 7)">QUICK</div>
                 </div>
             </el-col>
             <br><br>
             <el-col :span="24" align="center">
                 <div class="search">
                     <span>时间范围：</span>
-                    <div class="button" tabindex="1" @click="searchClick('1 day')">1天</div>
-                    <div class="button" tabindex="2" @click="searchClick('1 week')">1周</div>
-                    <div class="button" tabindex="3" @click="searchClick('1 month')">1月</div>
-                    <div class="button" tabindex="4" @click="searchClick('3 month')">3月</div>
-                    <div class="button" tabindex="5" @click="searchClick('6 month')">6月</div>
-                    <div class="button" tabindex="6" @click="searchClick('year')">本年</div>
-                    <div class="button" tabindex="7" @click="searchClick('1 year')">1年</div>
-                    <div class="button" tabindex="8" @click="searchClick('all')">全部</div>
+                    <div :class="['button', {'button-active': timesIndex == 1}]" tabindex="1" @click="searchClick('1 day', 1)">1天</div>
+                    <div :class="['button', {'button-active': timesIndex == 2}]" tabindex="2" @click="searchClick('1 week', 2)">1周</div>
+                    <div :class="['button', {'button-active': timesIndex == 3}]" tabindex="3" @click="searchClick('1 month', 3)">1月</div>
+                    <div :class="['button', {'button-active': timesIndex == 4}]" tabindex="4" @click="searchClick('3 month', 4)">3月</div>
+                    <div :class="['button', {'button-active': timesIndex == 5}]" tabindex="5" @click="searchClick('6 month', 5)">6月</div>
+                    <div :class="['button', {'button-active': timesIndex == 6}]" tabindex="6" @click="searchClick('year', 6)">本年</div>
+                    <div :class="['button', {'button-active': timesIndex == 7}]" tabindex="7" @click="searchClick('1 year', 7)">1年</div>
+                    <div :class="['button', {'button-active': timesIndex == 8}]" tabindex="8" @click="searchClick('all', 8)">全部</div>
                     &nbsp;&nbsp;
                     <el-date-picker
                         v-model="start_end_time"
@@ -71,6 +71,8 @@ export default {
     name: '',
     data() {
         return {
+            currencyIndex: 1,
+            timesIndex: 1,
             activeName: '1',
             name: 'Cake',
             dataList: [],
@@ -441,8 +443,10 @@ export default {
                 }
             });
         },
-        searchClick(name) { //时间筛选
+        searchClick(name, index) { //时间筛选
+            this.timesIndex = index;
             if(name && name !== '') {
+                this.start_end_time = '';
                 if(name === 'all') {
                     this.this_year = '';
                     this.time_range = '';
@@ -459,11 +463,18 @@ export default {
             }
         },
         timesChange(val) {
+            console.log(val);
             this.this_year = '';
             this.time_range = '';
+            if(val == null) {
+                this.timesIndex = 8;
+            } else {
+                this.timesIndex = 0;
+            }
             this.getHourDataList();
         },
-        selectChange(name) {
+        selectChange(name, index) {
+            this.currencyIndex = index;
             this.name = name;
             this.getHourDataList();
         },
@@ -518,6 +529,9 @@ export default {
                     margin-left: 4px;
                     cursor: pointer;
                     user-select: none;
+                }
+                .button-active {
+                    background-color: #bfbbbb;
                 }
                 .button:active {
                     background-color: #bfbbbb;
