@@ -5,7 +5,7 @@
             <el-option label="BNB" value="BNB"></el-option>
             <el-option label="BSW" value="BSW"></el-option>
             <el-option label="BABY" value="BABY"></el-option>
-            <el-option label="Alpace" value="Alpace"></el-option>
+            <el-option label="Alpaca" value="Alpaca"></el-option>
             <el-option label="BIFI" value="BIFI"></el-option>
             <el-option label="QUICK" value="QUICK"></el-option>
             <!-- <el-option label="H2O" value="H2O"></el-option>
