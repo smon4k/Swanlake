@@ -34,7 +34,7 @@ class JDSpider(object):
         self.browser.implicitly_wait(5)  # 等5s
         # self.address = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
         self.bscscan_url = f'https://bscscan.com/token/'
-        self.polygonscan_url = f'https://bscscan.com/token/'
+        self.bscscan_bnb_url = f'https://bscscan.com/blocks?p=1'
         
         self.returnList = {}
 
@@ -48,10 +48,10 @@ class JDSpider(object):
                 break
         return
 
-    # 爬取数据
+    # 爬取数据币种供应量和价格
     def getListData(self, token, chain):
         # urls = self.bscscan_url + str(token)
-        urls = f'https://{chain}.com/token/' + str(token)
+        urls = f'https://{chain}.com/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
         # print(self.page, self.num, self.count, urls)
         self.browser.get(urls)
         # time.sleep(5)
@@ -65,7 +65,25 @@ class JDSpider(object):
         priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
         priceStr = priceElement.get_attribute('data-title')
         price = re.sub("[^0-9.]", "", priceStr)
-        self.returnList = {'price': price, 'holders': holders}
+
+        # 获取余额及价值
+        if token == "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c":
+            self.browser.get(self.bscscan_bnb_url)
+            balanceValueElement = self.browser.find_element_by_xpath('//*[@id="content"]/div[1]/div/div[2]/span/span[2]')
+            balanceStr = balanceValueElement.text.split('\n')
+            balance = re.sub("[^0-9.]", "", balanceStr[0])
+            valueStr = balanceValueElement.get_attribute('data-original-title')
+            value = re.sub("[^0-9.]", "", valueStr)
+            # print(balance, value)
+        else:
+            balanceValueElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_filteredByAddress"]')
+            balanceValueList = balanceValueElement.text.split('\n')
+            # print(balanceValueList)
+            balance = re.sub("[^0-9.]", "", balanceValueList[3])
+            valueArr = balanceValueList[5].split(' ')
+            value = re.sub("[^0-9.]", "", valueArr[0])
+            # print(balance, value)
+        self.returnList = {'price': price, 'holders': holders, 'balance': balance, 'value': value}
         return self.returnList
 
     def isElementExist(self, browser, element):
@@ -96,7 +114,7 @@ class JDSpider(object):
 #     # searchName = sys.argv[1] # 接受参数
 #     # print(searchName)
 #     spider = JDSpider()
-#     data = spider.main('0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82')
+#     data = spider.main('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 'bscscan')
 #     json_str = json.dumps(data)
 #     print(json_str)
 

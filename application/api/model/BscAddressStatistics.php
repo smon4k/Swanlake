@@ -43,6 +43,9 @@ class BscAddressStatistics extends Base
                         'price' => $data['price'], 
                         'holders' => $data['holders'], 
                         'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
+                        'balance' => $data['balance'],
+                        'add_balance' => (float)$data['balance'] - (float)$lessRes['balance'],
+                        'value' => $data['value'],
                         'time' => date('Y-m-d H:i:s')
                     ]);
                     if($saveRes !== false) {
@@ -50,13 +53,16 @@ class BscAddressStatistics extends Base
                     }   
                 } else {
                     $insertData = [
-                       'name' => $name,
-                       'token' => $token,
-                       'price' => $data['price'],
-                       'holders' => $data['holders'],
-                       'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
-                       'date' => $date,
-                       'time' => date('Y-m-d H:i:s'),
+                        'name' => $name,
+                        'token' => $token,
+                        'price' => $data['price'],
+                        'holders' => $data['holders'],
+                        'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
+                        'balance' => $data['balance'],
+                        'add_balance' => (float)$data['balance'] - (float)$lessRes['balance'],
+                        'value' => $data['value'],
+                        'date' => $date,
+                        'time' => date('Y-m-d H:i:s'),
                     ];
                     // p($insertData);
                     $saveRes = self::insertGetId($insertData);
@@ -71,6 +77,9 @@ class BscAddressStatistics extends Base
                     'price' => $data['price'],
                     'holders' => $data['holders'],
                     'add_holders' => 0, 
+                    'balance' => $data['balance'],
+                    'add_balance' => 0,
+                    'value' => $data['value'],
                     'date' => $date,
                     'time' => date('Y-m-d H:i:s'),
                  ];
