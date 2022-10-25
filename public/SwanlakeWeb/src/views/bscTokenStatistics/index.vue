@@ -72,7 +72,7 @@ export default {
     data() {
         return {
             currencyIndex: 1,
-            timesIndex: 1,
+            timesIndex: 8,
             activeName: '1',
             name: 'Cake',
             dataList: [],
