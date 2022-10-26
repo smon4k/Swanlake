@@ -710,6 +710,7 @@ export default {
                         this.dataList = json.data;
                         this.$nextTick(() => {
                             if(this.activeName == 1) {
+                                console.log(111);
                                 this.myCountAddressChart(); 
                             }    
                             if(this.activeName == 2) {
@@ -753,7 +754,7 @@ export default {
                             }               
                         })                  
                     } else {
-                        this.dataList = [];
+                        this.destructionDataList = [];
                     }
                 } else {
                     this.$message.error("加载数据失败");
@@ -791,14 +792,20 @@ export default {
             } else {
                 this.timesIndex = 0;
             }
-            this.getHourDataList();
-            this.getDestructionDataList();
+            if(this.activeName == 1 || this.activeName == 2) {
+                this.getHourDataList();
+            } else {
+                this.getDestructionDataList();
+            }
         },
         selectChange(name, index) {
             this.currencyIndex = index;
             this.name = name;
-            this.getHourDataList();
-            this.getDestructionDataList();
+            if(this.activeName == 1 || this.activeName == 2) {
+                this.getHourDataList();
+            } else {
+                this.getDestructionDataList();
+            }
         },
         tabHandleClick(tab, event) {
             console.log(tab, event);
