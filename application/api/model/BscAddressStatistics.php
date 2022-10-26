@@ -294,7 +294,7 @@ class BscAddressStatistics extends Base
         $bnbNewValues = 0; //BNB最新的总销毁量
         $autoDestruction = 41891077; //BNB自动销毁量
         if($name === 'BNB') {
-            $bnbNewValues = $lists[count((array)$lists) - 1]['value']; //
+            $bnbNewValues = $lists[count((array)$lists) - 1]['balance']; //
         }
         $dataList = [
             'times' => $times, 
