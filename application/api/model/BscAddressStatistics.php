@@ -44,7 +44,7 @@ class BscAddressStatistics extends Base
                         'holders' => $data['holders'], 
                         'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
                         'balance' => $data['balance'],
-                        'add_balance' => (float)$data['balance'] - (float)$lessRes['balance'],
+                        'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
                         'value' => $data['value'],
                         'time' => date('Y-m-d H:i:s')
                     ]);
@@ -59,7 +59,7 @@ class BscAddressStatistics extends Base
                         'holders' => $data['holders'],
                         'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
                         'balance' => $data['balance'],
-                        'add_balance' => (float)$data['balance'] - (float)$lessRes['balance'],
+                        'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
                         'value' => $data['value'],
                         'date' => $date,
                         'time' => date('Y-m-d H:i:s'),
@@ -138,6 +138,7 @@ class BscAddressStatistics extends Base
     
     /**
      * 获取每小时数据
+     * 总地址和新增地址
      * @author qinlh
      * @since 2022-10-23
      */
@@ -170,6 +171,17 @@ class BscAddressStatistics extends Base
         $max_holders = $lists[0]['holders'];
         $min_addArddress = $lists[0]['add_holders'];
         $max_addArddress = $lists[0]['add_holders'];
+
+        //销毁统计
+        $balances = [];
+        $addBalances = [];
+        $values = [];
+        $min_balance = $lists[0]['balance'];
+        $max_balance = $lists[0]['balance'];
+        $min_addBalance = $lists[0]['add_balance'];
+        $max_addBalance = $lists[0]['add_balance'];
+        $min_value = $lists[0]['value'];
+        $max_value = $lists[0]['value'];
         foreach ($lists as $key => $val) {
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
             $prices[] = $val['price'];
@@ -193,6 +205,29 @@ class BscAddressStatistics extends Base
             if($val['add_holders'] > $max_addArddress) {
                 $max_addArddress = $val['add_holders'];
             }
+
+            //销毁统计
+            $balances[] = $val['balance'];
+            if($val['balance'] < $min_balance) {
+                $min_balance = $val['balance'];
+            }
+            if($val['balance'] > $max_balance) {
+                $max_balance = $val['balance'];
+            }
+            $addBalances[] = $val['add_balance'];
+            if($val['add_balance'] < $min_addBalance) {
+                $min_addBalance = $val['add_balance'];
+            }
+            if($val['add_balance'] > $max_addBalance) {
+                $max_addBalance = $val['add_balance'];
+            }
+            $values[] = $val['value'];
+            if($val['value'] < $min_value) {
+                $min_value = $val['value'];
+            }
+            if($val['value'] > $max_value) {
+                $max_value = $val['value'];
+            }
         }
         $dataList = [
             'times' => $times, 
@@ -210,7 +245,108 @@ class BscAddressStatistics extends Base
                 'data' => $addAddress,
                 'min' => $min_addArddress,
                 'max' => $max_addArddress,
-            ]];
+            ],
+            'balances' => [
+                'data' => $balances,
+                'min' => $min_balance,
+                'max' => $max_balance,
+            ],
+            'addBalances' => [
+                'data' => $addBalances,
+                'min' => $min_addBalance,
+                'max' => $max_addBalance,
+            ],
+            'values' => [
+                'data' => $values,
+                'min' => $min_value,
+                'max' => $max_value,
+            ]
+        ];
+        // p($dataList);
+        return $dataList;
+    }
+
+    /**
+     * 获取每小时数据
+     * 销毁数
+     * @author qinlh
+     * @since 2022-10-23
+     */
+    public static function getDestructionDataList($name='', $time_range='', $this_year='', $start_time='', $end_time='') {
+        // p($time_range);
+        $sql = "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name' AND balance != 0 ";
+        if($time_range && $time_range !== '') {
+            $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
+        }
+        if($this_year && $this_year !== '') {
+            $sql .= " AND YEAR(`time`) = YEAR(NOW())";
+        }
+        if($start_time !== '' && $end_time !== '') {
+            $start_time = $start_time . " 00:00:00";
+            $end_time = $end_time . " 00:00:00";
+            $sql .= " AND `time` >= '$start_time' AND `time` <= '$end_time'";
+        }
+        $lists = self::query($sql);
+        if (!$lists || count((array)$lists) <= 0) {
+            return [];
+        }
+        // p($lists);
+        $times = [];
+
+        //销毁统计
+        $balances = [];
+        $addBalances = [];
+        $values = [];
+        $min_balance = $lists[0]['balance'];
+        $max_balance = $lists[0]['balance'];
+        $min_addBalance = $lists[0]['add_balance'];
+        $max_addBalance = $lists[0]['add_balance'];
+        $min_value = $lists[0]['value'];
+        $max_value = $lists[0]['value'];
+        foreach ($lists as $key => $val) {
+            $times[] = date('Y-m-d H:i',strtotime($val['date']));
+
+            //销毁统计
+            $balances[] = $val['balance'];
+            if($val['balance'] < $min_balance) {
+                $min_balance = $val['balance'];
+            }
+            if($val['balance'] > $max_balance) {
+                $max_balance = $val['balance'];
+            }
+            $addBalances[] = $val['add_balance'];
+            if($val['add_balance'] < $min_addBalance) {
+                $min_addBalance = $val['add_balance'];
+            }
+            if($val['add_balance'] > $max_addBalance) {
+                $max_addBalance = $val['add_balance'];
+            }
+            $values[] = $val['value'];
+            if($val['value'] < $min_value) {
+                $min_value = $val['value'];
+            }
+            if($val['value'] > $max_value) {
+                $max_value = $val['value'];
+            }
+        }
+        $dataList = [
+            'times' => $times, 
+            'balances' => [
+                'data' => $balances,
+                'min' => $min_balance,
+                'max' => $max_balance,
+            ],
+            'addBalances' => [
+                'data' => $addBalances,
+                'min' => $min_addBalance,
+                'max' => $max_addBalance,
+            ],
+            'values' => [
+                'data' => $values,
+                'min' => $min_value,
+                'max' => $max_value,
+            ]
+        ];
         // p($dataList);
         return $dataList;
     }

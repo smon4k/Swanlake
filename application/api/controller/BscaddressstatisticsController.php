@@ -28,6 +28,7 @@ class BscaddressStatisticsController extends BaseController
 {
     /**
      * 获取每小时数据
+     * 总地址和新增地址
      * @author qinlh
      * @since 2022-10-23
      */
@@ -38,6 +39,22 @@ class BscaddressStatisticsController extends BaseController
         $start_time = $request->request('start_time', "", 'trim');
         $end_time = $request->request('end_time', "", 'trim');
         $result = BscAddressStatistics::getHourDataList($name, $time_range, $this_year, $start_time, $end_time);
+        return $this->as_json($result);
+    }
+
+    /**
+     * 获取每小时数据
+     * 销毁数
+     * @author qinlh
+     * @since 2022-10-25
+     */
+    public function getDestructionDataList(Request $request) {
+        $name = $request->request('name', '', 'trim');
+        $this_year = $request->request('this_year', "", 'trim');
+        $time_range = $request->request('time_range', "", 'trim');
+        $start_time = $request->request('start_time', "", 'trim');
+        $end_time = $request->request('end_time', "", 'trim');
+        $result = BscAddressStatistics::getDestructionDataList($name, $time_range, $this_year, $start_time, $end_time);
         return $this->as_json($result);
     }
 }

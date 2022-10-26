@@ -59,6 +59,16 @@
                 <div v-if="activeName == 2 && Object.keys(dataList).length" class="threeBarChart" id="addAddress"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
+            <el-tab-pane label="总销毁量" name="3">
+                <div v-if="currencyIndex == 2" style="position: absolute;right: 190px;font-size: 13px;line-height: 23px;">自动销毁: {{ numberFormatFilter(41891077) }} BNB</div>
+                <div v-if="activeName == 3 && Object.keys(destructionDataList).length" class="threeBarChart" id="countDestruction"></div>
+                <el-empty v-else description="没有数据"></el-empty>
+            </el-tab-pane>
+            <el-tab-pane label="新增销毁量" name="4">
+                <div v-if="currencyIndex == 2" style="position: absolute;right: 200px;font-size: 13px;line-height: 23px;">自动销毁: {{ numberFormatFilter(41891077) }} BNB</div>
+                <div v-if="activeName == 4 && Object.keys(destructionDataList).length" class="threeBarChart" id="addDestruction"></div>
+                <el-empty v-else description="没有数据"></el-empty>
+            </el-tab-pane>
         </el-tabs>
     </div>
 </template>
@@ -76,6 +86,7 @@ export default {
             activeName: '1',
             name: 'Cake',
             dataList: [],
+            destructionDataList: [],
             start_end_time: '',
             time_range: '',
             this_year: '', //是否本年度
@@ -93,6 +104,7 @@ export default {
     },
     created() {
         this.getHourDataList();
+        this.getDestructionDataList();
     },
     watch: {
 
@@ -151,19 +163,6 @@ export default {
                     axisTick: {
                         alignWithLabel: true
                     },
-                    // splitNumber: 24,
-                    // data: [
-                    //     '2022-10-21 00:00',
-                    //     '2022-10-21 02:00',
-                    //     '2022-10-21 03:00',
-                    //     '2022-10-21 04:00',
-                    //     '2022-10-21 05:00',
-                    //     '2022-10-22 01:00',
-                    //     '2022-10-22 02:00',
-                    //     '2022-10-22 03:00',
-                    //     '2022-10-22 04:00',
-                    //     '2022-10-22 05:00',
-                    // ],
                     data: this.dataList.times,
                     axisLabel: {
                         interale: 0,
@@ -256,7 +255,7 @@ export default {
             };
             option && myChart.setOption(option);
         },
-        myCountAddressChart() {
+        myCountAddressChart() { //总地址量
             // console.log(this.dataList);
             // 获取节点
             const myChart = echarts.init(document.getElementById('countAddress'));
@@ -409,7 +408,287 @@ export default {
             };
             option && myChart.setOption(option);
         },
-        getHourDataList() {
+        myCountDestructionChart() { //总销毁量
+            // console.log(this.dataList);
+            // 获取节点
+            const myChart = echarts.init(document.getElementById('countDestruction'));
+            let option;
+            let _this = this;
+
+            option = {
+                title: {
+                    // text: '折线图堆叠'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    extraCssText: 'width:200px;height:auto;background-color:#fff;color:#333',
+                    axisPointer:{       //坐标轴指示器
+                        type:'cross',   //十字准星指示器
+                    },
+                    formatter: function (params) {
+                        // console.log(params);
+                        let str = params[0].name + '<br/>'
+                        for (let item of params) {
+                            if(item.seriesIndex == 0) {
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + numberFormat(item.value) + "</span>" + "<br/>"
+                            } else {
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + numberFormat(Number(item.value)) + "</span>" + "<br/>"
+                            }
+                        }
+                        return str
+                    }
+                },
+                legend: {
+                    data: ['总销毁量', _this.name + ' 价值'],
+                    right: '0'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                dataZoom: { // 放大和缩放
+                    type: 'inside'
+                },
+                xAxis: {
+                    type: 'category',
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    data: this.destructionDataList.times,
+                    axisLabel: {
+                        interale: 0,
+                        // rotate: -40, //设置日期显示样式（倾斜度）
+                        formatter: function (value) {//在这里写你需要的时间格式
+                            var t_date = new Date(value);
+                            // console.log(t_date);
+                            return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
+                            + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                        }
+                    }
+                },
+                yAxis: [
+                    {
+                        type: 'value',
+                        // name: 'k',
+                    //坐标轴最大值、最小值、强制设置数据的步长间隔
+                        // interval: 1000,
+                        min: parseInt(Number(this.destructionDataList.balances.min) - (Number(this.destructionDataList.balances.min) * 0.01)),
+                        max: parseInt(Number(this.destructionDataList.balances.max) + (Number(this.destructionDataList.balances.max)) * 0.01),
+                        axisLabel: {
+                            //y轴上带的单位
+                            formatter: function(value) { // y轴自定义数据
+                                return _this.UnitConversion(value);
+                                // return parseInt(value / 1000) + 'k'
+                            }
+                        },
+                        //轴线
+                        axisLine: {
+                            show: true,
+                            lineStyle: {
+                                color: '#F79729'
+                            }
+                        },
+                        //分割线
+                        splitLine: {
+                            show: false
+                        }
+                    },
+                    {
+                        type: 'value',
+                        // interval: 1200000,
+                        // name: 'k',
+                        min: Number(this.destructionDataList.values.min) - (Number(this.destructionDataList.values.min) * 0.01),
+                        max: Number(this.destructionDataList.values.max) + (Number(this.destructionDataList.values.max) * 0.01),
+                        axisLabel: {
+                            //y轴上带的单位
+                            formatter: function(value) { // y轴自定义数据
+                                return '$' + _this.UnitConversion(value);
+                            }
+                        },
+                        //轴线
+                        axisLine: {
+                            show: true,
+                            lineStyle: {
+                                color: '#7C7C7C'
+                            }
+                        },
+                        //分割线
+                        splitLine: {
+                            show: false
+                        }
+    
+                    }
+                ],
+                series: [
+                    {
+                        name: '总销毁量',
+                        type: 'line',
+                        symbolSize: 5, // 设置折线上圆点大小
+                        symbol: 'circle', // 设置拐点为实心圆
+                        yAxisIndex: 0,
+                        // data: [1158820, 1128820, 1168820, 1258820, 1358820, 1458820, 1459820, 1468820, 1478820, 1488820 ],
+                        data: this.destructionDataList.balances.data,
+                        itemStyle: {
+                            color: '#F79729',
+                        },
+                    }, {
+                        name: _this.name + ' 价值',
+                        type: 'line',
+                        symbolSize: 5, // 设置折线上圆点大小
+                        symbol: 'circle', // 设置拐点为实心圆
+                        yAxisIndex: 1,
+                        // data: [0.32372331,0.11752043,0.97107555,0.62991315,0.16098689,0.59809298,0.28456582,0.14334360,0.78546394,0.00756064 ],
+                        data: this.destructionDataList.values.data,
+                        itemStyle: {
+                            color: '#7C7C7C',
+                        },
+                    }
+                ]
+            };
+            option && myChart.setOption(option);
+        },
+        myAddDestructionChart() { //新增销毁量
+            // console.log(this.dataList);
+            // 获取节点
+            const myChart = echarts.init(document.getElementById('addDestruction'));
+            let option;
+            let _this = this;
+            option = {
+                title: {
+                    // text: '折线图堆叠'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    extraCssText: 'width:200px;height:auto;background-color:#fff;color:#333',
+                    axisPointer:{       //坐标轴指示器
+                        type:'cross',   //十字准星指示器
+                    },
+                    formatter: function (params) {
+                        // console.log(params);
+                        let str = params[0].name + '<br/>'
+                        for (let item of params) {
+                            if(item.seriesIndex == 0) {
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>"+_this.toFixed(item.value, 4)+"</span>" + "<br/>"
+                            } else {
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + numberFormat(Number(item.value)) + "</span>" + "<br/>"
+                            }
+                        }
+                        return str
+                    }
+                },
+                legend: {
+                    data: ['新增销毁量', _this.name + ' 价值'],
+                    right: '0'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                dataZoom: { // 放大和缩放
+                    type: 'inside'
+                },
+                xAxis: {
+                    type: 'category',
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    data: this.destructionDataList.times,
+                    axisLabel: {
+                        interale: 0,
+                        // rotate: -40, //设置日期显示样式（倾斜度）
+                        formatter: function (value) {//在这里写你需要的时间格式
+                            var t_date = new Date(value);
+                            // console.log(t_date);
+                            return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
+                            + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                        }
+                    }
+                },
+                yAxis: [
+                    {
+                        type: 'value',
+                        // name: 'k',
+                    //坐标轴最大值、最小值、强制设置数据的步长间隔
+                        // interval: 1000,
+                        min: parseInt(Number(this.destructionDataList.addBalances.min) - Number(this.destructionDataList.addBalances.min) * 0.01),
+                        max: parseInt(this.destructionDataList.addBalances.max + Number(this.destructionDataList.addBalances.max) * 0.01),
+                        axisLabel: {
+                            //y轴上带的单位
+                            // formatter: function(value) { // y轴自定义数据
+                            //     return parseInt(value / 10000) + 'k'
+                            // }
+                        },
+                        //轴线
+                        axisLine: {
+                            show: true,
+                            lineStyle: {
+                                color: '#F79729'
+                            }
+                        },
+                        //分割线
+                        splitLine: {
+                            show: false
+                        }
+                    },
+                    {
+                        type: 'value',
+                        // interval: 1,
+                        min: Number(this.destructionDataList.values.min) - (Number(this.destructionDataList.values.min) * 0.01),
+                        max: Number(this.destructionDataList.values.max) + (Number(this.destructionDataList.values.max) * 0.01),
+                        axisLabel: {
+                            //y轴上带的单位
+                            formatter: function(value) { // y轴自定义数据
+                                return '$' + _this.UnitConversion(value);
+                            }
+                        },
+                        //轴线
+                        axisLine: {
+                            show: true,
+                            lineStyle: {
+                                color: '#7C7C7C'
+                            }
+                        },
+                        //分割线
+                        splitLine: {
+                            show: false
+                        }
+    
+                    }
+                ],
+                series: [
+                    {
+                        name: '新增销毁量',
+                        type: 'line',
+                        symbolSize: 5, // 设置折线上圆点大小
+                        symbol: 'circle', // 设置拐点为实心圆
+                        yAxisIndex: 0,
+                        // data: [1158820, 1128820, 1168820, 1258820, 1358820, 1458820, 1459820, 1468820, 1478820, 1488820 ],
+                        data: this.destructionDataList.addBalances.data,
+                        itemStyle: {
+                            color: '#F79729',
+                        },
+                        // areaStyle: {}
+                    }, {
+                        name: _this.name + ' 价值',
+                        type: 'line',
+                        symbolSize: 5, // 设置折线上圆点大小
+                        symbol: 'circle', // 设置拐点为实心圆
+                        yAxisIndex: 1,
+                        // data: [0.32372331,0.11752043,0.97107555,0.62991315,0.16098689,0.59809298,0.28456582,0.14334360,0.78546394,0.00756064 ],
+                        data: this.destructionDataList.values.data,
+                        itemStyle: {
+                            color: '#7C7C7C',
+                        },
+                    }
+                ]
+            };
+            option && myChart.setOption(option);
+        },
+        getHourDataList() { //获取总地址和新增地址量
             let start_time = '';
             let end_time = '';
             if(this.start_end_time && this.start_end_time.length > 0) {
@@ -443,6 +722,40 @@ export default {
                 }
             });
         },
+        getDestructionDataList() { //获取总销毁和新增销毁量
+            let start_time = '';
+            let end_time = '';
+            if(this.start_end_time && this.start_end_time.length > 0) {
+                start_time = this.start_end_time[0];
+                end_time = this.start_end_time[1];
+            }
+            get(this.apiUrl + "/Api/Bscaddressstatistics/getDestructionDataList", {
+                name: this.name,
+                this_year: this.this_year,
+                time_range: this.time_range,
+                start_time: start_time,
+                end_time: end_time,
+            }, json => {
+                console.log(json);
+                if (json.code == 10000) {
+                    if(Object.keys(json.data).length) {
+                        this.destructionDataList = json.data;
+                        this.$nextTick(() => {
+                            if(this.activeName == 3) {
+                                this.myCountDestructionChart(); 
+                            }    
+                            if(this.activeName == 4) {
+                                this.myAddDestructionChart();  
+                            }               
+                        })                  
+                    } else {
+                        this.dataList = [];
+                    }
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
         searchClick(name, index) { //时间筛选
             this.timesIndex = index;
             if(name && name !== '') {
@@ -451,14 +764,17 @@ export default {
                     this.this_year = '';
                     this.time_range = '';
                     this.getHourDataList();
+                    this.getDestructionDataList();
                 } else if(name === 'year') {
                     this.this_year = name;
                     this.time_range = '';
                     this.getHourDataList();
+                    this.getDestructionDataList();
                 } else {
                     this.this_year = '';
                     this.time_range = name;
                     this.getHourDataList();
+                    this.getDestructionDataList();
                 }
             }
         },
@@ -472,11 +788,13 @@ export default {
                 this.timesIndex = 0;
             }
             this.getHourDataList();
+            this.getDestructionDataList();
         },
         selectChange(name, index) {
             this.currencyIndex = index;
             this.name = name;
             this.getHourDataList();
+            this.getDestructionDataList();
         },
         tabHandleClick(tab, event) {
             console.log(tab, event);
@@ -494,6 +812,47 @@ export default {
                     })
                 }
             }
+            if(tab.name == 3) {
+                if(Object.keys(this.destructionDataList).length) {
+                    this.$nextTick(() => {
+                        this.myCountDestructionChart();
+                    })
+                }
+            }
+            if(tab.name == 4) {
+                if(Object.keys(this.destructionDataList).length) {
+                    this.$nextTick(() => {
+                        this.myAddDestructionChart();
+                    })
+                }
+            }
+        },
+        UnitConversion(v){
+            v = v.toString()
+            if (v >= 100000000000) {
+                return (v.substring(0, 5) / 10) + '亿'
+            } else if (v >= 10000000000) {
+                return (v.substring(0, 4) / 10) + '亿'
+            } else if (v >= 1000000000) {
+                return (v.substring(0, 3) / 10) + '亿'
+            } else if (v >= 100000000) {
+                return (v.substring(0, 2) / 10) + '亿'
+            } else if (v >= 10000000) {
+                return v.substring(0, 4) + '万'
+            } else if (v >= 1000000) {
+                return v.substring(0, 3) + '万'
+            } else if (v >= 100000) {
+                return v.substring(0, 2) + '万'
+            } else if (v >= 10000) {
+                return (v.substring(0, 2) / 10) + '万'
+            } else if (v >= 1000) {
+                return v
+            } else {
+                return v
+            }
+        },
+        numberFormatFilter(num) {
+            return numberFormat(num);
         }
     }
 }
