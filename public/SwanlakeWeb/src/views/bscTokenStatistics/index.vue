@@ -475,7 +475,7 @@ export default {
                         type: 'value',
                         // name: 'k',
                     //坐标轴最大值、最小值、强制设置数据的步长间隔
-                        // interval: 1000,
+                        // interval: 100000000,
                         min: parseInt(Number(this.destructionDataList.balances.min) - (Number(this.destructionDataList.balances.min) * 0.01)),
                         max: parseInt(Number(this.destructionDataList.balances.max) + (Number(this.destructionDataList.balances.max)) * 0.01),
                         axisLabel: {
@@ -831,29 +831,21 @@ export default {
                 }
             }
         },
-        UnitConversion(v){
-            v = v.toString()
-            if (v >= 100000000000) {
-                return (v.substring(0, 5) / 10) + '亿'
-            } else if (v >= 10000000000) {
-                return (v.substring(0, 4) / 10) + '亿'
-            } else if (v >= 1000000000) {
-                return (v.substring(0, 3) / 10) + '亿'
-            } else if (v >= 100000000) {
-                return (v.substring(0, 2) / 10) + '亿'
-            } else if (v >= 10000000) {
-                return v.substring(0, 4) + '万'
-            } else if (v >= 1000000) {
-                return v.substring(0, 3) + '万'
-            } else if (v >= 100000) {
-                return v.substring(0, 2) + '万'
-            } else if (v >= 10000) {
-                return (v.substring(0, 2) / 10) + '万'
-            } else if (v >= 1000) {
-                return v
+        UnitConversion(value){ //数值转换
+            let param = {}
+            let k = 10000
+            let sizes = ['', '万', '亿', '万亿']
+            let i
+            if (value < k) {
+                param.value = value
+                param.unit = ''
             } else {
-                return v
+                i = Math.floor(Math.log(value) / Math.log(k));
+                param.value = ((value / Math.pow(k, i))).toFixed(2);
+                param.unit = sizes[i];
             }
+            console.log(param)
+            return param.value + param.unit;
         },
         numberFormatFilter(num) {
             return numberFormat(num);
