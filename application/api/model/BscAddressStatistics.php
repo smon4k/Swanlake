@@ -172,16 +172,6 @@ class BscAddressStatistics extends Base
         $min_addArddress = $lists[0]['add_holders'];
         $max_addArddress = $lists[0]['add_holders'];
 
-        //销毁统计
-        $balances = [];
-        $addBalances = [];
-        $values = [];
-        $min_balance = $lists[0]['balance'];
-        $max_balance = $lists[0]['balance'];
-        $min_addBalance = $lists[0]['add_balance'];
-        $max_addBalance = $lists[0]['add_balance'];
-        $min_value = $lists[0]['value'];
-        $max_value = $lists[0]['value'];
         foreach ($lists as $key => $val) {
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
             $prices[] = $val['price'];
@@ -205,29 +195,6 @@ class BscAddressStatistics extends Base
             if($val['add_holders'] > $max_addArddress) {
                 $max_addArddress = $val['add_holders'];
             }
-
-            //销毁统计
-            $balances[] = $val['balance'];
-            if($val['balance'] < $min_balance) {
-                $min_balance = $val['balance'];
-            }
-            if($val['balance'] > $max_balance) {
-                $max_balance = $val['balance'];
-            }
-            $addBalances[] = $val['add_balance'];
-            if($val['add_balance'] < $min_addBalance) {
-                $min_addBalance = $val['add_balance'];
-            }
-            if($val['add_balance'] > $max_addBalance) {
-                $max_addBalance = $val['add_balance'];
-            }
-            $values[] = $val['value'];
-            if($val['value'] < $min_value) {
-                $min_value = $val['value'];
-            }
-            if($val['value'] > $max_value) {
-                $max_value = $val['value'];
-            }
         }
         $dataList = [
             'times' => $times, 
@@ -246,21 +213,6 @@ class BscAddressStatistics extends Base
                 'min' => $min_addArddress,
                 'max' => $max_addArddress,
             ],
-            'balances' => [
-                'data' => $balances,
-                'min' => $min_balance,
-                'max' => $max_balance,
-            ],
-            'addBalances' => [
-                'data' => $addBalances,
-                'min' => $min_addBalance,
-                'max' => $max_addBalance,
-            ],
-            'values' => [
-                'data' => $values,
-                'min' => $min_value,
-                'max' => $max_value,
-            ]
         ];
         // p($dataList);
         return $dataList;
@@ -297,6 +249,9 @@ class BscAddressStatistics extends Base
         $balances = [];
         $addBalances = [];
         $values = [];
+        $prices = [];
+        $min_price = $lists[0]['price'];
+        $max_price = $lists[0]['price'];
         $min_balance = $lists[0]['balance'];
         $max_balance = $lists[0]['balance'];
         $min_addBalance = $lists[0]['add_balance'];
@@ -307,6 +262,13 @@ class BscAddressStatistics extends Base
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
 
             //销毁统计
+            $prices[] = $val['price'];
+            if($val['price'] < $min_price) {
+                $min_price = $val['price'];
+            }
+            if($val['price'] > $max_price) {
+                $max_price = $val['price'];
+            }
             $balances[] = $val['balance'];
             if($val['balance'] < $min_balance) {
                 $min_balance = $val['balance'];
@@ -329,8 +291,18 @@ class BscAddressStatistics extends Base
                 $max_value = $val['value'];
             }
         }
+        $bnbNewValues = 0; //BNB最新的总销毁量
+        $autoDestruction = 41891077; //BNB自动销毁量
+        if($name === 'BNB') {
+            $bnbNewValues = $lists[count((array)$lists) - 1]['value']; //
+        }
         $dataList = [
             'times' => $times, 
+            'prices' => [
+                'data' => $prices,
+                'min' => $min_price,
+                'max' => $max_price,
+            ], 
             'balances' => [
                 'data' => $balances,
                 'min' => $min_balance,
@@ -345,7 +317,9 @@ class BscAddressStatistics extends Base
                 'data' => $values,
                 'min' => $min_value,
                 'max' => $max_value,
-            ]
+            ],
+            'bnbNewValues' => $bnbNewValues,
+            'autoDestruction' => $autoDestruction,
         ];
         // p($dataList);
         return $dataList;

@@ -60,12 +60,12 @@
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
             <el-tab-pane label="总销毁量" name="3">
-                <div v-if="currencyIndex == 2" style="position: absolute;right: 190px;font-size: 13px;line-height: 23px;">自动销毁: {{ numberFormatFilter(41891077) }} BNB</div>
+                <div v-if="currencyIndex == 2" style="position: absolute;right: 190px;font-size: 13px;line-height: 23px;">自动销毁 {{ numberFormatFilter(autoDestruction) }} BNB, 手续费实时销毁 {{ numberFormatFilter(bnbNewValues) }} BNB，总计销毁（{{numberFormatFilter(autoDestruction + bnbNewValues)}}）BNB</div>
                 <div v-if="activeName == 3 && Object.keys(destructionDataList).length" class="threeBarChart" id="countDestruction"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
             <el-tab-pane label="新增销毁量" name="4">
-                <div v-if="currencyIndex == 2" style="position: absolute;right: 200px;font-size: 13px;line-height: 23px;">自动销毁: {{ numberFormatFilter(41891077) }} BNB</div>
+                <div v-if="currencyIndex == 2" style="position: absolute;right: 200px;font-size: 13px;line-height: 23px;">自动销毁 {{ numberFormatFilter(autoDestruction) }} BNB, 手续费实时销毁 {{ numberFormatFilter(bnbNewValues) }} BNB，总计销毁（{{numberFormatFilter(autoDestruction + bnbNewValues)}}）BNB</div>
                 <div v-if="activeName == 4 && Object.keys(destructionDataList).length" class="threeBarChart" id="addDestruction"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
@@ -90,6 +90,8 @@ export default {
             start_end_time: '',
             time_range: '',
             this_year: '', //是否本年度
+            bnbNewValues: 0, //BNB最新销毁量
+            autoDestruction: 0, //BNB自动销毁量
         }
     },
     computed: {
@@ -279,7 +281,7 @@ export default {
                             if(item.seriesIndex == 0) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + numberFormat(item.value) + "</span>" + "<br/>"
                             } else {
-                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + _this.toFixed(Number(item.value), 2) + "</span>" + "<br/>"
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + _this.toFixed(Number(item.value), 4) + "</span>" + "<br/>"
                             }
                         }
                         return str
@@ -432,14 +434,14 @@ export default {
                             if(item.seriesIndex == 0) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + numberFormat(item.value) + "</span>" + "<br/>"
                             } else {
-                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + numberFormat(Number(item.value)) + "</span>" + "<br/>"
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + _this.toFixed(Number(item.value), 2) + "</span>" + "<br/>"
                             }
                         }
                         return str
                     }
                 },
                 legend: {
-                    data: ['总销毁量', _this.name + ' 价值'],
+                    data: ['总销毁量', _this.name + ' 价格'],
                     right: '0'
                 },
                 grid: {
@@ -499,12 +501,12 @@ export default {
                         type: 'value',
                         // interval: 1200000,
                         // name: 'k',
-                        min: Number(this.destructionDataList.values.min) - (Number(this.destructionDataList.values.min) * 0.01),
-                        max: Number(this.destructionDataList.values.max) + (Number(this.destructionDataList.values.max) * 0.01),
+                        min: Number(this.destructionDataList.prices.min) - (Number(this.destructionDataList.prices.min) * 0.01),
+                        max: Number(this.destructionDataList.prices.max) + (Number(this.destructionDataList.prices.max) * 0.01),
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return '$' + _this.UnitConversion(value);
+                                return '$' + _this.toFixed(value, 2);
                             }
                         },
                         //轴线
@@ -534,13 +536,13 @@ export default {
                             color: '#F79729',
                         },
                     }, {
-                        name: _this.name + ' 价值',
+                        name: _this.name + ' 价格',
                         type: 'line',
                         symbolSize: 5, // 设置折线上圆点大小
                         symbol: 'circle', // 设置拐点为实心圆
                         yAxisIndex: 1,
                         // data: [0.32372331,0.11752043,0.97107555,0.62991315,0.16098689,0.59809298,0.28456582,0.14334360,0.78546394,0.00756064 ],
-                        data: this.destructionDataList.values.data,
+                        data: this.destructionDataList.prices.data,
                         itemStyle: {
                             color: '#7C7C7C',
                         },
@@ -572,14 +574,14 @@ export default {
                             if(item.seriesIndex == 0) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>"+_this.toFixed(item.value, 4)+"</span>" + "<br/>"
                             } else {
-                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + numberFormat(Number(item.value)) + "</span>" + "<br/>"
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + _this.toFixed(Number(item.value), 4) + "</span>" + "<br/>"
                             }
                         }
                         return str
                     }
                 },
                 legend: {
-                    data: ['新增销毁量', _this.name + ' 价值'],
+                    data: ['新增销毁量', _this.name + ' 价格'],
                     right: '0'
                 },
                 grid: {
@@ -614,13 +616,13 @@ export default {
                         // name: 'k',
                     //坐标轴最大值、最小值、强制设置数据的步长间隔
                         // interval: 1000,
-                        min: parseInt(Number(this.destructionDataList.addBalances.min) - Number(this.destructionDataList.addBalances.min) * 0.01),
-                        max: parseInt(this.destructionDataList.addBalances.max + Number(this.destructionDataList.addBalances.max) * 0.01),
+                        min: Number(this.destructionDataList.addBalances.min) - Number(this.destructionDataList.addBalances.min) * 0.1,
+                        max: Number(this.destructionDataList.addBalances.max) + Number(this.destructionDataList.addBalances.max) * 0.1,
                         axisLabel: {
                             //y轴上带的单位
-                            // formatter: function(value) { // y轴自定义数据
-                            //     return parseInt(value / 10000) + 'k'
-                            // }
+                            formatter: function(value) { // y轴自定义数据
+                                return parseInt(value)
+                            }
                         },
                         //轴线
                         axisLine: {
@@ -637,12 +639,12 @@ export default {
                     {
                         type: 'value',
                         // interval: 1,
-                        min: Number(this.destructionDataList.values.min) - (Number(this.destructionDataList.values.min) * 0.01),
-                        max: Number(this.destructionDataList.values.max) + (Number(this.destructionDataList.values.max) * 0.01),
+                        min: Number(this.destructionDataList.prices.min) - (Number(this.destructionDataList.prices.min) * 0.01),
+                        max: Number(this.destructionDataList.prices.max) + (Number(this.destructionDataList.prices.max) * 0.01),
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return '$' + _this.UnitConversion(value);
+                                return '$' + _this.toFixed(value, 2)
                             }
                         },
                         //轴线
@@ -673,13 +675,13 @@ export default {
                         },
                         // areaStyle: {}
                     }, {
-                        name: _this.name + ' 价值',
+                        name: _this.name + ' 价格',
                         type: 'line',
                         symbolSize: 5, // 设置折线上圆点大小
                         symbol: 'circle', // 设置拐点为实心圆
                         yAxisIndex: 1,
                         // data: [0.32372331,0.11752043,0.97107555,0.62991315,0.16098689,0.59809298,0.28456582,0.14334360,0.78546394,0.00756064 ],
-                        data: this.destructionDataList.values.data,
+                        data: this.destructionDataList.prices.data,
                         itemStyle: {
                             color: '#7C7C7C',
                         },
@@ -740,6 +742,8 @@ export default {
                 if (json.code == 10000) {
                     if(Object.keys(json.data).length) {
                         this.destructionDataList = json.data;
+                        this.autoDestruction = Number(json.data.autoDestruction);
+                        this.bnbNewValues = Number(json.data.bnbNewValues);
                         this.$nextTick(() => {
                             if(this.activeName == 3) {
                                 this.myCountDestructionChart(); 
