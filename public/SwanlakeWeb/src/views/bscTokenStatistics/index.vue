@@ -809,34 +809,39 @@ export default {
         },
         tabHandleClick(tab, event) {
             console.log(tab, event);
-            if(tab.name == 1) {
-                if(Object.keys(this.dataList).length) {
-                    this.$nextTick(() => {
-                        this.myCountAddressChart();
-                    })
-                }
+            if(tab.name == 1 || tab.name == 2) {
+                this.getHourDataList();
+            } else {
+                this.getDestructionDataList();
             }
-            if(tab.name == 2) {
-                if(Object.keys(this.dataList).length) {
-                    this.$nextTick(() => {
-                        this.myAddAddressChart();
-                    })
-                }
-            }
-            if(tab.name == 3) {
-                if(Object.keys(this.destructionDataList).length) {
-                    this.$nextTick(() => {
-                        this.myCountDestructionChart();
-                    })
-                }
-            }
-            if(tab.name == 4) {
-                if(Object.keys(this.destructionDataList).length) {
-                    this.$nextTick(() => {
-                        this.myAddDestructionChart();
-                    })
-                }
-            }
+            // if(tab.name == 1) {
+            //     if(Object.keys(this.dataList).length) {
+            //         this.$nextTick(() => {
+            //             this.myCountAddressChart();
+            //         })
+            //     }
+            // }
+            // if(tab.name == 2) {
+            //     if(Object.keys(this.dataList).length) {
+            //         this.$nextTick(() => {
+            //             this.myAddAddressChart();
+            //         })
+            //     }
+            // }
+            // if(tab.name == 3) {
+            //     if(Object.keys(this.destructionDataList).length) {
+            //         this.$nextTick(() => {
+            //             this.myCountDestructionChart();
+            //         })
+            //     }
+            // }
+            // if(tab.name == 4) {
+            //     if(Object.keys(this.destructionDataList).length) {
+            //         this.$nextTick(() => {
+            //             this.myAddDestructionChart();
+            //         })
+            //     }
+            // }
         },
         UnitConversion(value){ //数值转换
             let param = {}
