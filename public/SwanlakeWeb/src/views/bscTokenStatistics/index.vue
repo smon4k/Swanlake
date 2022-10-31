@@ -53,7 +53,7 @@
         </el-row>
         <el-tabs v-model="activeName" @tab-click="tabHandleClick">
             <el-tab-pane label="总地址量" name="1">
-                <div class="left-text">最小地址数：{{ numberFormatFilter(dataList.holders.min) }} 最大地址数：{{ numberFormatFilter(dataList.holders.max) }} 增加地址数：{{ numberFormatFilter(dataList.holders.add_holders) }} 增加百分比：{{ toFixed(dataList.holders.add_percentage, 2) }}%</div>
+                <div class="left-text" v-if="Object.keys(dataList).length">最小地址数：{{ numberFormatFilter(dataList.holders.min) }} 最大地址数：{{ numberFormatFilter(dataList.holders.max) }} 增加地址数：{{ numberFormatFilter(dataList.holders.add_holders) }} 增加百分比：{{ toFixed(dataList.holders.add_percentage, 2) }}%</div>
                 <div v-if="activeName == 1 && Object.keys(dataList).length" class="threeBarChart" id="countAddress"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
@@ -62,7 +62,7 @@
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
             <el-tab-pane label="总销毁量" name="3">
-                <div class="left-text">最小销毁数：{{ numberFormatFilter(destructionDataList.balances.min) }} 最大销毁数：{{ numberFormatFilter(destructionDataList.balances.max) }} 增加销毁数：{{ numberFormatFilter(destructionDataList.balances.add_destroy) }} 增加百分比：{{ toFixed(destructionDataList.balances.add_percentage, 2) }}%</div>
+                <div class="left-text" v-if="Object.keys(destructionDataList).length">最小销毁数：{{ numberFormatFilter(destructionDataList.balances.min) }} 最大销毁数：{{ numberFormatFilter(destructionDataList.balances.max) }} 增加销毁数：{{ numberFormatFilter(destructionDataList.balances.add_destroy) }} 增加百分比：{{ toFixed(destructionDataList.balances.add_percentage, 2) }}%</div>
                 <div v-if="currencyIndex == 2" style="position: absolute;right: 190px;font-size: 13px;line-height: 23px;">自动销毁 {{ numberFormatFilter(autoDestruction) }} BNB, 手续费实时销毁 {{ numberFormatFilter(bnbNewValues) }} BNB，总计销毁（{{numberFormatFilter(autoDestruction + bnbNewValues)}}）BNB</div>
                 <div v-if="activeName == 3 && Object.keys(destructionDataList).length" class="threeBarChart" id="countDestruction"></div>
                 <el-empty v-else description="没有数据"></el-empty>
