@@ -153,9 +153,10 @@ class BscAddressStatistics extends Base
         }
         if($start_time !== '' && $end_time !== '') {
             $start_time = $start_time . " 00:00:00";
-            $end_time = $end_time . " 00:00:00";
+            $end_time = $end_time . " 23:59:59";
             $sql .= " AND `time` >= '$start_time' AND `time` <= '$end_time'";
         }
+        $sql .= " ORDER BY time asc";
         $lists = self::query($sql);
         if (!$lists || count((array)$lists) <= 0) {
             return [];
@@ -171,6 +172,7 @@ class BscAddressStatistics extends Base
         $max_holders = $lists[0]['holders'];
         $min_addArddress = $lists[0]['add_holders'];
         $max_addArddress = $lists[0]['add_holders'];
+        $addHolders = 0; //新增地址数
 
         foreach ($lists as $key => $val) {
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
@@ -189,6 +191,7 @@ class BscAddressStatistics extends Base
                 $max_holders = $val['holders'];
             }
             $addAddress[] = $val['add_holders'];
+            $addHolders += (float)$val['add_holders'];
             if($val['add_holders'] < $min_addArddress) {
                 $min_addArddress = $val['add_holders'];
             }
@@ -196,6 +199,10 @@ class BscAddressStatistics extends Base
                 $max_addArddress = $val['add_holders'];
             }
         }
+        // p($addHolders);
+        $formerlyHolders = (float)$lists[0]['holders'] - (float)$lists[0]['add_holders']; //计算原来的地址数量
+        $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
+        // p($addPercentage);
         $dataList = [
             'times' => $times, 
             'prices' => [
@@ -207,6 +214,8 @@ class BscAddressStatistics extends Base
                 'data' => $holders,
                 'min' => $min_holders,
                 'max' => $max_holders,
+                'add_holders' => $addHolders,
+                'add_percentage' => $addPercentage,
             ], 
             'addAddress' => [
                 'data' => $addAddress,
@@ -238,6 +247,7 @@ class BscAddressStatistics extends Base
             $end_time = $end_time . " 00:00:00";
             $sql .= " AND `time` >= '$start_time' AND `time` <= '$end_time'";
         }
+        $sql .= " ORDER BY time asc";
         $lists = self::query($sql);
         if (!$lists || count((array)$lists) <= 0) {
             return [];
@@ -258,6 +268,7 @@ class BscAddressStatistics extends Base
         $max_addBalance = $lists[0]['add_balance'];
         $min_value = $lists[0]['value'];
         $max_value = $lists[0]['value'];
+        $addDestroy = 0; //新增销毁数
         foreach ($lists as $key => $val) {
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
 
@@ -277,6 +288,7 @@ class BscAddressStatistics extends Base
                 $max_balance = $val['balance'];
             }
             $addBalances[] = $val['add_balance'];
+            $addDestroy += (float)$val['add_balance'];
             if($val['add_balance'] < $min_addBalance) {
                 $min_addBalance = $val['add_balance'];
             }
@@ -296,6 +308,9 @@ class BscAddressStatistics extends Base
         // if($name === 'BNB') {
             $bnbNewValues = $lists[count((array)$lists) - 1]['balance']; //
         // }
+        $formerlyDestroy = (float)$lists[0]['balance'] - (float)$lists[0]['add_balance']; //计算原来的地址数量
+        // p($formerlyDestroy);
+        $addPercentage = $addDestroy / $formerlyDestroy * 100; //计算新增百分比
         $dataList = [
             'times' => $times, 
             'prices' => [
@@ -307,6 +322,8 @@ class BscAddressStatistics extends Base
                 'data' => $balances,
                 'min' => $min_balance,
                 'max' => $max_balance,
+                'add_destroy' => $addDestroy,
+                'add_percentage' => $addPercentage,
             ],
             'addBalances' => [
                 'data' => $addBalances,
