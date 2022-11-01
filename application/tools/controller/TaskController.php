@@ -254,6 +254,8 @@ class TaskController extends ToolsBaseController
             ['name' => 'BIFI', 'token' => '0xCa3F508B8e4Dd382eE878A314789373D80A5190A', 'chain' => 'bscscan'],
             ['name' => 'QUICK', 'token' => '0xb5c064f955d8e7f38fe0460c556a72987494ee17', 'chain' => 'polygonscan'],
             ['name' => 'SNS', 'token' => '0xD5CBaE3F69B0640724A6532cC81BE9C798A755A7', 'chain' => 'bscscan'],
+            ['name' => 'XVS', 'token' => '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63', 'chain' => 'bscscan'],
+            ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8', 'chain' => 'bscscan'],
             // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
             // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
         );
