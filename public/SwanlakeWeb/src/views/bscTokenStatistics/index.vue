@@ -23,6 +23,8 @@
                     <div :class="['button', {'button-active': currencyIndex == 6}]" tabindex="6" @click="selectChange('BIFI', 6)">BIFI</div>
                     <div :class="['button', {'button-active': currencyIndex == 7}]" tabindex="7" @click="selectChange('QUICK', 7)">QUICK</div>
                     <div :class="['button', {'button-active': currencyIndex == 8}]" tabindex="8" @click="selectChange('SNS', 8)">SNS</div>
+                    <div :class="['button', {'button-active': currencyIndex == 9}]" tabindex="9" @click="selectChange('XVS', 9)">XVS</div>
+                    <div :class="['button', {'button-active': currencyIndex == 10}]" tabindex="10" @click="selectChange('Guru', 10)">Guru</div>
                 </div>
             </el-col>
             <br><br>
