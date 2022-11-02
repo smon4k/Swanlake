@@ -256,6 +256,10 @@ class TaskController extends ToolsBaseController
             ['name' => 'SNS', 'token' => '0xD5CBaE3F69B0640724A6532cC81BE9C798A755A7', 'chain' => 'bscscan'],
             ['name' => 'XVS', 'token' => '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63', 'chain' => 'bscscan'],
             ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8', 'chain' => 'bscscan'],
+            ['name' => 'GMT', 'token' => '0x3019BF2a2eF8040C242C9a4c5c4BD4C81678b2A1', 'chain' => 'bscscan'],
+            ['name' => 'CHESS', 'token' => '0x20de22029ab63cf9A7Cf5fEB2b737Ca1eE4c82A6', 'chain' => 'bscscan'],
+            ['name' => 'BabyDoge', 'token' => '0xc748673057861a797275CD8A068AbB95A902e8de', 'chain' => 'bscscan'],
+            ['name' => 'POT', 'token' => '0x3B5E381130673F794a5CF67FBbA48688386BEa86', 'chain' => 'bscscan'],
             // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
             // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
         );

@@ -25,6 +25,10 @@
                     <div :class="['button', {'button-active': currencyIndex == 8}]" tabindex="8" @click="selectChange('SNS', 8)">SNS</div>
                     <div :class="['button', {'button-active': currencyIndex == 9}]" tabindex="9" @click="selectChange('XVS', 9)">XVS</div>
                     <div :class="['button', {'button-active': currencyIndex == 10}]" tabindex="10" @click="selectChange('Guru', 10)">Guru</div>
+                    <div :class="['button', {'button-active': currencyIndex == 11}]" tabindex="11" @click="selectChange('GMT', 11)">GMT</div>
+                    <div :class="['button', {'button-active': currencyIndex == 12}]" tabindex="12" @click="selectChange('CHESS', 12)">CHESS</div>
+                    <div :class="['button', {'button-active': currencyIndex == 13}]" tabindex="13" @click="selectChange('BabyDoge', 13)">BabyDoge</div>
+                    <div :class="['button', {'button-active': currencyIndex == 14}]" tabindex="14" @click="selectChange('POT', 14)">POT</div>
                 </div>
             </el-col>
             <br><br>
