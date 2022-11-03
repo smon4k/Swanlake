@@ -173,7 +173,7 @@ class BscAddressStatistics extends Base
         $min_addArddress = $lists[0]['add_holders'];
         $max_addArddress = $lists[0]['add_holders'];
         $addHolders = 0; //新增地址数
-
+        $count = count((array)$lists);
         foreach ($lists as $key => $val) {
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
             $prices[] = $val['price'];
@@ -201,9 +201,9 @@ class BscAddressStatistics extends Base
         }
         // p($addHolders);
         // $formerlyHolders = (float)$lists[0]['holders'] - (float)$lists[0]['add_holders']; //计算原来的地址数量
-        $formerlyHolders = (float)$max_holders - (float)$min_holders; //计算原来的地址数量
+        $formerlyHolders = (float)$lists[$count - 1]['holders'] - (float)$lists[0]['holders']; //计算原来的地址数量
         // $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
-        $addPercentage = $formerlyHolders / (float)$min_holders * 100; //计算新增百分比
+        $addPercentage = $formerlyHolders / (float)$lists[0]['holders'] * 100; //计算新增百分比
         // p($addPercentage);
         $dataList = [
             'times' => $times, 
@@ -271,6 +271,7 @@ class BscAddressStatistics extends Base
         $min_value = $lists[0]['value'];
         $max_value = $lists[0]['value'];
         $addDestroy = 0; //新增销毁数
+        $count = count((array)$lists);
         foreach ($lists as $key => $val) {
             $times[] = date('Y-m-d H:i',strtotime($val['date']));
 
@@ -312,9 +313,9 @@ class BscAddressStatistics extends Base
         // }
 
         // $formerlyHolders = (float)$lists[0]['holders'] - (float)$lists[0]['add_holders']; //计算原来的地址数量
-        $formerlyHolders = (float)$max_balance - (float)$min_balance; //计算原来的地址数量
+        $formerlyHolders = (float)$lists[$count - 1]['balance'] - (float)$lists[0]['balance']; //计算原来的地址数量
         // $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
-        $addPercentage = $formerlyHolders / (float)$min_balance * 100; //计算新增百分比
+        $addPercentage = $formerlyHolders / (float)$lists[0]['balance'] * 100; //计算新增百分比
         $dataList = [
             'times' => $times, 
             'prices' => [
