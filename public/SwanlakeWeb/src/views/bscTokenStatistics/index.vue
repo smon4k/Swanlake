@@ -72,13 +72,13 @@ export default {
     data() {
         return {
             currencyIndex: 1,
-            timesIndex: 8,
+            timesIndex: 1,
             activeName: '1',
             name: 'Cake',
             dataList: [],
             destructionDataList: [],
             start_end_time: '',
-            time_range: '',
+            time_range: '1 day',
             this_year: '', //是否本年度
             bnbNewValues: 0, //BNB最新销毁量
             autoDestruction: 0, //BNB自动销毁量
@@ -87,7 +87,7 @@ export default {
                 { name: 'BNB', index: 2 },
                 { name: 'BSW', index: 3 },
                 { name: 'BABY', index: 4 },
-                { name: 'Alpace', index: 5 },
+                { name: 'Alpaca', index: 5 },
                 { name: 'BIFI', index: 6 },
                 { name: 'QUICK', index: 7 },
                 { name: 'SNS', index: 8 },
@@ -97,8 +97,8 @@ export default {
                 { name: 'CHESS', index: 12 },
                 { name: 'BabyDoge', index: 13 },
                 { name: 'POT', index: 14 },
-                { name: 'BlueDoge', index: 15 },
-                { name: 'H2O', index: 16 },
+                // { name: 'BlueDoge', index: 15 },
+                { name: 'H2O', index: 15 },
             ],
         }
     },
