@@ -30,7 +30,7 @@
                     <div :class="['button', {'button-active': currencyIndex == 13}]" tabindex="13" @click="selectChange('BabyDoge', 13)">BabyDoge</div>
                     <div :class="['button', {'button-active': currencyIndex == 14}]" tabindex="14" @click="selectChange('POT', 14)">POT</div>
                     <div :class="['button', {'button-active': currencyIndex == 15}]" tabindex="15" @click="selectChange('BlueDoge', 15)">BlueDoge</div>
-                    <div :class="['button', {'button-active': currencyIndex == 16}]" tabindex="16" @click="selectChange('BlueDoge', 16)">CLH</div>
+                    <div :class="['button', {'button-active': currencyIndex == 16}]" tabindex="16" @click="selectChange('H2O', 16)">H2O</div>
                 </div>
             </el-col>
             <br><br>

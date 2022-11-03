@@ -261,7 +261,7 @@ class TaskController extends ToolsBaseController
             ['name' => 'BabyDoge', 'token' => '0xc748673057861a797275CD8A068AbB95A902e8de', 'chain' => 'bscscan'],
             ['name' => 'POT', 'token' => '0x3B5E381130673F794a5CF67FBbA48688386BEa86', 'chain' => 'bscscan'],
             ['name' => 'BlueDoge', 'token' => '0xc7489D3383bD7E7772b03548C30DC979e612E8dE', 'chain' => 'bscscan'],
-            ['name' => 'CLH', 'token' => '0x45a8DAB5dc29920ab198596147297C9731315C0B', 'chain' => 'bscscan'],
+            ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6', 'chain' => 'bscscan'],
             // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
             // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
         );
