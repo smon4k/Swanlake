@@ -10,11 +10,22 @@ from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 import time
 from web3 import Web3
+from web3 import Web3, HTTPProvider
 
 app = Flask(__name__)
 
 class JDSpider(object):
     def __init__(self):
+        self.rpcUrls = 'https://bsc-dataseed.binance.org'
+        self.web3Client = Web3(HTTPProvider(self.rpcUrls))
+        self.h2oRouterContractAddress = "0x96948447D1521260c24fCdE281d09364BdC5A2d0"
+        self.guruRouterContractAddress = "0x10ED43C718714eb63d5aA57B78B54704E256024E"
+        self.USDT = "0x55d398326f99059fF775485246999027B3197955"
+        self.BUSDT = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
+        self.WBNB = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+        with open(str(os.path.join('./abis/mdexABI.json')), 'r') as abi_definition:   
+            self.mdexABI = json.load(abi_definition)
+
         # print(sys.argv[1])
         os.system("killall -9 chrome")
         os.system("killall -9 chromedriver")
@@ -35,7 +46,6 @@ class JDSpider(object):
         # self.address = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
         self.bscscan_url = f'https://bscscan.com/token/'
         self.bscscan_bnb_url = f'https://bscscan.com/blocks?p=1'
-        
         self.returnList = {}
 
     # 加载所有数据 屏幕滚动
@@ -62,9 +72,14 @@ class JDSpider(object):
         holders = re.sub("[^0-9.]", "", HoldersList[7])
 
         # 获取价格
-        priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
-        priceStr = priceElement.get_attribute('data-title')
-        price = re.sub("[^0-9.]", "", priceStr)
+        if token == "0xF1932eC9784B695520258F968b9575724af6eFa8": # Guru
+            price = self.getTokenPrice(self.guruRouterContractAddress, token, self.BUSDT, self.WBNB)
+        elif token == "0xC446c2B48328e5D2178092707F8287289ED7e8D6": # H2O
+            price = self.getTokenPrice(self.h2oRouterContractAddress, token, self.USDT, '')
+        else:
+            priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
+            priceStr = priceElement.get_attribute('data-title')
+            price = re.sub("[^0-9.]", "", priceStr)
 
         # 获取余额及价值
         if token == "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c":
@@ -94,6 +109,30 @@ class JDSpider(object):
             return flag
         except:
             return flag
+    
+    # 获取价格估值
+    def getTokenPrice(self, routerAddress, token1, token2, bnbAddress):
+        Gwei1 = 1000000000
+        path = []
+        if bnbAddress or bnbAddress != '':
+            path = [token1, bnbAddress, token2]
+        else:
+            path = [token1, token2]
+        try:
+            price = 0
+            contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(routerAddress), abi=self.mdexABI)
+            result = contract.functions.getAmountsOut(Gwei1, path).call()
+            # print(result)
+            if(result):
+                if bnbAddress or bnbAddress != '':
+                    price = result[2] / Gwei1
+                else:
+                    price = result[1] / Gwei1
+            else:
+                print('getTokenPrice_err')
+            return price
+        except Exception as re:
+            print('functions getTokenPrice->getAmountsOut error %s' %re)
 
     # 入口
     def main(self, token, chain):
@@ -114,7 +153,7 @@ class JDSpider(object):
 #     # searchName = sys.argv[1] # 接受参数
 #     # print(searchName)
 #     spider = JDSpider()
-#     data = spider.main('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 'bscscan')
+#     data = spider.getListData('0xF1932eC9784B695520258F968b9575724af6eFa8', 'bscscan')
 #     json_str = json.dumps(data)
 #     print(json_str)
 
