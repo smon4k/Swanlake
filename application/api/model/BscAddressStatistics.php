@@ -200,8 +200,10 @@ class BscAddressStatistics extends Base
             }
         }
         // p($addHolders);
-        $formerlyHolders = (float)$lists[0]['holders'] - (float)$lists[0]['add_holders']; //计算原来的地址数量
-        $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
+        // $formerlyHolders = (float)$lists[0]['holders'] - (float)$lists[0]['add_holders']; //计算原来的地址数量
+        $formerlyHolders = (float)$max_holders - (float)$min_holders; //计算原来的地址数量
+        // $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
+        $addPercentage = $formerlyHolders / (float)$min_holders * 100; //计算新增百分比
         // p($addPercentage);
         $dataList = [
             'times' => $times, 
@@ -214,7 +216,7 @@ class BscAddressStatistics extends Base
                 'data' => $holders,
                 'min' => $min_holders,
                 'max' => $max_holders,
-                'add_holders' => $addHolders,
+                'add_holders' => $formerlyHolders,
                 'add_percentage' => $addPercentage,
             ], 
             'addAddress' => [
@@ -308,9 +310,11 @@ class BscAddressStatistics extends Base
         // if($name === 'BNB') {
             $bnbNewValues = $lists[count((array)$lists) - 1]['balance']; //
         // }
-        $formerlyDestroy = (float)$lists[0]['balance'] - (float)$lists[0]['add_balance']; //计算原来的地址数量
-        // p($formerlyDestroy);
-        $addPercentage = $addDestroy / $formerlyDestroy * 100; //计算新增百分比
+
+        // $formerlyHolders = (float)$lists[0]['holders'] - (float)$lists[0]['add_holders']; //计算原来的地址数量
+        $formerlyHolders = (float)$max_balance - (float)$min_balance; //计算原来的地址数量
+        // $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
+        $addPercentage = $formerlyHolders / (float)$min_balance * 100; //计算新增百分比
         $dataList = [
             'times' => $times, 
             'prices' => [
@@ -322,7 +326,7 @@ class BscAddressStatistics extends Base
                 'data' => $balances,
                 'min' => $min_balance,
                 'max' => $max_balance,
-                'add_destroy' => $addDestroy,
+                'add_destroy' => $formerlyHolders,
                 'add_percentage' => $addPercentage,
             ],
             'addBalances' => [
