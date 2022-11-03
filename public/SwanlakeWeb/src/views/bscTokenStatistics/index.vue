@@ -1,42 +1,21 @@
 <template>
     <div class="container">
         <el-row>
-            <!-- <el-col :span="4">
+            <el-col :span="12" v-if="isMobel">
                 <el-select size="mini" v-model="name" placeholder="请选择" @change="selectChange">
-                    <el-option label="Cake" value="Cake"></el-option>
-                    <el-option label="BNB" value="BNB"></el-option>
-                    <el-option label="BSW" value="BSW"></el-option>
-                    <el-option label="BABY" value="BABY"></el-option>
-                    <el-option label="Alpaca" value="Alpaca"></el-option>
-                    <el-option label="BIFI" value="BIFI"></el-option>
-                    <el-option label="QUICK" value="QUICK"></el-option>
+                    <el-option :label="item.name" :value="item.name" v-for="(item, index) in optionData" :key="index"></el-option>
                 </el-select>
-            </el-col> -->
-            <el-col :span="24" align="center">
+            </el-col>
+            <el-col :span="24" align="left" v-else style="overflow-x: scroll;overflow-y: hidden;">
                 <div class="search">
-                    <span>币种选择：</span>
-                    <div :class="['button', {'button-active': currencyIndex == 1}]" tabindex="1" @click="selectChange('Cake', 1)">Cake</div>
-                    <div :class="['button', {'button-active': currencyIndex == 2}]" tabindex="2" @click="selectChange('BNB', 2)">BNB</div>
-                    <div :class="['button', {'button-active': currencyIndex == 3}]" tabindex="3" @click="selectChange('BSW', 3)">BSW</div>
-                    <div :class="['button', {'button-active': currencyIndex == 4}]" tabindex="4" @click="selectChange('BABY', 4)">BABY</div>
-                    <div :class="['button', {'button-active': currencyIndex == 5}]" tabindex="5" @click="selectChange('Alpaca', 5)">Alpaca</div>
-                    <div :class="['button', {'button-active': currencyIndex == 6}]" tabindex="6" @click="selectChange('BIFI', 6)">BIFI</div>
-                    <div :class="['button', {'button-active': currencyIndex == 7}]" tabindex="7" @click="selectChange('QUICK', 7)">QUICK</div>
-                    <div :class="['button', {'button-active': currencyIndex == 8}]" tabindex="8" @click="selectChange('SNS', 8)">SNS</div>
-                    <div :class="['button', {'button-active': currencyIndex == 9}]" tabindex="9" @click="selectChange('XVS', 9)">XVS</div>
-                    <div :class="['button', {'button-active': currencyIndex == 10}]" tabindex="10" @click="selectChange('Guru', 10)">Guru</div>
-                    <div :class="['button', {'button-active': currencyIndex == 11}]" tabindex="11" @click="selectChange('GMT', 11)">GMT</div>
-                    <div :class="['button', {'button-active': currencyIndex == 12}]" tabindex="12" @click="selectChange('CHESS', 12)">CHESS</div>
-                    <div :class="['button', {'button-active': currencyIndex == 13}]" tabindex="13" @click="selectChange('BabyDoge', 13)">BabyDoge</div>
-                    <div :class="['button', {'button-active': currencyIndex == 14}]" tabindex="14" @click="selectChange('POT', 14)">POT</div>
-                    <div :class="['button', {'button-active': currencyIndex == 15}]" tabindex="15" @click="selectChange('BlueDoge', 15)">BlueDoge</div>
-                    <div :class="['button', {'button-active': currencyIndex == 16}]" tabindex="16" @click="selectChange('H2O', 16)">H2O</div>
+                    <!-- <span>币种选择：</span> -->
+                    <div v-for="(item, index) in optionData" :key="index" :class="['button', {'button-active': currencyIndex == item.index}]" :tabindex="item.index" @click="selectButton(item.name, item.index)">{{ item.name }}</div>
                 </div>
             </el-col>
             <br><br>
-            <el-col :span="24" align="center">
+            <el-col :span="24" align="left">
                 <div class="search">
-                    <span>时间范围：</span>
+                    <!-- <span>时间范围：</span> -->
                     <div :class="['button', {'button-active': timesIndex == 1}]" tabindex="1" @click="searchClick('1 day', 1)">1天</div>
                     <div :class="['button', {'button-active': timesIndex == 2}]" tabindex="2" @click="searchClick('1 week', 2)">1周</div>
                     <div :class="['button', {'button-active': timesIndex == 3}]" tabindex="3" @click="searchClick('1 month', 3)">1月</div>
@@ -103,6 +82,24 @@ export default {
             this_year: '', //是否本年度
             bnbNewValues: 0, //BNB最新销毁量
             autoDestruction: 0, //BNB自动销毁量
+            optionData: [
+                { name: 'Cake', index: 1 },
+                { name: 'BNB', index: 2 },
+                { name: 'BSW', index: 3 },
+                { name: 'BABY', index: 4 },
+                { name: 'Alpace', index: 5 },
+                { name: 'BIFI', index: 6 },
+                { name: 'QUICK', index: 7 },
+                { name: 'SNS', index: 8 },
+                { name: 'XVS', index: 9 },
+                { name: 'Guru', index: 10 },
+                { name: 'GMT', index: 11 },
+                { name: 'CHESS', index: 12 },
+                { name: 'BabyDoge', index: 13 },
+                { name: 'POT', index: 14 },
+                { name: 'BlueDoge', index: 15 },
+                { name: 'H2O', index: 16 },
+            ],
         }
     },
     computed: {
@@ -795,7 +792,7 @@ export default {
                 }
             }
         },
-        timesChange(val) {
+        timesChange(val) { //时间筛选
             console.log(val);
             this.this_year = '';
             this.time_range = '';
@@ -810,13 +807,26 @@ export default {
                 this.getDestructionDataList();
             }
         },
-        selectChange(name, index) {
+        selectButton(name, index) { //按钮筛选币种
             this.currencyIndex = index;
             this.name = name;
             if(this.activeName == 1 || this.activeName == 2) {
                 this.getHourDataList();
             } else {
                 this.getDestructionDataList();
+            }
+        },
+        selectChange(name) { //下拉框筛选币种
+            if(name && name !== '') {
+                let obj = this.optionData.find((item)=>{ // 这里的userList就是上面遍历的数据源
+                    return item.name === name; // 筛选出匹配数据
+                });
+                this.currencyIndex = obj.index;
+                if(this.activeName == 1 || this.activeName == 2) {
+                    this.getHourDataList();
+                } else {
+                    this.getDestructionDataList();
+                }
             }
         },
         tabHandleClick(tab, event) {
