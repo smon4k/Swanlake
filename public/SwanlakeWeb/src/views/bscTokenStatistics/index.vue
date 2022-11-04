@@ -42,22 +42,35 @@
             <el-tab-pane label="总地址量" name="1">
                 <div style="text-align:right;">  
                     Address:  <el-link :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
-                    <i class="el-icon-document-copy" style="cursor: pointer" v-clipboard:copy="selectAddress" v-clipboard:success="copySuccess"></i></div>
+                    <i class="el-icon-document-copy" style="cursor: pointer" v-clipboard:copy="selectAddress" v-clipboard:success="copySuccess"></i>
+                </div>
                 <div class="left-text" v-if="Object.keys(dataList).length">起始地址数：{{ numberFormatFilter(dataList.holders.data[0]) }} 最终地址数：{{ numberFormatFilter(dataList.holders.data[dataList.holders.data.length - 1]) }} 增加地址数：{{ numberFormatFilter(dataList.holders.add_holders) }} 增加百分比：{{ toFixed(dataList.holders.add_percentage, 2) }}%</div>
                 <div v-if="activeName == 1 && Object.keys(dataList).length" class="threeBarChart" id="countAddress"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
             <el-tab-pane label="新增地址量" name="2">
+                <div style="text-align:right;">  
+                    Address:  <el-link :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
+                    <i class="el-icon-document-copy" style="cursor: pointer" v-clipboard:copy="selectAddress" v-clipboard:success="copySuccess"></i>
+                </div>
                 <div v-if="activeName == 2 && Object.keys(dataList).length" class="threeBarChart" id="addAddress"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
             <el-tab-pane label="总销毁量" name="3">
+                <div style="text-align:right;">  
+                    Address:  <el-link :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
+                    <i class="el-icon-document-copy" style="cursor: pointer" v-clipboard:copy="selectAddress" v-clipboard:success="copySuccess"></i>
+                </div>
                 <div class="left-text" v-if="Object.keys(destructionDataList).length">起始销毁数：{{ numberFormatFilter(destructionDataList.balances.data[0]) }} 最终销毁数：{{ numberFormatFilter(destructionDataList.balances.data[destructionDataList.balances.data.length - 1]) }} 增加销毁数：{{ numberFormatFilter(destructionDataList.balances.add_destroy) }} 增加百分比：{{ toFixed(destructionDataList.balances.add_percentage, 2) }}%</div>
                 <div v-if="currencyIndex == 2" style="position: absolute;right: 190px;font-size: 13px;line-height: 23px;">自动销毁 {{ numberFormatFilter(autoDestruction) }} BNB, 手续费实时销毁 {{ numberFormatFilter(bnbNewValues) }} BNB，总计销毁（{{numberFormatFilter(autoDestruction + bnbNewValues)}}）BNB</div>
                 <div v-if="activeName == 3 && Object.keys(destructionDataList).length" class="threeBarChart" id="countDestruction"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
             <el-tab-pane label="新增销毁量" name="4">
+                <div style="text-align:right;">  
+                    Address:  <el-link :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
+                    <i class="el-icon-document-copy" style="cursor: pointer" v-clipboard:copy="selectAddress" v-clipboard:success="copySuccess"></i>
+                </div>
                 <div v-if="currencyIndex == 2" style="position: absolute;right: 200px;font-size: 13px;line-height: 23px;">自动销毁 {{ numberFormatFilter(autoDestruction) }} BNB, 手续费实时销毁 {{ numberFormatFilter(bnbNewValues) }} BNB，总计销毁（{{numberFormatFilter(autoDestruction + bnbNewValues)}}）BNB</div>
                 <div v-if="activeName == 4 && Object.keys(destructionDataList).length" class="threeBarChart" id="addDestruction"></div>
                 <el-empty v-else description="没有数据"></el-empty>
