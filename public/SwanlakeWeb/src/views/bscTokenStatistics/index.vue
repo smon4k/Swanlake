@@ -9,7 +9,7 @@
             <el-col :span="24" align="left" v-else style="overflow-x: scroll;overflow-y: hidden;">
                 <div class="search">
                     <!-- <span>币种选择：</span> -->
-                    <div v-for="(item, index) in optionData" :key="index" :class="['button', {'button-active': currencyIndex == item.index}]" :tabindex="item.index" @click="selectButton(item.name, item.index)">{{ item.name }}</div>
+                    <div v-for="(item, index) in optionData" :key="index" :class="['button', {'button-active': currencyIndex == item.index}]" :tabindex="item.index" @click="selectButton(item.name, item.index, item.token)">{{ item.name }}</div>
                 </div>
             </el-col>
             <br><br>
@@ -40,6 +40,9 @@
         </el-row>
         <el-tabs v-model="activeName" @tab-click="tabHandleClick">
             <el-tab-pane label="总地址量" name="1">
+                <div style="text-align:right;">  
+                    Address:  <el-link :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
+                    <i class="el-icon-document-copy" style="cursor: pointer" v-clipboard:copy="selectAddress" v-clipboard:success="copySuccess"></i></div>
                 <div class="left-text" v-if="Object.keys(dataList).length">起始地址数：{{ numberFormatFilter(dataList.holders.data[0]) }} 最终地址数：{{ numberFormatFilter(dataList.holders.data[dataList.holders.data.length - 1]) }} 增加地址数：{{ numberFormatFilter(dataList.holders.add_holders) }} 增加百分比：{{ toFixed(dataList.holders.add_percentage, 2) }}%</div>
                 <div v-if="activeName == 1 && Object.keys(dataList).length" class="threeBarChart" id="countAddress"></div>
                 <el-empty v-else description="没有数据"></el-empty>
@@ -75,6 +78,7 @@ export default {
             timesIndex: 1,
             activeName: '1',
             name: 'Cake',
+            selectAddress: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82',
             dataList: [],
             destructionDataList: [],
             start_end_time: '',
@@ -83,22 +87,22 @@ export default {
             bnbNewValues: 0, //BNB最新销毁量
             autoDestruction: 0, //BNB自动销毁量
             optionData: [
-                { name: 'Cake', index: 1 },
-                { name: 'BNB', index: 2 },
-                { name: 'BSW', index: 3 },
-                { name: 'BABY', index: 4 },
-                { name: 'Alpaca', index: 5 },
-                { name: 'BIFI', index: 6 },
-                { name: 'QUICK', index: 7 },
-                { name: 'SNS', index: 8 },
-                { name: 'XVS', index: 9 },
-                { name: 'Guru', index: 10 },
-                { name: 'GMT', index: 11 },
-                { name: 'CHESS', index: 12 },
-                { name: 'BabyDoge', index: 13 },
-                { name: 'POT', index: 14 },
+                { name: 'Cake', token: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', index: 1 },
+                { name: 'BNB', token: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', index: 2 },
+                { name: 'BSW', token: '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1', index: 3 },
+                { name: 'BABY', token: '0x53E562b9B7E5E94b81f10e96Ee70Ad06df3D2657', index: 4 },
+                { name: 'Alpaca', token: '0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F', index: 5 },
+                { name: 'BIFI', token: '0xCa3F508B8e4Dd382eE878A314789373D80A5190A', index: 6 },
+                { name: 'QUICK', token: '0xb5c064f955d8e7f38fe0460c556a72987494ee17', index: 7 },
+                { name: 'SNS', token: '0xD5CBaE3F69B0640724A6532cC81BE9C798A755A7', index: 8 },
+                { name: 'XVS', token: '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63', index: 9 },
+                { name: 'Guru', token: '0xF1932eC9784B695520258F968b9575724af6eFa8', index: 10 },
+                { name: 'GMT', token: '0x3019BF2a2eF8040C242C9a4c5c4BD4C81678b2A1', index: 11 },
+                { name: 'CHESS', token: '0x20de22029ab63cf9A7Cf5fEB2b737Ca1eE4c82A6', index: 12 },
+                { name: 'BabyDoge', token: '0xc748673057861a797275CD8A068AbB95A902e8de', index: 13 },
+                { name: 'POT', token: '0x3B5E381130673F794a5CF67FBbA48688386BEa86', index: 14 },
                 // { name: 'BlueDoge', index: 15 },
-                { name: 'H2O', index: 15 },
+                { name: 'H2O', token: '0xC446c2B48328e5D2178092707F8287289ED7e8D6', index: 15 },
             ],
         }
     },
@@ -807,9 +811,10 @@ export default {
                 this.getDestructionDataList();
             }
         },
-        selectButton(name, index) { //按钮筛选币种
+        selectButton(name, index, token) { //按钮筛选币种
             this.currencyIndex = index;
             this.name = name;
+            this.selectAddress = token;
             if(this.activeName == 1 || this.activeName == 2) {
                 this.getHourDataList();
             } else {
@@ -822,6 +827,7 @@ export default {
                     return item.name === name; // 筛选出匹配数据
                 });
                 this.currencyIndex = obj.index;
+                this.selectAddress = obj.token;
                 if(this.activeName == 1 || this.activeName == 2) {
                     this.getHourDataList();
                 } else {
@@ -884,7 +890,16 @@ export default {
         },
         numberFormatFilter(num) {
             return numberFormat(num);
-        }
+        },
+        strAddress() {
+            return this.selectAddress.substring(0, 4) + "***" + this.selectAddress.substring(this.selectAddress.length - 3)
+        },
+        copySuccess(){
+            this.$message({
+                message: 'Copy successfully',
+                type: 'success'
+            });
+        },
     }
 }
 </script>
