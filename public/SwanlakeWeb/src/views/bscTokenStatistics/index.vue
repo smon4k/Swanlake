@@ -12,8 +12,8 @@
                     <div v-for="(item, index) in optionData" :key="index" :class="['button', {'button-active': currencyIndex == item.index}]" :tabindex="item.index" @click="selectButton(item.name, item.index, item.token)">{{ item.name }}</div>
                 </div>
             </el-col>
-            <br><br>
-            <el-col :span="24" align="left">
+            <br>
+            <el-col :span="24" align="left" style="margin-top:10px;">
                 <div class="search">
                     <!-- <span>时间范围：</span> -->
                     <div :class="['button', {'button-active': timesIndex == 1}]" tabindex="1" @click="searchClick('1 day', 1)">1天</div>
