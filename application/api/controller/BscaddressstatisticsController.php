@@ -27,6 +27,16 @@ ini_set('memory_limit', '-1');
 class BscaddressStatisticsController extends BaseController
 {
     /**
+     * 获取币种列表
+     * @author qinlh
+     * @since 2022-11-04
+     */
+    public function getTokensList(Request $request) {
+        $result = BscAddressStatistics::getTokensList();
+        return $this->as_json($result);
+    }
+    
+    /**
      * 获取每小时数据
      * 总地址和新增地址
      * @author qinlh

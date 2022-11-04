@@ -9,7 +9,7 @@
             <el-col :span="24" align="left" v-else style="overflow-x: scroll;overflow-y: hidden;">
                 <div class="search">
                     <!-- <span>币种选择：</span> -->
-                    <div v-for="(item, index) in optionData" :key="index" :class="['button', {'button-active': currencyIndex == item.index}]" :tabindex="item.index" @click="selectButton(item.name, item.index, item.token)">{{ item.name }}</div>
+                    <div v-for="(item, index) in optionData" :key="index" :class="['button', {'button-active': currencyIndex == item.id}]" :tabindex="item.index" @click="selectButton(item.name, item.id, item.token)">{{ item.name }}</div>
                 </div>
             </el-col>
             <br>
@@ -99,24 +99,7 @@ export default {
             this_year: '', //是否本年度
             bnbNewValues: 0, //BNB最新销毁量
             autoDestruction: 0, //BNB自动销毁量
-            optionData: [
-                { name: 'Cake', token: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', index: 1 },
-                { name: 'BNB', token: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', index: 2 },
-                { name: 'BSW', token: '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1', index: 3 },
-                { name: 'BABY', token: '0x53E562b9B7E5E94b81f10e96Ee70Ad06df3D2657', index: 4 },
-                { name: 'Alpaca', token: '0x8F0528cE5eF7B51152A59745bEfDD91D97091d2F', index: 5 },
-                { name: 'BIFI', token: '0xCa3F508B8e4Dd382eE878A314789373D80A5190A', index: 6 },
-                { name: 'QUICK', token: '0xb5c064f955d8e7f38fe0460c556a72987494ee17', index: 7 },
-                { name: 'SNS', token: '0xD5CBaE3F69B0640724A6532cC81BE9C798A755A7', index: 8 },
-                { name: 'XVS', token: '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63', index: 9 },
-                { name: 'Guru', token: '0xF1932eC9784B695520258F968b9575724af6eFa8', index: 10 },
-                { name: 'GMT', token: '0x3019BF2a2eF8040C242C9a4c5c4BD4C81678b2A1', index: 11 },
-                { name: 'CHESS', token: '0x20de22029ab63cf9A7Cf5fEB2b737Ca1eE4c82A6', index: 12 },
-                { name: 'BabyDoge', token: '0xc748673057861a797275CD8A068AbB95A902e8de', index: 13 },
-                { name: 'POT', token: '0x3B5E381130673F794a5CF67FBbA48688386BEa86', index: 14 },
-                // { name: 'BlueDoge', index: 15 },
-                { name: 'H2O', token: '0xC446c2B48328e5D2178092707F8287289ED7e8D6', index: 15 },
-            ],
+            optionData: [],
         }
     },
     computed: {
@@ -130,6 +113,7 @@ export default {
 
     },
     created() {
+        this.getTokensList();
         this.getHourDataList();
         this.getDestructionDataList();
     },
@@ -716,6 +700,16 @@ export default {
             };
             option && myChart.setOption(option);
         },
+        getTokensList() {
+            get(this.apiUrl + "/Api/Bscaddressstatistics/getTokensList", {}, json => {
+                console.log(json);
+                if (json.code == 10000) {
+                    this.optionData = json.data;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
         getHourDataList() { //获取总地址和新增地址量
             let start_time = '';
             let end_time = '';
@@ -839,7 +833,7 @@ export default {
                 let obj = this.optionData.find((item)=>{ // 这里的userList就是上面遍历的数据源
                     return item.name === name; // 筛选出匹配数据
                 });
-                this.currencyIndex = obj.index;
+                this.currencyIndex = obj.id;
                 this.selectAddress = obj.token;
                 if(this.activeName == 1 || this.activeName == 2) {
                     this.getHourDataList();

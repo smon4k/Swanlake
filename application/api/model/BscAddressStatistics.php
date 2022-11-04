@@ -18,6 +18,19 @@ class BscAddressStatistics extends Base
 {
 
     /**
+     * 获取币种地址列表
+     * @author qinlh
+     * @since 2022-11-04
+     */
+    public static function getTokensList() {
+        $data = self::name('bsc_tokens')->where('start', 1)->select()->toArray();
+        if($data && count((array)$data) > 0) {
+            return $data;
+        }
+        return [];
+    }
+
+    /**
      * 每小时写入统计数据
      * @author qinlh
      * @since 2022-10-22
