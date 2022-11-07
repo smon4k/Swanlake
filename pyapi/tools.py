@@ -8,6 +8,6 @@ def toWei(amount, decimal):
 # 除
 def fromWei(amount, decimal):
     # print(amount)
-    num = '{:.10f}'.format(float(amount) / pow(10, decimal))
+    num = '{:.16f}'.format(float(amount) / pow(10, decimal))
     return num
     

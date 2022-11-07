@@ -80,7 +80,34 @@ class JDSpider(object):
         elif token == "0x3B5E381130673F794a5CF67FBbA48688386BEa86": # POT
             price = self.getToken2TokenPrice(self.cakeRouterContractAddress, token, self.USDT)
         elif token == "0xC446c2B48328e5D2178092707F8287289ED7e8D6": # H2O
-            price = self.getTokenPrice(self.h2oRouterContractAddress, token, self.USDT)
+            price = self.getTokenPrice(self.h2oRouterContractAddress, token, self.USDT, '')
+        elif token == "0xc748673057861a797275CD8A068AbB95A902e8de": # BabyDoge
+            returnPrice = self.getTokenPrice(self.cakeRouterContractAddress, token, self.USDT, '')
+            price = fromWei(returnPrice, 9)
+        elif token == "0x02fF5065692783374947393723dbA9599e59F591": # YOOSHI
+            returnPrice = self.getTokenPrice(self.cakeRouterContractAddress, token, self.USDT, '')
+            price = fromWei(returnPrice, 9)
+        elif token == "0x8C851d1a123Ff703BD1f9dabe631b69902Df5f97": # BNX
+            price = self.getTokenPrice(self.cakeRouterContractAddress, token, self.USDT, '')
+            # print(price)
+        elif token == "0x602bA546A7B06e0FC7f58fD27EB6996eCC824689": # PinkSale
+            price = self.getTokenPrice(self.cakeRouterContractAddress, token, self.BUSDT, self.WBNB)
+            # print(price)
+        elif token == "0x2d716831D82d837C3922aD8c10FE70757b5814FE": # FORTUNE
+            price = self.getTokenPrice(self.cakeRouterContractAddress, token, self.BUSDT, self.WBNB)
+            # print(price)
+        elif token == "0xd0BA1Cad35341ACd1CD88a85E16B054bA9ccC385": # MYPO
+            price = self.getTokenPrice(self.cakeRouterContractAddress, token, self.BUSDT, self.WBNB)
+            # print(price)
+        elif token == "0x03D6BD3d48F956D783456695698C407A46ecD54d": # HYPR
+            price = self.getTokenPrice(self.cakeRouterContractAddress, token, self.BUSDT, self.WBNB)
+            # print(price)
+        elif token == "0xb0B2d54802B018B393A0086a34DD4c1f26F3D073": # AUDIO
+            price = self.getTokenPrice(self.cakeRouterContractAddress, token, self.BUSDT, self.WBNB)
+            # print(price)
+        elif token == "0x36E714D63B676236B72a0a4405F726337b06b6e5": # GUT
+            price = self.getToken2TokenPrice(self.cakeRouterContractAddress, token, self.USDT)
+            # print(price)
         else:
             priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
             priceStr = priceElement.get_attribute('data-title')
@@ -127,7 +154,7 @@ class JDSpider(object):
             price = 0
             contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(routerAddress), abi=self.mdexABI)
             result = contract.functions.getAmountsOut(Gwei1, path).call()
-            # print(result)
+            print(result)
             if(result):
                 if bnbAddress or bnbAddress != '':
                     price = result[2] / Gwei1
@@ -147,7 +174,6 @@ class JDSpider(object):
         try:
             contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(routerAddress), abi=self.cakeRouter)
             result = contract.functions.getAmountsOut(toWei(amount, 18), path).call()
-            # print(result)
             if(result or result[1]):
                 price = fromWei(result[1], 18)
             else:
