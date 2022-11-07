@@ -256,7 +256,11 @@ class BscAddressStatistics extends Base
         // p($time_range);
         $sql = "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name' AND balance != 0 ";
         if($time_range && $time_range !== '') {
-            $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
+            if($time_range === '1 day') {
+                $sql .= " AND to_days( `time`) = to_days(NOW())";
+            } else {
+                $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
+            }
         }
         if($this_year && $this_year !== '') {
             $sql .= " AND YEAR(`time`) = YEAR(NOW())";
