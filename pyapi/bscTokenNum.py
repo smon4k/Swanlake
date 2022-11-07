@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 import time
 from web3 import Web3
 from web3 import Web3, HTTPProvider
+from tools import toWei, fromWei
 
 app = Flask(__name__)
 
@@ -19,12 +20,14 @@ class JDSpider(object):
         self.rpcUrls = 'https://bsc-dataseed.binance.org'
         self.web3Client = Web3(HTTPProvider(self.rpcUrls))
         self.h2oRouterContractAddress = "0x96948447D1521260c24fCdE281d09364BdC5A2d0"
-        self.guruRouterContractAddress = "0x10ED43C718714eb63d5aA57B78B54704E256024E"
+        self.cakeRouterContractAddress = "0x10ED43C718714eb63d5aA57B78B54704E256024E"
         self.USDT = "0x55d398326f99059fF775485246999027B3197955"
         self.BUSDT = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
         self.WBNB = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
         with open(str(os.path.join('./abis/mdexABI.json')), 'r') as abi_definition:   
             self.mdexABI = json.load(abi_definition)
+        with open(str(os.path.join('./abis/cakeRouter.json')), 'r') as abi_definition:   
+            self.cakeRouter = json.load(abi_definition)
 
         # print(sys.argv[1])
         os.system("killall -9 chrome")
@@ -73,9 +76,11 @@ class JDSpider(object):
 
         # 获取价格
         if token == "0xF1932eC9784B695520258F968b9575724af6eFa8": # Guru
-            price = self.getTokenPrice(self.guruRouterContractAddress, token, self.BUSDT, self.WBNB)
+            price = self.getTokenPrice(self.cakeRouterContractAddress, token, self.BUSDT, self.WBNB)
+        elif token == "0x3B5E381130673F794a5CF67FBbA48688386BEa86": # POT
+            price = self.getToken2TokenPrice(self.cakeRouterContractAddress, token, self.USDT)
         elif token == "0xC446c2B48328e5D2178092707F8287289ED7e8D6": # H2O
-            price = self.getTokenPrice(self.h2oRouterContractAddress, token, self.USDT, '')
+            price = self.getTokenPrice(self.h2oRouterContractAddress, token, self.USDT)
         else:
             priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
             priceStr = priceElement.get_attribute('data-title')
@@ -133,6 +138,23 @@ class JDSpider(object):
             return price
         except Exception as re:
             print('functions getTokenPrice->getAmountsOut error %s' %re)
+    
+    # 获取估值 01
+    def getToken2TokenPrice(self, routerAddress, token0, token1, amount = 1):
+        price = 1
+        path = []
+        path = [token0, token1]
+        try:
+            contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(routerAddress), abi=self.cakeRouter)
+            result = contract.functions.getAmountsOut(toWei(amount, 18), path).call()
+            # print(result)
+            if(result or result[1]):
+                price = fromWei(result[1], 18)
+            else:
+                print('getToken2TokenPrice_err')
+            return price
+        except Exception as re:
+            print('functions getToken2TokenPrice->getAmountsOut error %s' %re)
 
     # 入口
     def main(self, token, chain):
