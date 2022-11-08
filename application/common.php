@@ -306,3 +306,8 @@ function CurlRequest($url, $header, $content=array(), $backHeader=0, $cookie='')
         $str = preg_replace($pat,"\${1}",$value);
         return $str;
     }
+
+    function sprintfNum($num, $number=1) {
+        $numberA = $number + 1;
+        return substr(sprintf("%.".$numberA."f", $num),0,-1);
+    }

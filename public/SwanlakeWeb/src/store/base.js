@@ -1,5 +1,5 @@
 import router from '@/router'
-import { getUserAddressInfo, saveUserInfo } from '@/wallet/serve'
+import { getUserAddressInfo, saveUserInfo, getHashPowerPoolsTokensData } from '@/wallet/serve'
 import {
     deepCopy,
     fromWei,
@@ -8,6 +8,7 @@ import {
     accordingToAprSeekApy,
     calcDaily
 } from '@/utils/tools'
+import hashPoolsList from '@/wallet/hashpower_pools.js'
 import Address from '@/wallet/address.json'
 import Web3 from 'web3'
 import Vue from 'vue'
@@ -43,6 +44,9 @@ export default {
         Env: 'dev',
         // gamesFillingAddress: '0x079bDC8845D0C6878716A3f5219f1D0DcdF15308', //游戏系统-充提清算系统-合约地址
         gamesFillingAddress: '0xB433036377478dD94f94e4467C14835438b648Db', //游戏系统-充提清算系统-合约地址-升级增加订单id
+        hashpowerAddress: '0x5fE319Cad2B7203891AC9a9536A4a054636A2340', //算力币合约地址 测试
+        fairLaunchAddress:'0x08D027B330F3A8ace9290235D575475150EA14Ff', //_launch
+        hashPowerPoolsList: {},
     },
     mutations: {
         isConnected(state , val ){
@@ -118,6 +122,60 @@ export default {
                 }
             }
         },
+        setHashPowerPoolsList(state, {fixed}){
+            state.hashPowerPoolsList = [];
+            // console.log(fixed);
+            if(fixed.length > 0) {
+                fixed.forEach(item => {
+                    state.hashPowerPoolsList.push({
+                        currencyToken: item.currencyToken,
+                        goblin: item.goblin,
+                        address:item.originToken,
+                        address_h:item.token,
+                        pId:item.pId,
+                        name:item.name,
+                        decimals:18,
+                        balance:'',
+                        reward:'',
+                        total:'',
+                        tokenPrice: 0,
+                        yearPer: 0,
+                        h2oYearPer: 0,
+                        btcbYearPer: 0,
+                        loading:false,
+                        btcbPrice: 0,
+                        claimLoading:false
+                    })
+                })
+            }
+            state.hashPowerPoolsList.loading = false
+        },
+        setHashPowerPoolsListLoading(state, val){
+            state.hashPowerPoolsList.loading = val
+        },
+        setHashPowerPoolsBalance(state , info  ){
+            if(!state.hashPowerPoolsList) return 
+            let index = state.hashPowerPoolsList.findIndex(item=>item.goblin === info.t)
+            if(index !== -1 ){
+                state.hashPowerPoolsList[index].tokenPrice = info.tokenPrice
+                state.hashPowerPoolsList[index].btcbPrice = info.btcbPrice
+                state.hashPowerPoolsList[index].balance = info.userBalance
+                state.hashPowerPoolsList[index].total = info.totalTvl
+                state.hashPowerPoolsList[index].btcbReward = info.btcbReward
+                state.hashPowerPoolsList[index].h2oReward = info.h2oReward
+                state.hashPowerPoolsList[index].reward = info.reward
+                state.hashPowerPoolsList[index].yearPer = info.yearPer
+                state.hashPowerPoolsList[index].h2oYearPer = info.h2oYearPer
+                state.hashPowerPoolsList[index].btcbYearPer = info.btcbYearPer
+                state.hashPowerPoolsList[index].loading = false
+            }
+        },
+        sethashPowerPoolsListClaimLoading(state , {goblin , val}){
+            let index = state.hashPowerPoolsList.findIndex(item=>item.goblin === goblin)
+            if(index !== -1){
+                state.hashPowerPoolsList[index].loading = val
+            }
+        },
     },
     getters:{
         pendingOrderAmount: state=>{
@@ -172,6 +230,36 @@ export default {
         },
         changeTradeStatus({commit} , status){
             commit('change_TradeStatus' , status)
+        },
+        // 获取算力币Pools数据
+        async getHashPowerPoolsList({commit , state}, isLoding){
+            if(state.hashPowerPoolsList.loading) return 
+            if(!isLoding || isLoding == undefined) {
+                commit('setHashPowerPoolsListLoading' , true);
+            }
+            const { fixed } = hashPoolsList;
+            if(!isLoding || isLoding == undefined) {
+                // console.log(fixed);
+                commit('setHashPowerPoolsList' , {fixed} )
+            }
+            // console.log(fixed);
+            if(fixed.length){
+                let fixedList = [...fixed]
+                fixedList.forEach(async item=> {
+                    // console.log(item);
+                    let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId)
+                    // console.log(info);
+                    info.t = item.goblin
+                    commit('setHashPowerPoolsBalance', info)
+                })
+            }
+            commit("setHashPowerPoolsListLoading" , false)
+            // console.log('state.poolsList' , state.poolsList);
+        },
+        async refreshHashPowerPoolsList({commit , state , dispatch}){
+            console.log('更新算力数据')
+            // commit('setUserPositionLoading' , false);
+            dispatch('getHashPowerPoolsList', true)
         },
     }
 }

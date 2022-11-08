@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "node build/dev-server.js",
     "build": "node build/build.js",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "test": "node build/test.js"
   },
   "dependencies": {
     "@walletconnect/web3-provider": "^1.7.3",

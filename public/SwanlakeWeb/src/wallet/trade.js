@@ -4,6 +4,8 @@ import { toolNumber } from '@/utils/tools'
 import  tokenABI from './abis/token.json'
 import gameFillingABI from './abis/gameFillingABI.json'
 import gameFillingABIV2 from './abis/gameFillingABIV2.json'
+import hashpowerABI from './abis/hashpowerABI.json'
+import goblinPoolsABI from './abis/goblinPools.json'
 import {saveNotifyStatus, setUSDTDepositWithdraw} from "@/wallet/serve";
 
 // 领取空投奖励
@@ -222,3 +224,185 @@ export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimal
   })
 }
 
+// 算力币购买
+export const BuyTokenToS19 = function (amount=0, decimals=18) {
+  // console.log(amount);
+  // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
+  const address = __ownInstance__.$store.state.base.address;
+  const contractAddress = __ownInstance__.$store.state.base.hashpowerAddress;
+  const contract = new web3.eth.Contract(hashpowerABI, contractAddress);
+  const depositAmount = toWei(amount, decimals);
+  let encodedABI = contract.methods.BuyTokenToS19(depositAmount).encodeABI();
+
+  let timestamp = new Date().getTime().toString()
+  __ownInstance__.$store.dispatch('createOrderForm' , {val:0 ,id:timestamp })
+  return new Promise((resolve, reject) => {
+    let hashInfo
+    web3.eth.getTransactionCount(address).then(async transactionNonce => {
+      let gasPrice = await web3.eth.getGasPrice();
+      let estimateGas = await web3.eth.estimateGas({
+        from: address,
+        to: contractAddress, // 池地址
+        data: encodedABI, // Required
+      })
+      console.log('estimateGas' ,estimateGas)
+      const params = [{
+        from: address,
+        to: contractAddress, // 池地址
+        data: encodedABI, // Required
+        gasPrice: web3.utils.toHex(gasPrice), // Optional
+        gas: web3.utils.toHex(estimateGas), // Optional
+        // gas: web3.utils.toHex(400000), // Optional
+      }];
+      web3.eth.sendTransaction(params[0])
+        .on('transactionHash', function (hash) {
+          console.log('hash', hash);
+          if (hash) {
+            hashInfo = hash
+          }
+        })
+        .on('receipt', function (receipt) {
+          // 交易成功
+          __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:1 , hash:hashInfo})
+          resolve(hashInfo)
+        })
+        .on('confirmation', function (confirmationNumber, receipt) {
+        })
+        .on('error', function (err) {
+          let isUserDeny = err.code === 4001 
+          __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:2 , isUserDeny, hash:hashInfo})
+          console.log('err' , err)
+          reject(err)
+        })
+    })
+    .catch(err=>{
+      console.log('receiveAirdrop_err',err)
+      __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:2, hash:hashInfo})
+      reject(err)
+    })
+  })
+}
+
+
+// 算力币 存款存入
+export const depositPoolsIn = function (goblinAddress, decimals, amount){
+  console.log('amount' , amount);
+  // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
+  // let isCoinbase = tokenAddress === '0x0000000000000000000000000000000000000000'
+  const address = __ownInstance__.$store.state.base.address;
+  const contractAddress = goblinAddress;
+  const contract = new web3.eth.Contract(goblinPoolsABI, contractAddress);
+  const depositAmount = toWei(amount, decimals)
+  const value = web3.utils.toHex(depositAmount)
+  let encodedABI = contract.methods.deposit(value).encodeABI();
+
+  let timestamp = new Date().getTime().toString()
+  __ownInstance__.$store.dispatch('createOrderForm' , {val:0 ,id:timestamp })
+  return new Promise((resolve, reject) => {
+    let hashInfo
+    web3.eth.getTransactionCount(address).then(async transactionNonce => {
+      let gasPrice = await web3.eth.getGasPrice();
+      let estimateParams ={
+        from: address,
+        to: contractAddress, // 池地址
+        data: encodedABI, // Required
+      }
+      // if(isCoinbase) estimateParams.value = web3.utils.toHex(depositAmount) 
+      let estimateGas = parseInt(await web3.eth.estimateGas(estimateParams) * 1.4)
+      console.log('estimateGas' ,estimateGas)
+      const params = [{
+        from: address,
+        to: contractAddress, // 池地址
+        data: encodedABI, // Required
+        gasPrice: web3.utils.toHex(gasPrice), // Optional
+        gas: web3.utils.toHex(estimateGas), // Optional
+        // gas: web3.utils.toHex(2000000), // Optional
+      }];
+      // if(isCoinbase) params[0].value =  web3.utils.toHex(depositAmount) 
+      web3.eth.sendTransaction(params[0])
+        .on('transactionHash', function (hash) {
+          console.log('hash', hash);
+          if (hash) {
+            hashInfo = hash
+          }
+        })
+        .on('receipt', function (receipt) {
+          // 交易成功
+          __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:1 , hash:hashInfo})
+          resolve(hashInfo)
+        })
+        .on('confirmation', function (confirmationNumber, receipt) {
+        })
+        .on('error', function (err) {
+          let isUserDeny = err.code === 4001 
+          __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:2 , isUserDeny, hash:hashInfo})
+          console.log('err' , err)
+          reject(err)
+        })
+    })
+    .catch(err=>{
+      console.log('receiveAirdrop_err',err)
+      __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:2, hash:hashInfo})
+      reject(err)
+    })
+  })
+}
+
+// 算力币 提取
+export const depositPoolsOut = function (goblinAddress, decimals, amount){
+  console.log('depositPoolsOut' , amount);
+  // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
+  const address = __ownInstance__.$store.state.base.address;
+  const contractAddress = goblinAddress;
+  const contract = new web3.eth.Contract(goblinPoolsABI, contractAddress);
+  const depositAmount = toWei(amount, decimals)
+  let encodedABI = contract.methods.withdraw(web3.utils.toHex(depositAmount)).encodeABI();
+
+  let timestamp = new Date().getTime().toString()
+  __ownInstance__.$store.dispatch('createOrderForm' , {val:0 ,id:timestamp })
+  return new Promise((resolve, reject) => {
+    let hashInfo
+    web3.eth.getTransactionCount(address).then(async transactionNonce => {
+      let gasPrice = await web3.eth.getGasPrice();
+      let estimateGas = parseInt(await web3.eth.estimateGas({
+        from: address,
+        to: contractAddress, // 池地址
+        data: encodedABI, // Required
+      }) * 1.4)
+      console.log('estimateGas' ,estimateGas)
+      const params = [{
+        from: address,
+        to: contractAddress, // 池地址
+        data: encodedABI, // Required
+        gasPrice: web3.utils.toHex(gasPrice), // Optional
+        gas: web3.utils.toHex(estimateGas), // Optional
+        // gas: web3.utils.toHex(400000), // Optional
+      }];
+      web3.eth.sendTransaction(params[0])
+        .on('transactionHash', function (hash) {
+          console.log('hash', hash);
+          if (hash) {
+            hashInfo = hash
+          }
+        })
+        .on('receipt', function (receipt) {
+          // 交易成功
+          __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:1 , hash:hashInfo})
+          resolve(hashInfo)
+        })
+        .on('confirmation', function (confirmationNumber, receipt) {
+        })
+        .on('error', function (err) {
+          let isUserDeny = err.code === 4001 
+          __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:2 , isUserDeny, hash:hashInfo})
+          console.log('err' , err)
+          reject(err)
+        })
+    })
+    .catch(err=>{
+      console.log('receiveAirdrop_err',err)
+      __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:2, hash:hashInfo})
+      reject(err)
+    })
+  })
+}

@@ -92,6 +92,19 @@ export const constantRoutes = [
           component: () => import('@/views/bscTokenStatistics/index'),
           meta: { title: 'bscTokenStatistics', keepAlive: false }
         },
+        //算力收益
+        {
+          path: 'hashpower/buy',
+          name: 'hashpowerBuy',
+          component: () => import('@/views/hashpower/buy'),
+          meta: { title: 'hashpowerBuy', keepAlive: false }
+        },
+        {
+          path: 'hashpower/detail',
+          name: 'hashpowerDetail',
+          component: () => import('@/views/hashpower/detail'),
+          meta: { title: 'hashpowerDetail', keepAlive: false }
+        }
       ]
     },
 ]

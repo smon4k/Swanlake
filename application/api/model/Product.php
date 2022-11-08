@@ -17,7 +17,7 @@ class Product extends Base
         if ($limit <= 0) {
             $limit = config('paginate.list_rows');// 获取总条数
         }
-        $count = self::alias('a')->where($where)->count();//计算总页面
+        $count = self::alias('a')->where($where)->count();
         $allpage = intval(ceil($count / $limit));
         $lists = self::alias('a')
                     ->field("a.*")

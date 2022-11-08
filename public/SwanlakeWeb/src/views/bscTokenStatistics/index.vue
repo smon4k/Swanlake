@@ -2,7 +2,7 @@
     <div class="container">
         <el-row>
             <el-col :span="12" v-if="isMobel">
-                <el-select size="mini" v-model="name" placeholder="请选择" @change="selectChange">
+                <el-select size="mini" filterable v-model="name" placeholder="请选择" @change="selectChange">
                     <el-option :label="item.name" :value="item.name" v-for="(item, index) in optionData" :key="index"></el-option>
                 </el-select>
             </el-col>

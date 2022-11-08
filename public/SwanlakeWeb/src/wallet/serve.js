@@ -2,12 +2,18 @@ import {  fromWei , toWei , toolNumber , toFixed, byDecimals, keepDecimalNotRoun
 // import { $get } from '@/utils/request'
 import  tokenABI from './abis/token.json'
 import gameFillingABI from './abis/gameFillingABI.json'
+import goblinPoolsABI from './abis/goblinPools.json'
+import fairLaunchABI from './abis/fairLaunch.json'
+import H2OPoolsABI from './abis/H2OPoolsABI.json'
+import cakeRouterABI from './abis/cakeRouter.json'
+import mdexABI from './abis/mdexABI.json'
 
 import { get, post } from "@/common/axios.js";
 import { $get } from '@/utils/request'
 import axios from 'axios'
 import { getUrlParams, getQueryString } from '@/utils/tools'
 import router from '@/router'
+import Address from '@/wallet/address.json'
 
 /**
  * 获取用户信息
@@ -101,6 +107,198 @@ export const isApproved = async function (tokenAddress, decimals, amount , other
   })
   return Number(toWei(amount.toString(), decimals)) < approveAmount;
 }
+
+// 获取杠杆价格
+export const getToken2TokenPrice = async function (token0 , token1 ,type , amount = 1, routerContractAddress=''){
+
+  if(type === 'TEST'){
+    // if(token0 === Address.BUSDT) return 1
+    return 1
+  }
+
+
+  if(token1 === 'USDT') return 1
+  if(token0 === '0x0000000000000000000000000000000000000000') token0 = Address.WBNB
+  if(token1 === '0x0000000000000000000000000000000000000000') token1 = Address.WBNB
+  // console.log('token0' , token0);
+  // console.log('token1' , token1);
+  // console.log('Address.BUSDT' , Address.BUSDT);
+  // if(token0 === Address.BUSDT || token1 === Address.BUSDT) return 1
+  let contractAddress;
+  if(token0 === Address.H2O || token1 === Address.H2O) {
+    contractAddress = publicAddress.routerContractAddress;
+  } else {
+    contractAddress = Address.cakeRouter
+  }
+  // console.log('contractAddress' , contractAddress);
+  const contract = new web3.eth.Contract(cakeRouterABI, contractAddress);
+  let price = 0
+  await contract.methods.getAmountsOut(web3.utils.toHex(toWei(amount,18)) , [token0 , token1]).call(function(error , result){
+    if (!error && Array.isArray(result) && result[1] ) {
+      // console.log(token0, result);
+      price = fromWei(result[1], 18);
+    } else {
+      // console.log(token0, token1, type);
+      console.log('getToken2TokenPrice_err',error)
+    }
+  })
+  return price
+}
+
+
+//获取 HashPowerPools 池子数据
+export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, pId){
+  const address = __ownInstance__.$store.state.base.address
+  const decimals = __ownInstance__.$store.state.base.tokenDecimals
+  let totalTvl = await getPoolsTotalShare(goblinAddress, decimals);
+  let tokenPrice = 50;
+  // tokenPrice = await getToken2TokenPrice(currencyToken, Address.BUSDT) //获取池子价格
+  let userBalance = 0;
+  let reward = 0;
+  let btcbReward = 0;
+  let h2oReward = 0;
+  let YearPer = 0
+  let H2OYearPer = 0
+  let BTCBYearPer = 0
+  let btcbPrice = 0
+  if(pId) {
+    h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
+    btcbReward = await getH2OPendingBonus(goblinAddress, 8); //获取BTCB奖励
+    if(address && address !== undefined && address !== '') {
+      userBalance = await getH2OUserInfo(goblinAddress);
+    }
+    // console.log(pId, totalTvl, tokenPrice, userBalance)
+    // console.log(pId, h2oReward, btcbReward)
+    // let bonusPerShare = await getH2OAccBonusPerShare(goblinAddress); //累计收益
+    // let lastAccBonusPerShare = await getH2OLastAccBonusPerShare(goblinAddress); //上次累计收益
+    // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
+    // let btcbPrice = await getSwapPoolsAmountsOut(publicAddress.routerContractAddress, Address.BTCB , Address.BUSDT ); //获取水价格
+    btcbPrice = await getToken2TokenPrice(Address.BTCB, Address.BUSDT) //获取btcb价格
+    // console.log(btcbPrice);
+    // console.log(reptileBtcData);
+  } 
+  let reObj = {
+    totalTvl: totalTvl,
+    tokenPrice: tokenPrice,
+    userBalance: userBalance,
+    reward: reward,
+    btcbReward: btcbReward,
+    h2oReward: h2oReward,
+    yearPer: YearPer,
+    h2oYearPer: H2OYearPer,
+    btcbYearPer: BTCBYearPer,
+    btcbPrice: btcbPrice,
+  };
+  return reObj;
+}
+
+//获取 HashPowerPools 总的TVL
+export const getPoolsTotalShare = async function (goblinAddress, decimals) {
+  const contract = new web3.eth.Contract(goblinPoolsABI, goblinAddress);
+  let total = 0;
+  await contract.methods.totalShare().call(function (error, result) {
+    if (!error) {
+      // console.log(result);
+      total = fromWei(result, decimals);
+    }else {
+      console.log('totalShareErr' , error);
+    }
+  });
+  return total;
+}
+
+// 获取持仓H2O奖励
+export async function getPositionRewardBalance(pid, decimals ) {
+  const address = __ownInstance__.$store.state.base.address;
+  if(!address || address == undefined || address == '') {
+    return 0;
+  }
+  const contractAddress = __ownInstance__.$store.state.base.fairLaunchAddress;
+  const contract = new web3.eth.Contract(fairLaunchABI, contractAddress);
+  let balance = 0;
+  await contract.methods.pendingH2O(pid , address).call(function (error, result) {
+    if (!error) {
+      balance = fromWei(result, decimals);
+      // console.log('持仓H2O奖励balance' , balance);
+    }else {
+      console.log('pendingH2O' ,error);
+    }
+  });
+  return balance;
+}
+
+// 获取H2O池子奖励
+export async function getH2OPendingBonus(goblinAddress, number=6) {
+  const address = __ownInstance__.$store.state.base.address;
+  const contractAddress = goblinAddress || __ownInstance__.$store.state.base.h2oPoolAddress
+  const contract = new web3.eth.Contract(H2OPoolsABI, contractAddress);
+  let num = 0;
+  if(!address || address == undefined || address == '') {
+    return num;
+  }
+  await contract.methods.pendingBonus(address).call((error, result) => {
+    if (!error) {
+      // console.log(result);
+      // console.log(fromWei(result, 18));
+      // num = keepDecimalNotRounding(fromWei(result, 18), number, true)
+      num = fromWei(result, 18);
+    }else{
+      console.log('pendingBonus' ,error);
+    }
+  });
+  return num;
+}
+
+// 获取H2O池子我的存款余额
+export async function getH2OUserInfo(contractAddr, userAddress) {
+  const address = userAddress || __ownInstance__.$store.state.base.address;
+  const contractAddress = contractAddr || __ownInstance__.$store.state.base.h2oPoolAddress
+  const contract = new web3.eth.Contract(H2OPoolsABI, contractAddress);
+  let balance = 0;
+  const Gwei1 = 1000000000;
+  await contract.methods.userInfo(address).call(function (error, result) {
+    if (!error) {
+      if(result && result['shares']) {
+        balance = keepDecimalNotRounding(byDecimals(result['shares'], 18), 6, true)
+      }
+    }else{
+      console.log('userInfo' ,error);
+    }
+  });
+  return balance;
+}
+
+//获取估值
+export const getSwapPoolsAmountsOut = async function (routerContractAddress, tk0Address, tk1Address, bnbAddress, isTest) {
+  // console.log(routerContractAddress, tk0Address, tk1Address);
+
+  const contract = new web3.eth.Contract(mdexABI, routerContractAddress);
+  let amountsOut = 0;
+  let path = [];
+  if(bnbAddress && bnbAddress !== '') {
+    path = [tk0Address, bnbAddress, tk1Address];
+  } else {
+    path = [tk0Address, tk1Address];
+  }
+  // console.log(path);
+  const Gwei1 = 1000000000;
+  await contract.methods.getAmountsOut(Gwei1, path).call(function (error, result) {
+    if (!error) {
+      if(isTest) {
+        // console.log(result);
+      }
+      if(bnbAddress && bnbAddress !== '') {
+        amountsOut = result[2] ? result[2] / Gwei1 : 0;
+      } else {
+        amountsOut = result[1] ? result[1] / Gwei1 : 0;
+      }
+    }else {
+      console.log('getAmountsOutErr' , error);
+    }
+  });
+  return amountsOut;
+}
+
 
 //获取游戏-充提系统-充提余额
 export async function getGameFillingBalance(decimals=18) {

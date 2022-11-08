@@ -131,7 +131,7 @@ class MyProduct extends Base {
         $allpage = intval(ceil($count / $limit));
         $lists = self::alias('a')
                     ->join('s_product b', 'a.product_id = b.id')
-                    ->field("a.*,b.name")
+                    ->field("a.*,b.name,b.currency")
                     ->where($where)
                     ->page($page, $limit)
                     ->order($order)

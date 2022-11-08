@@ -56,28 +56,56 @@
                     <div class="title">强力推荐</div>
                 </el-col>
             </el-row>
-            <el-card class="box-card recommend" v-for="(item,index) in tableData" :key="index">
-                <div class="novice">
-                    <span>活期</span>
-                </div>
-                <div class="title-name">
-                    <img src="@/assets/usdt.png" width="30" height="30" alt="">
-                    <p>
-                        <span class="span1">{{ item.currency }}</span>
-                        <span class="span2">{{ item.name }}</span>
-                    </p>
-                </div>
-                <div class="interest-rate">
-                    <p>
-                        <i class="p1">{{ toFixed(item.annualized_income || 0, 2) }}</i>
-                        <i class="pi">%</i>
-                        <i class="p2">预期年化收益率</i>
-                    </p>
-                </div>
-                <div class="recommend-button">
-                      <el-button type="primary" @click="buyClick(item)">立即投资</el-button>
-                </div>
-            </el-card>
+            <el-row :gutter="20">
+                <el-col :span="isMobel ? 24 : 12">
+                    <el-card class="box-card recommend" v-for="(item,index) in tableData" :key="index">
+                        <div class="novice">
+                            <span>活期</span>
+                        </div>
+                        <div class="title-name">
+                            <img src="@/assets/usdt.png" width="30" height="30" alt="">
+                            <p>
+                                <span class="span1">{{ item.currency }}</span>
+                                <span class="span2">{{ item.name }}</span>
+                            </p>
+                        </div>
+                        <div class="interest-rate">
+                            <p>
+                                <i class="p1">{{ toFixed(item.annualized_income || 0, 2) }}</i>
+                                <i class="pi">%</i>
+                                <i class="p2">预期年化收益率</i>
+                            </p>
+                        </div>
+                        <div class="recommend-button">
+                            <el-button type="primary" @click="buyClick(item)">立即投资</el-button>
+                        </div>
+                    </el-card>
+                </el-col>
+                <el-col :span="isMobel ? 24 : 12">
+                    <el-card class="box-card recommend" v-for="(item,index) in HashpowerData" :key="index">
+                        <div class="novice">
+                            <span>活期</span>
+                        </div>
+                        <div class="title-name">
+                            <img src="@/assets/usdt.png" width="30" height="30" alt="">
+                            <p>
+                                <span class="span1">{{ item.currency }}</span>
+                                <span class="span2">{{ item.name }}</span>
+                            </p>
+                        </div>
+                        <div class="interest-rate">
+                            <p>
+                                <i class="p1">{{ toFixed(item.annualized_income || 0, 2) }}</i>
+                                <i class="pi">%</i>
+                                <i class="p2">预期年化收益率</i>
+                            </p>
+                        </div>
+                        <div class="recommend-button">
+                            <el-button type="primary" @click="hashpowerBuyClick(item)">立即投资</el-button>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
         </div>
     </div>
 </template>
@@ -94,6 +122,7 @@ export default {
             CNY_USD: 6.70,
             // userInfo: {},
             tableData: [],
+            HashpowerData: [],
             h2oBalance: 0,
             walletBalance: 0, //链上余额
         }
@@ -116,6 +145,7 @@ export default {
     },
     created() {
         this.getListData();
+        this.getHashpowerData();
     },
     watch: {
         address: {
@@ -148,6 +178,16 @@ export default {
                 }
             })
         },
+        hashpowerBuyClick(row) {
+            console.log(row);
+            this.$router.push({
+                path:'/hashpower/buy',
+                query: {
+                    type: 1,
+                    hash_id: row.id,
+                }
+            })
+        },
         getUserInfo() { //获取用户数据
             get(this.apiUrl + "/Api/User/getUserInfo", {
                 address: this.address
@@ -172,6 +212,20 @@ export default {
                 if (json.code == 10000) {
                     this.tableData = json.data.lists;
                     this.total = json.data.count;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
+        getHashpowerData() {
+            let ServerWhere = {
+                limit: 10000,
+                page: this.currPage,
+            };
+            get(this.apiUrl + "/Hashpower/Hashpower/getHashpowerData", ServerWhere, json => {
+                console.log(json);
+                if (json.code == 10000) {
+                    this.HashpowerData = json.data.lists;
                 } else {
                     this.$message.error("加载数据失败");
                 }
@@ -267,6 +321,7 @@ export default {
                             font-weight: 700;
                             line-height: 24px;
                             padding: 0 0 2px;
+                            text-align: center;
                         }
                         .span2 {
                             color: #697384;
@@ -276,7 +331,7 @@ export default {
                             overflow: hidden;
                             text-overflow: ellipsis;
                             white-space: nowrap;
-                            width: 94px;
+                            // width: 100px;
                         }
                     }
                     .interest-rate {
