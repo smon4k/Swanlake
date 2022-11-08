@@ -211,11 +211,11 @@ export default {
                 console.log(json);
                 if (json.code == 10000) {
                     let list = (json.data && json.data.lists) || [];
-                    let hashpowerData = await this.getHashpowerData();
+                    // let hashpowerData = await this.getHashpowerData();
                     // console.log(hashpowerData);
-                    if(hashpowerData && hashpowerData.length > 0) {
-                        list = [...list, ...hashpowerData];
-                    }
+                    // if(hashpowerData && hashpowerData.length > 0) {
+                    //     list = [...list, ...hashpowerData];
+                    // }
                     console.log(list);
                     this.tableData = list;
                     this.loading = false;

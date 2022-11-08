@@ -145,7 +145,7 @@ export default {
     },
     created() {
         this.getListData();
-        this.getHashpowerData();
+        // this.getHashpowerData();
     },
     watch: {
         address: {

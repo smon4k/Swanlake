@@ -195,6 +195,9 @@ export function keepDecimalNotRounding(value, count, isZero) {
   let number = integer + '.' + (decimal + '0'.repeat(countNum - 1)).substr(0, countNum);
   if (isZero) {
     number = parseFloat(number.replace(/(\.\d+?)0*$/, '$1'));
+    if ((number.toString().indexOf('E') != -1) || (number.toString().indexOf('e') != -1)) {   //验证是否为科学计数法
+      number = toNonExponential(number);
+    }
   }
 
   return number;

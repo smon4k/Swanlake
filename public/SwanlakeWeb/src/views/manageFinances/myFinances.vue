@@ -240,11 +240,11 @@ export default {
             get(this.apiUrl + "/Api/Product/getMyProductList", ServerWhere, async json => {
                 if (json.code == 10000) {
                     let list = (json.data && json.data.lists) || [];
-                    let hashpowerData = await this.getMyHashpowerList();
-                    // console.log(hashpowerData);
-                    if(hashpowerData && hashpowerData.length > 0) {
-                        list = [...list, ...hashpowerData];
-                    }
+                    // let hashpowerData = await this.getMyHashpowerList();
+                    // // console.log(hashpowerData);
+                    // if(hashpowerData && hashpowerData.length > 0) {
+                    //     list = [...list, ...hashpowerData];
+                    // }
                     console.log(list);
                     this.tableData = list;
                     this.total = json.data.count;
