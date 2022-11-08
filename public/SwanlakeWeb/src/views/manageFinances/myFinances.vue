@@ -17,7 +17,7 @@
                     align="center"
                     width="150">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_balance || 0, 4) }} {{scope.row.currency}}</span>
+                        <span>{{ toFixed(scope.row.total_balance || 0, 4) }} {{scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -104,7 +104,7 @@
         <div v-else>
             <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                 <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                <el-descriptions-item label="总结余">{{ toFixed(item.total_balance || 0, 4) }} {{item.currency}}</el-descriptions-item>
+                <el-descriptions-item label="总结余">{{ toFixed(item.total_balance || 0, 4) }} {{item.currency === 'BTCB' ? 'T' : item.currency}}</el-descriptions-item>
                 <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 4) }}</el-descriptions-item>
                 <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
                 <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
@@ -146,8 +146,18 @@ export default {
             pageSize: 20, //每页显示条数
             total: 100, //总条数
             poolBtcData: {},
-            loading: false,
+            loading: true,
             receiveLoading: false,
+        }
+    },
+    activated() { //页面进来
+        // this.refreshData();
+    },
+    beforeRouteLeave(to, from, next){ //页面离开
+        next();
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
         }
     },
     computed: {
@@ -168,11 +178,12 @@ export default {
         isConnected: {
             immediate: true,
             handler(val){
-                console.log(val);
-                if (val && !this.hashPowerPoolsList.length) {
-                    setTimeout(async() => {
+                if (val) {
+                    if(!this.hashPowerPoolsList.length) {
                         this.$store.dispatch("getHashPowerPoolsList");
-                        
+                    }
+                    setTimeout(async() => {   
+
                         this.getPoolBtcData();
 
                         this.getMyProductList();
@@ -191,7 +202,7 @@ export default {
                     this.getMyProductList();
                 }
             },
-        },
+        }
     },
     components: {
         "wbc-page": Page, //加载分页组件
@@ -230,7 +241,6 @@ export default {
         },
         getMyProductList(ServerWhere) {
             if(this.address) {
-                this.loading = true;
                 if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
                     ServerWhere = {
                         limit: this.pageSize,
@@ -254,6 +264,8 @@ export default {
                     }
                     this.loading = false;
                 });
+            } else {
+                this.loading = false;
             }
         },
         async getMyHashpowerList(ServerWhere) { //获取我的算力币数据
