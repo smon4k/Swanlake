@@ -174,9 +174,11 @@ export default {
         isConnected: {
             immediate: true,
             handler(val) {
-                if (val && !this.hashPowerPoolsList.length) {
-                    setTimeout(async() => {
+                if (val) {
+                    if(!this.hashPowerPoolsList.length) {
                         this.$store.dispatch("getHashPowerPoolsList");
+                    }
+                    setTimeout(async() => {
                         
                         this.getPoolBtcData();
 
@@ -196,6 +198,14 @@ export default {
                 await this.getListData();
             },
         },
+        poolBtcData: {
+            immediate: true,
+            async handler(val) {
+                if(val) {
+                    this.getListData();
+                }
+            },
+        }
     },
     components: {
         "wbc-page": Page, //加载分页组件

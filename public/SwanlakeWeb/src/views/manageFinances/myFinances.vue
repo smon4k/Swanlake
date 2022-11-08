@@ -199,6 +199,14 @@ export default {
             immediate: true,
             async handler(val) {
                 if(val && this.address) {
+                    // this.getMyProductList();
+                }
+            },
+        },
+        poolBtcData: {
+            immediate: true,
+            async handler(val) {
+                if(val && this.address) {
                     this.getMyProductList();
                 }
             },
@@ -282,7 +290,7 @@ export default {
                     console.log(json);
                     if (json.code == 10000) {
                         let list = (json.data && json.data.lists) || [];
-                        console.log(this.hashPowerPoolsList);
+                        console.log(this.hashPowerPoolsList, this.poolBtcData);
                         for (let index = 0; index < list.length; index++) {
                             const element = list[index];
                             this.hashPowerPoolsList.forEach(hashpowerObj => {
@@ -292,12 +300,14 @@ export default {
                                     let yest_income = Number(hashpowerObj.balance) * Number(element.daily_income);
                                     list[index]['total_number'] = hashpowerObj.balance; //购买数量
                                     list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(this.poolBtcData.currency_price); //总结余 = 购买数量 * 价格
-                                    list[index]['yest_income'] = yest_income;
-                                    list[index]['total_rate'] = hashpowerObj.btcbReward;
-                                    // console.log(this.poolBtcData);
-                                    let dailyYield = (Number(element.daily_income) / Number(this.poolBtcData.currency_price) * Number(hashpowerObj.balance)) * 365 * 100; //日收益率 = 当日收益/算力币价*总购买算力
-                                    // console.log(dailyYield);
-                                    list[index]['year_rate'] = dailyYield;
+                                    if(Number(element.buy_price) !== Number(this.poolBtcData.currency_price)) {
+                                        list[index]['yest_income'] = yest_income;
+                                        list[index]['total_rate'] = hashpowerObj.btcbReward;
+                                        // console.log(this.poolBtcData);
+                                        let dailyYield = (Number(element.daily_income) / Number(this.poolBtcData.currency_price) * Number(hashpowerObj.balance)) * 365 * 100; //日收益率 = 当日收益/算力币价*总购买算力
+                                        // console.log(dailyYield);
+                                        list[index]['year_rate'] = dailyYield;
+                                    }
                                     list[index]['is_hash'] = true;
                                 }
                             });

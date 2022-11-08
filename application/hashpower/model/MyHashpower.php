@@ -37,6 +37,9 @@ class MyHashpower extends Base {
                                 'total_number' => (float)$myHashpower['total_number'] + (float)$number,
                                 'up_time' => date('Y-m-d H:i:s')
                             ];
+                            if($myHashpower['buy_price'] <= 0) {
+                                $update['buy_price'] = $price;
+                            }
                         } else { //赎回
                             $update = [
                                 'total_invest' => (float)$myHashpower['total_invest'] - (float)$buy_number,
