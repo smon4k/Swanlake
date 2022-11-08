@@ -13,17 +13,17 @@ export default function (axios,router) {
       if (config.method === 'post') {
         if(config.headers['Content-Type'] !== undefined && config.headers['Content-Type'] == 'multipart/form-data') { //如果是上传文件形式的话
         } else {
-            config.data = qs.stringify(config.data) //将post数据拼接为参数形式
+            // config.data = qs.stringify(config.data) //将post数据拼接为参数形式
         }
     
-        config.params = {
-          token: localStorage.getItem('token')
-        }
+        // config.params = {
+        //   token: localStorage.getItem('token')
+        // }
       } else {
-        config.params = {
-          token: localStorage.getItem('token'),
-          ...config.params
-        }
+        // config.params = {
+        //   token: localStorage.getItem('token'),
+        //   ...config.params
+        // }
       }
       config.transformResponse = [
         function (data) {
