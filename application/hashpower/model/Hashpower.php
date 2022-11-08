@@ -55,7 +55,8 @@ class Hashpower extends Base
             $newArray[$key]['total_balance'] = 0;
             $newArray[$key]['yest_income'] = 0;
             $newArray[$key]['yest_income_rate'] = 0;
-            $newArray[$key]['initial_deposit'] = MyHashpower::getSumProductTotalInvest($val['id']); //获取初始入金 = sum(用户购买份额*当时的价格);
+            // $newArray[$key]['initial_deposit'] = MyHashpower::getSumProductTotalInvest($val['id']); //获取初始入金 = sum(用户购买份额*当时的价格);
+            $newArray[$key]['initial_deposit'] = 0;
         }
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$newArray];
     }

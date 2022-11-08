@@ -67,7 +67,7 @@
                     align="center"
                     width="150">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.initial_deposit || 0, 2) }} {{ scope.row.currency}}</span>
+                        <span>{{ toFixed(scope.row.initial_deposit || 0, 2) }} {{ scope.row.is_hash ? 'UDT' : scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -110,7 +110,7 @@
                         <span v-else>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
                     </el-descriptions-item>
                     <el-descriptions-item label="昨日收益率">{{ toFixed(item.yest_income_rate || 0, 2) }}%</el-descriptions-item>
-                    <el-descriptions-item label="初始入金">{{ toFixed(item.initial_deposit || 0, 2) }} {{ item.currency }}</el-descriptions-item>
+                    <el-descriptions-item label="初始入金">{{ toFixed(item.initial_deposit || 0, 2) }} {{ item.is_hash ? 'UDT' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item>
                         <div class="operate">
                             <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
@@ -260,7 +260,7 @@ export default {
                                     list[index]['yest_income'] = yest_income_usdt;
                                     list[index]['yest_income_btcb'] = yest_income_btcb;
                                     list[index]['yest_income_rate'] = yest_income_usdt > 0 ? (yest_income_btcb * 100) : 0;
-                                    // list[index]['initial_deposit'] = hashpowerObj['btcbReward'] * Number(this.poolBtcData.currency_price);
+                                    list[index]['initial_deposit'] = Number(hashpowerObj.total) * Number(this.poolBtcData.currency_price);
                                     list[index]['is_hash'] = true;
                                 }
                             });
