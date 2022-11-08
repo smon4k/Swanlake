@@ -270,7 +270,7 @@ export default {
                                     list[index]['yest_income'] = yest_income_usdt;
                                     list[index]['yest_income_btcb'] = yest_income_btcb;
                                     list[index]['yest_income_rate'] = yest_income_usdt > 0 ? (yest_income_btcb * 100) : 0;
-                                    list[index]['initial_deposit'] = Number(hashpowerObj.total) * Number(this.poolBtcData.currency_price);
+                                    list[index]['initial_deposit'] = Number(hashpowerObj.total) * Number(element.cost_revenue);
                                     list[index]['is_hash'] = true;
                                 }
                             });

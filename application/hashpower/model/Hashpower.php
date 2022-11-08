@@ -45,6 +45,7 @@ class Hashpower extends Base
             $newArray[$key]['id'] = $val['id'];
             $newArray[$key]['currency'] = $val['currency'];
             $newArray[$key]['name'] = $val['name'];
+            $newArray[$key]['cost_revenue'] = $val['cost_revenue'];
             $daily_income = $incomeArr['dailyIncome']; //日收益
             $annualized_income = $incomeArr['annualizedIncome'] * 100;
             // p($annualized_income);
