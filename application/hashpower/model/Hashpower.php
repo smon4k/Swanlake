@@ -117,9 +117,9 @@ class Hashpower extends Base
     */
     public static function getHashpowerDetail($hashId = 0)
     {
-        $lists = [];
+        $detail = [];
         if ($hashId > 0) {
-            $detail = self::where('id', $hashId)->find();
+            $detail = self::where('id', $hashId)->find()->toArray();
             if (!$detail) {
                 return false;
             }

@@ -23,6 +23,7 @@ class MyHashpower extends Base {
             self::startTrans();
             try {
                 if($userId) {
+                    $hashpowerDetail = Hashpower::getHashpowerDetail();
                     $poolBtcData = Hashpower::getPoolBtc();
                     $price = $poolBtcData['currency_price']; 
                     $buy_number = 0; //usdt 数量
@@ -38,7 +39,7 @@ class MyHashpower extends Base {
                                 'up_time' => date('Y-m-d H:i:s')
                             ];
                             if($myHashpower['buy_price'] <= 0) {
-                                $update['buy_price'] = $price;
+                                $update['buy_price'] = $hashpowerDetail['cost_revenue'];
                             }
                         } else { //赎回
                             $update = [
@@ -58,7 +59,7 @@ class MyHashpower extends Base {
                             'hash_balance' => 0,
                             'total_invest' => $buy_number,
                             'total_number' => $number,
-                            'buy_price' => $price,
+                            'buy_price' => $hashpowerDetail['cost_revenue'],
                             'time' => date('Y-m-d H:i:s'),
                             'up_time' => date('Y-m-d H:i:s'),
                         ];
@@ -90,6 +91,7 @@ class MyHashpower extends Base {
      */
     public static function setHashBalance($hash_id=0, $address='', $number=0) {
         if($hash_id && $address !== '' && $number) {
+            $hashpowerDetail = Hashpower::getHashpowerDetail();
             $userId = User::getUserAddress($address);
             $myHashpower = self::getMyHashpower($hash_id, $userId);
             if ($myHashpower && count((array)$myHashpower) > 0) { //已存在 进行更新数据
@@ -101,7 +103,7 @@ class MyHashpower extends Base {
                     'hash_balance' => $number,
                     'total_invest' => 0,
                     'total_number' => 0,
-                    'buy_price' => 0,
+                    'buy_price' => $hashpowerDetail['cost_revenue'],
                     'time' => date('Y-m-d H:i:s'),
                     'up_time' => date('Y-m-d H:i:s'),
                 ];
@@ -129,7 +131,7 @@ class MyHashpower extends Base {
         $allpage = intval(ceil($count / $limit));
         $lists = self::alias('a')
                     ->join('hp_hashpower b', 'a.hash_id = b.id')
-                    ->field("a.*,b.name,b.currency")
+                    ->field("a.*,b.name,b.currency,b.cost_revenue")
                     ->where($where)
                     ->page($page, $limit)
                     ->order($order)
