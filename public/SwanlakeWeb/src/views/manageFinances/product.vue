@@ -46,7 +46,11 @@
                     label="昨日收益"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
+                        <span v-if="scope.row.is_hash">
+                            {{ toFixed(scope.row.yest_income || 0, 6) }} USDT <br>
+                            {{ toFixed(scope.row.yest_income_btcb || 0, 6) }} BTC
+                        </span>
+                        <span v-else>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -98,7 +102,13 @@
                     <!-- <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item> -->
                     <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
                     <el-descriptions-item label="总结余">{{ toFixed(item.total_balance ? item.total_balance : Number(item.total_size) * Number(item.networth) || 0, 4) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
-                    <el-descriptions-item label="昨日收益">{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</el-descriptions-item>
+                    <el-descriptions-item label="昨日收益">
+                        <span v-if="item.is_hash">
+                            {{ toFixed(item.yest_income || 0, 6) }} USDT <br>
+                            {{ toFixed(item.yest_income_btcb || 0, 6) }} BTC
+                        </span>
+                        <span v-else>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
+                    </el-descriptions-item>
                     <el-descriptions-item label="昨日收益率">{{ toFixed(item.yest_income_rate || 0, 2) }}%</el-descriptions-item>
                     <el-descriptions-item label="初始入金">{{ toFixed(item.initial_deposit || 0, 2) }} {{ item.currency }}</el-descriptions-item>
                     <el-descriptions-item>
@@ -245,10 +255,13 @@ export default {
                                 if(element.name == hashpowerObj.name) {
                                     list[index] = {...list[index], hashpowerObj};
                                     list[index]['total_balance'] = hashpowerObj.total;
-                                    let yest_income = Number(hashpowerObj.total) * Number(element.daily_income);
-                                    list[index]['yest_income'] = yest_income;
-                                    list[index]['yest_income_rate'] = yest_income > 0 ? ((yest_income / Number(this.poolBtcData.currency_price)) * 100) : 0;
+                                    let yest_income_usdt = Number(hashpowerObj.total) * Number(element.daily_income);
+                                    let yest_income_btcb = Number(hashpowerObj.total) * (Number(element.daily_income) / Number(this.poolBtcData.currency_price));
+                                    list[index]['yest_income'] = yest_income_usdt;
+                                    list[index]['yest_income_btcb'] = yest_income_btcb;
+                                    list[index]['yest_income_rate'] = yest_income_usdt > 0 ? (yest_income_btcb * 100) : 0;
                                     // list[index]['initial_deposit'] = hashpowerObj['btcbReward'] * Number(this.poolBtcData.currency_price);
+                                    list[index]['is_hash'] = true;
                                 }
                             });
                         }
