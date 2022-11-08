@@ -299,7 +299,7 @@ export default {
                             //         list[index]['total_balance'] = hashpowerObj.total;
                                     let yest_income = Number(hashpowerObj.balance) * Number(element.daily_income);
                                     list[index]['total_number'] = hashpowerObj.balance; //购买数量
-                                    list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(this.poolBtcData.currency_price); //总结余 = 购买数量 * 价格
+                                    list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(element.cost_revenue); //总结余 = 购买数量 * 算力币价格
                                     if(Number(element.buy_price) !== Number(element.cost_revenue)) {
                                         list[index]['yest_income'] = yest_income;
                                         list[index]['total_rate'] = hashpowerObj.btcbReward;

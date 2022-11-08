@@ -269,8 +269,8 @@ export default {
                                     let yest_income_btcb = Number(hashpowerObj.total) * (Number(element.daily_income) / Number(this.poolBtcData.currency_price));
                                     list[index]['yest_income'] = yest_income_usdt;
                                     list[index]['yest_income_btcb'] = yest_income_btcb;
-                                    list[index]['yest_income_rate'] = yest_income_usdt > 0 ? (yest_income_btcb * 100) : 0;
-                                    list[index]['initial_deposit'] = Number(hashpowerObj.total) * Number(element.cost_revenue);
+                                    list[index]['yest_income_rate'] = yest_income_usdt > 0 ? (yest_income_usdt / Number(element.cost_revenue) * Number(hashpowerObj.total)) : 0; //昨日收益率 = 昨日收益 / 算力币价格 * 总数量
+                                    list[index]['initial_deposit'] = Number(hashpowerObj.total) * Number(element.cost_revenue); //初始入金 = 总T数乘算力币价格
                                     list[index]['is_hash'] = true;
                                 }
                             });
