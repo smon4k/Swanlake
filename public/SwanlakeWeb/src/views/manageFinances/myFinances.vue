@@ -162,7 +162,6 @@ export default {
 
     },
     created() {
-        this.loading = true;
         this.getPoolBtcData();
     },
     watch: {
@@ -230,29 +229,32 @@ export default {
             })
         },
         getMyProductList(ServerWhere) {
-            if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
-                ServerWhere = {
-                    limit: this.pageSize,
-                    page: this.currPage,
-                    address: this.address,
-                };
-            }
-            get(this.apiUrl + "/Api/Product/getMyProductList", ServerWhere, async json => {
-                if (json.code == 10000) {
-                    let list = (json.data && json.data.lists) || [];
-                    // let hashpowerData = await this.getMyHashpowerList();
-                    // // console.log(hashpowerData);
-                    // if(hashpowerData && hashpowerData.length > 0) {
-                    //     list = [...list, ...hashpowerData];
-                    // }
-                    console.log(list);
-                    this.tableData = list;
-                    this.total = json.data.count;
-                } else {
-                    this.$message.error("加载数据失败");
+            if(this.address) {
+                this.loading = true;
+                if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+                    ServerWhere = {
+                        limit: this.pageSize,
+                        page: this.currPage,
+                        address: this.address,
+                    };
                 }
-                this.loading = false;
-            });
+                get(this.apiUrl + "/Api/Product/getMyProductList", ServerWhere, async json => {
+                    if (json.code == 10000) {
+                        let list = (json.data && json.data.lists) || [];
+                        let hashpowerData = await this.getMyHashpowerList();
+                        // console.log(hashpowerData);
+                        if(hashpowerData && hashpowerData.length > 0) {
+                            list = [...list, ...hashpowerData];
+                        }
+                        console.log(list);
+                        this.tableData = list;
+                        this.total = json.data.count;
+                    } else {
+                        this.$message.error("加载数据失败");
+                    }
+                    this.loading = false;
+                });
+            }
         },
         async getMyHashpowerList(ServerWhere) { //获取我的算力币数据
             return new Promise(async (resolve, reject) => {
