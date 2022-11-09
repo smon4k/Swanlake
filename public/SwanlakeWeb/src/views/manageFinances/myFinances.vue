@@ -49,8 +49,8 @@
                     width="180">
                     <template slot-scope="scope">
                         <span v-if="scope.row.is_hash">
-                            {{ toFixed(scope.row.yest_income || 0, 6) }} USDT <br>
-                            {{ toFixed(scope.row.yest_income_btcb || 0, 10) }} BTC
+                            {{ scope.row.yest_income ? toFixed(scope.row.yest_income || 0, 6) : 0 }} USDT <br>
+                            {{ scope.row.yest_income_btcb ? toFixed(scope.row.yest_income_btcb || 0, 10) : 0 }} BTC
                         </span>
                         <span v-else>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
                     </template>
@@ -115,8 +115,8 @@
                 <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
                 <el-descriptions-item label="昨日收益">
                         <span v-if="item.is_hash">
-                            {{ toFixed(item.yest_income || 0, 6) }} USDT <br>
-                            {{ toFixed(item.yest_income_btcb || 0, 10) }} BTC
+                            {{ item.yest_income ? toFixed(item.yest_income || 0, 6) : 0 }} USDT <br>
+                            {{ item.yest_income_btcb ? toFixed(item.yest_income_btcb || 0, 10) : 0 }} BTC
                         </span>
                         <span v-else>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
                     </el-descriptions-item>
