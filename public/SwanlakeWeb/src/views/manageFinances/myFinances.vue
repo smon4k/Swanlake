@@ -311,7 +311,7 @@ export default {
                                     let yest_income = Number(hashpowerObj.balance) * Number(element.daily_income);
                                     // list[index]['total_number'] = hashpowerObj.balance; //购买数量
                                     let BTCS19ProBalance = await getBalance(hashpowerObj.currencyToken, 18); //获取购买算力币余额
-                                    list[index]['total_number'] = BTCS19ProBalance; //购买数量
+                                    list[index]['total_number'] = BTCS19ProBalance * 10; //购买数量
                                     // list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(element.cost_revenue); //总结余 = 购买数量 * 算力币价格
                                     list[index]['total_balance'] = Number(hashpowerObj.balance); //总结余 = 购买数量 T数
                                     if(Number(element.buy_price) !== Number(element.cost_revenue)) {
