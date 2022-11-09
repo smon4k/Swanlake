@@ -71,7 +71,7 @@
                 fixed="right"
                 label="操作"
                 align="center"
-                width="200">
+                width="230">
                 <template slot-scope="scope">
                     <div v-if="!scope.row.is_hash">
                         <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
@@ -79,6 +79,7 @@
                         <el-button type="text" @click="incomeClick(scope.row)">历史净值</el-button>
                     </div>
                     <div v-else>
+                        <el-button @click="HashpowerBuyClick(scope.row, 1)" type="text">购买</el-button>
                         <el-button @click="receiveBTCBReward(scope.row)" type="text" :loading="receiveLoading" :disabled="!Number(scope.row.hashpowerObj.btcbReward)">收获{{scope.row.currency}}</el-button>
                         <el-button @click="toHashpowerDetail(1, scope.row)" type="text">存入</el-button>
                         <el-button type="text" @click="toHashpowerDetail(2, scope.row)" >提取</el-button>
@@ -119,9 +120,10 @@
                             <el-button size="mini" type="primary" @click="incomeClick(item)">历史净值</el-button>
                         </div>
                         <div v-else>
+                            <el-button size="mini" type="primary" @click="HashpowerBuyClick(item, 1)">购买</el-button>
                             <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.hashpowerObj.btcbReward)">收获{{item.currency}}</el-button>
-                            <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">购买</el-button>
-                            <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">赎回</el-button>
+                            <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
+                            <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
                         </div>
                     </div>
                 </el-descriptions-item>
@@ -133,7 +135,7 @@
 import { mapGetters, mapState } from "vuex";
 import { get } from "@/common/axios.js";
 import Page from "@/components/Page.vue";
-import { getPoolBtcData } from "@/wallet/serve";
+import { getPoolBtcData, getBalance } from "@/wallet/serve";
 import { depositPoolsIn } from "@/wallet/trade";
 export default {
     name: '',
@@ -239,6 +241,15 @@ export default {
                 }
             })
         },
+        HashpowerBuyClick(row, type) {
+            this.$router.push({
+                path:'/hashpower/buy',
+                query: {
+                    type: type,
+                    hash_id: row.hash_id,
+                }
+            })
+        },
         incomeClick(row) {
             this.$router.push({
                 path:'/financial/userDetailsList',
@@ -264,7 +275,7 @@ export default {
                         if(hashpowerData && hashpowerData.length > 0) {
                             list = [...list, ...hashpowerData];
                         }
-                        console.log(list);
+                        // console.log(list);
                         this.tableData = list;
                         this.total = json.data.count;
                     } else {
@@ -290,16 +301,19 @@ export default {
                     console.log(json);
                     if (json.code == 10000) {
                         let list = (json.data && json.data.lists) || [];
-                        console.log(this.hashPowerPoolsList, this.poolBtcData);
+                        // console.log(this.hashPowerPoolsList, this.poolBtcData);
                         for (let index = 0; index < list.length; index++) {
                             const element = list[index];
-                            this.hashPowerPoolsList.forEach(hashpowerObj => {
+                            this.hashPowerPoolsList.forEach(async hashpowerObj => {
                                 if(element.name == hashpowerObj.name) {
                                     list[index] = {...list[index], hashpowerObj};
                             //         list[index]['total_balance'] = hashpowerObj.total;
                                     let yest_income = Number(hashpowerObj.balance) * Number(element.daily_income);
-                                    list[index]['total_number'] = hashpowerObj.balance; //购买数量
-                                    list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(element.cost_revenue); //总结余 = 购买数量 * 算力币价格
+                                    // list[index]['total_number'] = hashpowerObj.balance; //购买数量
+                                    let BTCS19ProBalance = await getBalance(hashpowerObj.currencyToken, 18); //获取购买算力币余额
+                                    list[index]['total_number'] = BTCS19ProBalance; //购买数量
+                                    // list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(element.cost_revenue); //总结余 = 购买数量 * 算力币价格
+                                    list[index]['total_balance'] = Number(hashpowerObj.balance); //总结余 = 购买数量 T数
                                     if(Number(element.buy_price) !== Number(element.cost_revenue)) {
                                         list[index]['yest_income'] = yest_income;
                                         list[index]['total_rate'] = hashpowerObj.btcbReward;

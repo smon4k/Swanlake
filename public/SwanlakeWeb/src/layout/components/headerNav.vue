@@ -126,7 +126,7 @@ export default {
             activeTheme:'dark',
             activeMintNav:'All',
             activeLiquidation:'',
-            language: 'ZH',
+            language: 'zh',
             nftRewardList: [],
             window: window,
             screenWidth: document.body.clientWidth,
@@ -226,11 +226,12 @@ export default {
         localStorage.setItem('theme', this.activeTheme)
         document.documentElement.setAttribute( "data-theme", theme )
 
-        let language = "en";
-        language = localStorage.getItem('i18nextLng');
-        if(language && language !== undefined) {
-            this.language = language;
-        }
+        let language = "zh";
+        localStorage.setItem('i18nextLng', language);
+        // language = localStorage.getItem('i18nextLng');
+        // if(language && language !== undefined) {
+        //     this.language = language;
+        // }
         // if(this.currentPath.indexOf('Liquidation')){
         //     let subNav = this.currentPath.replace('/Liquidation/' , '')
         //     console.log('subNav' , subNav);
