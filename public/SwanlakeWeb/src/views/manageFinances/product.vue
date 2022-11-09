@@ -270,13 +270,13 @@ export default {
                                     list[index]['yest_income'] = yest_income_usdt;
                                     list[index]['yest_income_btcb'] = yest_income_btcb;
                                     // list[index]['yest_income_rate'] = yest_income_usdt > 0 ? (yest_income_usdt / Number(element.cost_revenue) * Number(hashpowerObj.total)) : 0; //昨日收益率 = 昨日收益 / 算力币价格 * 总数量
-                                    list[index]['yest_income_rate'] = element.annualized_income > 0 ? (element.annualized_income / 365) * 100 : 0; //昨日收益率 = 年化收益 / 365
+                                    list[index]['yest_income_rate'] = element.annualized_income > 0 ? (element.annualized_income / 365) : 0; //昨日收益率 = 年化收益 / 365
                                     list[index]['initial_deposit'] = Number(hashpowerObj.total) * Number(element.cost_revenue); //初始入金 = 总T数乘算力币价格
                                     list[index]['is_hash'] = true;
                                 }
                             });
                         }
-                        // console.log(list);
+                        console.log(list);
                         resolve(list);
                     } else {
                         this.$message.error("加载数据失败");
