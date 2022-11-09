@@ -73,8 +73,10 @@
                 <el-table-column
                     fixed="right"
                     label="操作"
-                    align="center">
+                    align="center"
+                    width="200">
                     <template slot-scope="scope">
+                        <el-button @click="showHashpowerDetail()" type="text">详情</el-button>
                         <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
                         <el-button type="text" @click="incomeClick(scope.row)" v-if="scope.row.name !== 'BTCS19Pro'">历史净值</el-button>
                     </template>
@@ -113,6 +115,7 @@
                     <el-descriptions-item label="初始入金">{{ toFixed(item.initial_deposit || 0, 2) }} {{ item.is_hash ? 'UDT' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item>
                         <div class="operate">
+                            <el-button size="mini" type="primary" @click="showHashpowerDetail()">详情</el-button>
                             <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
                             <el-button type="text" @click="incomeClick(item)" v-if="item.name !== 'BTCS19Pro'">历史净值</el-button>
                         </div>
@@ -123,6 +126,47 @@
                 <el-empty description="没有数据"></el-empty>
             </div>
         </div>
+
+        <el-dialog
+            title="算力规模"
+            :visible.sync="hashpowerDetail"
+            :width="isMobel ? '80%' : '50%'"
+            center>
+            <div class="info" v-if="poolBtcData">
+            <el-row>
+                <el-col :span="24">
+                    <el-row style="line-height:30px;">
+                        <el-col :span="isMobel ? 12 : 12" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
+                            <span>{{toFixed(Number(yester_output), 2) || "--"}} USDT</span>
+                            <br>
+                            <span>{{toFixed(Number(yester_output) / Number(poolBtcData.currency_price), 8)}} BTC</span>
+                        </el-col>
+                        <el-col :span="isMobel ? 12 : 12" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
+                            <span>{{toFixed(Number(count_output), 2) || "--"}} USDT</span>
+                            <br>
+                            <span>{{toFixed(Number(count_output) / Number(poolBtcData.currency_price), 8) || "--"}} BTC</span>
+                        </el-col>
+                    </el-row>
+                    <br>
+                    <el-row style="line-height:30px;">
+                        <el-col :span="isMobel ? 12 : 12" align="center">{{ $t('subscribe:EstimatedElectricityCharge') }}/T<br /> 
+                            <span>{{ estimatedElectricityCharge(poolBtcData) }} USDT</span>
+                            <br>
+                            <span>{{ dailyExpenditure(poolBtcData) }} BTC</span>
+                        </el-col>
+                        <el-col :span="isMobel ? 12 : 12" align="center">{{ $t('subscribe:NetProfit') }}/T<br /> 
+                            <span>{{ netProfit(poolBtcData) }} USDT</span>
+                            <br>
+                            <span></span>{{ netProfitBtcNumber(poolBtcData) }} BTC
+                        </el-col>
+                    </el-row>
+                    <el-row style="line-height:30px;">
+                        <el-col :span="isMobel ? 24 : 24" align="center">{{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}</el-col>
+                    </el-row>
+                </el-col>
+            </el-row>
+            </div>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -130,6 +174,7 @@ import Page from "@/components/Page.vue";
 import { get, post, upload } from "@/common/axios.js";
 import { mapGetters, mapState } from "vuex";
 import { getPoolBtcData } from "@/wallet/serve";
+import { keepDecimalNotRounding } from "@/utils/tools";
 export default {
     name: '',
     data() {
@@ -143,6 +188,13 @@ export default {
             tableData: [],
             poolBtcData: {},
             loading: false,
+            hashpowerDetail: false,
+
+            count_output: 0,
+            online_days: 0, //上线天数
+            to_output: 0, //今日产出
+            yester_output: 0, //昨日产出
+            cost_revenue: 0, //收益成本
         }
     },
     activated() { //页面进来
@@ -162,6 +214,7 @@ export default {
             isMobel:state=>state.comps.isMobel,
             mainTheme:state=>state.comps.mainTheme,
             apiUrl:state=>state.base.apiUrl,
+            nftUrl:state=>state.base.nftUrl,
             hashPowerPoolsList:state=>state.base.hashPowerPoolsList,
         }),
 
@@ -181,6 +234,8 @@ export default {
                     setTimeout(async() => {
                         
                         this.getPoolBtcData();
+
+                        this.getOutputDetail();
 
                         this.getListData();
 
@@ -215,6 +270,7 @@ export default {
             this.timeInterval = setInterval(async () => {
                 this.$store.dispatch('refreshHashPowerPoolsList')
                 await this.getPoolBtcData();
+                await this.getOutputDetail();
                 await this.getListData();
                 // await this.getHashpowerData();
             }, this.refreshTime)
@@ -285,6 +341,27 @@ export default {
                 });
             })
         },
+        async getOutputDetail() {
+            axios.get(this.nftUrl + "/hashpower/hashpower/getHashpowerOutput",{
+                params: {}
+            }).then((json) => {
+                console.log(json);
+                if (json.code == 10000) {
+                    this.count_output = json.data.count_output;
+                    this.online_days = json.data.online_days;
+                    this.to_output = json.data.to_output;
+                    this.yester_output = json.data.yester_output;
+                    this.cost_revenue = json.data.cost_revenue;
+                    // this.detailData = json.data;
+                } 
+                else {
+                    // this.$message.error("error");
+                    console.log("get Data error");
+                }
+            }).catch((error) => {
+                this.$message.error(error);
+            });
+        },
         async getPoolBtcData() { //获取BTC爬虫数据
             let data = await getPoolBtcData();
             if(data && data.length > 0) {
@@ -340,6 +417,35 @@ export default {
                 }
             })
         },
+        showHashpowerDetail() { //查看详情
+            this.hashpowerDetail = true;
+        },
+        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.065/美元币价
+            // let num = (24 * 29.55 * 0.065) / item.currency_price;
+            let num = 0.065 * 29.55 * 24 / 1000;
+            return num.toFixed(4);
+        },
+        dailyExpenditure(item) { //日支出 BTC数量
+            let num = this.estimatedElectricityCharge(item) / item.currency_price;
+            return this.toFixed(num, 8);
+        },
+        netProfit(item) { //净收益 = 收益-电费
+            let estimatedElectricityNum = this.estimatedElectricityCharge(item);
+            let num = (item.daily_income - estimatedElectricityNum) * 0.95;
+            if(num > 0) {
+                return keepDecimalNotRounding(Number(keepDecimalNotRounding(num, 3)) + Number(0.001), 3);
+            } else {
+                return 0;
+            }
+        },
+        netProfitBtcNumber(item) { // 净收益 BTC 数量
+            let num = this.netProfit(item) / item.currency_price;
+            if(num > 0) {
+                return num.toFixed(8);
+            } else {
+                return 0;
+            }
+        },
     },
     mounted() {
 
@@ -370,6 +476,9 @@ export default {
                         }
                     }
                 }
+            }
+            .info {
+                font-weight: 800;
             }
         }
     }

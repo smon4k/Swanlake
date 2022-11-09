@@ -431,17 +431,17 @@ export default {
       if(this.detailData.stock < 0) {
         this.$message.error("Inventory shortage");
       }
-      let hash = "111";
-      await this.setPurchaseLog(hash);
-      this.trading = false;
-      // let amount = this.num * Number(this.detailData.hash_rate);
-      // BuyTokenToS19(amount).then(async (hash) => {
-      //   if(hash) {
-      //     await this.setPurchaseLog(hash);
-      //   }
-      // }).finally(() => {
-      //   this.trading = false;
-      // });
+      // let hash = "111";
+      // await this.setPurchaseLog(hash);
+      // this.trading = false;
+      let amount = this.num * Number(this.detailData.hash_rate);
+      BuyTokenToS19(amount).then(async (hash) => {
+        if(hash) {
+          await this.setPurchaseLog(hash);
+        }
+      }).finally(() => {
+        this.trading = false;
+      });
     },
     async setPurchaseLog(hash) { //开始记录认购记录
       await axios.get(this.apiUrl + "/Hashpower/hashpower/setPurchaseLog", {

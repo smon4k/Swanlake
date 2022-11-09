@@ -155,6 +155,7 @@ class MyProduct extends Base {
             $total_balance = $total_number * $toDayNetworth; //	总结余: 总的份数 * 最新净值 （随着净值的变化而变化）
             $lists[$key]['total_balance'] = $total_balance;
             $cumulative_income = $total_balance - $total_investment; // 累计收益: 总结余 – 总投资
+            $lists[$key]['total_income'] = $cumulative_income;
             $total_return = ($cumulative_income / $total_investment) * 100; //	总收益率: 累计收益 / 总投资
             // $total_networth = DayNetworth::getCountNetworth($val['product_id']); //总的净值
             $d2 = strtotime($val['time']);

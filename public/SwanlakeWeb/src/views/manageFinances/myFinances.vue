@@ -56,6 +56,19 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    prop="total_income"
+                    label="总收益"
+                    align="center"
+                    width="180">
+                    <template slot-scope="scope">
+                        <span v-if="scope.row.is_hash">
+                            {{ scope.row.total_income_usdt ? toFixed(scope.row.total_income_usdt || 0, 6) : 0 }} USDT <br>
+                            {{ scope.row.total_income_btcb ? toFixed(scope.row.total_income_btcb || 0, 10) : 0 }} BTC
+                        </span>
+                        <span v-else>{{ toFixed(scope.row.total_income || 0, 2) }} {{ scope.row.currency}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     prop="total_rate"
                     label="总收益率"
                     align="center">
@@ -120,6 +133,13 @@
                         </span>
                         <span v-else>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
                     </el-descriptions-item>
+                <el-descriptions-item label="总收益">
+                    <span v-if="item.is_hash">
+                            {{ item.total_income_usdt ? toFixed(item.total_income_usdt || 0, 6) : 0 }} USDT <br>
+                            {{ item.total_income_btcb ? toFixed(item.total_income_btcb || 0, 10) : 0 }} BTC
+                        </span>
+                    <span v-else>{{ toFixed(item.total_income || 0, 2) }} {{ item.currency }}</span>
+                </el-descriptions-item>
                 <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 2) }}%</el-descriptions-item>
                 <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 2) }}%</el-descriptions-item>
                 <el-descriptions-item>
@@ -147,6 +167,7 @@ import { get } from "@/common/axios.js";
 import Page from "@/components/Page.vue";
 import { getPoolBtcData, getBalance } from "@/wallet/serve";
 import { depositPoolsIn } from "@/wallet/trade";
+import { keepDecimalNotRounding } from "@/utils/tools";
 export default {
     name: '',
     data() {
@@ -325,15 +346,18 @@ export default {
                                     // list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(element.cost_revenue); //总结余 = 购买数量 * 算力币价格
                                     list[index]['total_balance'] = Number(hashpowerObj.balance); //总结余 = 购买数量 T数
                                     // if(Number(element.buy_price) !== Number(element.cost_revenue)) {
-                                    let yest_income_usdt = Number(hashpowerObj.balance) * Number(element.daily_income);
-                                    let yest_income_btcb = Number(hashpowerObj.balance) * (Number(element.daily_income) / Number(this.poolBtcData.currency_price));
+                                    let yest_income_usdt = Number(hashpowerObj.balance) * Number(element.daily_income); //昨日收益 usdt
+                                    let yest_income_btcb = Number(hashpowerObj.balance) * (Number(element.daily_income) / Number(this.poolBtcData.currency_price)); //昨日收益 btcb
                                     list[index]['yest_income'] = yest_income_usdt;
                                     list[index]['yest_income_btcb'] = yest_income_btcb;
-                                    list[index]['total_rate'] = hashpowerObj.btcbReward;
+                                    list[index]['total_income_btcb'] = Number(hashpowerObj.btcbReward); //btcb总收益
+                                    let total_income_usdt = Number(hashpowerObj.btcbReward) * Number(this.poolBtcData.currency_price); //usdt总收益
+                                    list[index]['total_income_usdt'] = total_income_usdt;
+                                    list[index]['total_rate'] = keepDecimalNotRounding(total_income_usdt / (Number(hashpowerObj.balance) * Number(element.cost_revenue)), 10) * 100; //总收益率=总收益/总投入=总收益/(算力币价*算力币数)
                                     // console.log(this.poolBtcData);
-                                    let dailyYield = (Number(element.daily_income) / Number(this.poolBtcData.currency_price) * Number(hashpowerObj.balance)) * 365 * 100; //日收益率 = 当日收益/算力币价*总购买算力
+                                    let dailyYield = yest_income_usdt / (Number(hashpowerObj.balance) * Number(element.cost_revenue)); //昨日收益/（算力币T数*算力币价格）
                                     // console.log(dailyYield);
-                                    list[index]['year_rate'] = dailyYield;
+                                    list[index]['year_rate'] = dailyYield * 365 * 100;
                                     // }
                                     list[index]['is_hash'] = true;
                                 }
