@@ -166,6 +166,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let daily_income = 0
   let currency = 0
   let annualized_income = 0
+  let harvest_btcb_amount = 0
   if(pId) {
     h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
     btcbReward = await getH2OPendingBonus(goblinAddress, 8); //获取BTCB奖励
@@ -187,6 +188,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     daily_income = HashpowerDetail.daily_income; //日收益率
     currency = HashpowerDetail.currency; //交易币种
     annualized_income = HashpowerDetail.annualized_income; //年化收益率
+    harvest_btcb_amount = HashpowerDetail.harvest_btcb_amount; //已收割奖励数量
   } 
   let reObj = {
     totalTvl: totalTvl,
@@ -204,6 +206,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     daily_income: daily_income,
     currency: currency,
     annualized_income: annualized_income,
+    harvest_btcb_amount: harvest_btcb_amount,
   };
   return reObj;
 }
@@ -410,8 +413,9 @@ export const getFillingIncreasingId = async function(){
 //获取算力币详情
 export const getHashpowerDetail = async function(hashId){
   const nftUrl = __ownInstance__.$store.state.base.nftUrl;
+  const address = __ownInstance__.$store.state.base.address;
   let result = 0;
-  let data = await $get(nftUrl + '/Hashpower/Hashpower/getHashpowerDetail?hashId='+hashId);
+  let data = await $get(nftUrl + '/Hashpower/Hashpower/getHashpowerDetail?hashId='+hashId+'&address='+address);
   if(data && data.code == 10000) {
     result = data.data;
   }

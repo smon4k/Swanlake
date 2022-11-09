@@ -8,12 +8,14 @@
                 <el-table-column
                     prop="name"
                     label="产品名称"
-                    align="center">
+                    align="center"
+                    width="150">
                 </el-table-column>
                 <el-table-column
                     prop="annualized_income"
                     label="预期年化收益率"
-                    align="center">
+                    align="center"
+                    width="150">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.annualized_income || 0, 2) }}%</span>
                     </template>
@@ -38,16 +40,17 @@
                     label="总结余"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_balance ? scope.row.total_balance : Number(scope.row.total_size) * Number(scope.row.networth) || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
+                        <span>{{ toFixed(scope.row.total_balance ? scope.row.total_balance : Number(scope.row.total_size) * Number(scope.row.networth) || 0, 2) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
                     prop="yest_income"
                     label="昨日收益"
-                    align="center">
+                    align="center"
+                    width="150">
                     <template slot-scope="scope">
                         <span v-if="scope.row.is_hash">
-                            {{ toFixed(scope.row.yest_income || 0, 4) }} USDT <br>
+                            {{ toFixed(scope.row.yest_income || 0, 2) }} USDT <br>
                             {{ toFixed(scope.row.yest_income_btcb || 0, 4) }} BTC
                         </span>
                         <span v-else>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
@@ -103,10 +106,10 @@
                     <el-descriptions-item label="预期年化收益率">{{ toFixed(item.annualized_income || 0, 2) }}%</el-descriptions-item>
                     <!-- <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item> -->
                     <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
-                    <el-descriptions-item label="总结余">{{ toFixed(item.total_balance ? item.total_balance : Number(item.total_size) * Number(item.networth) || 0, 4) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
+                    <el-descriptions-item label="总结余">{{ toFixed(item.total_balance ? item.total_balance : Number(item.total_size) * Number(item.networth) || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益">
                         <span v-if="item.is_hash">
-                            {{ toFixed(item.yest_income || 0, 4) }} USDT <br>
+                            {{ toFixed(item.yest_income || 0, 2) }} USDT <br>
                             {{ toFixed(item.yest_income_btcb || 0, 4) }} BTC
                         </span>
                         <span v-else>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
@@ -329,6 +332,7 @@ export default {
                     this.tableData = list;
                     this.loading = false;
                     this.total = json.data.count;
+                    this.$forceUpdate();
                 } else {
                     this.$message.error("加载数据失败");
                 }

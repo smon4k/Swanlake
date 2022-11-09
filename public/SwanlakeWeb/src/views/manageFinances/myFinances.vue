@@ -23,9 +23,10 @@
                 <el-table-column
                     prop="total_number"
                     label="购买份数"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_number || 0, 4) }}</span>
+                        <span>{{ toFixed(scope.row.total_number || 0, 2) }}</span>
                     </template>
                 </el-table-column>
                 <!-- <el-table-column
@@ -71,7 +72,8 @@
                 <el-table-column
                     prop="total_rate"
                     label="总收益率"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total_rate || 0, 2) }}%</span>
                     </template>
@@ -79,7 +81,8 @@
                 <el-table-column
                     prop="year_rate"
                     label="年化收益率"
-                    align="center">
+                    align="center"
+                    width="100">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.year_rate || 0, 2) }}%</span>
                     </template>
@@ -123,7 +126,7 @@
             <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                 <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                 <el-descriptions-item label="总结余">{{ toFixed(item.total_balance || 0, 4) }} {{item.currency === 'BTCB' ? 'T' : item.currency}}</el-descriptions-item>
-                <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 4) }}</el-descriptions-item>
+                <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 2) }}</el-descriptions-item>
                 <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
                 <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
                 <el-descriptions-item label="昨日收益">
@@ -152,6 +155,7 @@
                         <div v-else>
                             <el-button size="mini" type="primary" @click="HashpowerBuyClick(item, 1)">购买</el-button>
                             <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获{{item.currency}}</el-button>
+                            <br><br>
                             <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
                             <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
                         </div>
@@ -163,7 +167,7 @@
 </template>
 <script>
 import { mapGetters, mapState } from "vuex";
-import { get } from "@/common/axios.js";
+import { get, post } from "@/common/axios.js";
 import { $get } from '@/utils/request'
 import Page from "@/components/Page.vue";
 import { getPoolBtcData, getBalance } from "@/wallet/serve";
@@ -201,6 +205,7 @@ export default {
             isMobel:state=>state.comps.isMobel,
             mainTheme:state=>state.comps.mainTheme,
             apiUrl:state=>state.base.apiUrl,
+            nftUrl:state=>state.base.nftUrl,
             hashPowerPoolsList:state=>state.base.hashPowerPoolsList,
         }),
 
@@ -307,10 +312,11 @@ export default {
                         if(hashpowerData && hashpowerData.length > 0) {
                             list = [...list, ...hashpowerData];
                         }
-                        // console.log(list);
+                        console.log(list);
                         this.loading = false;
                         this.tableData = list;
                         this.total = json.data.count;
+                        this.$forceUpdate();
                     } else {
                         this.$message.error("加载数据失败");
                     }
@@ -330,7 +336,7 @@ export default {
                     };
                 }
                 let arr = [];
-                // console.log(this.hashPowerPoolsList);
+                console.log(this.hashPowerPoolsList, this.poolBtcData);
                 this.hashPowerPoolsList.map((hashpowerObj, index) => {
                     if(hashpowerObj.btcb19ProBalance > 0) {
                         arr[index] = hashpowerObj;
@@ -342,8 +348,9 @@ export default {
                         let yest_income_btcb = keepDecimalNotRounding(Number(hashpowerObj.balance) * (Number(hashpowerObj.daily_income) / Number(this.poolBtcData.currency_price)), 10, true); //昨日收益 btcb
                         arr[index]['yest_income'] = yest_income_usdt;
                         arr[index]['yest_income_btcb'] = yest_income_btcb;
-                        arr[index]['total_income_btcb'] = hashpowerObj.btcbReward; //btcb总收益
-                        let total_income_usdt = Number(hashpowerObj.btcbReward) * Number(this.poolBtcData.currency_price); //usdt总收益
+                        let countIncome = Number(hashpowerObj.btcbReward) + Number(hashpowerObj.harvest_btcb_amount); // 总的收益 = 奖励收益数量 + 已收割奖励数量
+                        arr[index]['total_income_btcb'] = countIncome; //btcb总收益
+                        let total_income_usdt = countIncome * Number(this.poolBtcData.currency_price); //usdt总收益
                         arr[index]['total_income_usdt'] = total_income_usdt;
                         arr[index]['total_rate'] = keepDecimalNotRounding(total_income_usdt / (Number(hashpowerObj.balance) * Number(hashpowerObj.cost_revenue)), 10) * 100; //总收益率=总收益/总投入=总收益/(算力币价*算力币数)
                         // console.log(this.poolBtcData);
@@ -355,7 +362,7 @@ export default {
                     }
                     // console.log(hashpowerObj, index);
                 })
-                // console.log(arr);
+                console.log(arr);
                 resolve(arr);
             })
         },
@@ -415,21 +422,41 @@ export default {
                 },
             });
         },
-        receiveBTCBReward(item) { //收获BTCB
+        async receiveBTCBReward(item) { //收获BTCB
             console.log("item", item)
-            if (!Number(item.btcbReward)) return;
+            // if (!Number(item.btcbReward)) return;
             this.$store.commit("sethashPowerPoolsListClaimLoading", {
                 goblin: item.goblin,
                 val: true,
             });
             this.receiveLoading = true;
+
+            // let hash = "0xc2882808e2ce6f72b397fce968fe256966824aa875b0a3b94523225188e50f4a";
+            // let setHarvest = await this.setHashpowerHarvest(item.id, '0.000015', item.currency, hash);
+            // if(setHarvest) {
+            //     this.$message({
+            //         type: 'success',
+            //         message: 'Success!'
+            //     });
+            //     this.$store.dispatch("getHashPowerPoolsList");
+            //     this.receiveLoading = false;
+            // }
+            // return false;
             depositPoolsIn(
                 item.goblin,
                 item.decimals,
                 0,
                 item.pId
-            ).then(() => {
-                this.$store.dispatch("getHashPowerPoolsList");
+            ).then(async(hash) => {
+                let setHarvest = await this.setHashpowerHarvest(item.id, item.btcbReward, item.currency, hash);
+                if(setHarvest) {
+                    this.$message({
+                        type: 'success',
+                        message: 'Success!'
+                    });
+                    this.$store.dispatch("getHashPowerPoolsList");
+                    this.receiveLoading = false;
+                }
             }).finally(() => {
                 this.$store.commit("sethashPowerPoolsListClaimLoading", {
                     goblin: item.goblin,
@@ -438,6 +465,24 @@ export default {
                 this.receiveLoading = false;
             });
         },
+        async setHashpowerHarvest(hashId, amount, currency, hash) {
+            return new Promise(async (resolve, reject) => {
+                post(this.nftUrl + '/hashpower/Hashpower/setHashpowerHarvest', { 
+                    address: this.address, 
+                    hashId: hashId, 
+                    amount: amount,
+                    hash: hash,
+                    currency: currency
+                }, (json) => {
+                    console.log(json);
+                    if (json && json.code == 10000) {
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                })
+            })
+        }
     },
     mounted() {
 

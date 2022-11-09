@@ -147,6 +147,7 @@ export default {
                         cost_revenue: 0,
                         annualized_income: 0,
                         daily_income: 0,
+                        harvest_btcb_amount: 0,
                         currency: 0,
                         loading:false,
                         btcbPrice: 0,
@@ -178,6 +179,7 @@ export default {
                 state.hashPowerPoolsList[index].annualized_income = info.annualized_income
                 state.hashPowerPoolsList[index].daily_income = info.daily_income
                 state.hashPowerPoolsList[index].currency = info.currency
+                state.hashPowerPoolsList[index].harvest_btcb_amount = info.harvest_btcb_amount
                 state.hashPowerPoolsList[index].loading = false
             }
         },
