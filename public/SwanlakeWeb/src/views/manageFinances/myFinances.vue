@@ -46,9 +46,13 @@
                     prop="yest_income"
                     label="昨日收益"
                     align="center"
-                    width="150">
+                    width="180">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.yest_income || 0, 4) }} {{scope.row.currency}}</span>
+                        <span v-if="scope.row.is_hash">
+                            {{ toFixed(scope.row.yest_income || 0, 6) }} USDT <br>
+                            {{ toFixed(scope.row.yest_income_btcb || 0, 10) }} BTC
+                        </span>
+                        <span v-else>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -109,7 +113,13 @@
                 <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 4) }}</el-descriptions-item>
                 <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
                 <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
-                <el-descriptions-item label="昨日收益">{{ toFixed(item.yest_income || 0, 2) }} {{item.currency}}</el-descriptions-item>
+                <el-descriptions-item label="昨日收益">
+                        <span v-if="item.is_hash">
+                            {{ toFixed(item.yest_income || 0, 6) }} USDT <br>
+                            {{ toFixed(item.yest_income_btcb || 0, 10) }} BTC
+                        </span>
+                        <span v-else>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
+                    </el-descriptions-item>
                 <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 2) }}%</el-descriptions-item>
                 <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 2) }}%</el-descriptions-item>
                 <el-descriptions-item>
@@ -308,14 +318,17 @@ export default {
                                 if(element.name == hashpowerObj.name) {
                                     list[index] = {...list[index], hashpowerObj};
                             //         list[index]['total_balance'] = hashpowerObj.total;
-                                    let yest_income = Number(hashpowerObj.balance) * Number(element.daily_income);
+                                    // let yest_income = Number(hashpowerObj.balance) * Number(element.daily_income);
                                     // list[index]['total_number'] = hashpowerObj.balance; //购买数量
                                     // let BTCS19ProBalance = await getBalance(hashpowerObj.currencyToken, 18); //获取购买算力币余额
                                     list[index]['total_number'] = Number(hashpowerObj.balance) * 10; //购买数量
                                     // list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(element.cost_revenue); //总结余 = 购买数量 * 算力币价格
                                     list[index]['total_balance'] = Number(hashpowerObj.balance); //总结余 = 购买数量 T数
                                     if(Number(element.buy_price) !== Number(element.cost_revenue)) {
-                                        list[index]['yest_income'] = yest_income;
+                                        let yest_income_usdt = Number(hashpowerObj.balance) * Number(element.daily_income);
+                                        let yest_income_btcb = Number(hashpowerObj.balance) * (Number(element.daily_income) / Number(this.poolBtcData.currency_price));
+                                        list[index]['yest_income'] = yest_income_usdt;
+                                        list[index]['yest_income_btcb'] = yest_income_btcb;
                                         list[index]['total_rate'] = hashpowerObj.btcbReward;
                                         // console.log(this.poolBtcData);
                                         let dailyYield = (Number(element.daily_income) / Number(this.poolBtcData.currency_price) * Number(hashpowerObj.balance)) * 365 * 100; //日收益率 = 当日收益/算力币价*总购买算力
