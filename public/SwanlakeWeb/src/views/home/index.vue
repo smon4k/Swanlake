@@ -82,7 +82,7 @@
                     </el-card>
                 </el-col>
                 <el-col :span="isMobel ? 24 : 12">
-                    <el-card class="box-card recommend" v-for="(item,index) in HashpowerData" :key="index">
+                    <el-card class="box-card recommend" v-for="(item,index) in hashPowerPoolsList" :key="index">
                         <div class="novice">
                             <span>活期</span>
                         </div>
@@ -122,7 +122,6 @@ export default {
             CNY_USD: 6.70,
             // userInfo: {},
             tableData: [],
-            HashpowerData: [],
             h2oBalance: 0,
             walletBalance: 0, //链上余额
         }
@@ -134,7 +133,9 @@ export default {
             isMobel:state=>state.comps.isMobel,
             mainTheme:state=>state.comps.mainTheme,
             apiUrl:state=>state.base.apiUrl,
+            nftUrl:state=>state.base.nftUrl,
             userInfo:state=>state.base.userInfo,
+            hashPowerPoolsList:state=>state.base.hashPowerPoolsList,
         }),
         changeData() {
             const {address} = this
@@ -145,9 +146,21 @@ export default {
     },
     created() {
         this.getListData();
-        this.getHashpowerData();
     },
     watch: {
+        isConnected: {
+            immediate: true,
+            handler(val) {
+                if (val) {
+                    if(!this.hashPowerPoolsList.length) {
+                        this.$store.dispatch("getHashPowerPoolsList");
+                    }
+                    setTimeout(async() => {
+                        console.log(this.hashPowerPoolsList);
+                    }, 300)
+                }
+            },
+        },
         address: {
             immediate: true,
             async handler(val){
@@ -158,6 +171,12 @@ export default {
                     this.walletBalance = await getGameFillingBalance(); //获取合约余额
                     console.log('链上余额：', this.walletBalance);
                 }
+            }
+        },
+        hashPowerPoolsList: {
+            immediate: true,
+            async handler(val){
+                console.log(val);
             }
         }
     },
@@ -212,20 +231,6 @@ export default {
                 if (json.code == 10000) {
                     this.tableData = json.data.lists;
                     this.total = json.data.count;
-                } else {
-                    this.$message.error("加载数据失败");
-                }
-            });
-        },
-        getHashpowerData() {
-            let ServerWhere = {
-                limit: 10000,
-                page: this.currPage,
-            };
-            get(this.apiUrl + "/Hashpower/Hashpower/getHashpowerData", ServerWhere, json => {
-                console.log(json);
-                if (json.code == 10000) {
-                    this.HashpowerData = json.data.lists;
                 } else {
                     this.$message.error("加载数据失败");
                 }

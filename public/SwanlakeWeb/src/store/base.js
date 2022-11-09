@@ -39,7 +39,7 @@ export default {
         domainHostAddress:'https://bscscan.com/tx/',
         // apiUrl: window.location.host === 'localhost:8001' ? 'http://www.h2omedia.com' : 'https://www.swanlake.club',
         apiUrl: '',
-        nftUrl: window.location.host === 'localhost:8001' || window.location.host === '192.168.1.3:8001' ? 'http://www.api.com' : 'https://api.h2o.live',
+        nftUrl: window.location.host === 'localhost:8007' || window.location.host === '192.168.1.3:8007' ? 'http://www.api.com' : 'https://api.h2o.live',
         // Env: window.location.host === 'localhost:8001' || window.location.host === '192.168.1.6:8001' ? 'dev' : 'prod',
         Env: 'dev',
         // gamesFillingAddress: '0x079bDC8845D0C6878716A3f5219f1D0DcdF15308', //游戏系统-充提清算系统-合约地址
@@ -128,6 +128,7 @@ export default {
             if(fixed.length > 0) {
                 fixed.forEach(item => {
                     state.hashPowerPoolsList.push({
+                        id: item.id,
                         currencyToken: item.currencyToken,
                         goblin: item.goblin,
                         address:item.originToken,
@@ -142,6 +143,11 @@ export default {
                         yearPer: 0,
                         h2oYearPer: 0,
                         btcbYearPer: 0,
+                        btcb19ProBalance: 0,
+                        cost_revenue: 0,
+                        annualized_income: 0,
+                        daily_income: 0,
+                        currency: 0,
                         loading:false,
                         btcbPrice: 0,
                         claimLoading:false
@@ -167,6 +173,11 @@ export default {
                 state.hashPowerPoolsList[index].yearPer = info.yearPer
                 state.hashPowerPoolsList[index].h2oYearPer = info.h2oYearPer
                 state.hashPowerPoolsList[index].btcbYearPer = info.btcbYearPer
+                state.hashPowerPoolsList[index].btcb19ProBalance = info.btcb19ProBalance
+                state.hashPowerPoolsList[index].cost_revenue = info.cost_revenue
+                state.hashPowerPoolsList[index].annualized_income = info.annualized_income
+                state.hashPowerPoolsList[index].daily_income = info.daily_income
+                state.hashPowerPoolsList[index].currency = info.currency
                 state.hashPowerPoolsList[index].loading = false
             }
         },
@@ -247,7 +258,7 @@ export default {
                 let fixedList = [...fixed]
                 fixedList.forEach(async item=> {
                     // console.log(item);
-                    let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId)
+                    let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId, item.id)
                     // console.log(info);
                     info.t = item.goblin
                     commit('setHashPowerPoolsBalance', info)

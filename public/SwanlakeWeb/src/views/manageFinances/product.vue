@@ -47,8 +47,8 @@
                     align="center">
                     <template slot-scope="scope">
                         <span v-if="scope.row.is_hash">
-                            {{ toFixed(scope.row.yest_income || 0, 6) }} USDT <br>
-                            {{ toFixed(scope.row.yest_income_btcb || 0, 6) }} BTC
+                            {{ toFixed(scope.row.yest_income || 0, 4) }} USDT <br>
+                            {{ toFixed(scope.row.yest_income_btcb || 0, 4) }} BTC
                         </span>
                         <span v-else>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
                     </template>
@@ -106,8 +106,8 @@
                     <el-descriptions-item label="总结余">{{ toFixed(item.total_balance ? item.total_balance : Number(item.total_size) * Number(item.networth) || 0, 4) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益">
                         <span v-if="item.is_hash">
-                            {{ toFixed(item.yest_income || 0, 6) }} USDT <br>
-                            {{ toFixed(item.yest_income_btcb || 0, 6) }} BTC
+                            {{ toFixed(item.yest_income || 0, 4) }} USDT <br>
+                            {{ toFixed(item.yest_income_btcb || 0, 4) }} BTC
                         </span>
                         <span v-else>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
                     </el-descriptions-item>
@@ -133,15 +133,44 @@
             :width="isMobel ? '80%' : '50%'"
             center>
             <div class="info" v-if="poolBtcData">
+            <el-row style="line-height:30px;">
+                <el-col :span="12" align="center">
+                    <span class="title">{{ $t('subscribe:Hashrate') }}</span>
+                    <br>
+                    <span> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</span> 
+                </el-col>
+                <el-col :span="12" align="center">
+                    <span class="title">{{ $t('subscribe:CurrencyPrice') }}</span>
+                    <br>
+                    <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
+                </el-col>
+            </el-row>
+            <br>
+            <el-row style="line-height:30px;">
+                <el-col :span="12" align="center">
+                    <span class="title">{{ $t('subscribe:MinimumElectricityBill') }}</span><br>
+                    <span>0.065 USDT</span> 
+                </el-col>
+                <el-col :span="12" align="center">
+                    <span>
+                        <span class="title">{{ $t('subscribe:DailyEarnings') }}/T </span><br>
+                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
+                        <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}} BTC</span>
+                    </span>
+                </el-col>
+            </el-row>
+            <br>
             <el-row>
                 <el-col :span="24">
                     <el-row style="line-height:30px;">
-                        <el-col :span="isMobel ? 12 : 12" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
+                        <el-col :span="isMobel ? 12 : 12" align="center">
+                            <span class="title">{{ $t('subscribe:outputYesterday') }}</span><br /> 
                             <span>{{toFixed(Number(yester_output), 2) || "--"}} USDT</span>
                             <br>
                             <span>{{toFixed(Number(yester_output) / Number(poolBtcData.currency_price), 8)}} BTC</span>
                         </el-col>
-                        <el-col :span="isMobel ? 12 : 12" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
+                        <el-col :span="isMobel ? 12 : 12" align="center">
+                            <span class="title">{{ $t('subscribe:cumulativeOutput') }}</span> <br /> 
                             <span>{{toFixed(Number(count_output), 2) || "--"}} USDT</span>
                             <br>
                             <span>{{toFixed(Number(count_output) / Number(poolBtcData.currency_price), 8) || "--"}} BTC</span>
@@ -149,19 +178,23 @@
                     </el-row>
                     <br>
                     <el-row style="line-height:30px;">
-                        <el-col :span="isMobel ? 12 : 12" align="center">{{ $t('subscribe:EstimatedElectricityCharge') }}/T<br /> 
+                        <el-col :span="isMobel ? 12 : 12" align="center">
+                            <span class="title">{{ $t('subscribe:EstimatedElectricityCharge') }}/T </span><br /> 
                             <span>{{ estimatedElectricityCharge(poolBtcData) }} USDT</span>
                             <br>
                             <span>{{ dailyExpenditure(poolBtcData) }} BTC</span>
                         </el-col>
-                        <el-col :span="isMobel ? 12 : 12" align="center">{{ $t('subscribe:NetProfit') }}/T<br /> 
+                        <el-col :span="isMobel ? 12 : 12" align="center">
+                            <span class="title">{{ $t('subscribe:NetProfit') }}/T </span><br /> 
                             <span>{{ netProfit(poolBtcData) }} USDT</span>
                             <br>
                             <span></span>{{ netProfitBtcNumber(poolBtcData) }} BTC
                         </el-col>
                     </el-row>
                     <el-row style="line-height:30px;">
-                        <el-col :span="isMobel ? 24 : 24" align="center">{{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}</el-col>
+                        <el-col :span="isMobel ? 24 : 24" align="center">
+                            <span class="title">{{ $t('subscribe:onlineDays') }} </span><br /> 
+                            {{Number(online_days) || "--"}}</el-col>
                     </el-row>
                 </el-col>
             </el-row>
@@ -310,35 +343,25 @@ export default {
                         page: that.currPage,
                     };
                 }
-                get(this.apiUrl + "/Hashpower/Hashpower/getHashpowerData", ServerWhere, json => {
-                    console.log(json);
-                    if (json.code == 10000) {
-                        let list = (json.data && json.data.lists) || [];
-                        // console.log(this.hashPowerPoolsList);
-                        for (let index = 0; index < list.length; index++) {
-                            const element = list[index];
-                            this.hashPowerPoolsList.forEach(hashpowerObj => {
-                                if(element.name == hashpowerObj.name) {
-                                    list[index] = {...list[index], hashpowerObj};
-                                    list[index]['total_balance'] = hashpowerObj.total;
-                                    let yest_income_usdt = Number(hashpowerObj.total) * Number(element.daily_income);
-                                    let yest_income_btcb = Number(hashpowerObj.total) * (Number(element.daily_income) / Number(this.poolBtcData.currency_price));
-                                    list[index]['yest_income'] = yest_income_usdt;
-                                    list[index]['yest_income_btcb'] = yest_income_btcb;
-                                    // list[index]['yest_income_rate'] = yest_income_usdt > 0 ? (yest_income_usdt / Number(element.cost_revenue) * Number(hashpowerObj.total)) : 0; //昨日收益率 = 昨日收益 / 算力币价格 * 总数量
-                                    list[index]['yest_income_rate'] = element.annualized_income > 0 ? (element.annualized_income / 365) : 0; //昨日收益率 = 年化收益 / 365
-                                    list[index]['initial_deposit'] = Number(hashpowerObj.total) * Number(element.cost_revenue); //初始入金 = 总T数乘算力币价格
-                                    list[index]['is_hash'] = true;
-                                }
-                            });
-                        }
-                        console.log(list);
-                        resolve(list);
-                    } else {
-                        this.$message.error("加载数据失败");
-                        resolve(false);
-                    }
+                let list = [];
+                this.hashPowerPoolsList.map((hashpowerObj, index) => {
+                    list[index] = {...list[index], hashpowerObj};
+                    let annualized_income = Number(hashpowerObj.daily_income) / Number(hashpowerObj.cost_revenue) * 365 * 100;//年化收益 = 日收益 / 收益成本 * 365 * 100
+                    list[index]['id'] = hashpowerObj.id; 
+                    list[index]['name'] = hashpowerObj.name; 
+                    list[index]['annualized_income'] = annualized_income; 
+                    list[index]['total_balance'] = hashpowerObj.total;
+                    let yest_income_usdt = Number(hashpowerObj.total) * Number(hashpowerObj.daily_income);
+                    let yest_income_btcb = Number(hashpowerObj.total) * (Number(hashpowerObj.daily_income) / Number(this.poolBtcData.currency_price));
+                    list[index]['yest_income'] = yest_income_usdt;
+                    list[index]['yest_income_btcb'] = yest_income_btcb;
+                    // list[index]['yest_income_rate'] = yest_income_usdt > 0 ? (yest_income_usdt / Number(element.cost_revenue) * Number(hashpowerObj.total)) : 0; //昨日收益率 = 昨日收益 / 算力币价格 * 总数量
+                    list[index]['yest_income_rate'] = annualized_income > 0 ? (annualized_income / 365) : 0; //昨日收益率 = 年化收益 / 365
+                    list[index]['initial_deposit'] = Number(hashpowerObj.total) * Number(hashpowerObj.cost_revenue); //初始入金 = 总T数乘算力币价格
+                    list[index]['is_hash'] = true;
                 });
+                console.log(list);
+                resolve(list);
             })
         },
         async getOutputDetail() {
@@ -391,6 +414,7 @@ export default {
             this.getListData(this.PageSearchWhere); //刷新列表
         },
         buyClick(row, type) {
+            console.log(row);
             if(row.name === 'BTCS19Pro') {
                 this.$router.push({
                     path:'/hashpower/buy',
@@ -478,7 +502,9 @@ export default {
                 }
             }
             .info {
-                font-weight: 800;
+                .title {
+                    font-weight: 800;
+                }
             }
         }
     }

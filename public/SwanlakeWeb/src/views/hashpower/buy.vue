@@ -372,6 +372,7 @@ export default {
         address:state=>state.base.address,
         hashpowerAddress:state=>state.base.hashpowerAddress,
         apiUrl:state=>state.base.apiUrl,
+        nftUrl:state=>state.base.nftUrl,
         isMobel:state=>state.comps.isMobel,
     }),
     changeData() {
@@ -392,7 +393,7 @@ export default {
     },
     changeData: {
       handler(val){
-          if(val.address !== '' && val.hashId > 0 && val.apiUrl !== '') {
+          if(val.address !== '' && val.hashId > 0 && val.nftUrl !== '') {
             this.detailLoding = true;
             this.getBoxDetail();
           }
@@ -407,7 +408,7 @@ export default {
       }
     },
     getBoxDetail() {
-        axios.get(this.apiUrl + "/Hashpower/hashpower/getHashpowerDetail",{
+        axios.get(this.nftUrl + "/Hashpower/hashpower/getHashpowerDetail",{
             params: {
               hashId: this.hashId,
             }
@@ -444,7 +445,7 @@ export default {
       });
     },
     async setPurchaseLog(hash) { //开始记录认购记录
-      await axios.get(this.apiUrl + "/Hashpower/hashpower/setPurchaseLog", {
+      await axios.get(this.nftUrl + "/Hashpower/hashpower/setPurchaseLog", {
           params: {
             hashId: this.hashId,
             amount: this.num,

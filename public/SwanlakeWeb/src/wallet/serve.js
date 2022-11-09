@@ -147,7 +147,7 @@ export const getToken2TokenPrice = async function (token0 , token1 ,type , amoun
 
 
 //获取 HashPowerPools 池子数据
-export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, pId){
+export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, pId, id){
   const address = __ownInstance__.$store.state.base.address
   const decimals = __ownInstance__.$store.state.base.tokenDecimals
   let totalTvl = await getPoolsTotalShare(goblinAddress, decimals);
@@ -161,6 +161,11 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let H2OYearPer = 0
   let BTCBYearPer = 0
   let btcbPrice = 0
+  let btcb19ProBalance = 0
+  let cost_revenue = 0
+  let daily_income = 0
+  let currency = 0
+  let annualized_income = 0
   if(pId) {
     h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
     btcbReward = await getH2OPendingBonus(goblinAddress, 8); //获取BTCB奖励
@@ -176,6 +181,12 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     btcbPrice = await getToken2TokenPrice(Address.BTCB, Address.BUSDT) //获取btcb价格
     // console.log(btcbPrice);
     // console.log(reptileBtcData);
+    btcb19ProBalance = await getBalance(currencyToken, 18); //获取购买算力币余额
+    let HashpowerDetail = await getHashpowerDetail(id); //获取算力币详情
+    cost_revenue = HashpowerDetail.cost_revenue; //估值
+    daily_income = HashpowerDetail.daily_income; //日收益率
+    currency = HashpowerDetail.currency; //交易币种
+    annualized_income = HashpowerDetail.annualized_income; //年化收益率
   } 
   let reObj = {
     totalTvl: totalTvl,
@@ -188,6 +199,11 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     h2oYearPer: H2OYearPer,
     btcbYearPer: BTCBYearPer,
     btcbPrice: btcbPrice,
+    btcb19ProBalance: btcb19ProBalance,
+    cost_revenue: cost_revenue,
+    daily_income: daily_income,
+    currency: currency,
+    annualized_income: annualized_income,
   };
   return reObj;
 }
@@ -387,6 +403,17 @@ export const getFillingIncreasingId = async function(){
   let data = await $get('https://www.h2ofinance.pro/getPoolBtc')
   if(data) {
     result = data;
+  }
+  return result;
+}
+
+//获取算力币详情
+export const getHashpowerDetail = async function(hashId){
+  const nftUrl = __ownInstance__.$store.state.base.nftUrl;
+  let result = 0;
+  let data = await $get(nftUrl + '/Hashpower/Hashpower/getHashpowerDetail?hashId='+hashId);
+  if(data && data.code == 10000) {
+    result = data.data;
   }
   return result;
 }

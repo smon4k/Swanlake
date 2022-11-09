@@ -97,7 +97,7 @@
                     </div>
                     <div v-else>
                         <el-button @click="HashpowerBuyClick(scope.row, 1)" type="text">购买</el-button>
-                        <el-button @click="receiveBTCBReward(scope.row)" type="text" :loading="receiveLoading" :disabled="!Number(scope.row.hashpowerObj.btcbReward)">收获{{scope.row.currency}}</el-button>
+                        <el-button @click="receiveBTCBReward(scope.row)" type="text" :loading="receiveLoading" :disabled="!Number(scope.row.btcbReward)">收获{{scope.row.currency}}</el-button>
                         <el-button @click="toHashpowerDetail(1, scope.row)" type="text">存入</el-button>
                         <el-button type="text" @click="toHashpowerDetail(2, scope.row)" >提取</el-button>
                     </div>
@@ -151,7 +151,7 @@
                         </div>
                         <div v-else>
                             <el-button size="mini" type="primary" @click="HashpowerBuyClick(item, 1)">购买</el-button>
-                            <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.hashpowerObj.btcbReward)">收获{{item.currency}}</el-button>
+                            <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获{{item.currency}}</el-button>
                             <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
                             <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
                         </div>
@@ -164,6 +164,7 @@
 <script>
 import { mapGetters, mapState } from "vuex";
 import { get } from "@/common/axios.js";
+import { $get } from '@/utils/request'
 import Page from "@/components/Page.vue";
 import { getPoolBtcData, getBalance } from "@/wallet/serve";
 import { depositPoolsIn } from "@/wallet/trade";
@@ -223,7 +224,7 @@ export default {
 
                         this.refreshData();
 
-                        // console.log(this.hashPowerPoolsList);
+                        console.log(this.hashPowerPoolsList);
                     }, 300);
                 }
             }
@@ -277,7 +278,7 @@ export default {
                 path:'/hashpower/buy',
                 query: {
                     type: type,
-                    hash_id: row.hash_id,
+                    hash_id: row.id,
                 }
             })
         },
@@ -307,12 +308,12 @@ export default {
                             list = [...list, ...hashpowerData];
                         }
                         // console.log(list);
+                        this.loading = false;
                         this.tableData = list;
                         this.total = json.data.count;
                     } else {
                         this.$message.error("加载数据失败");
                     }
-                    this.loading = false;
                 });
             } else {
                 this.loading = false;
@@ -328,48 +329,34 @@ export default {
                         address: this.address,
                     };
                 }
-                get(this.apiUrl + "/Hashpower/Hashpower/getMyHashpowerList", ServerWhere, json => {
-                    console.log(json);
-                    if (json.code == 10000) {
-                        let list = (json.data && json.data.lists) || [];
-                        // console.log(this.hashPowerPoolsList, this.poolBtcData);
-                        for (let index = 0; index < list.length; index++) {
-                            const element = list[index];
-                            this.hashPowerPoolsList.forEach(async hashpowerObj => {
-                                if(element.name == hashpowerObj.name) {
-                                    list[index] = {...list[index], hashpowerObj};
-                            //         list[index]['total_balance'] = hashpowerObj.total;
-                                    // let yest_income = Number(hashpowerObj.balance) * Number(element.daily_income);
-                                    // list[index]['total_number'] = hashpowerObj.balance; //购买数量
-                                    // let BTCS19ProBalance = await getBalance(hashpowerObj.currencyToken, 18); //获取购买算力币余额
-                                    list[index]['total_number'] = Number(hashpowerObj.balance) * 10; //购买数量
-                                    // list[index]['total_balance'] = Number(hashpowerObj.balance) * Number(element.cost_revenue); //总结余 = 购买数量 * 算力币价格
-                                    list[index]['total_balance'] = Number(hashpowerObj.balance); //总结余 = 购买数量 T数
-                                    // if(Number(element.buy_price) !== Number(element.cost_revenue)) {
-                                    let yest_income_usdt = Number(hashpowerObj.balance) * Number(element.daily_income); //昨日收益 usdt
-                                    let yest_income_btcb = Number(hashpowerObj.balance) * (Number(element.daily_income) / Number(this.poolBtcData.currency_price)); //昨日收益 btcb
-                                    list[index]['yest_income'] = yest_income_usdt;
-                                    list[index]['yest_income_btcb'] = yest_income_btcb;
-                                    list[index]['total_income_btcb'] = Number(hashpowerObj.btcbReward); //btcb总收益
-                                    let total_income_usdt = Number(hashpowerObj.btcbReward) * Number(this.poolBtcData.currency_price); //usdt总收益
-                                    list[index]['total_income_usdt'] = total_income_usdt;
-                                    list[index]['total_rate'] = keepDecimalNotRounding(total_income_usdt / (Number(hashpowerObj.balance) * Number(element.cost_revenue)), 10) * 100; //总收益率=总收益/总投入=总收益/(算力币价*算力币数)
-                                    // console.log(this.poolBtcData);
-                                    let dailyYield = yest_income_usdt / (Number(hashpowerObj.balance) * Number(element.cost_revenue)); //昨日收益/（算力币T数*算力币价格）
-                                    // console.log(dailyYield);
-                                    list[index]['year_rate'] = dailyYield * 365 * 100;
-                                    // }
-                                    list[index]['is_hash'] = true;
-                                }
-                            });
-                        }
-                        console.log(list);
-                        resolve(list);
-                    } else {
-                        this.$message.error("加载数据失败");
-                        resolve(false);
+                let arr = [];
+                // console.log(this.hashPowerPoolsList);
+                this.hashPowerPoolsList.map((hashpowerObj, index) => {
+                    if(hashpowerObj.btcb19ProBalance > 0) {
+                        arr[index] = hashpowerObj;
+                        arr[index]['id'] = hashpowerObj.id;
+                        arr[index]['total_number'] = Number(hashpowerObj.balance) * 10; //购买数量
+                        arr[index]['total_balance'] = Number(hashpowerObj.balance); //总结余 = 购买数量 T数
+                        // if(Number(element.buy_price) !== Number(element.cost_revenue)) {
+                        let yest_income_usdt = Number(hashpowerObj.balance) * Number(hashpowerObj.daily_income); //昨日收益 usdt
+                        let yest_income_btcb = keepDecimalNotRounding(Number(hashpowerObj.balance) * (Number(hashpowerObj.daily_income) / Number(this.poolBtcData.currency_price)), 10, true); //昨日收益 btcb
+                        arr[index]['yest_income'] = yest_income_usdt;
+                        arr[index]['yest_income_btcb'] = yest_income_btcb;
+                        arr[index]['total_income_btcb'] = hashpowerObj.btcbReward; //btcb总收益
+                        let total_income_usdt = Number(hashpowerObj.btcbReward) * Number(this.poolBtcData.currency_price); //usdt总收益
+                        arr[index]['total_income_usdt'] = total_income_usdt;
+                        arr[index]['total_rate'] = keepDecimalNotRounding(total_income_usdt / (Number(hashpowerObj.balance) * Number(hashpowerObj.cost_revenue)), 10) * 100; //总收益率=总收益/总投入=总收益/(算力币价*算力币数)
+                        // console.log(this.poolBtcData);
+                        let dailyYield = yest_income_usdt / (Number(hashpowerObj.balance) * Number(hashpowerObj.cost_revenue)); //昨日收益/（算力币T数*算力币价格）
+                        // console.log(dailyYield);
+                        arr[index]['year_rate'] = dailyYield * 365 * 100;
+                        // }
+                        arr[index]['is_hash'] = true;
                     }
-                });
+                    // console.log(hashpowerObj, index);
+                })
+                // console.log(arr);
+                resolve(arr);
             })
         },
         limitPaging(limit) {
@@ -397,7 +384,7 @@ export default {
         toHashpowerDetail(type, item) {
             //type 1=>存入 2=>提取
             console.log(item);
-            if (!item.hashpowerObj.address_h)
+            if (!item.address_h)
                 return this.$notify.error({
                     message: "Failed to get data, please refresh and try again",
                     duration: 6000,
@@ -406,12 +393,12 @@ export default {
             // this.$store.commit('setDepositCurrent' , item.address)
             let query = {
                 hashId: item.hash_id,
-                pId: item.hashpowerObj.pId,
-                token: item.hashpowerObj.address_h,
-                currencyToken: item.hashpowerObj.currencyToken,
-                goblin: item.hashpowerObj.goblin,
-                decimals: item.hashpowerObj.decimals_h,
-                name: item.hashpowerObj.name,
+                pId: item.pId,
+                token: item.address_h,
+                currencyToken: item.currencyToken,
+                goblin: item.goblin,
+                decimals: item.decimals_h,
+                name: item.name,
             };
 
             // if(route === 'un'){
@@ -430,22 +417,22 @@ export default {
         },
         receiveBTCBReward(item) { //收获BTCB
             console.log("item", item)
-            if (!Number(item.hashpowerObj.btcbReward)) return;
+            if (!Number(item.btcbReward)) return;
             this.$store.commit("sethashPowerPoolsListClaimLoading", {
-                goblin: item.hashpowerObj.goblin,
+                goblin: item.goblin,
                 val: true,
             });
             this.receiveLoading = true;
             depositPoolsIn(
-                item.hashpowerObj.goblin,
-                item.hashpowerObj.decimals,
+                item.goblin,
+                item.decimals,
                 0,
                 item.pId
             ).then(() => {
                 this.$store.dispatch("getHashPowerPoolsList");
             }).finally(() => {
                 this.$store.commit("sethashPowerPoolsListClaimLoading", {
-                    goblin: item.hashpowerObj.goblin,
+                    goblin: item.goblin,
                     val: false,
                 });
                 this.receiveLoading = false;

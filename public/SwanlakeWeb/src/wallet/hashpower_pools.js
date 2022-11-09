@@ -2,6 +2,7 @@
 export default{
     fixed:[
         {
+            id: 1,
             name: 'BTCS19Pro',
             pId:'34',
             token:'0xB3abB5F04d1dFC33023103ccE1dc4a227e05605D', //tDebt

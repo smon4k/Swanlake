@@ -135,6 +135,7 @@ export default {
       fairLaunchAddress: (state) => state.base.fairLaunchAddress,
       mainTheme: (state) => state.comps.mainTheme,
       apiUrl:state=>state.base.apiUrl,
+      nftUrl:state=>state.base.nftUrl,
     }),
     btnDisabled() {
       return (
@@ -245,7 +246,7 @@ export default {
         this.depositNum,
         this.pid
       ).then(() => {
-        post(this.apiUrl + '/Hashpower/Hashpower/startInvestNow', { 
+        post(this.nftUrl + '/Hashpower/Hashpower/startInvestNow', { 
             address: this.address, 
             hashId: this.hashId, 
             number: this.depositNum,
