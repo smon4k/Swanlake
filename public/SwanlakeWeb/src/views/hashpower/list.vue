@@ -627,6 +627,10 @@ export default {
                         color: #409EFF;
                         border-color: #409EFF;
                     }
+                    button.is-disabled {
+                        color: #C0C4CC;
+                        border-color: #EBEEF5;
+                    }
                 }
             }
             .el-descriptions {
