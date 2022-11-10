@@ -1,13 +1,17 @@
 <template>
     <div class="container">
-        <el-breadcrumb separator="/">
+        <!-- <el-breadcrumb separator="/">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
             <el-breadcrumb-item>投注</el-breadcrumb-item>
-        </el-breadcrumb>
+        </el-breadcrumb> -->
         <el-card class="box-card">
             <div slot="header" class="clearfix">
-                <img src="@/assets/usdt.png" width="30" height="30" alt="">
-                <span>USDT活期理财</span>
+                <el-page-header @back="$router.go(-1)" content="">
+                    <template slot="content">
+                        <img src="@/assets/usdt.png" width="30" height="30" alt="">
+                        <span>USDT活期理财</span>
+                    </template>
+                </el-page-header>
                 <!-- <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button> -->
             </div>
             <div class="buy-box">

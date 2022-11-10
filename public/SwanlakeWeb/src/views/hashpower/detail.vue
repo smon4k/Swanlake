@@ -1,11 +1,14 @@
 <template>
   <div class="container">
-      <el-breadcrumb separator="/">
+      <!-- <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ path: '/my/finances' }">我的理财</el-breadcrumb-item>
         <el-breadcrumb-item>质押</el-breadcrumb-item>
-      </el-breadcrumb>
+      </el-breadcrumb> -->
       <el-card class="box-card">
+        <div slot="header" class="clearfix">
+          <el-page-header @back="goBack"></el-page-header>
+        </div>
         <el-row class="app-left">
           <el-col :span="24">
             <p class="title" v-if="kind || isDemand">
@@ -315,6 +318,9 @@ export default {
             this.approved = bool ? 1 : 2;
             // this.approved = 2
         });
+    },
+    goBack() {
+      this.$router.go(-1);
     }
   },
 };

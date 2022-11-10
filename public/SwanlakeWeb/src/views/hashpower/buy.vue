@@ -1,11 +1,14 @@
 <template>
   <div class="container">
-    <el-breadcrumb separator="/">
+    <!-- <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item :to="{ path: '/financial/product' }">理财产品</el-breadcrumb-item>
       <el-breadcrumb-item>投注</el-breadcrumb-item>
-    </el-breadcrumb>
+    </el-breadcrumb> -->
     <el-card class="box-card">
+      <div slot="header" class="clearfix">
+        <el-page-header @back="goBack" content="算力币购买"></el-page-header>
+      </div>
       <!-- <el-container class="container"> -->
         <!-- <el-header>Header</el-header> -->
         <el-main class="mian">
@@ -492,7 +495,10 @@ export default {
       });
     },
     receiveBenefits() { //领取收益 跳转到质押页面
-      this.$router.push('/hashpower/pools');
+      this.$router.push('/my/finances');
+    },
+    goBack() {
+      this.$router.go(-1);
     }
   },
 };
