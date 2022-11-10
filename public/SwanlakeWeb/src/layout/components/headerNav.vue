@@ -203,16 +203,16 @@ export default {
                     path: "/bscTokenStatistics",
                 },
                 {
+                    name: '算力币',
+                    path: "/hashpower/list",
+                },
+                {
                     name: '资金账户监控',
                     path: "/fund/monitoring/account",
                 },
                 {
                     name: '净值配置',
                     path: "/day/networth",
-                },
-                {
-                    name: '算力币',
-                    path: "/hashpower/list",
                 },
             ];
             if(!this.isAdmin) {

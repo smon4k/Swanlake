@@ -495,7 +495,7 @@ export default {
       });
     },
     receiveBenefits() { //领取收益 跳转到质押页面
-      this.$router.push('/my/finances');
+      this.$router.push('/hashpower/list');
     },
     goBack() {
       this.$router.go(-1);
