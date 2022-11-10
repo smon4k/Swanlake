@@ -15,9 +15,11 @@
                     prop="total_balance"
                     label="总结余"
                     align="center"
-                    width="150">
+                    width="180">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_balance || 0, 4) }} {{scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
+                        <span v-if="scope.row.is_hash">钱包余额: {{ scope.row.btcb19ProBalance > 0 ? toFixed(scope.row.btcb19ProBalance || 0, 4) : 0}} T</span>
+                        <br>
+                        <span>已质押：{{ toFixed(scope.row.total_balance || 0, 4) }} {{scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -338,7 +340,7 @@ export default {
                 let arr = [];
                 console.log(this.hashPowerPoolsList, this.poolBtcData);
                 this.hashPowerPoolsList.map((hashpowerObj, index) => {
-                    if(hashpowerObj.btcb19ProBalance > 0) {
+                    if(hashpowerObj.btcb19ProBalance > 0 || hashpowerObj.balance > 0) {
                         arr[index] = hashpowerObj;
                         arr[index]['id'] = hashpowerObj.id;
                         arr[index]['total_number'] = Number(hashpowerObj.balance) * 10; //购买数量
