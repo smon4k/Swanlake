@@ -1,170 +1,287 @@
 <template>
     <div class="container">
-        <div v-if="!isMobel">
-            <el-table
-                v-loading="loading"
-                :data="tableData"
-                style="width: 100%">
-                <el-table-column
-                    prop="name"
-                    label="产品名称"
-                    align="center"
-                    width="130">
-                </el-table-column>
-                <el-table-column
-                    prop="total_balance"
-                    label="总结余"
-                    align="center"
-                    width="180">
-                    <template slot-scope="scope">
-                        <span v-if="scope.row.is_hash">钱包余额: {{ scope.row.btcb19ProBalance > 0 ? toFixed(scope.row.btcb19ProBalance || 0, 4) : 0}} T</span>
-                        <br>
-                        <span>已质押：{{ toFixed(scope.row.total_balance || 0, 4) }} {{scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop="total_number"
-                    label="购买份数"
-                    align="center"
-                    width="100">
-                    <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_number || 0, 2) }}</span>
-                    </template>
-                </el-table-column>
-                <!-- <el-table-column
-                    prop="time"
-                    label="购买时间"
-                    align="center"
-                    width="200">
-                </el-table-column> -->
-                <!-- <el-table-column
-                    prop="networth"
-                    label="净值"
-                    align="center">
-                    <template slot-scope="scope">
-                        <span>{{ keepDecimalNotRounding(scope.row.networth || 0, 4) }}</span>
-                    </template>
-                </el-table-column> -->
-                <el-table-column
-                    prop="yest_income"
-                    label="昨日收益"
-                    align="center"
-                    width="180">
-                    <template slot-scope="scope">
-                        <span v-if="scope.row.is_hash">
-                            {{ scope.row.yest_income ? toFixed(scope.row.yest_income || 0, 6) : 0 }} USDT <br>
-                            {{ scope.row.yest_income_btcb ? toFixed(scope.row.yest_income_btcb || 0, 10) : 0 }} BTC
-                        </span>
-                        <span v-else>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop="total_income"
-                    label="总收益"
-                    align="center"
-                    width="180">
-                    <template slot-scope="scope">
-                        <span v-if="scope.row.is_hash">
-                            {{ scope.row.total_income_usdt ? toFixed(scope.row.total_income_usdt || 0, 6) : 0 }} USDT <br>
-                            {{ scope.row.total_income_btcb ? toFixed(scope.row.total_income_btcb || 0, 10) : 0 }} BTC
-                        </span>
-                        <span v-else>{{ toFixed(scope.row.total_income || 0, 2) }} {{ scope.row.currency}}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop="total_rate"
-                    label="总收益率"
-                    align="center"
-                    width="100">
-                    <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total_rate || 0, 2) }}%</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop="year_rate"
-                    label="年化收益率"
-                    align="center"
-                    width="100">
-                    <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.year_rate || 0, 2) }}%</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                fixed="right"
-                label="操作"
-                align="center"
-                width="230">
-                <template slot-scope="scope">
-                    <div v-if="!scope.row.is_hash">
-                        <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
-                        <el-button type="text" @click="buyClick(scope.row, 2)">赎回</el-button>
-                        <el-button type="text" @click="incomeClick(scope.row)">历史净值</el-button>
-                    </div>
-                    <div v-else>
-                        <el-button @click="HashpowerBuyClick(scope.row, 1)" type="text">购买</el-button>
-                        <el-button @click="receiveBTCBReward(scope.row)" type="text" :loading="receiveLoading" :disabled="!Number(scope.row.btcbReward)">收获{{scope.row.currency}}</el-button>
-                        <el-button @click="toHashpowerDetail(1, scope.row)" type="text">存入</el-button>
-                        <el-button type="text" @click="toHashpowerDetail(2, scope.row)" >提取</el-button>
-                    </div>
-                </template>
-                </el-table-column>
-            </el-table>
-            <!-- v-if="total > pageSize" -->
-            <el-row class="pages" v-if="total > pageSize">
-                <el-col :span="24">
-                    <div style="float:right;">
-                    <wbc-page
-                        :total="total"
-                        :pageSize="pageSize"
-                        :currPage="currPage"
-                        @changeLimit="limitPaging"
-                        @changeSkip="skipPaging"
-                    ></wbc-page>
-                    </div>
-                </el-col>
-            </el-row>
-        </div>
-        <div v-else>
-            <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
-                <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                <el-descriptions-item label="总结余">{{ toFixed(item.total_balance || 0, 4) }} {{item.currency === 'BTCB' ? 'T' : item.currency}}</el-descriptions-item>
-                <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 2) }}</el-descriptions-item>
-                <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
-                <!-- <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item> -->
-                <el-descriptions-item label="昨日收益">
-                        <span v-if="item.is_hash">
-                            {{ item.yest_income ? toFixed(item.yest_income || 0, 6) : 0 }} USDT <br>
-                            {{ item.yest_income_btcb ? toFixed(item.yest_income_btcb || 0, 10) : 0 }} BTC
-                        </span>
-                        <span v-else>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
-                    </el-descriptions-item>
-                <el-descriptions-item label="总收益">
-                    <span v-if="item.is_hash">
-                            {{ item.total_income_usdt ? toFixed(item.total_income_usdt || 0, 6) : 0 }} USDT <br>
-                            {{ item.total_income_btcb ? toFixed(item.total_income_btcb || 0, 10) : 0 }} BTC
-                        </span>
-                    <span v-else>{{ toFixed(item.total_income || 0, 2) }} {{ item.currency }}</span>
-                </el-descriptions-item>
-                <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 2) }}%</el-descriptions-item>
-                <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 2) }}%</el-descriptions-item>
-                <el-descriptions-item>
-                    <div class="operate">
-                        <div v-if="!item.is_hash">
-                            <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
-                            <el-button size="mini" type="primary" @click="buyClick(item, 2)">赎回</el-button>
-                            <el-button size="mini" type="primary" @click="incomeClick(item)">历史净值</el-button>
-                        </div>
-                        <div v-else>
-                            <el-button size="mini" type="primary" @click="HashpowerBuyClick(item, 1)">购买</el-button>
-                            <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获{{item.currency}}</el-button>
-                            <br><br>
-                            <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
-                            <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
-                        </div>
-                    </div>
-                </el-descriptions-item>
-            </el-descriptions>
-        </div>
+        <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card">
+            <el-tab-pane label="天鹅湖" name="1">
+                <div v-if="!isMobel">
+                    <el-table
+                        v-loading="loading"
+                        :data="tableData"
+                        style="width: 100%">
+                        <el-table-column
+                            prop="name"
+                            label="产品名称"
+                            align="center">
+                        </el-table-column>
+                        <el-table-column
+                            prop="total_balance"
+                            label="总结余"
+                            align="center">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.total_balance || 0, 4) }} {{scope.row.currency}}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="total_number"
+                            label="购买份数"
+                            align="center">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.total_number || 0, 2) }}</span>
+                            </template>
+                        </el-table-column>
+                        <!-- <el-table-column
+                            prop="time"
+                            label="购买时间"
+                            align="center"
+                            width="200">
+                        </el-table-column> -->
+                        <!-- <el-table-column
+                            prop="networth"
+                            label="净值"
+                            align="center">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.networth || 0, 4) }}</span>
+                            </template>
+                        </el-table-column> -->
+                        <el-table-column
+                            prop="yest_income"
+                            label="昨日收益"
+                            align="center">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="total_income"
+                            label="总收益"
+                            align="center">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.total_income || 0, 2) }} {{ scope.row.currency}}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="total_rate"
+                            label="总收益率"
+                            align="center">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.total_rate || 0, 2) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="year_rate"
+                            label="年化收益率"
+                            align="center">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.year_rate || 0, 2) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                        fixed="right"
+                        label="操作"
+                        align="center"
+                        width="180">
+                        <template slot-scope="scope">
+                            <div>
+                                <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
+                                <el-button type="text" @click="buyClick(scope.row, 2)">赎回</el-button>
+                                <el-button type="text" @click="incomeClick(scope.row)">历史净值</el-button>
+                            </div>
+                        </template>
+                        </el-table-column>
+                    </el-table>
+                    <!-- v-if="total > pageSize" -->
+                    <el-row class="pages" v-if="total > pageSize">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                            <wbc-page
+                                :total="total"
+                                :pageSize="pageSize"
+                                :currPage="currPage"
+                                @changeLimit="limitPaging"
+                                @changeSkip="skipPaging"
+                            ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+                <div v-else>
+                    <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
+                        <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
+                        <el-descriptions-item label="总结余">{{ toFixed(item.total_balance || 0, 4) }} {{item.currency}}</el-descriptions-item>
+                        <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 2) }}</el-descriptions-item>
+                        <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
+                        <!-- <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item> -->
+                        <el-descriptions-item label="昨日收益">
+                                <span>{{ toFixed(item.yest_income || 0, 2) }} {{ item.currency }}</span> 
+                            </el-descriptions-item>
+                        <el-descriptions-item label="总收益">
+                            <span>{{ toFixed(item.total_income || 0, 2) }} {{ item.currency }}</span>
+                        </el-descriptions-item>
+                        <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 2) }}%</el-descriptions-item>
+                        <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 2) }}%</el-descriptions-item>
+                        <el-descriptions-item>
+                            <div class="operate">
+                                <div>
+                                    <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
+                                    <el-button size="mini" type="primary" @click="buyClick(item, 2)">赎回</el-button>
+                                    <el-button size="mini" type="primary" @click="incomeClick(item)">历史净值</el-button>
+                                </div>
+                            </div>
+                        </el-descriptions-item>
+                    </el-descriptions>
+                </div>
+            </el-tab-pane>
+            <el-tab-pane label="算力币" name="2">
+                <div v-if="!isMobel">
+                    <el-table
+                        v-loading="loading"
+                        :data="hashpowerList"
+                        style="width: 100%">
+                        <el-table-column
+                            prop="name"
+                            label="产品名称"
+                            align="center"
+                            width="130">
+                        </el-table-column>
+                        <el-table-column
+                            prop="total_balance"
+                            label="总结余"
+                            align="center"
+                            width="180">
+                            <template slot-scope="scope">
+                                <span v-if="scope.row.is_hash">钱包余额: {{ scope.row.btcb19ProBalance > 0 ? toFixed(scope.row.btcb19ProBalance || 0, 4) : 0}} T</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="total_number"
+                            label="购买份数"
+                            align="center"
+                            width="100">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.total_number || 0, 2) }}</span>
+                            </template>
+                        </el-table-column>
+                        <!-- <el-table-column
+                            prop="time"
+                            label="购买时间"
+                            align="center"
+                            width="200">
+                        </el-table-column> -->
+                        <!-- <el-table-column
+                            prop="networth"
+                            label="净值"
+                            align="center">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.networth || 0, 4) }}</span>
+                            </template>
+                        </el-table-column> -->
+                        <el-table-column
+                            prop="yest_income"
+                            label="昨日收益"
+                            align="center"
+                            width="180">
+                            <template slot-scope="scope">
+                                <span>
+                                    {{ scope.row.yest_income ? toFixed(scope.row.yest_income || 0, 6) : 0 }} USDT <br>
+                                    {{ scope.row.yest_income_btcb ? toFixed(scope.row.yest_income_btcb || 0, 10) : 0 }} BTC
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="total_income"
+                            label="总收益"
+                            align="center"
+                            width="180">
+                            <template slot-scope="scope">
+                                <span>
+                                    {{ scope.row.total_income_usdt ? toFixed(scope.row.total_income_usdt || 0, 6) : 0 }} USDT <br>
+                                    {{ scope.row.total_income_btcb ? toFixed(scope.row.total_income_btcb || 0, 10) : 0 }} BTC
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="total_rate"
+                            label="总收益率"
+                            align="center"
+                            width="100">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.total_rate || 0, 2) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="year_rate"
+                            label="年化收益率"
+                            align="center"
+                            width="100">
+                            <template slot-scope="scope">
+                                <span>{{ toFixed(scope.row.year_rate || 0, 2) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                        fixed="right"
+                        label="操作"
+                        align="center"
+                        width="230">
+                        <template slot-scope="scope">
+                            <div>
+                                <el-button @click="HashpowerBuyClick(scope.row, 1)" type="text">购买</el-button>
+                                <el-button @click="receiveBTCBReward(scope.row)" type="text" :loading="receiveLoading" :disabled="!Number(scope.row.btcbReward)">收获{{scope.row.currency}}</el-button>
+                                <el-button @click="toHashpowerDetail(1, scope.row)" type="text">存入</el-button>
+                                <el-button type="text" @click="toHashpowerDetail(2, scope.row)" >提取</el-button>
+                            </div>
+                        </template>
+                        </el-table-column>
+                    </el-table>
+                    <!-- v-if="total > pageSize" -->
+                    <el-row class="pages" v-if="total > pageSize">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                            <wbc-page
+                                :total="total"
+                                :pageSize="pageSize"
+                                :currPage="currPage"
+                                @changeLimit="limitPaging"
+                                @changeSkip="skipPaging"
+                            ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+                <div v-else>
+                    <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashpowerList" :key="index">
+                        <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
+                        <el-descriptions-item label="总结余">{{ toFixed(item.total_balance || 0, 4) }} {{item.currency === 'BTCB' ? 'T' : item.currency}}</el-descriptions-item>
+                        <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 2) }}</el-descriptions-item>
+                        <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
+                        <!-- <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item> -->
+                        <el-descriptions-item label="昨日收益">
+                                <span>
+                                    {{ item.yest_income ? toFixed(item.yest_income || 0, 6) : 0 }} USDT <br>
+                                    {{ item.yest_income_btcb ? toFixed(item.yest_income_btcb || 0, 10) : 0 }} BTC
+                                </span>
+                            </el-descriptions-item>
+                        <el-descriptions-item label="总收益">
+                            <span>
+                                {{ item.total_income_usdt ? toFixed(item.total_income_usdt || 0, 6) : 0 }} USDT <br>
+                                {{ item.total_income_btcb ? toFixed(item.total_income_btcb || 0, 10) : 0 }} BTC
+                            </span>
+                        </el-descriptions-item>
+                        <el-descriptions-item label="总收益率">{{ toFixed(item.total_rate || 0, 2) }}%</el-descriptions-item>
+                        <el-descriptions-item label="年化收益率">{{ toFixed(item.year_rate || 0, 2) }}%</el-descriptions-item>
+                        <el-descriptions-item>
+                            <div class="operate">
+                                <div>
+                                    <el-button size="mini" type="primary" @click="HashpowerBuyClick(item, 1)">购买</el-button>
+                                    <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获{{item.currency}}</el-button>
+                                    <br><br>
+                                    <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
+                                    <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
+                                </div>
+                            </div>
+                        </el-descriptions-item>
+                    </el-descriptions>
+                </div>
+            </el-tab-pane>
+        </el-tabs>
     </div>
 </template>
 <script>
@@ -179,9 +296,11 @@ export default {
     name: '',
     data() {
         return {
+            activeName: '1',
             timeInterval: null,
             refreshTime: 10000, //数据刷新间隔时间
             tableData: [],
+            hashpowerList: [],
             currPage: 1, //当前页
             pageSize: 20, //每页显示条数
             total: 100, //总条数
@@ -229,6 +348,8 @@ export default {
 
                         this.getMyProductList();
 
+                        this.getMyHashpowerList();
+
                         this.refreshData();
 
                         console.log(this.hashPowerPoolsList);
@@ -262,6 +383,7 @@ export default {
                 this.$store.dispatch('refreshHashPowerPoolsList')
                 await this.getPoolBtcData();
                 await this.getMyProductList();
+                await this.getMyHashpowerList();
                 // await this.getHashpowerData();
             }, this.refreshTime)
         },
@@ -309,12 +431,12 @@ export default {
                 get(this.apiUrl + "/Api/Product/getMyProductList", ServerWhere, async json => {
                     if (json.code == 10000) {
                         let list = (json.data && json.data.lists) || [];
-                        let hashpowerData = await this.getMyHashpowerList();
+                        // let hashpowerData = await this.getMyHashpowerList();
                         // console.log(hashpowerData);
-                        if(hashpowerData && hashpowerData.length > 0) {
-                            list = [...list, ...hashpowerData];
-                        }
-                        console.log(list);
+                        // if(hashpowerData && hashpowerData.length > 0) {
+                        //     list = [...list, ...hashpowerData];
+                        // }
+                        // console.log(list);
                         this.loading = false;
                         this.tableData = list;
                         this.total = json.data.count;
@@ -327,46 +449,39 @@ export default {
                 this.loading = false;
             }
         },
-        async getMyHashpowerList(ServerWhere) { //获取我的算力币数据
-            return new Promise(async (resolve, reject) => {
-                var that = this.$data;
-                if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
-                    ServerWhere = {
-                        limit: that.pageSize,
-                        page: that.currPage,
-                        address: this.address,
-                    };
-                }
-                let arr = [];
+        async getMyHashpowerList() { //获取我的算力币数据
+            // return new Promise(async (resolve, reject) => {
+                let list = [];
                 console.log(this.hashPowerPoolsList, this.poolBtcData);
                 this.hashPowerPoolsList.map((hashpowerObj, index) => {
                     if(hashpowerObj.btcb19ProBalance > 0 || hashpowerObj.balance > 0) {
-                        arr[index] = hashpowerObj;
-                        arr[index]['id'] = hashpowerObj.id;
-                        arr[index]['total_number'] = Number(hashpowerObj.balance) * 10; //购买数量
-                        arr[index]['total_balance'] = Number(hashpowerObj.balance); //总结余 = 购买数量 T数
+                        list[index] = hashpowerObj;
+                        list[index]['id'] = hashpowerObj.id;
+                        list[index]['total_number'] = Number(hashpowerObj.balance) * 10; //购买数量
+                        list[index]['total_balance'] = Number(hashpowerObj.balance); //总结余 = 购买数量 T数
                         // if(Number(element.buy_price) !== Number(element.cost_revenue)) {
                         let yest_income_usdt = Number(hashpowerObj.balance) * Number(hashpowerObj.daily_income); //昨日收益 usdt
                         let yest_income_btcb = keepDecimalNotRounding(Number(hashpowerObj.balance) * (Number(hashpowerObj.daily_income) / Number(this.poolBtcData.currency_price)), 10, true); //昨日收益 btcb
-                        arr[index]['yest_income'] = yest_income_usdt;
-                        arr[index]['yest_income_btcb'] = yest_income_btcb;
+                        list[index]['yest_income'] = yest_income_usdt;
+                        list[index]['yest_income_btcb'] = yest_income_btcb;
                         let countIncome = Number(hashpowerObj.btcbReward) + Number(hashpowerObj.harvest_btcb_amount); // 总的收益 = 奖励收益数量 + 已收割奖励数量
-                        arr[index]['total_income_btcb'] = countIncome; //btcb总收益
+                        list[index]['total_income_btcb'] = countIncome; //btcb总收益
                         let total_income_usdt = countIncome * Number(this.poolBtcData.currency_price); //usdt总收益
-                        arr[index]['total_income_usdt'] = total_income_usdt;
-                        arr[index]['total_rate'] = keepDecimalNotRounding(total_income_usdt / (Number(hashpowerObj.balance) * Number(hashpowerObj.cost_revenue)), 10) * 100; //总收益率=总收益/总投入=总收益/(算力币价*算力币数)
+                        list[index]['total_income_usdt'] = total_income_usdt;
+                        list[index]['total_rate'] = keepDecimalNotRounding(total_income_usdt / (Number(hashpowerObj.balance) * Number(hashpowerObj.cost_revenue)), 10) * 100; //总收益率=总收益/总投入=总收益/(算力币价*算力币数)
                         // console.log(this.poolBtcData);
                         let dailyYield = yest_income_usdt / (Number(hashpowerObj.balance) * Number(hashpowerObj.cost_revenue)); //昨日收益/（算力币T数*算力币价格）
                         // console.log(dailyYield);
-                        arr[index]['year_rate'] = dailyYield * 365 * 100;
+                        list[index]['year_rate'] = dailyYield * 365 * 100;
                         // }
-                        arr[index]['is_hash'] = true;
+                        list[index]['is_hash'] = true;
                     }
                     // console.log(hashpowerObj, index);
                 })
-                console.log(arr);
-                resolve(arr);
-            })
+                console.log(list);
+                this.hashpowerList = list;
+                // resolve(arr);
+            // })
         },
         limitPaging(limit) {
             //赋值当前条数
@@ -484,6 +599,9 @@ export default {
                     }
                 })
             })
+        },
+        handleClick(tab, event) {
+            console.log(tab, event);
         }
     },
     mounted() {
