@@ -245,8 +245,8 @@ class TaskController extends ToolsBaseController
      */
     public function getBscscanTokenHolders() {
         $begin_time = time();
-        // $tokens = BscAddressStatistics::getTokensList();
-        $tokens = array(
+        $tokens = BscAddressStatistics::getTokensList();
+        // $tokens = array(
         //     ['name' => 'Cake', 'token' => '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', 'chain' => 'bscscan'],
         //     ['name' => 'BNB', 'token' => '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 'chain' => 'bscscan'],
         //     ['name' => 'BSW', 'token' => '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1', 'chain' => 'bscscan'],
@@ -272,10 +272,10 @@ class TaskController extends ToolsBaseController
             // ['name' => 'HYPR', 'token' => '0x03D6BD3d48F956D783456695698C407A46ecD54d', 'chain' => 'bscscan'],
             // ['name' => 'AUDIO', 'token' => '0xb0B2d54802B018B393A0086a34DD4c1f26F3D073', 'chain' => 'bscscan'],
             // ['name' => 'GUT', 'token' => '0x36E714D63B676236B72a0a4405F726337b06b6e5', 'chain' => 'bscscan'],
-            ['name' => 'ELON', 'token' => '0x761D38e5ddf6ccf6Cf7c55759d5210750B5D60F3', 'chain' => 'etherscan'],
+            // ['name' => 'ELON', 'token' => '0x761D38e5ddf6ccf6Cf7c55759d5210750B5D60F3', 'chain' => 'etherscan'],
         //     // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
         //     // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
-        );
+        // );
         foreach ($tokens as $key => $val) {
             $name = $val['name'];
             $params = ['token' => $val['token'], 'chain' => $val['chain']];
