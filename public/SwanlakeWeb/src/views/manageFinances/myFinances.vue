@@ -89,7 +89,7 @@
                         </el-table-column>
                     </el-table>
                     <!-- v-if="total > pageSize" -->
-                    <el-row class="pages" v-if="total > pageSize">
+                    <!-- <el-row class="pages" v-if="total > pageSize">
                         <el-col :span="24">
                             <div style="float:right;">
                             <wbc-page
@@ -101,7 +101,7 @@
                             ></wbc-page>
                             </div>
                         </el-col>
-                    </el-row>
+                    </el-row> -->
                 </div>
                 <div v-else>
                     <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
@@ -133,7 +133,7 @@
             <el-tab-pane label="算力币" name="2">
                 <div v-if="!isMobel">
                     <el-table
-                        v-loading="loading"
+                        v-loading="hashPowerLoading"
                         :data="hashpowerList"
                         style="width: 100%">
                         <el-table-column
@@ -148,7 +148,8 @@
                             align="center"
                             width="180">
                             <template slot-scope="scope">
-                                <span v-if="scope.row.is_hash">钱包余额: {{ scope.row.btcb19ProBalance > 0 ? toFixed(scope.row.btcb19ProBalance || 0, 4) : 0}} T</span>
+                                <span>钱包余额: {{ scope.row.btcb19ProBalance > 0 ? toFixed(scope.row.btcb19ProBalance || 0, 4) : 0}} T</span> <br>
+                                <span>质押余额: {{ scope.row.total_balance > 0 ? toFixed(scope.row.total_balance || 0, 4) : 0}} T</span>
                             </template>
                         </el-table-column>
                         <el-table-column
@@ -232,7 +233,7 @@
                         </el-table-column>
                     </el-table>
                     <!-- v-if="total > pageSize" -->
-                    <el-row class="pages" v-if="total > pageSize">
+                    <!-- <el-row class="pages" v-if="total > pageSize">
                         <el-col :span="24">
                             <div style="float:right;">
                             <wbc-page
@@ -244,7 +245,7 @@
                             ></wbc-page>
                             </div>
                         </el-col>
-                    </el-row>
+                    </el-row> -->
                 </div>
                 <div v-else>
                     <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashpowerList" :key="index">
@@ -306,6 +307,7 @@ export default {
             total: 100, //总条数
             poolBtcData: {},
             loading: true,
+            hashPowerLoading: true,
             receiveLoading: false,
         }
     },
@@ -348,7 +350,7 @@ export default {
 
                         this.getMyProductList();
 
-                        this.getMyHashpowerList();
+                        // this.getMyHashpowerList();
 
                         this.refreshData();
 
@@ -361,15 +363,17 @@ export default {
             immediate: true,
             async handler(val) {
                 if(val && this.address) {
-                    // this.getMyProductList();
+                    this.getMyProductList();
                 }
             },
+            deep: true,
         },
         poolBtcData: {
             immediate: true,
             async handler(val) {
                 if(val && this.address) {
                     this.getMyProductList();
+                    // this.getMyHashpowerList();
                 }
             },
         }
@@ -383,7 +387,7 @@ export default {
                 this.$store.dispatch('refreshHashPowerPoolsList')
                 await this.getPoolBtcData();
                 await this.getMyProductList();
-                await this.getMyHashpowerList();
+                // await this.getMyHashpowerList();
                 // await this.getHashpowerData();
             }, this.refreshTime)
         },
@@ -431,16 +435,15 @@ export default {
                 get(this.apiUrl + "/Api/Product/getMyProductList", ServerWhere, async json => {
                     if (json.code == 10000) {
                         let list = (json.data && json.data.lists) || [];
-                        // let hashpowerData = await this.getMyHashpowerList();
-                        // console.log(hashpowerData);
-                        // if(hashpowerData && hashpowerData.length > 0) {
-                        //     list = [...list, ...hashpowerData];
-                        // }
-                        // console.log(list);
-                        this.loading = false;
                         this.tableData = list;
-                        this.total = json.data.count;
-                        this.$forceUpdate();
+                        this.loading = false;
+                        let hashpowerData = await this.getMyHashpowerList();
+                        // console.log(hashpowerData);
+                        if(hashpowerData) {
+                            this.$forceUpdate();
+                        //     list = [...list, ...hashpowerData];
+                        }
+                        // console.log(list);
                     } else {
                         this.$message.error("加载数据失败");
                     }
@@ -450,7 +453,7 @@ export default {
             }
         },
         async getMyHashpowerList() { //获取我的算力币数据
-            // return new Promise(async (resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 let list = [];
                 console.log(this.hashPowerPoolsList, this.poolBtcData);
                 this.hashPowerPoolsList.map((hashpowerObj, index) => {
@@ -480,8 +483,9 @@ export default {
                 })
                 console.log(list);
                 this.hashpowerList = list;
-                // resolve(arr);
-            // })
+                this.hashPowerLoading = false;
+                resolve(true);
+            })
         },
         limitPaging(limit) {
             //赋值当前条数
