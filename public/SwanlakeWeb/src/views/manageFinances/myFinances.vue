@@ -37,14 +37,14 @@
                     align="center"
                     width="200">
                 </el-table-column> -->
-                <el-table-column
+                <!-- <el-table-column
                     prop="networth"
                     label="净值"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ keepDecimalNotRounding(scope.row.networth || 0, 4) }}</span>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
                     prop="yest_income"
                     label="昨日收益"
@@ -130,7 +130,7 @@
                 <el-descriptions-item label="总结余">{{ toFixed(item.total_balance || 0, 4) }} {{item.currency === 'BTCB' ? 'T' : item.currency}}</el-descriptions-item>
                 <el-descriptions-item label="购买份数">{{ toFixed(item.total_number || 0, 2) }}</el-descriptions-item>
                 <!-- <el-descriptions-item label="购    买时间">{{ item.time }}</el-descriptions-item> -->
-                <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item>
+                <!-- <el-descriptions-item label="净值">{{ keepDecimalNotRounding(item.networth || 0, 4) }}</el-descriptions-item> -->
                 <el-descriptions-item label="昨日收益">
                         <span v-if="item.is_hash">
                             {{ item.yest_income ? toFixed(item.yest_income || 0, 6) : 0 }} USDT <br>
