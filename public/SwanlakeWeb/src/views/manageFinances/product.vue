@@ -51,7 +51,7 @@
                     <template slot-scope="scope">
                         <span v-if="scope.row.is_hash">
                             {{ toFixed(scope.row.yest_income || 0, 2) }} USDT <br>
-                            {{ toFixed(scope.row.yest_income_btcb || 0, 4) }} BTC
+                            {{ toFixed(scope.row.yest_income_btcb || 0, 8) }} BTC
                         </span>
                         <span v-else>{{ toFixed(scope.row.yest_income || 0, 2) }} {{ scope.row.currency}}</span>
                     </template>
@@ -79,7 +79,7 @@
                     align="center"
                     width="200">
                     <template slot-scope="scope">
-                        <el-button @click="showHashpowerDetail()" type="text">详情</el-button>
+                        <el-button @click="showHashpowerDetail()" type="text" v-if="scope.row.is_hash">详情</el-button>
                         <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
                         <el-button type="text" @click="incomeClick(scope.row)" v-if="scope.row.name !== 'BTCS19Pro'">历史净值</el-button>
                     </template>
