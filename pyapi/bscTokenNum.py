@@ -64,14 +64,18 @@ class JDSpider(object):
     # 爬取数据币种供应量和价格
     def getListData(self, token, chain):
         # urls = self.bscscan_url + str(token)
-        urls = f'https://{chain}.com/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
+        if chain == 'etherscan':
+            urls = f'https://{chain}.io/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
+        else:
+            urls = f'https://{chain}.com/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
         # print(self.page, self.num, self.count, urls)
         self.browser.get(urls)
-        # time.sleep(5)
+        time.sleep(5)
 
         # 获取地址数量
         HoldersDom = self.browser.find_element_by_class_name('card-body')
         HoldersList = HoldersDom.text.split('\n')
+        print(HoldersList)
         holders = re.sub("[^0-9.]", "", HoldersList[7])
 
         # 获取价格

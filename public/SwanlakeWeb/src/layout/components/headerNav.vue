@@ -66,6 +66,10 @@
             <div v-show="screenWidth >= 1280">
                 <el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleSelect" :router="true" v-if="navList.length">
                     <el-menu-item v-for="(item, index) in navList" :key="index" :index="item.path">{{ item.name }}</el-menu-item>
+                    <!-- <el-submenu index="2">
+                        <template slot="title">算力币</template>
+                        <el-menu-item index="2-1">产品列表</el-menu-item>
+                    </el-submenu> -->
                 </el-menu>
             </div>
             <el-drawer
@@ -205,6 +209,10 @@ export default {
                 {
                     name: '净值配置',
                     path: "/day/networth",
+                },
+                {
+                    name: '算力币',
+                    path: "/hashpower/list",
                 },
             ];
             if(!this.isAdmin) {

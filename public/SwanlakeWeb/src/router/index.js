@@ -94,6 +94,12 @@ export const constantRoutes = [
         },
         //算力收益
         {
+          path: 'hashpower/list',
+          name: 'hashpowerList',
+          component: () => import('@/views/hashpower/list'),
+          meta: { title: 'hashpowerList', keepAlive: false }
+        },
+        {
           path: 'hashpower/buy',
           name: 'hashpowerBuy',
           component: () => import('@/views/hashpower/buy'),

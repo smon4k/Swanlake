@@ -1,5 +1,5 @@
 import router from '@/router'
-import { getUserAddressInfo, saveUserInfo, getHashPowerPoolsTokensData } from '@/wallet/serve'
+import { getUserAddressInfo, getPoolBtcData, getHashPowerPoolsTokensData } from '@/wallet/serve'
 import {
     deepCopy,
     fromWei,
@@ -12,7 +12,8 @@ import hashPoolsList from '@/wallet/hashpower_pools.js'
 import Address from '@/wallet/address.json'
 import Web3 from 'web3'
 import Vue from 'vue'
-let copyBaseState 
+import { keepDecimalNotRounding } from "@/utils/tools";
+let copyBaseState;
 
 
 
@@ -46,7 +47,7 @@ export default {
         gamesFillingAddress: '0xB433036377478dD94f94e4467C14835438b648Db', //游戏系统-充提清算系统-合约地址-升级增加订单id
         hashpowerAddress: '0x5fE319Cad2B7203891AC9a9536A4a054636A2340', //算力币合约地址 测试
         fairLaunchAddress:'0x08D027B330F3A8ace9290235D575475150EA14Ff', //_launch
-        hashPowerPoolsList: {},
+        hashPowerPoolsList: [],
     },
     mutations: {
         isConnected(state , val ){
@@ -148,6 +149,10 @@ export default {
                         annualized_income: 0,
                         daily_income: 0,
                         harvest_btcb_amount: 0,
+                        yest_income_usdt: 0,
+                        yest_income_btcb: 0,
+                        total_income_usdt: 0,
+                        total_income_btcb: 0,
                         currency: 0,
                         loading:false,
                         btcbPrice: 0,
@@ -180,6 +185,10 @@ export default {
                 state.hashPowerPoolsList[index].daily_income = info.daily_income
                 state.hashPowerPoolsList[index].currency = info.currency
                 state.hashPowerPoolsList[index].harvest_btcb_amount = info.harvest_btcb_amount
+                state.hashPowerPoolsList[index].yest_income_usdt = info.yest_income_usdt
+                state.hashPowerPoolsList[index].yest_income_btcb = info.yest_income_btcb
+                state.hashPowerPoolsList[index].total_income_usdt = info.total_income_usdt
+                state.hashPowerPoolsList[index].total_income_btcb = info.total_income_btcb
                 state.hashPowerPoolsList[index].loading = false
             }
         },
@@ -257,10 +266,20 @@ export default {
             }
             // console.log(fixed);
             if(fixed.length){
+                let poolBtcData = await getPoolBtcData();
+                console.log(poolBtcData);
                 let fixedList = [...fixed]
                 fixedList.forEach(async item=> {
                     // console.log(item);
-                    let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId, item.id)
+                    let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId, item.id);
+                    let yest_income_usdt = Number(info.userBalance) * Number(info.daily_income); //昨日收益 usdt
+                    let yest_income_btcb = keepDecimalNotRounding(Number(info.userBalance) * (Number(info.daily_income) / Number(poolBtcData[0].currency_price))); //昨日收益 btcb
+                    info.yest_income_usdt = yest_income_usdt;
+                    info.yest_income_btcb = yest_income_btcb;
+                    let countIncome = keepDecimalNotRounding(Number(info.btcbReward) + Number(info.harvest_btcb_amount)); // 总的收益 = 奖励收益数量 + 已收割奖励数量
+                    info.total_income_btcb = countIncome; //btcb总收益
+                    let total_income_usdt = countIncome * Number(poolBtcData[0].currency_price); //usdt总收益
+                    info.total_income_usdt = total_income_usdt;
                     // console.log(info);
                     info.t = item.goblin
                     commit('setHashPowerPoolsBalance', info)

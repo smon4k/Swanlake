@@ -7,7 +7,7 @@
     </el-breadcrumb> -->
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <el-page-header @back="goBack" content="算力币购买"></el-page-header>
+        <el-page-header @back="goBack" :content="detailData.name"></el-page-header>
       </div>
       <!-- <el-container class="container"> -->
         <!-- <el-header>Header</el-header> -->
