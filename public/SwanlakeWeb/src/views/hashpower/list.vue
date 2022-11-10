@@ -294,6 +294,7 @@ export default {
     mounted() {
         setTimeout(()=>{
             this.getPoolBtcData();
+            this.getOutputDetail();
         } , 300)
     },
     beforeRouteLeave(to, from, next){ //页面离开
