@@ -64,12 +64,16 @@
             <el-divider></el-divider>
 
             <div v-show="screenWidth >= 1280">
-                <el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleSelect" :router="true" v-if="navList.length">
-                    <el-menu-item v-for="(item, index) in navList" :key="index" :index="item.path">{{ item.name }}</el-menu-item>
-                    <!-- <el-submenu index="2">
-                        <template slot="title">算力币</template>
-                        <el-menu-item index="2-1">产品列表</el-menu-item>
-                    </el-submenu> -->
+                <el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleSelect" :router="true" v-if="navList.length" menu-trigger="click">
+                    <template v-for="(item, index) in navList">
+                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
+                        <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
+                            <template slot="title">{{item.name}}</template>
+                            <div v-for="(childe, keye) in item.children" :key="keye">
+                                <el-menu-item :index="childe.path">{{childe.name}}</el-menu-item>
+                            </div>
+                        </el-submenu>
+                    </template>
                 </el-menu>
             </div>
             <el-drawer
@@ -98,9 +102,15 @@
                     class="el-menu-vertical-demo"
                     :router="true"
                     @select="handleSelect">
-                    <el-menu-item v-for="(item, index) in navList" :key="index" :index="item.path">
-                        <span slot="title">{{ item.name }}</span>
-                    </el-menu-item>
+                    <template v-for="(item, index) in navList">
+                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
+                        <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
+                            <template slot="title">{{item.name}}</template>
+                            <div v-for="(childe, keye) in item.children" :key="keye">
+                                <el-menu-item :index="childe.path">{{childe.name}}</el-menu-item>
+                            </div>
+                        </el-submenu>
+                    </template>
                 </el-menu>
 
             </el-drawer>
@@ -185,34 +195,55 @@ export default {
                 {
                     name: '我的理财',
                     path: "/my/finances",
+                    children: [],
                 },
                 {
                     name: '理财产品',
                     path: "/financial/product",
+                    children: [],
                 },
                 {
                     name: '资金监控',
                     path: "/fund/monitoring",
+                    children: [],
                 },
                 {
                     name: '充提',
                     path: "/depositWithdrawal",
+                    children: [],
                 },
                 {
                     name: '币种统计',
                     path: "/bscTokenStatistics",
+                    children: [],
                 },
                 {
                     name: '算力币',
                     path: "/hashpower/list",
+                    children: [
+                        {
+                            name: '算力币列表',
+                            path: "/hashpower/list",
+                        },
+                        {
+                            name: '白皮书',
+                            path: "/hashpower/abstract",
+                        },
+                        {
+                            name: '订单历史',
+                            path: "/hashpower/history",
+                        },
+                    ]
                 },
                 {
                     name: '资金账户监控',
                     path: "/fund/monitoring/account",
+                    children: [],
                 },
                 {
                     name: '净值配置',
                     path: "/day/networth",
+                    children: [],
                 },
             ];
             if(!this.isAdmin) {
@@ -348,201 +379,221 @@ export default {
     .el-drawer__body {
         padding: 20px !important;
     }
-}
-.sider-inner {
-    display: flex;
-    position: absolute;
-    left: 10px;
-    align-items: center;
-    // top: 15px;
-    // height: 100%;
-    // min-height: 436px;
-    .menu {
-        img {
-            width: 30px;
-        }
-        box-sizing: border-box;
-        margin-right: 10px;
-        margin-top: 5px;
-    }
-    .title {
+    .sider-inner {
         display: flex;
+        position: absolute;
+        left: 10px;
         align-items: center;
-        justify-content: space-around;
-        flex-direction: column;
-        font-weight: 900;
-    }
-    .logo {
-        margin-left: 20px;
-        margin-right: 10px;
-        height: 40px;
-        box-sizing: border-box;
-        .logo-link {
-            display: block;
-            height: 100%;
-            text-align: center;
+        // top: 15px;
+        // height: 100%;
+        // min-height: 436px;
+        .menu {
             img {
-                height: 40px;
-                margin-left: -24px;
-                border-radius: 50%;
+                width: 30px;
             }
-            span {
-                display: inline-block;
-                font-size: 16px;
-                @include mainFont($color-mainFont-light);
-                // color: #1C1C1B;
-                padding-top: 4px;
-                margin-left: -14px;
+            box-sizing: border-box;
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+        .title {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-direction: column;
+            font-weight: 900;
+        }
+        .logo {
+            margin-left: 20px;
+            margin-right: 10px;
+            height: 40px;
+            box-sizing: border-box;
+            .logo-link {
+                display: block;
+                height: 100%;
+                text-align: center;
+                img {
+                    height: 40px;
+                    margin-left: -24px;
+                    border-radius: 50%;
+                }
+                span {
+                    display: inline-block;
+                    font-size: 16px;
+                    @include mainFont($color-mainFont-light);
+                    // color: #1C1C1B;
+                    padding-top: 4px;
+                    margin-left: -14px;
+                }
             }
         }
     }
-}
-.el-menu-item {
-    font-size: 18px;
-    .is-active {
-        border-bottom: 4px solid #409EFF;
+    .el-menu--horizontal {
+        .el-menu--popup {
+            .el-menu-item {
+                font-size: 13px;
+            }
+        }
     }
-}
-.el-divider--horizontal {
-    margin: 5px 0;
-}
-.totalMintNav{
-    margin-right: auto;
-    padding-left: 60px;
-    display: flex;
-    .item{
-        min-width: 120px;
-        margin-right: 8px;
-        height: 63px;
-        line-height: 63px;
-        text-align: center;
-        border-bottom: 2px solid transparent;
-        box-sizing: border-box;
+    // .el-menu-item {
+    //     font-size: 18px;
+    //     .is-active {
+    //         border-bottom: 4px solid #409EFF;
+    //     }
+    // }
+    .el-menu-demo {
+        .el-menu-item {
+            font-size: 18px;
+            .is-active {
+                border-bottom: 4px solid #409EFF;
+            }
+        }
+        .el-submenu {
+            .el-submenu__title {
+                font-size: 18px;
+            }
+        }
+    }
+    .el-divider--horizontal {
+        margin: 5px 0;
+    }
+    .totalMintNav{
+        margin-right: auto;
+        padding-left: 60px;
+        display: flex;
+        .item{
+            min-width: 120px;
+            margin-right: 8px;
+            height: 63px;
+            line-height: 63px;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .active {
+            color: #0096FF;
+            font-weight: bold;
+            border-color: #0096FF;
+        }
+    }
+    .security-audit {
         cursor: pointer;
-    }
-    .active {
-        color: #0096FF;
-        font-weight: bold;
-        border-color: #0096FF;
-    }
-}
-.security-audit {
-    cursor: pointer;
-    height: 36px;
-    // border: 1px solid #1C1C1B;
-    // border-style: solid;
-    // border-width: 1px;
-    @include infoBoxBorder($infoBoxBorder-light);
-    // border-radius: 8px;
-    width: 150px;
-    margin-right: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    img {
-        width: 115px;
-        height: 29px;
-    }
-}
-.language {
-    /deep/ {
+        height: 36px;
+        // border: 1px solid #1C1C1B;
+        // border-style: solid;
+        // border-width: 1px;
+        @include infoBoxBorder($infoBoxBorder-light);
+        // border-radius: 8px;
+        width: 150px;
+        margin-right: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
-        // width: 40px;
-        margin-right: 15px;
-        button {
-            height: 30px;
-            line-height: 1px;
-        }
-        .el-dropdown {
-            font-size: 18px;
-        }
-        .el-dropdown-link {
-            @include mainFont($color-mainFont-light);
-            cursor: pointer;
-            // color: #409EFF;
-        }
-        .el-icon-arrow-down {
-            font-size: 12px;
-        }
-        .popper-select {
-            position: absolute !important;
-            top: 23px !important;
-            left: -40px !important;
-            @include tooltipPopperBgcTwo($color-tooltipPopper-2-dark);
-            border: 0;
-        }
-        .el-dropdown-menu__item {
-            @include mainFont($color-mainFont-light);
-        }
-        .el-dropdown-menu__item:hover {
-            @include sideBarBgc($color-bgc-sideBar-dark);
-        }
         img {
+            width: 115px;
+            height: 29px;
+        }
+    }
+    .language {
+        /deep/ {
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        .popper__arrow {
-            left: 45px !important;
-        }
-        .el-popper[x-placement^=bottom] {
-            .popper__arrow::after {
-                @include tooltipPopperBorderBottom($color-tooltipPopper-dark)
+            // width: 40px;
+            margin-right: 15px;
+            button {
+                height: 30px;
+                line-height: 1px;
+            }
+            .el-dropdown {
+                font-size: 18px;
+            }
+            .el-dropdown-link {
+                @include mainFont($color-mainFont-light);
+                cursor: pointer;
+                // color: #409EFF;
+            }
+            .el-icon-arrow-down {
+                font-size: 12px;
+            }
+            .popper-select {
+                position: absolute !important;
+                top: 23px !important;
+                left: -40px !important;
+                @include tooltipPopperBgcTwo($color-tooltipPopper-2-dark);
+                border: 0;
+            }
+            .el-dropdown-menu__item {
+                @include mainFont($color-mainFont-light);
+            }
+            .el-dropdown-menu__item:hover {
+                @include sideBarBgc($color-bgc-sideBar-dark);
+            }
+            img {
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             .popper__arrow {
-                @include tooltipPopperBorderBottom($color-tooltipPopper-dark)
+                left: 45px !important;
+            }
+            .el-popper[x-placement^=bottom] {
+                .popper__arrow::after {
+                    @include tooltipPopperBorderBottom($color-tooltipPopper-dark)
+                }
+                .popper__arrow {
+                    @include tooltipPopperBorderBottom($color-tooltipPopper-dark)
+                }
             }
         }
     }
-}
-.carousel {
-    /deep/ {
-        margin-right: auto;
-        width: 80%;
-        height: 50px;
-        // margin-bottom: 15px;
-        // display: contents;
-        >div {
-            background-color: #333;
-            border-radius: 38px;
-            padding-left: 20px;
-            box-sizing: border-box;
-            .tit {
-                font-size: 16px;
-                font-weight: 600;
-                line-height: 16px;
-                margin: 17px 0 12px 0;
-                @include mainFont($color-mainFont-light);
-    
-                img {
-                    height: 18px;
-                    vertical-align: middle;
-                    margin-right: 8px;
-                    position: relative;
-                    top: -2px;
+    .carousel {
+        /deep/ {
+            margin-right: auto;
+            width: 80%;
+            height: 50px;
+            // margin-bottom: 15px;
+            // display: contents;
+            >div {
+                background-color: #333;
+                border-radius: 38px;
+                padding-left: 20px;
+                box-sizing: border-box;
+                .tit {
+                    font-size: 16px;
+                    font-weight: 600;
+                    line-height: 16px;
+                    margin: 17px 0 12px 0;
+                    @include mainFont($color-mainFont-light);
+        
+                    img {
+                        height: 18px;
+                        vertical-align: middle;
+                        margin-right: 8px;
+                        position: relative;
+                        top: -2px;
+                    }
+                }
+                .num {
+                    font-size: 34px;
+                    margin: 0 ;
+                    font-weight: 600;
+                    color: #31c77f;
+                    // background-image:-webkit-linear-gradient(bottom,red,#fd8403,yellow); 
+                    // background: linear-gradient(90deg, #0096ff, #0024ff);
                 }
             }
-            .num {
-                font-size: 34px;
-                margin: 0 ;
-                font-weight: 600;
-                color: #31c77f;
-                // background-image:-webkit-linear-gradient(bottom,red,#fd8403,yellow); 
-                // background: linear-gradient(90deg, #0096ff, #0024ff);
+            .el-carousel__indicators--vertical {
+                display: none !important;
             }
-        }
-        .el-carousel__indicators--vertical {
-            display: none !important;
-        }
-        .el-carousel__item h3 {
-            // @include mainFont($color-mainFont-light);
-            color: #31c77f;
-            font-size: 14px;
-            opacity: 0.75;
-            line-height: 50px;
-            margin: 0;
+            .el-carousel__item h3 {
+                // @include mainFont($color-mainFont-light);
+                color: #31c77f;
+                font-size: 14px;
+                opacity: 0.75;
+                line-height: 50px;
+                margin: 0;
+            }
         }
     }
 }

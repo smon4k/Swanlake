@@ -1,7 +1,8 @@
 <template>
-  <div class="app-container">
+  <div class="container">
+        <!-- <el-page-header @back="$router.go(-1)" :content="$t('subscribe:WhitePaper')"></el-page-header> -->
         <el-container class="main">
-            <el-header class="title">{{ $t("subscribe:WhitePaper") }}</el-header>
+            <!-- <el-header class="title">{{ $t("subscribe:WhitePaper") }}</el-header> -->
             <el-main>
                 <el-row>
                     <!-- <el-col :span="24" class="images">
@@ -67,6 +68,11 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.container {
+  /deep/ {
+    border-radius: 30px;
+    background-color: #fff !important;
+    // padding: 30px;
     .main {
         padding: 20px;
         @include mainFont($color-mainFont-light);
@@ -91,4 +97,6 @@ export default {
             margin-bottom: -10px;
         }
     }
+  }
+}
 </style>

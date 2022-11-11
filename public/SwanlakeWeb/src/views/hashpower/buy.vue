@@ -7,7 +7,8 @@
     </el-breadcrumb> -->
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <el-page-header @back="goBack" :content="detailData.name"></el-page-header>
+        <el-page-header @back="goBack" :content="detailData.name">
+        </el-page-header>
       </div>
       <!-- <el-container class="container"> -->
         <!-- <el-header>Header</el-header> -->
@@ -31,6 +32,9 @@
                   </div>
                   <div class="text item">
                     <el-row class="content" :style="'width:'+isMobel ? '100%' : '80%'">
+                      <el-col :span="24" align="right">
+                        <el-button style="float: right; padding: 3px 0" type="text" @click="hashpowerPanelShow = true">算力规模</el-button>
+                      </el-col>
                       <el-col :span="isMobel ? 12 : 8" align="center">
                         <p class="desc">{{ $t('subscribe:Specific') }}</p>
                         <p class="balance">{{detailData.specific}}</p>
@@ -330,6 +334,81 @@
         </el-main>
       <!-- </el-container> -->
     </el-card>
+
+
+        <el-dialog
+            title="算力规模"
+            :visible.sync="hashpowerPanelShow"
+            :width="isMobel ? '80%' : '50%'"
+            center>
+            <div class="info" v-if="poolBtcData">
+              <!-- <el-row style="line-height:30px;">
+                  <el-col :span="12" align="center">
+                      <span class="title">{{ $t('subscribe:Hashrate') }}</span>
+                      <br>
+                      <span> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</span> 
+                  </el-col>
+                  <el-col :span="12" align="center">
+                      <span class="title">{{ $t('subscribe:CurrencyPrice') }}</span>
+                      <br>
+                      <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
+                  </el-col>
+              </el-row>
+              <br>
+              <el-row style="line-height:30px;">
+                  <el-col :span="12" align="center">
+                      <span class="title">{{ $t('subscribe:MinimumElectricityBill') }}</span><br>
+                      <span>0.065 USDT</span> 
+                  </el-col>
+                  <el-col :span="12" align="center">
+                      <span>
+                          <span class="title">{{ $t('subscribe:DailyEarnings') }}/T </span><br>
+                          <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
+                          <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}} BTC</span>
+                      </span>
+                  </el-col>
+              </el-row> -->
+              <!-- <br> -->
+              <el-row>
+                  <el-col :span="24">
+                      <el-row style="line-height:30px;">
+                          <el-col :span="isMobel ? 12 : 12" align="center">
+                              <span class="title">{{ $t('subscribe:outputYesterday') }}</span><br /> 
+                              <span>{{toFixed(Number(detailData.yester_output), 2) || "--"}} USDT</span>
+                              <br>
+                              <span>{{toFixed(Number(detailData.yester_output_btc), 8)}} BTC</span>
+                          </el-col>
+                          <el-col :span="isMobel ? 12 : 12" align="center">
+                              <span class="title">{{ $t('subscribe:cumulativeOutput') }}</span> <br /> 
+                              <span>{{toFixed(Number(detailData.count_output), 2) || "--"}} USDT</span>
+                              <br>
+                              <span>{{toFixed(Number(detailData.count_output_btc), 8) || "--"}} BTC</span>
+                          </el-col>
+                      </el-row>
+                      <br>
+                      <el-row style="line-height:30px;">
+                          <el-col :span="isMobel ? 12 : 12" align="center">
+                              <span class="title">{{ $t('subscribe:EstimatedElectricityCharge') }}/T </span><br /> 
+                              <span>{{ toFixed(detailData.daily_expenditure_usdt || 0, 4) }} USDT</span>
+                              <br>
+                              <span>{{ toFixed(detailData.daily_expenditure_btc || 0, 8) }} BTC</span>
+                          </el-col>
+                          <el-col :span="isMobel ? 12 : 12" align="center">
+                              <span class="title">{{ $t('subscribe:NetProfit') }}/T </span><br /> 
+                              <span>{{ toFixed(detailData.daily_income_usdt || 0, 4) }} USDT</span>
+                              <br>
+                              <span></span>{{ toFixed(detailData.daily_income_btc || 0, 8) }} BTC
+                          </el-col>
+                      </el-row>
+                      <el-row style="line-height:30px;">
+                          <el-col :span="isMobel ? 24 : 24" align="center">
+                              <span class="title">{{ $t('subscribe:onlineDays') }} </span><br /> 
+                              {{Number(detailData.online_days) || "--"}}</el-col>
+                      </el-row>
+                  </el-col>
+              </el-row>
+            </div>
+        </el-dialog>
   </div>
 </template>
 <script>
@@ -351,6 +430,8 @@ export default {
       detailLoding: false,
       numPrice: 1,
       type: 0,
+      hashpowerPanelShow: false,
+      poolBtcData: {},
     };
   },
   created() {
@@ -390,7 +471,7 @@ export default {
       immediate: true,
       async handler(val) {
         if (val && !this.approve) {
-          this.getSWANIsApprove();
+          this.getBUSDTIsApprove();
         }
       },
     },
@@ -473,8 +554,8 @@ export default {
           this.$message.error(error);
       });
     },
-    async getSWANIsApprove() { //获取余额 查看是否授权
-      let balance = await getBalance(Address.SWAN, 18); //获取余额
+    async getBUSDTIsApprove() { //获取余额 查看是否授权
+      let balance = await getBalance(Address.BUSDT, 18); //获取余额
       // console.log("balance", balance);
       this.tokenBalance = balance;
       isApproved(Address.BUSDT, 18, balance, this.hashpowerAddress).then((bool) => {

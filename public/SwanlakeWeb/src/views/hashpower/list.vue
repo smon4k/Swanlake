@@ -44,27 +44,27 @@
 
             <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
                 <el-row style="line-height:30px;">
-                    <el-col :span="isMobel ? 8 : 5" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
+                    <el-col :span="isMobel ? 8 : 8" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
                         <span>{{toFixed(Number(yester_output), 2) || "--"}} USDT</span>
                         <br>
                         <span>{{toFixed(Number(yester_output) / Number(poolBtcData.currency_price), 8)}} BTC</span>
                     </el-col>
-                    <el-col :span="isMobel ? 8 : 5" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
+                    <el-col :span="isMobel ? 8 : 8" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
                         <span>{{toFixed(Number(count_output), 2) || "--"}} USDT</span>
                         <br>
                         <span>{{toFixed(Number(count_output) / Number(poolBtcData.currency_price), 8) || "--"}} BTC</span>
                     </el-col>
-                    <el-col :span="isMobel ? 8 : 5" align="center">{{ $t('subscribe:EstimatedElectricityCharge') }}/T<br /> 
-                        <span>{{ estimatedElectricityCharge(poolBtcData) }} USDT</span>
+                    <!-- <el-col :span="isMobel ? 8 : 5" align="center">{{ $t('subscribe:EstimatedElectricityCharge') }}/T<br /> 
+                        <span>{{ toFixed(daily_expenditure_usdt || 0, 4) }} USDT</span>
                         <br>
-                        <span>{{ dailyExpenditure(poolBtcData) }} BTC</span>
+                        <span>{{ toFixed(daily_expenditure_btc || 0, 8) }} BTC</span>
                     </el-col>
                     <el-col :span="isMobel ? 12 : 5" align="center">{{ $t('subscribe:NetProfit') }}/T<br /> 
-                        <span>{{ netProfit(poolBtcData) }} USDT</span>
+                        <span>{{ toFixed(daily_income_usdt || 0, 3) }} USDT</span>
                         <br>
-                        <span></span>{{ netProfitBtcNumber(poolBtcData) }} BTC
-                    </el-col>
-                    <el-col :span="isMobel ? 12 : 4" align="center">{{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}</el-col>
+                        <span></span>{{ toFixed(daily_income_btc || 0, 8) }} BTC
+                    </el-col> -->
+                    <el-col :span="isMobel ? 8 : 8" align="center">{{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}</el-col>
                 </el-row>
             </div>
         </el-card>
@@ -285,6 +285,10 @@ export default {
             to_output: 0, //今日产出
             yester_output: 0, //昨日产出
             cost_revenue: 0, //收益成本
+            daily_expenditure_usdt: 0,
+            daily_expenditure_btc: 0,
+            daily_income_usdt: 0,
+            daily_income_btc: 0,
             receiveLoading: false,
         }
     },
@@ -376,7 +380,10 @@ export default {
                     this.online_days = json.data.online_days;
                     this.to_output = json.data.to_output;
                     this.yester_output = json.data.yester_output;
-                    this.cost_revenue = json.data.cost_revenue;
+                    this.daily_expenditure_usdt = json.data.daily_expenditure_usdt;
+                    this.daily_expenditure_btc = json.data.daily_expenditure_btc;
+                    this.daily_income_usdt = json.data.daily_income_usdt;
+                    this.daily_income_btc = json.data.daily_income_btc;
                     // this.detailData = json.data;
                 } 
                 else {
@@ -448,7 +455,7 @@ export default {
         },
         estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.065/美元币价
             // let num = (24 * 29.55 * 0.065) / item.currency_price;
-            let num = 0.065 * 29.55 * 24 / 1000;
+            let num = item.electricity_price * item.power_consumption_ratio * 24 / 1000;
             return num.toFixed(4);
         },
         dailyExpenditure(item) { //日支出 BTC数量
