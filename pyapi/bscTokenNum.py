@@ -6,7 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from flask import Flask, jsonify, request, make_response
 # 实现规避检测
-from selenium.webdriver import ChromeOptions
+# from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 import time
 from web3 import Web3
@@ -32,19 +32,34 @@ class JDSpider(object):
         # print(sys.argv[1])
         os.system("killall -9 chrome")
         os.system("killall -9 chromedriver")
-        chrome_options = Options()
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('blink-settings=imagesEnabled=false') #不加载图片, 提升速度
-        chrome_options.add_argument('--window-size=1920,1080')
-        chrome_options.add_argument('--disable-gpu') #谷歌文档提到需要加上这个属性来规避bug
         # 创建浏览器对象，并实现让selenium 规避检测
-        # option = ChromeOptions()
-        # option.add_experimental_option('excludeSwitched', ['enable-automaytion'])
+        options = Options()
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--headless')
+        options.add_argument('blink-settings=imagesEnabled=false') #不加载图片, 提升速度
+        options.add_argument('--window-size=1920,1080')
+        options.add_argument('--disable-gpu') #谷歌文档提到需要加上这个属性来规避bug
         path = "/usr/local/bin/chromedriver"# 注意这个路径需要时可执行路径（chmod 777 dir or 755 dir）
-        self.browser = webdriver.Chrome(executable_path=path, options=chrome_options)
-        # self.browser = webdriver.Chrome(options=chrome_options)
+        # chrome_options = webdriver.ChromeOptions()
+        # # 添加UA
+        # chrome_options.add_argument('user-agent="MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"')
+        # chrome_options.add_argument('blink-settings=imagesEnabled=false') 
+        # # 指定浏览器分辨率
+        # chrome_options.add_argument('window-size=1920x3000') 
+        # # 以最高权限运行
+        # chrome_options.add_argument('--no-sandbox')
+        # chrome_options.add_experimental_option('excludeSwitched', ['enable-automaytion'])
+        # # 禁用浏览器弹窗
+        # prefs = {  
+        #     'profile.default_content_setting_values' :  {  
+        #         'notifications' : 2  
+        #     }  
+        # }  
+        # chrome_options.add_experimental_option('prefs',prefs)
+        # chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+        self.browser = webdriver.Chrome(executable_path=path, options=options)
+        # self.browser = webdriver.Chrome(chrome_options=chrome_options)
         self.browser.implicitly_wait(5)  # 等5s
         # self.address = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
         self.bscscan_url = f'https://bscscan.com/token/'
