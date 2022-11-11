@@ -150,6 +150,10 @@ export const getToken2TokenPrice = async function (token0 , token1 ,type , amoun
 export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, pId, id){
   const address = __ownInstance__.$store.state.base.address
   const decimals = __ownInstance__.$store.state.base.tokenDecimals
+  let HashpowerDetail = await getHashpowerDetail(id); //获取算力币详情
+  if(!HashpowerDetail || HashpowerDetail.length < 0) {
+    return false;
+  }
   let totalTvl = await getPoolsTotalShare(goblinAddress, decimals);
   let tokenPrice = 50;
   // tokenPrice = await getToken2TokenPrice(currencyToken, Address.BUSDT) //获取池子价格
@@ -183,7 +187,6 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     // console.log(btcbPrice);
     // console.log(reptileBtcData);
     btcb19ProBalance = await getBalance(currencyToken, 18); //获取购买算力币余额
-    let HashpowerDetail = await getHashpowerDetail(id); //获取算力币详情
     cost_revenue = HashpowerDetail.cost_revenue; //估值
     daily_income = HashpowerDetail.daily_income; //日收益率
     currency = HashpowerDetail.currency; //交易币种
@@ -414,7 +417,7 @@ export const getFillingIncreasingId = async function(){
 export const getHashpowerDetail = async function(hashId){
   const nftUrl = __ownInstance__.$store.state.base.nftUrl;
   const address = __ownInstance__.$store.state.base.address;
-  let result = 0;
+  let result = [];
   let data = await $get(nftUrl + '/Hashpower/Hashpower/getHashpowerDetail?hashId='+hashId+'&address='+address);
   if(data && data.code == 10000) {
     result = data.data;
