@@ -485,7 +485,7 @@ export default {
         toHashpowerDetail(type, item) {
             //type 1=>存入 2=>提取
             console.log(item);
-            if (!item.address_h)
+            if (!item.goblin)
                 return this.$notify.error({
                     message: "Failed to get data, please refresh and try again",
                     duration: 6000,
@@ -493,7 +493,6 @@ export default {
             let query = {
                 hashId: item.hash_id,
                 pId: item.pId,
-                token: item.address_h,
                 currencyToken: item.currencyToken,
                 goblin: item.goblin,
                 decimals: item.decimals_h,

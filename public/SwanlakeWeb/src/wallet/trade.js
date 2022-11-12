@@ -225,11 +225,11 @@ export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimal
 }
 
 // 算力币购买
-export const BuyTokenToS19 = function (amount=0, decimals=18) {
+export const BuyTokenToS19 = function (hashpowerAddress='', amount=0, decimals=18) {
   // console.log(amount);
   // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
   const address = __ownInstance__.$store.state.base.address;
-  const contractAddress = __ownInstance__.$store.state.base.hashpowerAddress;
+  const contractAddress = hashpowerAddress || __ownInstance__.$store.state.base.hashpowerAddress;
   const contract = new web3.eth.Contract(hashpowerABI, contractAddress);
   const depositAmount = toWei(amount, decimals);
   let encodedABI = contract.methods.BuyTokenToS19(depositAmount).encodeABI();

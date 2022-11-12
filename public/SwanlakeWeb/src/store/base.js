@@ -130,10 +130,10 @@ export default {
                 fixed.forEach(async item => {
                     state.hashPowerPoolsList.push({
                         id: item.id,
+                        hashpowerAddress: item.hashpowerAddress,
                         currencyToken: item.currencyToken,
                         goblin: item.goblin,
                         address:item.originToken,
-                        address_h:item.token,
                         pId:item.pId,
                         name:item.name,
                         decimals:18,

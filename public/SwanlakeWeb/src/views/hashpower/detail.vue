@@ -97,7 +97,7 @@ export default {
       let JsonInfo = sessionStorage.getItem("hashpowerPoolsDetailInfo");
       let info = JSON.parse(JsonInfo);
       console.log(info);
-      this.tokenAddress = info.token;
+      // this.tokenAddress = info.token;
       this.currencyToken = info.currencyToken;
       this.goblin = info.goblin;
       this.isDemand = info.demand;
@@ -112,7 +112,7 @@ export default {
     isConnected: {
       immediate: true,
       async handler(val) {
-        if (val && this.tokenAddress && !this.approve) {
+        if (val && this.goblin && !this.approve) {
           this.type == 1
             ? this.getTokenBalanceApprove()
             : this.getTokenBalance(this.pid);
@@ -120,7 +120,7 @@ export default {
         }
       },
     },
-    tokenAddress: {
+    goblin: {
       handler(val) {
         if (this.isConnected && val) {
           this.type == 1
@@ -263,7 +263,7 @@ export default {
               this.approve = 0;
               setTimeout(() => {
                 this.$store.dispatch("getHashPowerPoolsList");
-                this.$router.push({path:'/my/finances'})
+                this.$router.push({path:'/hashpower/list'})
               }, 2000)
           } else {
               this.$message.error(json.msg);

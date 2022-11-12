@@ -44,7 +44,7 @@
               </div>
               <div class="kind">
                   <a :href="domainHostAddress + item.hash" target="_blank">
-                      <!-- <img :src="require(`@/assets/view-data.png`)" width="20" /> -->
+                      <img :src="require(`@/assets/view-data.png`)" width="20" />
                   </a>
               </div>
               <!-- <div class="opera">
@@ -320,6 +320,7 @@ export default {
           > div {
             width: 100%;
             text-align: center;
+            font-size: 15px;
           }
         }
       }
