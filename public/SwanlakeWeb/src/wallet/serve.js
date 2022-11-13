@@ -171,6 +171,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let currency = 0
   let annualized_income = 0
   let harvest_btcb_amount = 0
+  let is_give_income = 0
   if(id) {
     // h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
     btcbReward = await getH2OPendingBonus(goblinAddress, 8); //获取BTCB奖励
@@ -192,6 +193,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     currency = HashpowerDetail.currency; //交易币种
     annualized_income = HashpowerDetail.annualized_income; //年化收益率
     harvest_btcb_amount = HashpowerDetail.harvest_btcb_amount; //已收割奖励数量
+    is_give_income = HashpowerDetail.is_give_income; //是否显示昨日收益 大于第一次质押时间一天 给收益
   } 
   let reObj = {
     totalTvl: totalTvl,
@@ -210,6 +212,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     currency: currency,
     annualized_income: annualized_income,
     harvest_btcb_amount: harvest_btcb_amount,
+    is_give_income: is_give_income,
   };
   return reObj;
 }

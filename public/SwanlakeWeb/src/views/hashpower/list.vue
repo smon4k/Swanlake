@@ -115,10 +115,10 @@
                     label="昨日收益"
                     align="center">
                     <template slot-scope="scope">
-                        <span>
+                        <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
                             {{ toFixed(scope.row.yest_income_usdt || 0, 6) }} USDT <br>
                             {{ toFixed(scope.row.yest_income_btcb || 0, 10) }} BTC
-                        </span>
+                        </el-link>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -130,6 +130,16 @@
                             {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
                             {{ toFixed(scope.row.total_income_btcb || 0, 10) }} BTC
                         </el-link>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="可领取收益"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>
+                            {{ toFixed(scope.row.btcbReward || 0, 10) }} BTC
+                        </span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -170,6 +180,11 @@
                             {{ toFixed(item.total_income_btcb || 0, 10) }} BTC
                         </span>
                     </el-descriptions-item>
+                    <el-descriptions-item label="可领取收益">
+                        <span>
+                            {{ toFixed(item.btcbReward || 0, 10) }} BTC
+                        </span>
+                    </el-descriptions-item>
                     <el-descriptions-item>
                         <div style="text-align:center;">
                             <el-button size="mini" type="primary" @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
@@ -187,75 +202,48 @@
 
         <el-dialog
             title="算力规模"
-            :visible.sync="hashpowerDetail"
+            :visible.sync="hashpowerPanelShow"
             :width="isMobel ? '80%' : '50%'"
             center>
-            <div class="info" v-if="poolBtcData">
-            <el-row style="line-height:30px;">
-                <el-col :span="12" align="center">
-                    <span class="title">{{ $t('subscribe:Hashrate') }}</span>
-                    <br>
-                    <span> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</span> 
-                </el-col>
-                <el-col :span="12" align="center">
-                    <span class="title">{{ $t('subscribe:CurrencyPrice') }}</span>
-                    <br>
-                    <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
-                </el-col>
-            </el-row>
-            <br>
-            <el-row style="line-height:30px;">
-                <el-col :span="12" align="center">
-                    <span class="title">{{ $t('subscribe:MinimumElectricityBill') }}</span><br>
-                    <span>0.065 USDT</span> 
-                </el-col>
-                <el-col :span="12" align="center">
-                    <span>
-                        <span class="title">{{ $t('subscribe:DailyEarnings') }}/T </span><br>
-                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
-                        <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}} BTC</span>
-                    </span>
-                </el-col>
-            </el-row>
-            <br>
-            <el-row>
-                <el-col :span="24">
-                    <el-row style="line-height:30px;">
-                        <el-col :span="isMobel ? 12 : 12" align="center">
-                            <span class="title">{{ $t('subscribe:outputYesterday') }}</span><br /> 
-                            <span>{{toFixed(Number(yester_output), 2) || "--"}} USDT</span>
-                            <br>
-                            <span>{{toFixed(Number(yester_output) / Number(poolBtcData.currency_price), 8)}} BTC</span>
-                        </el-col>
-                        <el-col :span="isMobel ? 12 : 12" align="center">
-                            <span class="title">{{ $t('subscribe:cumulativeOutput') }}</span> <br /> 
-                            <span>{{toFixed(Number(count_output), 2) || "--"}} USDT</span>
-                            <br>
-                            <span>{{toFixed(Number(count_output) / Number(poolBtcData.currency_price), 8) || "--"}} BTC</span>
-                        </el-col>
-                    </el-row>
-                    <br>
-                    <el-row style="line-height:30px;">
-                        <el-col :span="isMobel ? 12 : 12" align="center">
-                            <span class="title">{{ $t('subscribe:EstimatedElectricityCharge') }}/T </span><br /> 
-                            <span>{{ estimatedElectricityCharge(poolBtcData) }} USDT</span>
-                            <br>
-                            <span>{{ dailyExpenditure(poolBtcData) }} BTC</span>
-                        </el-col>
-                        <el-col :span="isMobel ? 12 : 12" align="center">
-                            <span class="title">{{ $t('subscribe:NetProfit') }}/T </span><br /> 
-                            <span>{{ netProfit(poolBtcData) }} USDT</span>
-                            <br>
-                            <span></span>{{ netProfitBtcNumber(poolBtcData) }} BTC
-                        </el-col>
-                    </el-row>
-                    <el-row style="line-height:30px;">
-                        <el-col :span="isMobel ? 24 : 24" align="center">
-                            <span class="title">{{ $t('subscribe:onlineDays') }} </span><br /> 
-                            {{Number(online_days) || "--"}}</el-col>
-                    </el-row>
-                </el-col>
-            </el-row>
+            <div class="info" v-if="detailData">
+                <el-row>
+                  <el-col :span="24">
+                      <el-row style="line-height:30px;">
+                          <el-col :span="isMobel ? 12 : 12" align="center">
+                              <span class="title">{{ $t('subscribe:outputYesterday') }}</span><br /> 
+                              <span>{{toFixed(Number(detailData.yester_output), 2) || "--"}} USDT</span>
+                              <br>
+                              <span>{{toFixed(Number(detailData.yester_output_btc), 8)}} BTC</span>
+                          </el-col>
+                          <el-col :span="isMobel ? 12 : 12" align="center">
+                              <span class="title">{{ $t('subscribe:cumulativeOutput') }}</span> <br /> 
+                              <span>{{toFixed(Number(detailData.count_output), 2) || "--"}} USDT</span>
+                              <br>
+                              <span>{{toFixed(Number(detailData.count_output_btc), 8) || "--"}} BTC</span>
+                          </el-col>
+                      </el-row>
+                      <br>
+                      <el-row style="line-height:30px;">
+                          <el-col :span="isMobel ? 12 : 12" align="center">
+                              <span class="title">{{ $t('subscribe:EstimatedElectricityCharge') }}/T </span><br /> 
+                              <span>{{ toFixed(detailData.daily_expenditure_usdt || 0, 4) }} USDT</span>
+                              <br>
+                              <span>{{ toFixed(detailData.daily_expenditure_btc || 0, 8) }} BTC</span>
+                          </el-col>
+                          <el-col :span="isMobel ? 12 : 12" align="center">
+                              <span class="title">{{ $t('subscribe:NetProfit') }}/T </span><br /> 
+                              <span>{{ toFixed(detailData.daily_income_usdt || 0, 4) }} USDT</span>
+                              <br>
+                              <span></span>{{ toFixed(detailData.daily_income_btc || 0, 8) }} BTC
+                          </el-col>
+                      </el-row>
+                      <el-row style="line-height:30px;">
+                          <el-col :span="isMobel ? 24 : 24" align="center">
+                              <span class="title">{{ $t('subscribe:onlineDays') }} </span><br /> 
+                              {{Number(detailData.online_days) || "--"}}</el-col>
+                      </el-row>
+                  </el-col>
+              </el-row>
             </div>
         </el-dialog>
 
@@ -328,6 +316,9 @@ export default {
             daily_income_btc: 0,
             receiveLoading: false,
             dialogTableIncome: false,
+            totalPledgePower: 0,
+            hashpowerPanelShow: false,
+            detailData: {},
         }
     },
     activated() { //页面进来
@@ -354,8 +345,7 @@ export default {
             mainTheme:state=>state.comps.mainTheme,
             apiUrl:state=>state.base.apiUrl,
             nftUrl:state=>state.base.nftUrl,
-            hashPowerPoolsList:state=>state.base.hashPowerPoolsList,
-            totalPledgePower:state=>state.base.totalPledgePower,
+            hashPowerPoolsList:state=>state.base.hashPowerPoolsList
         }),
 
     },
@@ -367,14 +357,12 @@ export default {
             immediate: true,
             handler(val) {
                 if (val) {
+                    this.refreshData();
                     if(val && !this.hashPowerPoolsList.length) {
                         setTimeout(async() => {
                             this.$store.dispatch("getHashPowerPoolsList");
                             
                             this.getPoolBtcData();
-
-
-                            this.refreshData();
 
                             this.getOutputDetail();
 
@@ -386,9 +374,17 @@ export default {
         },
         hashPowerPoolsList: {
             immediate: true,
-            async handler(val) {
-                console.log(val);
+            handler(val) {
+                if(val) {
+                    console.log(val);
+                    let totalTvl = 0;
+                    val.forEach(element => {
+                        totalTvl += Number(element.total);
+                    });
+                    this.totalPledgePower = totalTvl;
+                }
             },
+            deep: true
         },
         poolBtcData: {
             immediate: true,
@@ -480,6 +476,23 @@ export default {
                 } else {
                     this.$message.error("加载数据失败");
                 }
+            });
+        },
+        getHashpowerDetail(hashId) { //获取算力币详情数据 展示面板信息
+            axios.get(this.nftUrl + "/Hashpower/hashpower/getHashpowerDetail",{
+                params: {
+                    hashId: hashId,
+                }
+            }).then((json) => {
+            this.detailLoding = false;
+                // console.log(json);
+                // console.log(this.address);
+                if (json.code == 10000) {
+                    this.detailData = json.data;
+                    this.hashpowerPanelShow = true;
+                } 
+            }).catch((error) => {
+                this.$message.error(error);
             });
         },
         async getPoolBtcData() { //获取BTC爬虫数据

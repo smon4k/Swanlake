@@ -30,7 +30,7 @@
                 <input
                   type="text"
                   minLength="1"
-                  maxLength="79"
+                  maxLength="5"
                   v-model="depositNum"
                   @input="inputEvent"
                 />

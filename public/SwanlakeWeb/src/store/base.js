@@ -166,7 +166,7 @@ export default {
         setHashPowerPoolsListLoading(state, val){
             state.hashPowerPoolsList.loading = val
         },
-        setHashPowerPoolsBalance(state , info  ){
+        setHashPowerPoolsBalance(state, info) {
             if(!state.hashPowerPoolsList) return 
             let index = state.hashPowerPoolsList.findIndex(item=>item.goblin === info.t)
             if(index !== -1 ){
@@ -174,7 +174,6 @@ export default {
                 state.hashPowerPoolsList[index].btcbPrice = info.btcbPrice
                 state.hashPowerPoolsList[index].balance = info.userBalance
                 state.hashPowerPoolsList[index].total = info.totalTvl
-                state.totalPledgePower += Number(info.totalTvl);
                 state.hashPowerPoolsList[index].btcbReward = info.btcbReward
                 state.hashPowerPoolsList[index].h2oReward = info.h2oReward
                 state.hashPowerPoolsList[index].reward = info.reward
@@ -267,19 +266,21 @@ export default {
                 commit('setHashPowerPoolsList' , {fixed} )
             }
             // console.log(fixed);
-            if(fixed.length){
+            if(fixed.length) {
                 let poolBtcData = await getPoolBtcData();
                 console.log(poolBtcData);
                 let fixedList = [...fixed]
-                fixedList.forEach(async item=> {
+                fixedList.forEach(async item => {
                     // console.log(item);
                     let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId, item.id);
                     console.log(info);
                     if(info) {
-                        let yest_income_usdt = Number(info.userBalance) * Number(info.daily_income); //昨日收益 usdt
-                        let yest_income_btcb = keepDecimalNotRounding(Number(info.userBalance) * (Number(info.daily_income) / Number(poolBtcData[0].currency_price))); //昨日收益 btcb
-                        info.yest_income_usdt = yest_income_usdt;
-                        info.yest_income_btcb = yest_income_btcb;
+                        if(info.is_give_income && info.is_give_income > 0) { //大于第一次购买 第二天 给收益
+                            let yest_income_usdt = Number(info.userBalance) * Number(info.daily_income); //昨日收益 usdt
+                            let yest_income_btcb = keepDecimalNotRounding(Number(info.userBalance) * (Number(info.daily_income) / Number(poolBtcData[0].currency_price))); //昨日收益 btcb
+                            info.yest_income_usdt = yest_income_usdt;
+                            info.yest_income_btcb = yest_income_btcb;
+                        }
                         let countIncome = keepDecimalNotRounding(Number(info.btcbReward) + Number(info.harvest_btcb_amount)); // 总的收益 = 奖励收益数量 + 已收割奖励数量
                         info.total_income_btcb = countIncome; //btcb总收益
                         let total_income_usdt = countIncome * Number(poolBtcData[0].currency_price); //usdt总收益
