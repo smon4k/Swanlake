@@ -64,7 +64,18 @@
             <el-divider></el-divider>
 
             <div v-show="screenWidth >= 1280">
-                <el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleSelect" :router="true" v-if="navList.length" menu-trigger="click">
+                <el-menu 
+                    class="el-menu-demo" 
+                    v-if="navList.length" 
+                    :default-active="$route.path" 
+                    mode="horizontal" 
+                    @select="handleSelect" 
+                    :router="true" 
+                    menu-trigger="click" 
+                    @open="menuSelectOpen" 
+                    :collapse-transition="false"
+                    :default-openeds="defaultOpenedsArray"
+                >
                     <template v-for="(item, index) in navList">
                         <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
                         <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
@@ -98,10 +109,15 @@
                 </div>
                 <br><br>
                 <el-menu
+                    v-if="navList.length" 
                     :default-active="$route.path"
                     class="el-menu-vertical-demo"
                     :router="true"
-                    @select="handleSelect">
+                    @select="handleSelect"
+                    @open="menuSelectOpen" 
+                    :collapse-transition="false"
+                    :default-openeds="defaultOpenedsArray"
+                    >
                     <template v-for="(item, index) in navList">
                         <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
                         <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
@@ -147,6 +163,8 @@ export default {
             timer: null,
             activeIndex: '1',
             menuDrawerShow: false,
+            defaultOpenedsArray:[],
+            isHashpowerMenu: false,
         }
     },
     mounted() {
@@ -221,10 +239,10 @@ export default {
                     name: '算力币',
                     path: "/hashpower/list",
                     children: [
-                        {
-                            name: '算力币列表',
-                            path: "/hashpower/list",
-                        },
+                        // {
+                        //     name: '算力币列表',
+                        //     path: "/hashpower/list",
+                        // },
                         {
                             name: '白皮书',
                             path: "/hashpower/abstract",
@@ -300,6 +318,12 @@ export default {
                     this.timer = false;
                 }, 400);
             }
+        },
+        $route: (val) => {
+            console.log(val);
+            // if(this.$route.path === '/hashpower/list') {
+            //     this.isHashpowerMenu = true;
+            // }
         }
     },
     methods:{
@@ -370,6 +394,18 @@ export default {
         },
         handleClose(key, keyPath) {
             console.log(key, keyPath);
+        },
+        menuSelectOpen(index, indexPath) {
+            let formPath = this.$route.path;
+            console.log(index, formPath, indexPath, this.isHashpowerMenu);
+            if(formPath !== '/hashpower/list') {
+                this.defaultOpenedsArray = [];
+            }
+            if(index === '/hashpower/list' && formPath !== '/hashpower/list') {
+                this.$router.push({path: indexPath[0]})
+                this.isHashpowerMenu = true;
+                this.menuDrawerShow = false;
+            }
         }
     }
 }

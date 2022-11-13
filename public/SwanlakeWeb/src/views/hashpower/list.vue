@@ -44,15 +44,18 @@
 
             <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
                 <el-row style="line-height:30px;">
-                    <el-col :span="isMobel ? 8 : 8" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
+                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
                         <span>{{toFixed(Number(yester_output), 2) || "--"}} USDT</span>
                         <br>
                         <span>{{toFixed(Number(yester_output) / Number(poolBtcData.currency_price), 8)}} BTC</span>
                     </el-col>
-                    <el-col :span="isMobel ? 8 : 8" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
+                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
                         <span>{{toFixed(Number(count_output), 2) || "--"}} USDT</span>
                         <br>
                         <span>{{toFixed(Number(count_output) / Number(poolBtcData.currency_price), 8) || "--"}} BTC</span>
+                    </el-col>
+                    <el-col :span="isMobel ? 12 : 6" align="center">总质押算力<br /> 
+                        <span>{{toFixed(Number(totalPledgePower), 2) || "--"}} T</span>
                     </el-col>
                     <!-- <el-col :span="isMobel ? 8 : 5" align="center">{{ $t('subscribe:EstimatedElectricityCharge') }}/T<br /> 
                         <span>{{ toFixed(daily_expenditure_usdt || 0, 4) }} USDT</span>
@@ -64,7 +67,7 @@
                         <br>
                         <span></span>{{ toFixed(daily_income_btc || 0, 8) }} BTC
                     </el-col> -->
-                    <el-col :span="isMobel ? 8 : 8" align="center">{{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}</el-col>
+                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}</el-col>
                 </el-row>
             </div>
         </el-card>
@@ -352,6 +355,7 @@ export default {
             apiUrl:state=>state.base.apiUrl,
             nftUrl:state=>state.base.nftUrl,
             hashPowerPoolsList:state=>state.base.hashPowerPoolsList,
+            totalPledgePower:state=>state.base.totalPledgePower,
         }),
 
     },
@@ -392,6 +396,12 @@ export default {
                 if(val) {
                 }
             },
+        },
+        totalPledgePower: {
+            immediate: true,
+            handler(val) {
+                console.log(val);
+            }
         }
     },
     components: {

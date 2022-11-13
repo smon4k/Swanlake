@@ -48,6 +48,7 @@ export default {
         hashpowerAddress: '0x5fE319Cad2B7203891AC9a9536A4a054636A2340', //算力币合约地址 测试
         fairLaunchAddress:'0x08D027B330F3A8ace9290235D575475150EA14Ff', //_launch
         hashPowerPoolsList: [],
+        totalPledgePower: 0, //总的质押算力
     },
     mutations: {
         isConnected(state , val ){
@@ -173,6 +174,7 @@ export default {
                 state.hashPowerPoolsList[index].btcbPrice = info.btcbPrice
                 state.hashPowerPoolsList[index].balance = info.userBalance
                 state.hashPowerPoolsList[index].total = info.totalTvl
+                state.totalPledgePower += Number(info.totalTvl);
                 state.hashPowerPoolsList[index].btcbReward = info.btcbReward
                 state.hashPowerPoolsList[index].h2oReward = info.h2oReward
                 state.hashPowerPoolsList[index].reward = info.reward
