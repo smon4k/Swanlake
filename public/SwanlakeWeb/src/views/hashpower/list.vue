@@ -123,10 +123,10 @@
                     label="总收益"
                     align="center">
                     <template slot-scope="scope">
-                        <span>
+                        <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
                             {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
                             {{ toFixed(scope.row.total_income_btcb || 0, 10) }} BTC
-                        </span>
+                        </el-link>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -255,6 +255,33 @@
             </el-row>
             </div>
         </el-dialog>
+
+        <el-dialog title="历史收益" :visible.sync="dialogTableIncome" width="50%">
+            <el-table :data="hashpowerIncomeList" v-loading="incomeLoading" max-height="500">
+                <!-- <el-table-column type="index" width="50" label="ID"></el-table-column> -->
+                <el-table-column property="date" label="日期" align="center"></el-table-column>
+                <el-table-column property="name" label="收益" align="center">
+                    <template slot-scope="scope">
+                        <span>
+                            {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_btc || 0, 10) }} BTC
+                        </span>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-row class="pages" v-if="totalIncome > pageIncomeSize">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="totalIncome"
+                        :pageSize="pageIncomeSize"
+                        :currPage="currIncomePage"
+                        @changeLimit="limitIncomePaging"
+                        @changeSkip="skipIncomePaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -275,7 +302,14 @@ export default {
             pageSize: 20, //每页显示条数
             total: 100, //总条数
             PageSearchWhere: [], //分页搜索数组
-            hashpowerList: [],
+            
+            hashpowerIncomeList: [],
+            incomeLoading: false,
+            currIncomePage: 1, //当前页
+            pageIncomeSize: 20, //每页显示条数
+            totalIncome: 100, //总条数
+            PageIncomeSearchWhere: [],
+
             poolBtcData: {},
             loading: false,
             hashpowerDetail: false,
@@ -290,6 +324,7 @@ export default {
             daily_income_usdt: 0,
             daily_income_btc: 0,
             receiveLoading: false,
+            dialogTableIncome: false,
         }
     },
     activated() { //页面进来
@@ -394,6 +429,49 @@ export default {
                 this.$message.error(error);
             });
         },
+        showHashpowerIncomeList(hash_id) { //查看收益数据
+            // console.log(hash_id);
+            this.PageIncomeSearchWhere.hashId = hash_id;
+            this.currIncomePage = 1; //当前页
+            this.pageIncomeSize = 20; //每页显示条数
+            var SearchWhere = {
+                page: this.currIncomePage,
+                limit: this.pageIncomeSize,
+                address: this.address
+            };
+            if (hash_id && hash_id > 0) {
+                SearchWhere["hashId"] = hash_id;
+            }
+            this.PageIncomeSearchWhere = [];
+            this.PageIncomeSearchWhere = SearchWhere;
+            this.getHashpowerDailyincomeList(this.PageIncomeSearchWhere); //刷新列表
+            this.dialogTableIncome = true;
+        },
+        getHashpowerDailyincomeList(ServerWhere) { //获取产品日收益列表
+            var that = this.$data;
+            if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+                ServerWhere = {
+                    limit: that.pageIncomeSize,
+                    page: that.currIncomePage,
+                    // hashId: this.hashId,
+                    // address: this.address,
+                };
+            }
+            this.incomeLoading = true;
+            get(this.nftUrl + "/Hashpower/Hashpower/getHashpowerDailyincomeList", ServerWhere, async json => {
+                console.log(json);
+                if (json.code == 10000) {
+                    let list = (json.data && json.data.lists) || [];
+                    // console.log(list);
+                    this.hashpowerIncomeList = list;
+                    this.incomeLoading = false;
+                    this.totalIncome = json.data.count;
+                    this.$forceUpdate();
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
         async getPoolBtcData() { //获取BTC爬虫数据
             let data = await getPoolBtcData();
             if(data && data.length > 0) {
@@ -411,6 +489,17 @@ export default {
             }
             this.getListData(this.PageSearchWhere); //刷新列表
         },
+        limitIncomePaging(limit) { //日收益分页
+            //赋值当前条数
+            this.pageIncomeSize = limit;
+            if (
+                this.PageIncomeSearchWhere.limit &&
+                this.PageIncomeSearchWhere.limit !== undefined
+            ) {
+                this.PageIncomeSearchWhere.limit = limit;
+            }
+            this.getHashpowerDailyincomeList(this.PageIncomeSearchWhere); //刷新列表
+        },
         skipPaging(page) {
             //赋值当前页数
             this.currPage = page;
@@ -421,6 +510,17 @@ export default {
                 this.PageSearchWhere.page = page;
             }
             this.getListData(this.PageSearchWhere); //刷新列表
+        },
+        skipIncomePaging(page) { //日收益分页
+            //赋值当前页数
+            this.currIncomePage = page;
+            if (
+                this.PageIncomeSearchWhere.page &&
+                this.PageIncomeSearchWhere.page !== undefined
+            ) {
+                this.PageIncomeSearchWhere.page = page;
+            }
+            this.getHashpowerDailyincomeList(this.PageIncomeSearchWhere); //刷新列表
         },
         buyClick(row, type) {
             console.log(row);
@@ -637,6 +737,9 @@ export default {
                         color: #C0C4CC;
                         border-color: #EBEEF5;
                     }
+                    .el-link {
+                        font-size: 16px;
+                    }
                 }
             }
             .el-descriptions {
@@ -661,6 +764,12 @@ export default {
             .info {
                 .title {
                     font-weight: 800;
+                }
+            }
+            .el-dialog__body {
+                padding-top: 0;
+                .el-table .el-table__cell {
+                    padding: 10px 0;
                 }
             }
         }

@@ -279,10 +279,12 @@ export async function getH2OUserInfo(contractAddr, userAddress) {
   let balance = 0;
   const Gwei1 = 1000000000;
   await contract.methods.userInfo(address).call(function (error, result) {
+    // console.log(result);
     if (!error) {
       if(result && result['shares']) {
         balance = keepDecimalNotRounding(byDecimals(result['shares'], 18), 6, true)
       }
+      
     }else{
       console.log('userInfo' ,error);
     }
