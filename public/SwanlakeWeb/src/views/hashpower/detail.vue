@@ -115,7 +115,7 @@ export default {
         if (val && this.goblin && !this.approve) {
           this.type == 1
             ? this.getTokenBalanceApprove()
-            : this.getTokenBalance(this.pid);
+            : this.getTokenBalance();
           // this.getRewardInfo()
         }
       },
@@ -125,7 +125,7 @@ export default {
         if (this.isConnected && val) {
           this.type == 1
             ? this.getTokenBalanceApprove()
-            : this.getTokenBalance(this.pid);
+            : this.getTokenBalance();
           // this.getRewardInfo()
         }
       },
@@ -246,8 +246,7 @@ export default {
       tradeFunc(
         this.goblin,
         this.decimals,
-        this.depositNum,
-        this.pid
+        this.depositNum
       ).then(() => {
         post(this.nftUrl + '/Hashpower/Hashpower/startInvestNow', { 
             address: this.address, 

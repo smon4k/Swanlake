@@ -100,14 +100,14 @@
                     label="总质押算力"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total || 0, 2) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
+                        <span>{{ toFixed(scope.row.total || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
                     label="我的质押"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.balance || 0, 2) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
+                        <span>{{ toFixed(scope.row.balance || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column

@@ -171,8 +171,8 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let currency = 0
   let annualized_income = 0
   let harvest_btcb_amount = 0
-  if(pId) {
-    h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
+  if(id) {
+    // h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
     btcbReward = await getH2OPendingBonus(goblinAddress, 8); //获取BTCB奖励
     if(address && address !== undefined && address !== '') {
       userBalance = await getH2OUserInfo(goblinAddress);
