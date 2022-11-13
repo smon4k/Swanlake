@@ -113,7 +113,8 @@
                 <el-table-column
                     prop=""
                     label="昨日收益"
-                    align="center">
+                    align="center"
+                    width="180">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
                             {{ toFixed(scope.row.yest_income_usdt || 0, 6) }} USDT <br>
@@ -124,7 +125,8 @@
                 <el-table-column
                     prop=""
                     label="总收益"
-                    align="center">
+                    align="center"
+                    width="180">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
                             {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
@@ -135,7 +137,8 @@
                 <el-table-column
                     prop=""
                     label="可领取收益"
-                    align="center">
+                    align="center"
+                    width="180">
                     <template slot-scope="scope">
                         <span>
                             {{ toFixed(scope.row.btcbReward || 0, 10) }} BTC
@@ -146,7 +149,7 @@
                     fixed="right"
                     label="操作"
                     align="center"
-                    width="230">
+                    width="200">
                     <template slot-scope="scope">
                         <div>
                             <el-button size="mini" round @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
