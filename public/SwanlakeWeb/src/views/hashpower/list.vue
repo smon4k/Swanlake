@@ -15,13 +15,13 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <span>
                         {{ $t('subscribe:DailyEarnings') }}/T
-                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
-                        <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}} BTC</span>
+                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
+                        <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}}BTC</span>
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <span>
                         {{ $t('subscribe:Hashrate') }}
-                        <span> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</span> 
+                        <span> {{toFixed(Number(poolBtcData.power),3) || "--"}}EH/s</span> 
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <span>
@@ -33,9 +33,9 @@
             <!-- 移动 -->
             <el-row style="line-height:20px;font-size:8px;" v-else>
                 <el-col :span="6" align="center">{{ $t('subscribe:DailyEarnings') }}/T<br /> 
-                    <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
+                    <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
                     <br> 
-                    <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}} BTC</span>
+                    <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}}BTC</span>
                 </el-col>
                 <el-col :span="6" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
                 <el-col :span="6" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</el-col>
@@ -172,16 +172,16 @@
                     <el-descriptions-item label="总质押算力">{{ toFixed(item.total || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益">
-                        <span>
+                        <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
                             {{ toFixed(item.yest_income_usdt || 0, 6) }} USDT <br>
                             {{ toFixed(item.yest_income_btcb || 0, 10) }} BTC
-                        </span>
+                        </el-link>
                     </el-descriptions-item>
                     <el-descriptions-item label="总收益">
-                        <span>
+                        <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
                             {{ toFixed(item.total_income_usdt || 0, 6) }} USDT <br>
                             {{ toFixed(item.total_income_btcb || 0, 10) }} BTC
-                        </span>
+                        </el-link>
                     </el-descriptions-item>
                     <el-descriptions-item label="可领取收益">
                         <span>
