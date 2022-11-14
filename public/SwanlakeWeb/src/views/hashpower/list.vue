@@ -204,7 +204,7 @@
         </div>
 
         <el-dialog
-            title="算力规模"
+            :title="detailData.name + ' 算力规模'"
             :visible.sync="hashpowerPanelShow"
             :width="isMobel ? '80%' : '50%'"
             center>
@@ -257,7 +257,8 @@
                 <el-table-column property="name" label="收益" align="center">
                     <template slot-scope="scope">
                         <span>
-                            {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_btc || 0, 10) }} BTC
+                            <!-- {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_btc || 0, 10) }} BTC -->
+                            {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_usdt / poolBtcData.currency_price, 10)}} BTC
                         </span>
                     </template>
                 </el-table-column>
