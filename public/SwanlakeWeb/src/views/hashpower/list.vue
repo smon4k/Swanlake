@@ -95,7 +95,7 @@
                     prop="name"
                     label="产品名称"
                     align="center"
-                    width="150">
+                    width="">
                     <template slot-scope="scope">
                         <span>{{ scope.row.name }}</span><br>
                         <span>{{ scope.row.power_consumption_ratio }}W/THS</span>
@@ -112,7 +112,7 @@
                 <el-table-column
                     label="总质押算力"
                     align="center"
-                    width="130">
+                    width="80">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
@@ -120,7 +120,7 @@
                 <el-table-column
                     label="日支出/T"
                     align="center"
-                    width="180">
+                    width="">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 6) }} USDT</span><br>
                         <span>{{ toFixed(scope.row.daily_expenditure_btc || 0, 10) }} BTC</span>
@@ -129,7 +129,7 @@
                 <el-table-column
                     label="日收益/T"
                     align="center"
-                    width="180">
+                    width="">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.daily_income_usdt || 0, 6) }} USDT</span><br>
                         <span>{{ toFixed(scope.row.daily_income_btc || 0, 10) }} BTC</span>
@@ -137,7 +137,8 @@
                 </el-table-column>
                 <el-table-column
                     label="我的质押"
-                    align="center">
+                    align="center"
+                    width="80">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.balance || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
@@ -146,7 +147,7 @@
                     prop=""
                     label="昨日收益"
                     align="center"
-                    width="180">
+                    width="">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
                             {{ toFixed(scope.row.yest_income_usdt || 0, 6) }} USDT <br>
@@ -158,7 +159,7 @@
                     prop=""
                     label="总收益"
                     align="center"
-                    width="180">
+                    width="">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
                             {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
@@ -170,7 +171,7 @@
                     prop=""
                     label="可领取收益"
                     align="center"
-                    width="180">
+                    width="">
                     <template slot-scope="scope">
                         <span>
                             {{ toFixed(scope.row.btcbReward || 0, 10) }} BTC
@@ -181,7 +182,7 @@
                     fixed="right"
                     label="操作"
                     align="center"
-                    width="200">
+                    width="180">
                     <template slot-scope="scope">
                         <div>
                             <el-button size="mini" round @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
@@ -780,14 +781,17 @@ export default {
                     padding-right: 14px;
                     display: inline-block;
                     font-weight: 800;
-                    font-size: 16px;        
+                    font-size: 13px;        
                 }
             }
             .el-table {
                 border-radius: 20px;
-                font-size: 16px;
+                font-size: 10px;
                 .cell {
                     padding-left: unset;
+                    .el-button--mini.is-round {
+                        padding: 4px 15px;
+                    }
                     button {
                         color: #409EFF;
                         border-color: #409EFF;
@@ -797,7 +801,7 @@ export default {
                         border-color: #EBEEF5;
                     }
                     .el-link {
-                        font-size: 16px;
+                        font-size: 10px;
                     }
                 }
             }
