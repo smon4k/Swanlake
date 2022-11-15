@@ -18,7 +18,7 @@
                     <span>
                         {{ $t('subscribe:DailyEarnings') }}/T
                         <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
-                        <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}}BTC</span>
+                        <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2) }}</span>
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <!-- 全网算力  -->
@@ -52,13 +52,13 @@
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
                         <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
                         <br>
-                        <span>{{toFixed(Number(yester_output) / Number(poolBtcData.currency_price), 8)}} BTC</span>
+                        <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.currency_price), 2) }}</span>
                     </el-col>
                     <!-- 平台累计产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
                         <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
                         <br>
-                        <span>{{toFixed(Number(count_output) / Number(poolBtcData.currency_price), 8) || "--"}} BTC</span>
+                        <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.currency_price), 2) || "--" }}</span>
                     </el-col>
                     <!-- 总质押算力 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">总质押算力<br /> 
@@ -122,8 +122,8 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 6) }} USDT</span><br>
-                        <span>{{ toFixed(scope.row.daily_expenditure_btc || 0, 10) }} BTC</span>
+                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 4) }} USDT</span><br>
+                        <span>{{ fromSATBTCNum(scope.row.daily_expenditure_btc, 2) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -131,8 +131,8 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, 6) }} USDT</span><br>
-                        <span>{{ toFixed(scope.row.daily_income_btc || 0, 10) }} BTC</span>
+                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, 4) }} USDT</span><br>
+                        <span>{{ fromSATBTCNum(scope.row.daily_income_btc, 2) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -150,8 +150,8 @@
                     width="">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
-                            {{ toFixed(scope.row.yest_income_usdt || 0, 6) }} USDT <br>
-                            {{ toFixed(scope.row.yest_income_btcb || 0, 10) }} BTC
+                            {{ toFixed(scope.row.yest_income_usdt || 0, 4) }} USDT <br>
+                            {{ fromSATBTCNum(scope.row.yest_income_btcb, 2) }}
                         </el-link>
                     </template>
                 </el-table-column>
@@ -174,7 +174,7 @@
                     width="">
                     <template slot-scope="scope">
                         <span>
-                            {{ toFixed(scope.row.btcbReward || 0, 10) }} BTC
+                            {{ fromSATBTCNum(scope.row.btcbReward, 2) }}
                         </span>
                     </template>
                 </el-table-column>
@@ -206,19 +206,19 @@
                     <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益">
                         <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
-                            {{ toFixed(item.yest_income_usdt || 0, 6) }} USDT <br>
-                            {{ toFixed(item.yest_income_btcb || 0, 10) }} BTC
+                            {{ toFixed(item.yest_income_usdt || 0, 4) }} USDT <br>
+                            {{ fromSATBTCNum(item.yest_income_btcb, 2) }}
                         </el-link>
                     </el-descriptions-item>
                     <el-descriptions-item label="总收益">
                         <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
-                            {{ toFixed(item.total_income_usdt || 0, 6) }} USDT <br>
-                            {{ toFixed(item.total_income_btcb || 0, 10) }} BTC
+                            {{ toFixed(item.total_income_usdt || 0, 4) }} USDT <br>
+                            {{ fromSATBTCNum(item.total_income_btcb, 2) }}
                         </el-link>
                     </el-descriptions-item>
                     <el-descriptions-item label="可领取收益">
                         <span>
-                            {{ toFixed(item.btcbReward || 0, 10) }} BTC
+                            {{ fromSATBTCNum(item.btcbReward, 2) }}SAT BTC
                         </span>
                     </el-descriptions-item>
                     <el-descriptions-item>
@@ -235,6 +235,8 @@
                 <el-empty description="没有数据"></el-empty>
             </div>
         </div>
+        
+        <div style="float:right;color: #409EFF;">1 SAT = 0.00000001 BTC</div>
 
         <el-dialog
             :title="detailData.name + ' 算力规模'"
@@ -249,13 +251,13 @@
                               <span class="title">{{ $t('subscribe:outputYesterday') }}</span><br /> 
                               <span>{{toFixed(Number(detailData.yester_output), 4) || "--"}} USDT</span>
                               <br>
-                              <span>{{toFixed(Number(detailData.yester_output_btc), 8)}} BTC</span>
+                              <span>{{ fromSATBTCNum(Number(detailData.yester_output_btc), 2)}}</span>
                           </el-col>
                           <el-col :span="isMobel ? 12 : 12" align="center">
                               <span class="title">{{ $t('subscribe:cumulativeOutput') }}</span> <br /> 
                               <span>{{toFixed(Number(detailData.count_output), 4) || "--"}} USDT</span>
                               <br>
-                              <span>{{toFixed(Number(detailData.count_output_btc), 8) || "--"}} BTC</span>
+                              <span>{{ fromSATBTCNum(Number(detailData.count_output_btc), 2) }}</span>
                           </el-col>
                       </el-row>
                       <br>
@@ -264,13 +266,13 @@
                               <span class="title">{{ $t('subscribe:EstimatedElectricityCharge') }}/T </span><br /> 
                               <span>{{ toFixed(detailData.daily_expenditure_usdt || 0, 4) }} USDT</span>
                               <br>
-                              <span>{{ toFixed(detailData.daily_expenditure_btc || 0, 8) }} BTC</span>
+                              <span>{{ fromSATBTCNum(detailData.daily_expenditure_btc, 2) }}</span>
                           </el-col>
                           <el-col :span="isMobel ? 12 : 12" align="center">
                               <span class="title">{{ $t('subscribe:NetProfit') }}/T </span><br /> 
                               <span>{{ toFixed(detailData.daily_income_usdt || 0, 4) }} USDT</span>
                               <br>
-                              <span></span>{{ toFixed(detailData.daily_income_btc || 0, 8) }} BTC
+                              <span></span>{{ fromSATBTCNum(detailData.daily_income_btc, 2) }}
                           </el-col>
                       </el-row>
                       <el-row style="line-height:30px;">
@@ -291,7 +293,7 @@
                     <template slot-scope="scope">
                         <span>
                             <!-- {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_btc || 0, 10) }} BTC -->
-                            {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_usdt / poolBtcData.currency_price, 10)}} BTC
+                            {{ toFixed(scope.row.income_usdt || 0, 4) }} USDT / {{ fromSATBTCNum(scope.row.income_usdt / poolBtcData.currency_price, 2)}}
                         </span>
                     </template>
                 </el-table-column>
@@ -317,7 +319,7 @@ import Page from "@/components/Page.vue";
 import { get, post } from "@/common/axios.js";
 import { mapGetters, mapState } from "vuex";
 import { getPoolBtcData } from "@/wallet/serve";
-import { keepDecimalNotRounding } from "@/utils/tools";
+import { keepDecimalNotRounding, fromSATBTCNum } from "@/utils/tools";
 import { depositPoolsIn } from "@/wallet/trade";
 export default {
     name: '',
@@ -387,7 +389,6 @@ export default {
 
     },
     created() {
-        // this.loading = true;
     },
     watch: {
         isConnected: {

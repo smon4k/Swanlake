@@ -10,6 +10,9 @@ import VueClipboard from 'vue-clipboard2'
 import {
   $inputLimit,
   toFixed,
+  toWei,
+  fromWei,
+  fromSATBTCNum,
   toolNumber,
   keepDecimalNotRounding
 } from './utils/tools'
@@ -71,6 +74,9 @@ Object.assign(Vue.prototype, {
   $connect:connectWallet,
   $disconnect:disconnectWallet,
   toFixed,
+  toWei,
+  fromWei,
+  fromSATBTCNum,
   keepDecimalNotRounding,
   $get,
   $post,

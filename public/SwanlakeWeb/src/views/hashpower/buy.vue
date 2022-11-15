@@ -74,7 +74,7 @@
                   <el-row>
                     <el-col :span="24">
                       <!-- {{ $t('subscribe:Amount(T)') }}({{ detailData.hash_rate }}T)： -->
-                      <el-input v-model="num" type="number" placeholder="请输入数量">
+                      <el-input v-model="num" type="number" onkeyup="value=value.replace(/[^1-9]/g, '')" :main="1" placeholder="请输入数量">
                           <template slot="prepend">{{ $t('subscribe:Amount(T)') }} ({{ detailData.hash_rate }}T)</template>
                           <!-- <template slot="append">
                               <el-button v-if="type == 1" type="primary" @click="allfunBetClick()">全投</el-button>
@@ -85,7 +85,10 @@
                   </el-row>
                   <el-row>
                     <el-col :span="24">
-                      <span style="float: right;">USDT: $ {{ detailData.price * num }}</span>
+                      <span style="float: right;">
+                        <span>账户余额：<el-link type="primary" style="font-size:14px;" @click="clickUsdtBalance()">{{ keepDecimalNotRounding(usdtBalance, 2) }} USDT</el-link></span>&nbsp;&nbsp;
+                        <span>USDT: $ {{ detailData.price * num }}</span>
+                      </span>
                     </el-col>
                   </el-row>
                 <!-- </el-card> -->
@@ -416,6 +419,7 @@ import axios from 'axios'
 import { approve, BuyTokenToS19 } from "@/wallet/trade";
 import {getBalance,isApproved} from "@/wallet/serve";
 import Address from "@/wallet/address.json";
+import { keepDecimalNotRounding } from "@/utils/tools";
 import { mapState } from "vuex";
 export default {
   name: "Index",
@@ -433,6 +437,7 @@ export default {
       hashpowerPanelShow: false,
       poolBtcData: {},
       hashpowerAddress: '',
+      usdtBalance: 0,
     };
   },
   created() {
@@ -493,6 +498,16 @@ export default {
     },
   },
   methods: {
+    handleEdit(e) {
+      console.log(e);
+       let value = e.replace(/[^d]/g, ""); // 只能输入数字
+        value = value.replace(/^0+(d)/, "$1"); // 第一位0开头，0后面为数字，则过滤掉，取后面的数字
+        value = value.replace(/(d{4})d*/, '$1') // 最多保留15位整数
+      this.num = value;
+    },
+    clickUsdtBalance() {
+      this.num = Math.floor(this.usdtBalance);
+    },
     inputNumberChange(currentValue) {
       console.log(currentValue);
       if(currentValue > 0) {
@@ -567,6 +582,7 @@ export default {
     },
     async getBUSDTIsApprove() { //获取余额 查看是否授权
       let balance = await getBalance(Address.BUSDT, 18); //获取余额
+      this.usdtBalance = balance;
       // console.log("balance", balance);
       this.tokenBalance = balance;
       isApproved(Address.BUSDT, 18, balance, this.hashpowerAddress).then((bool) => {

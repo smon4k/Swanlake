@@ -76,6 +76,19 @@ export function fromWei(amount, decimal) {
   }
 }
 
+export function fromSATBTCNum(amount, decimal) {
+  let pow = Math.pow(10, 8);
+  let num = 0;
+  let number = Number(amount) * pow;
+  console.log(number);
+  if(number > 1000) {
+    num = toFixed(amount, 10) + ' BTC';
+  } else {
+    num = toFixed(number, decimal) + ' SAT';
+  }
+  return num;
+}
+
 export const $inputLimit = function (e, point, isModel) {
   if (point > 0) { //小数 ^(\-)*(\d+)\.(\d{1,3}).*$
     e.target.value = e.target.value.replace(/[^\d.]/g, "")  //清除“数字”和“.”以外的字符
