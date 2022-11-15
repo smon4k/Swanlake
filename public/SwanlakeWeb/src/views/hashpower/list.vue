@@ -155,7 +155,7 @@
                         </el-link>
                     </template>
                 </el-table-column>
-                <el-table-column
+                <!-- <el-table-column
                     prop=""
                     label="总收益"
                     align="center"
@@ -166,7 +166,7 @@
                             {{ toFixed(scope.row.total_income_btcb || 0, 10) }} BTC
                         </el-link>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
                     prop=""
                     label="可领取收益"
