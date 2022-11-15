@@ -166,7 +166,9 @@ class TaskController extends ToolsBaseController
     }
 
     /**
-     * Okx 平衡仓位 每日数据统计
+     * BTC-USDT https://www.okx.com/trade-spot/btc-usdt
+     * 登录账号密码：smon4k08/Zx112211@
+     * Okx 按照比例平衡仓位 出售赎回 每日数据统计
      * @author qinlh
      * @since 2022-08-17
      */

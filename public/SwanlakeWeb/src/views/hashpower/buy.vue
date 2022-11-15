@@ -8,6 +8,10 @@
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <el-page-header @back="goBack" :content="detailData.name">
+          <template slot="content">
+            <span>{{ detailData.name }}</span>
+            <el-link type="primary" :href="detailData.chain_address" target='_blank'>{{ '查看合约' }}</el-link>
+          </template>
         </el-page-header>
       </div>
       <!-- <el-container class="container"> -->
