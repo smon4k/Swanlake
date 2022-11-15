@@ -67,6 +67,7 @@ import {
   getH2OUserInfo
 } from "@/wallet/serve";
 import { get, post } from "@/common/axios.js";
+import { keepDecimalNotRounding } from "@/utils/tools";
 export default {
   name: "PledegDetail",
   data() {
@@ -274,7 +275,7 @@ export default {
     },
     clickAllBtn() {
       if (!this.isConnected || !this.tokenBalance) return;
-      this.depositNum = this.tokenBalance;
+      this.depositNum = keepDecimalNotRounding(this.tokenBalance, 4);
     },
     async getTokenBalanceApprove() { //获取余额 查看是否授权
       let balance = await getBalance(this.currencyToken, this.decimals); //获取余额

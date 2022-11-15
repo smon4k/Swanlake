@@ -572,7 +572,7 @@ export default {
                   message: '购买成功!'
               });
               setTimeout(() => {
-                  this.$router.push({path:'/my/finances'})
+                  this.$router.push({path:'/hashpower/list'})
               }, 2000)
             } else {
               this.$message.error("Error");
