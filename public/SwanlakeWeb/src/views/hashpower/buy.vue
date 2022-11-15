@@ -506,7 +506,8 @@ export default {
       this.num = value;
     },
     clickUsdtBalance() {
-      this.num = Math.floor(this.usdtBalance);
+      let copiesNum = this.usdtBalance / this.detailData.price;
+      this.num = Math.floor(copiesNum);
     },
     inputNumberChange(currentValue) {
       console.log(currentValue);
