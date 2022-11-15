@@ -717,11 +717,19 @@ export default {
             })
         },
         hashpowerBuyClick(row, type) {
+            // this.$router.push({
+            //     path:'/hashpower/buy',
+            //     query: {
+            //         type: type,
+            //         hash_id: row.id,
+            //     }
+            // })
             this.$router.push({
-                path:'/hashpower/buy',
-                query: {
+                name:'hashpowerBuy',
+                params: {
                     type: type,
                     hash_id: row.id,
+                    hashpowerAddress: row.hashpowerAddress
                 }
             })
         },

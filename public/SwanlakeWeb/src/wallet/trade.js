@@ -230,6 +230,7 @@ export const BuyTokenToS19 = function (hashpowerAddress='', amount=0, decimals=1
   // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
   const address = __ownInstance__.$store.state.base.address;
   const contractAddress = hashpowerAddress || __ownInstance__.$store.state.base.hashpowerAddress;
+  console.log(contractAddress);
   const contract = new web3.eth.Contract(hashpowerABI, contractAddress);
   const depositAmount = toWei(amount, decimals);
   let encodedABI = contract.methods.BuyTokenToS19(depositAmount).encodeABI();

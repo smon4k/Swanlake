@@ -437,16 +437,20 @@ export default {
   },
   created() {
     try {
-            let type = this.$route.query.type;
+            let type = this.$route.params.type;
+            let hashpowerAddress = this.$route.params.hashpowerAddress;
             if(type && type !== undefined) {
                 this.type = type;
             }
-            let hashId = this.$route.query.hash_id;
-            console.log(hashId);
-            if(hashId && hashId > 0) {
+            let hashId = this.$route.params.hash_id;
+            console.log(hashId, hashpowerAddress);
+            if(hashId && hashId > 0 && hashpowerAddress !== '') {
                 this.hashId = hashId;
+                this.hashpowerAddress = hashpowerAddress;
                 this.detailLoding = true;
                 this.getBoxDetail();
+            } else {
+              this.$router.go(-1);
             }
         } catch (err) {}
   },
@@ -478,10 +482,10 @@ export default {
     },
     changeData: {
       handler(val){
-          if(val.address !== '' && val.hashId > 0 && val.nftUrl !== '' && val.hashPowerPoolsList.length > 0) {
-            console.log(val.hashPowerPoolsList);
-            let index = val.hashPowerPoolsList.findIndex(item=>item.id == val.hashId);
-            this.hashpowerAddress = this.hashPowerPoolsList[index].hashpowerAddress;
+          if(val.address !== '' && val.hashId > 0 && val.nftUrl !== '') {
+            // console.log(val.hashPowerPoolsList);
+            // let index = val.hashPowerPoolsList.findIndex(item=>item.id == val.hashId);
+            // this.hashpowerAddress = this.hashPowerPoolsList[index].hashpowerAddress;
             this.detailLoding = true;
             this.getBoxDetail();
           }
