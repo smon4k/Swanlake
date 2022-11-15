@@ -8,22 +8,26 @@
             <!-- PC -->
             <el-row class="public-info" v-if="!isMobel">
                 <el-col :span="24" style="float:right;">
+                    <!-- 全网最低电费 -->
                     <span>
                         {{ $t('subscribe:MinimumElectricityBill') }}
                         <span>0.065 USDT</span> 
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
+                    <!-- 日产出 -->
                     <span>
                         {{ $t('subscribe:DailyEarnings') }}/T
                         <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
                         <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}}BTC</span>
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
+                    <!-- 全网算力  -->
                     <span>
                         {{ $t('subscribe:Hashrate') }}
                         <span> {{toFixed(Number(poolBtcData.power),3) || "--"}}EH/s</span> 
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
+                    <!-- 币价 -->
                     <span>
                         {{ $t('subscribe:CurrencyPrice') }}
                         <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
@@ -44,16 +48,19 @@
 
             <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
                 <el-row style="line-height:30px;">
+                    <!-- 平台昨日产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
-                        <span>{{toFixed(Number(yester_output), 2) || "--"}} USDT</span>
+                        <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
                         <br>
                         <span>{{toFixed(Number(yester_output) / Number(poolBtcData.currency_price), 8)}} BTC</span>
                     </el-col>
+                    <!-- 平台累计产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
-                        <span>{{toFixed(Number(count_output), 2) || "--"}} USDT</span>
+                        <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
                         <br>
                         <span>{{toFixed(Number(count_output) / Number(poolBtcData.currency_price), 8) || "--"}} BTC</span>
                     </el-col>
+                    <!-- 总质押算力 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">总质押算力<br /> 
                         <span>{{toFixed(Number(totalPledgePower), 2) || "--"}} T</span>
                     </el-col>
@@ -67,6 +74,7 @@
                         <br>
                         <span></span>{{ toFixed(daily_income_btc || 0, 8) }} BTC
                     </el-col> -->
+                    <!-- 上线天数 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}</el-col>
                 </el-row>
             </div>
@@ -86,21 +94,45 @@
                 <el-table-column
                     prop="name"
                     label="产品名称"
-                    align="center">
+                    align="center"
+                    width="150">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.name }}</span><br>
+                        <span>{{ scope.row.power_consumption_ratio }}W/THS</span>
+                    </template>
                 </el-table-column>
-                <el-table-column
+                <!-- <el-table-column
                     prop="annualized_income"
                     label="年化利率"
                     align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.annualized_income || 0, 2) }}%</span>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
                     label="总质押算力"
-                    align="center">
+                    align="center"
+                    width="130">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    label="日支出/T"
+                    align="center"
+                    width="180">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 6) }} USDT</span><br>
+                        <span>{{ toFixed(scope.row.daily_expenditure_btc || 0, 10) }} BTC</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    label="日收益/T"
+                    align="center"
+                    width="180">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, 6) }} USDT</span><br>
+                        <span>{{ toFixed(scope.row.daily_income_btc || 0, 10) }} BTC</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -214,13 +246,13 @@
                       <el-row style="line-height:30px;">
                           <el-col :span="isMobel ? 12 : 12" align="center">
                               <span class="title">{{ $t('subscribe:outputYesterday') }}</span><br /> 
-                              <span>{{toFixed(Number(detailData.yester_output), 2) || "--"}} USDT</span>
+                              <span>{{toFixed(Number(detailData.yester_output), 4) || "--"}} USDT</span>
                               <br>
                               <span>{{toFixed(Number(detailData.yester_output_btc), 8)}} BTC</span>
                           </el-col>
                           <el-col :span="isMobel ? 12 : 12" align="center">
                               <span class="title">{{ $t('subscribe:cumulativeOutput') }}</span> <br /> 
-                              <span>{{toFixed(Number(detailData.count_output), 2) || "--"}} USDT</span>
+                              <span>{{toFixed(Number(detailData.count_output), 4) || "--"}} USDT</span>
                               <br>
                               <span>{{toFixed(Number(detailData.count_output_btc), 8) || "--"}} BTC</span>
                           </el-col>

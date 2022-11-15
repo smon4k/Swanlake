@@ -155,6 +155,11 @@ export default {
                         yest_income_btcb: 0,
                         total_income_usdt: 0,
                         total_income_btcb: 0,
+                        daily_expenditure_usdt: 0,
+                        daily_expenditure_btc: 0,
+                        daily_income_usdt: 0,
+                        daily_income_btc: 0,
+                        power_consumption_ratio: 0,
                         currency: 0,
                         loading:false,
                         btcbPrice: 0,
@@ -191,6 +196,11 @@ export default {
                 state.hashPowerPoolsList[index].yest_income_btcb = info.yest_income_btcb
                 state.hashPowerPoolsList[index].total_income_usdt = info.total_income_usdt
                 state.hashPowerPoolsList[index].total_income_btcb = info.total_income_btcb
+                state.hashPowerPoolsList[index].daily_expenditure_usdt = info.daily_expenditure_usdt
+                state.hashPowerPoolsList[index].daily_expenditure_btc = info.daily_expenditure_btc
+                state.hashPowerPoolsList[index].daily_income_usdt = info.daily_income_usdt
+                state.hashPowerPoolsList[index].daily_income_btc = info.daily_income_btc
+                state.hashPowerPoolsList[index].power_consumption_ratio = info.power_consumption_ratio
                 state.hashPowerPoolsList[index].loading = false
             }
         },
