@@ -17,6 +17,7 @@
       <!-- <el-container class="container"> -->
         <!-- <el-header>Header</el-header> -->
         <el-main class="mian">
+
           <el-row class="mian-detail" :gutter="20" v-loading="detailLoding">
             <!-- <el-col :span="12">
               <el-card class="box-card box-card-left" shadow="never">
@@ -78,7 +79,7 @@
                   <el-row>
                     <el-col :span="24">
                       <!-- {{ $t('subscribe:Amount(T)') }}({{ detailData.hash_rate }}T)： -->
-                      <el-input v-model="num" type="number" onkeyup="value=value.replace(/[^1-9]/g, '')" :main="1" placeholder="请输入数量">
+                      <el-input v-model.trim="num" type="number" onkeyup="value=value.replace(/[^1-9]/g, '')" :main="1" placeholder="请输入数量">
                           <template slot="prepend">{{ $t('subscribe:Amount(T)') }} ({{ detailData.hash_rate }}T)</template>
                           <!-- <template slot="append">
                               <el-button v-if="type == 1" type="primary" @click="allfunBetClick()">全投</el-button>
@@ -93,6 +94,12 @@
                         <span>账户余额：<el-link type="primary" style="font-size:14px;" @click="clickUsdtBalance()">{{ keepDecimalNotRounding(usdtBalance, 2) }} USDT</el-link></span>&nbsp;&nbsp;
                         <span>USDT: $ {{ detailData.price * num }}</span>
                       </span>
+                    </el-col>
+                  </el-row>
+                  <el-row class="recomme">
+                    <el-col :span="24">
+                      <el-checkbox v-model="is_recomme_code">我有推荐码</el-checkbox>
+                      <el-input v-if="is_recomme_code" v-model.trim="recomme_code" type="text" minlength=”4“ maxlength="8" placeholder="请输入推荐码" @keyup.native="recommeCodeCheck" @keydown.native="extraordinaryCheck"></el-input>
                     </el-col>
                   </el-row>
                 <!-- </el-card> -->
@@ -117,6 +124,7 @@
               </div>
             </el-col>
           </el-row>
+
           <el-row v-show="true">
               <el-col :span="24" class="content">
                   <el-card class="box-card" shadow="never" v-if="$t('public:language') === 'zh'">
@@ -442,6 +450,8 @@ export default {
       poolBtcData: {},
       hashpowerAddress: '',
       usdtBalance: 0,
+      is_recomme_code: false,
+      recomme_code: '',
     };
   },
   created() {
@@ -519,6 +529,25 @@ export default {
         this.numPrice = currentValue * this.detailData.price;
       }
     },
+    recommeCodeCheck(e) { // 只能输入汉字、英文、数字
+      e.target.value = e.target.value.replace(/[^\a-\z\A-\Z0-9]/g,"");
+    },
+    extraordinaryCheck(e) { // 限制输入特殊字符 及 字符长度
+      e.target.value = e.target.value.replace(/[`~!@#$%^&*()_\-+=<>?:"{}|,.\/;'\\[\]·~！@#￥%……&*（）——\-+={}|《》？：“”【】、；‘’，。、]/g,"");
+      let temp = 0;
+      let len = 8;
+      for (var i = 0; i < value.length; i++) {
+        if (/[\u4e00-\u9fa5]/.test(value[i])) {
+          temp += 2
+        } else {
+          temp++
+        }
+        if (temp > len) {
+          value = str.value.substr(0, i)
+        }
+      }
+      e.target.value = value;
+    },
     getBoxDetail() {
         axios.get(this.nftUrl + "/Hashpower/hashpower/getHashpowerDetail",{
             params: {
@@ -543,6 +572,21 @@ export default {
       this.trading = true;
       if(this.detailData.stock < 0) {
         this.$message.error("Inventory shortage");
+        this.trading = false;
+        return false;
+      }
+      if(this.is_recomme_code) {
+        if(this.recomme_code == "") {
+          this.$message.error("推荐码不能为空");
+          this.trading = false;
+          return false;
+        } else {
+          if(this.recomme_code.length < 4) {
+            this.$message.error("推荐码长度不能低于4位，最长不超过8位");
+            this.trading = false;
+            return false;
+          }
+        }
       }
       // let hash = "111";
       // await this.setPurchaseLog(hash);
@@ -565,6 +609,7 @@ export default {
             hashId: this.hashId,
             amount: this.num,
             address: this.address,
+            recomme_code: this.recomme_code,
             hash: hash
           }
       }).then((json) => {
@@ -698,6 +743,14 @@ export default {
             align-items: center;
             .el-input__inner {
                 height: 60px;
+            }
+          }
+        }
+        .recomme {
+          .el-input {
+            width: 150px;
+            .el-input__inner {
+              height: 50px;
             }
           }
         }
