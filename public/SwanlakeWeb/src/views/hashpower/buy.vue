@@ -536,17 +536,17 @@ export default {
       e.target.value = e.target.value.replace(/[`~!@#$%^&*()_\-+=<>?:"{}|,.\/;'\\[\]·~！@#￥%……&*（）——\-+={}|《》？：“”【】、；‘’，。、]/g,"");
       let temp = 0;
       let len = 8;
-      for (var i = 0; i < value.length; i++) {
-        if (/[\u4e00-\u9fa5]/.test(value[i])) {
+      for (var i = 0; i < e.target.value.length; i++) {
+        if (/[\u4e00-\u9fa5]/.test(e.target.value[i])) {
           temp += 2
         } else {
           temp++
         }
         if (temp > len) {
-          value = str.value.substr(0, i)
+          e.target.value = str.value.substr(0, i)
         }
       }
-      e.target.value = value;
+      // e.target.value = value;
     },
     getBoxDetail() {
         axios.get(this.nftUrl + "/Hashpower/hashpower/getHashpowerDetail",{
