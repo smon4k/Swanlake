@@ -8,8 +8,8 @@ export default function (axios,router) {
   axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'; //post的默认请求头
   //响应器，获取数据成功还是失败
   axios.interceptors.request.use(function (config) {
-      config.headers.common.Accept = "*/*"
-      config.headers.common["X-Requested-With"] = "XMLHttpRequest"
+    //   config.headers.common.Accept = "*/*"
+    //   config.headers.common["X-Requested-With"] = "XMLHttpRequest"
       if (config.method === 'post') {
         if(config.headers['Content-Type'] !== undefined && config.headers['Content-Type'] == 'multipart/form-data') { //如果是上传文件形式的话
         } else {
