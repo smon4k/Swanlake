@@ -57,7 +57,7 @@
                 </el-col>
             </el-row>
             <el-row :gutter="20">
-                <el-col :span="isMobel ? 24 : 12">
+                <el-col :span="isMobel ? 24 : 8">
                     <el-card class="box-card recommend" v-for="(item,index) in tableData" :key="index">
                         <div class="novice">
                             <span>活期</span>
@@ -81,8 +81,8 @@
                         </div>
                     </el-card>
                 </el-col>
-                <el-col :span="isMobel ? 24 : 12">
-                    <el-card class="box-card recommend" v-for="(item,index) in hashPowerPoolsList" :key="index">
+                <el-col :span="isMobel ? 24 : 8" v-for="(item,index) in hashPowerPoolsList" :key="index">
+                    <el-card class="box-card recommend">
                         <div class="novice">
                             <span>活期</span>
                         </div>
@@ -197,13 +197,21 @@ export default {
                 }
             })
         },
-        hashpowerBuyClick(row) {
+        hashpowerBuyClick(row, type) {
             console.log(row);
+            // this.$router.push({
+            //     path:'/hashpower/buy',
+            //     query: {
+            //         type: 1,
+            //         hash_id: row.id,
+            //     }
+            // })
             this.$router.push({
-                path:'/hashpower/buy',
-                query: {
-                    type: 1,
+                name:'hashpowerBuy',
+                params: {
+                    type: type,
                     hash_id: row.id,
+                    hashpowerAddress: row.hashpowerAddress
                 }
             })
         },

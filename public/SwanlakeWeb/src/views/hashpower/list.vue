@@ -205,13 +205,13 @@
                     <el-descriptions-item label="总质押算力">{{ toFixed(item.total || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="昨日收益">
-                        <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
+                        <el-link type="primary" @click="getHashpowerDetail(item.id)">
                             {{ toFixed(item.yest_income_usdt || 0, 4) }} USDT <br>
                             {{ fromSATBTCNum(item.yest_income_btcb, 2) }}
                         </el-link>
                     </el-descriptions-item>
                     <el-descriptions-item label="总收益">
-                        <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
+                        <el-link type="primary" @click="showHashpowerIncomeList(item.id)">
                             {{ toFixed(item.total_income_usdt || 0, 4) }} USDT <br>
                             {{ fromSATBTCNum(item.total_income_btcb, 2) }}
                         </el-link>
@@ -223,7 +223,7 @@
                     </el-descriptions-item>
                     <el-descriptions-item>
                         <div style="text-align:center;">
-                            <el-button size="mini" type="primary" @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
+                            <el-button size="mini" type="primary" @click="hashpowerBuyClick(item, 1)">购买</el-button>
                             <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获</el-button>
                             <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
                             <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
