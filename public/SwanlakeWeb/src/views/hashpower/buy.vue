@@ -431,7 +431,7 @@ import axios from 'axios'
 import { approve, BuyTokenToS19 } from "@/wallet/trade";
 import {getBalance,isApproved} from "@/wallet/serve";
 import Address from "@/wallet/address.json";
-import { keepDecimalNotRounding } from "@/utils/tools";
+import { keepDecimalNotRounding, getUrlParams } from "@/utils/tools";
 import { mapState } from "vuex";
 export default {
   name: "Index",
@@ -463,6 +463,11 @@ export default {
             }
             let hashId = this.$route.params.hash_id;
             console.log(hashId, hashpowerAddress);
+            let recomeCode = getUrlParams('refc');
+            if(recomeCode && recomeCode !== '') {
+              this.is_recomme_code = true;
+              this.recomme_code = recomeCode;
+            }
             if(hashId && hashId > 0 && hashpowerAddress !== '') {
                 this.hashId = hashId;
                 this.hashpowerAddress = hashpowerAddress;
