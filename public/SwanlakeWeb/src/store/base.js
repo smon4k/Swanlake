@@ -163,6 +163,7 @@ export default {
                         currency: 0,
                         loading:false,
                         btcbPrice: 0,
+                        chain_address: '',
                         claimLoading:false
                     })
                 })
@@ -201,6 +202,7 @@ export default {
                 state.hashPowerPoolsList[index].daily_income_usdt = info.daily_income_usdt
                 state.hashPowerPoolsList[index].daily_income_btc = info.daily_income_btc
                 state.hashPowerPoolsList[index].power_consumption_ratio = info.power_consumption_ratio
+                state.hashPowerPoolsList[index].chain_address = info.chain_address
                 state.hashPowerPoolsList[index].loading = false
             }
         },

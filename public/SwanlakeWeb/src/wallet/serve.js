@@ -177,6 +177,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let daily_income_usdt = 0
   let daily_income_btc = 0
   let power_consumption_ratio = 0
+  let chain_address = ''
   if(id) {
     // h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
     btcbReward = await getH2OPendingBonus(goblinAddress, 8); //获取BTCB奖励
@@ -204,6 +205,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     daily_income_usdt = HashpowerDetail.daily_income_usdt //日收益 usdt
     daily_income_btc = HashpowerDetail.daily_income_btc //日收益 btc
     power_consumption_ratio = HashpowerDetail.power_consumption_ratio //功耗比
+    chain_address = HashpowerDetail.chain_address //合约地址
   } 
   let reObj = {
     totalTvl: totalTvl,
@@ -227,7 +229,8 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     daily_expenditure_btc: daily_expenditure_btc,
     daily_income_usdt: daily_income_usdt,
     daily_income_btc: daily_income_btc,
-    power_consumption_ratio: power_consumption_ratio
+    power_consumption_ratio: power_consumption_ratio,
+    chain_address: chain_address
   };
   return reObj;
 }

@@ -78,7 +78,7 @@
                     <el-col :span="isMobel ? 12 : 6" align="center">
                         {{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}
                         <br>
-                         <el-link type="primary" style="font-size:16px;" href="https://bscscan.com/address/0x8f4bdA5080fE2A97E54c9B5277D9D6b0A9e9124F#tokentxns" target='_blank'>{{ '算力收益' }}</el-link>
+                        <el-link type="primary" style="font-size:16px;" href="https://bscscan.com/address/0x8f4bdA5080fE2A97E54c9B5277D9D6b0A9e9124F#tokentxns" target='_blank'>{{ '链上收益查询' }}</el-link>
                     </el-col>
                 </el-row>
             </div>
@@ -101,8 +101,10 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ scope.row.name }}</span><br>
-                        <span>{{ scope.row.power_consumption_ratio }}W/THS</span>
+                        <el-link type="primary" :href="scope.row.chain_address" target='_blank'>
+                            <span>{{ scope.row.name }}</span><br>
+                            <span>{{ scope.row.power_consumption_ratio }}W/THS</span>
+                        </el-link>
                     </template>
                 </el-table-column>
                 <!-- <el-table-column
@@ -159,18 +161,18 @@
                         </el-link>
                     </template>
                 </el-table-column>
-                <!-- <el-table-column
+                <el-table-column
                     prop=""
                     label="总收益"
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
+                        <!-- <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)"> -->
                             {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
                             {{ toFixed(scope.row.total_income_btcb || 0, 10) }} BTC
-                        </el-link>
+                        <!-- </el-link> -->
                     </template>
-                </el-table-column> -->
+                </el-table-column>
                 <el-table-column
                     prop=""
                     label="可领取收益"
@@ -215,10 +217,10 @@
                         </el-link>
                     </el-descriptions-item>
                     <el-descriptions-item label="总收益">
-                        <el-link type="primary" @click="showHashpowerIncomeList(item.id)">
+                        <!-- <el-link type="primary" @click="showHashpowerIncomeList(item.id)"> -->
                             {{ toFixed(item.total_income_usdt || 0, 4) }} USDT <br>
                             {{ fromSATBTCNum(item.total_income_btcb, 2) }}
-                        </el-link>
+                        <!-- </el-link> -->
                     </el-descriptions-item>
                     <el-descriptions-item label="可领取收益">
                         <span>
