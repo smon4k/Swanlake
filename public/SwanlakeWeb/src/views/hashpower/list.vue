@@ -167,10 +167,10 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <!-- <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)"> -->
+                        <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
                             {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
                             {{ toFixed(scope.row.total_income_btcb || 0, 10) }} BTC
-                        <!-- </el-link> -->
+                        </el-link>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -291,7 +291,7 @@
             </div>
         </el-dialog>
 
-        <el-dialog title="历史收益" :visible.sync="dialogTableIncome" width="50%">
+        <el-dialog title="预估历史收益" :visible.sync="dialogTableIncome" width="50%">
             <el-table :data="hashpowerIncomeList" v-loading="incomeLoading" max-height="500">
                 <!-- <el-table-column type="index" width="50" label="ID"></el-table-column> -->
                 <el-table-column property="date" label="日期" align="center"></el-table-column>
