@@ -75,7 +75,11 @@
                         <span></span>{{ toFixed(daily_income_btc || 0, 8) }} BTC
                     </el-col> -->
                     <!-- 上线天数 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}</el-col>
+                    <el-col :span="isMobel ? 12 : 6" align="center">
+                        {{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}
+                        <br>
+                         <el-link type="primary" style="font-size:16px;" href="https://bscscan.com/address/0x8f4bdA5080fE2A97E54c9B5277D9D6b0A9e9124F#tokentxns" target='_blank'>{{ '算力收益' }}</el-link>
+                    </el-col>
                 </el-row>
             </div>
         </el-card>
