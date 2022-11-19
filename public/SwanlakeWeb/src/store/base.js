@@ -40,8 +40,8 @@ export default {
         domainHostAddress:'https://bscscan.com/tx/',
         apiUrl: window.location.host === 'localhost:8001' ? 'http://www.h2omedia.com' : 'https://www.swanlake.club',
         // apiUrl: 'https://www.swanlake.club',
-        // nftUrl: window.location.host === 'localhost:8007' || window.location.host === '192.168.1.3:8007' ? 'http://www.api.com' : 'https://api.h2o.live',
-        nftUrl: 'https://api.h2o.live',
+        nftUrl: window.location.host === 'localhost:8007' || window.location.host === '192.168.1.3:8007' ? 'http://www.api.com' : 'https://api.bitguru.finance',
+        // nftUrl: 'https://api.h2o.live',
         // Env: window.location.host === 'localhost:8001' || window.location.host === '192.168.1.6:8001' ? 'dev' : 'prod',
         Env: 'dev',
         // gamesFillingAddress: '0x079bDC8845D0C6878716A3f5219f1D0DcdF15308', //游戏系统-充提清算系统-合约地址
