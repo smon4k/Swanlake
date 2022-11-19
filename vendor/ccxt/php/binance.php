@@ -4257,6 +4257,18 @@ class binance extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
+    /**
+     * 查询杠杆资产
+     * @author qinlh
+     * @since 2022-08-16
+     */
+    public function fetch_margin_asset($params = array()) {
+        $this->load_markets();
+        $response = $this->sapiGetMarginAllAssets($params);
+        p($response);
+        return $this->safe_value($data, 0);
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');

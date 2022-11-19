@@ -5,6 +5,7 @@ use app\tools\model\Reptile;
 use app\api\model\FundMonitoring;
 use app\tools\model\MaticReptile;
 use app\tools\model\Okx;
+use app\tools\model\Binance;
 use app\api\model\Task;
 use app\api\model\TaskContract;
 use app\api\model\User;
@@ -153,7 +154,8 @@ class TaskController extends ToolsBaseController
 
 
     /**
-     * Okx 平衡仓位 下单
+     * Okx 平衡仓位 
+     * 下单
      * @author qinlh
      * @since 2022-08-17
      */
@@ -166,9 +168,24 @@ class TaskController extends ToolsBaseController
     }
 
     /**
+     * Binance 平衡仓位 
+     * 下单
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function binancePiggybankOrder() {
+        $begin_time = time();
+
+        Binance::balancePositionOrder();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
      * BTC-USDT https://www.okx.com/trade-spot/btc-usdt
      * 登录账号密码：smon4k08/Zx112211@
-     * Okx 按照比例平衡仓位 出售赎回 每日数据统计
+     * Okx 按照比例平衡仓位 出售赎回
+     * 每日数据统计
      * @author qinlh
      * @since 2022-08-17
      */
@@ -181,7 +198,7 @@ class TaskController extends ToolsBaseController
     }
 
      /**
-     * Okx 出入金 币种统计
+     * Okx 出入金 币种统计 U本文 币本位计算
      * @author qinlh
      * @since 2022-08-17
      */
