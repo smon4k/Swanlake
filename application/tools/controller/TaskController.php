@@ -14,6 +14,7 @@ use app\api\model\DayNetworth;
 use app\api\model\BscAddressStatistics;
 use app\answer\model\DayNetworth as DayNetworthAnswer;
 use app\admin\model\Piggybank;
+use app\admin\model\BinancePiggybank;
 use ClassLibrary\ClFieldVerify;
 use ClassLibrary\CLFfmpeg;
 use ClassLibrary\CLFile;
@@ -223,6 +224,20 @@ class TaskController extends ToolsBaseController
 
         $transactionCurrency = "BTC-USDT"; //交易币种
         Piggybank::calcDepositAndWithdrawal($transactionCurrency, 1, 0);
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * Binance 出入金 币种统计 U本文 币本位计算
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function calcBinanceDepositAndWithdrawal() {
+        $begin_time = time();
+
+        $transactionCurrency = "BIFI-BUSD"; //交易币种
+        BinancePiggybank::calcDepositAndWithdrawal($transactionCurrency, 1, 0);
 
         return (time() - $begin_time) . "s\n";
     }

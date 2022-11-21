@@ -18,6 +18,7 @@ use lib\ClCrypt;
 use think\Cache;
 use app\api\model\Reward;
 use app\tools\model\Okx;
+use app\tools\model\Binance;
 
 class BinancePiggybank extends Base
 {
@@ -155,7 +156,7 @@ class BinancePiggybank extends Base
     {
         $date = date('Y-m-d');
         //总结余
-        $balanceDetails = Okx::getTradeValuation($product_name);
+        $balanceDetails = Binance::getTradeValuation($product_name);
         $btcPrice = $balanceDetails['btcPrice'];
         $countUstandardPrincipal = 0;
         $countBstandardPrincipal = 0;
