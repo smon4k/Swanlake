@@ -1,6 +1,6 @@
 <?php
 /**
- * H2O-存钱罐功能
+ * H2O-BTC-存钱罐功能
  * @copyright  Copyright (c) 2000-2020 QIN TEAM (http://www.qlh.com)
  * @version    GUN  General Public License 10.0.0
  * @license    Id:  Userinfo.php 2022-08-17 15:00:00

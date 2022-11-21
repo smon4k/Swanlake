@@ -14,9 +14,14 @@ const UserList = () => import('@/pages/User/list.vue')
 const FillingH2oList = () => import('@/pages/Filling/h2olist.vue')
 const FillingUsdtList = () => import('@/pages/Filling/usdtlist.vue')
 
+// BTC存钱罐
 const PiggybankOrder = () => import('@/pages/Piggybank/list.vue')
 const PiggybankDate = () => import('@/pages/Piggybank/date.vue')
 const GoldIndex = () => import('@/pages/Gold/index.vue')
+
+// BIFI存钱罐
+const PiggybankBifiOrder = () => import('@/pages/PiggybankBifi/list.vue')
+const PiggybankBifiDate = () => import('@/pages/PiggybankBifi/date.vue')
 
 Vue.use(Router)
 
@@ -93,7 +98,7 @@ const router = new Router({
             notKeepAlive: true
           }
         },
-        // 存钱罐管理
+        // BTC-存钱罐管理
         {
           path: 'piggybank/order',
           name: 'PiggybankOrder',
@@ -118,6 +123,25 @@ const router = new Router({
           component: GoldIndex,
           meta: {
             name: '出入金',
+            notKeepAlive: true
+          }
+        },
+         // BIFI-存钱罐管理
+         {
+          path: 'piggybank/bifi/order',
+          name: 'PiggybankBifiOrder',
+          component: PiggybankBifiOrder,
+          meta: {
+            name: '订单列表',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'piggybank/bifi/date',
+          name: 'PiggybankBifiDate',
+          component: PiggybankBifiDate,
+          meta: {
+            name: '产品统计',
             notKeepAlive: true
           }
         },
