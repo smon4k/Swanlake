@@ -468,6 +468,10 @@ class Binance extends Base
         // $result = $exchange->fetch_markets(['symbol'=>$symbol]);
         // p($result);
 
+        $changeRatioNum = 3; //涨跌比例 2%
+        $balanceRatio = '1:1'; //平衡比例
+        $balanceRatioArr = explode(':', $balanceRatio);
+
         //获取最小下单数量
         $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
         // p($rubikStatTakerValume);
@@ -485,13 +489,26 @@ class Binance extends Base
 
         $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
         $changeRatio = $balancedValuation > 0 ? abs($bifiValuation - $busdValuation) / $balancedValuation * 100 : abs($bifiValuation / $busdValuation);
-        echo "最小下单量: " . $minSizeOrderNum . "\r\n";
-        echo "交易货币币种: " . $base_ccy . "\r\n";
-        echo "计价货币币种: " . $quote_ccy . "\r\n";
-        echo "BIFI价格: " . $tradingPrice . "\r\n";
-        echo "BUSD余额: " . $busdBalance . "BUSD估值: " . $busdValuation . "\r\n";
-        echo "BIFI余额: " . $bifiBalance . "BIFI估值" . $bifiValuation . "\r\n";
-        echo "涨跌比例: " . $changeRatio;
+
+        $bifiSellNum = $balanceRatioArr[0] * (($bifiValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+        $bifiSellOrdersNumber = $bifiSellNum / $tradingPrice;
+
+        $busdBuyNum = $balanceRatioArr[1] * (($busdValuation - $bifiValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
+        $busdBuyOrdersNumber = $busdBuyNum;
+
+        echo "最小下单量: " . $minSizeOrderNum . "<br>";
+        echo "交易货币币种: " . $base_ccy . "<br>";
+        echo "计价货币币种: " . $quote_ccy . "<br>";
+        echo "BIFI价格: " . $tradingPrice . "<br>";
+        echo "BUSD余额: " . $busdBalance . "<br>BUSD估值: " . $busdValuation . "<br>";
+        echo "BIFI余额: " . $bifiBalance . "<br>BIFI估值: " . $bifiValuation . "<br>";
+        echo "涨跌比例: " . $changeRatio . "<br>";
+        if($bifiValuation > $busdValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
+            echo "BIFI出售数量: " . $bifiSellOrdersNumber . "<br>";
+        }
+        if($bifiValuation < $busdValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
+            echo "BUSD购买数量: " . $busdBuyOrdersNumber . "<br>";
+        }
     }
     
 }
