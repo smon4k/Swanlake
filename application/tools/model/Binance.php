@@ -156,7 +156,7 @@ class Binance extends Base
                     // $usdtBuyNum = ($busdValuation - $bifiValuation) / 2;
                     $usdtBuyNum = $balanceRatioArr[1] * (($busdValuation - $bifiValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
                     $usdtSellOrdersNumber = $usdtBuyNum;
-                    p($usdtSellOrdersNumber);
+                    // p($usdtSellOrdersNumber);
                     if($usdtSellOrdersNumber > $minSizeOrderNum) {
                         $orderDetails = $exchange->create_order($order_symbol, 'market', 'BUY', $usdtSellOrdersNumber, null, ['newClientOrderId' => $clientOrderId]);
                         if($orderDetails && $orderDetails['info']) {
