@@ -157,7 +157,7 @@ class BinancePiggybank extends Base
         $date = date('Y-m-d');
         //总结余
         $balanceDetails = Binance::getTradeValuation($product_name);
-        $btcPrice = $balanceDetails['btcPrice'];
+        $tradingPrice = $balanceDetails['tradingPrice'];
         $countUstandardPrincipal = 0;
         $countBstandardPrincipal = 0;
         $uPrincipalRes = self::getPiggybankCurrencyPrincipal(1); //获取昨天的U数据
@@ -170,16 +170,16 @@ class BinancePiggybank extends Base
             $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
             if ($direction == 1) {
                 $countUstandardPrincipal = (float)$total_balance + (float)$amount;
-                $countBstandardPrincipal = ((float)$total_balance / $btcPrice) + ((float)$amount / $btcPrice);
+                $countBstandardPrincipal = ((float)$total_balance / $tradingPrice) + ((float)$amount / $tradingPrice);
             } else {
                 $countUstandardPrincipal = (float)$total_balance - (float)$amount;
-                $countBstandardPrincipal = ((float)$total_balance / $btcPrice) - ((float)$amount / $btcPrice);
+                $countBstandardPrincipal = ((float)$total_balance / $tradingPrice) - ((float)$amount / $tradingPrice);
             }
         }
 
 
-        $UTotalBalance = $balanceDetails['usdtBalance'] + $balanceDetails['btcValuation']; //U本位总结余 = USDT数量+BTC数量*价格
-        $BTotalBalance = $balanceDetails['btcBalance'] + $balanceDetails['usdtBalance'] / $btcPrice; //币本位结余 = BTC数量+USDT数量/价格
+        $UTotalBalance = $balanceDetails['busdBalance'] + $balanceDetails['bifiValuation']; //U本位总结余 = BUSD数量+BIFI数量*价格
+        $BTotalBalance = $balanceDetails['bifiBalance'] + $balanceDetails['busdBalance'] / $tradingPrice; //币本位结余 = BTC数量+USDT数量/价格
 
         //总利润 = 总结余 - 本金
         $UProfit = $UTotalBalance - $countUstandardPrincipal;
@@ -212,7 +212,7 @@ class BinancePiggybank extends Base
                     'daily_profit_rate' => $dailyUProfitRate,
                     'profit' => $UProfit,
                     'profit_rate' => $UProfitRate,
-                    'price' => $btcPrice,
+                    'price' => $tradingPrice,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $saveUres = self::name('binance_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->update($upDataU);
@@ -227,7 +227,7 @@ class BinancePiggybank extends Base
                     'daily_profit_rate' => $dailyUProfitRate,
                     'profit' => $UProfit,
                     'profit_rate' => $UProfitRate,
-                    'price' => $btcPrice,
+                    'price' => $tradingPrice,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $saveUres = self::name('binance_piggybank_currency_date')->insertGetId($insertDataU);
@@ -242,7 +242,7 @@ class BinancePiggybank extends Base
                         'daily_profit_rate' => $dailyBProfitRate,
                         'profit' => $BProfit,
                         'profit_rate' => $BProfitRate,
-                        'price' => $btcPrice,
+                        'price' => $tradingPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
                     $saveBres = self::name('binance_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->update($upDataB);
@@ -257,14 +257,14 @@ class BinancePiggybank extends Base
                         'daily_profit_rate' => $dailyBProfitRate,
                         'profit' => $BProfit,
                         'profit_rate' => $BProfitRate,
-                        'price' => $btcPrice,
+                        'price' => $tradingPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
                     $saveBres = self::name('binance_piggybank_currency_date')->insertGetId($insertDataB);
                 }
                 if ($saveBres !== false) {
                     if ($amount > 0) {
-                        $isIntOut = self::setInoutGoldRecord($amount, $$btcPrice, $direction, $remark);
+                        $isIntOut = self::setInoutGoldRecord($amount, $tradingPrice, $direction, $remark);
                         if ($isIntOut) {
                             self::commit();
                             return true;

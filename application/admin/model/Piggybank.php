@@ -263,7 +263,7 @@ class Piggybank extends Base
                 }
                 if ($saveBres !== false) {
                     if ($amount > 0) {
-                        $isIntOut = self::setInoutGoldRecord($amount, $$btcPrice, $direction, $remark);
+                        $isIntOut = self::setInoutGoldRecord($amount, $btcPrice, $direction, $remark);
                         if ($isIntOut) {
                             self::commit();
                             return true;
