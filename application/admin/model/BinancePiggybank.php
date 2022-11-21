@@ -163,8 +163,8 @@ class BinancePiggybank extends Base
         $uPrincipalRes = self::getPiggybankCurrencyPrincipal(1); //获取昨天的U数据
         $bPrincipalRes = self::getPiggybankCurrencyPrincipal(2); //获取昨天的B数据
         if (!$amount || $amount == 0) {
-            $countUstandardPrincipal = $uPrincipalRes['principal'] ? $uPrincipalRes['principal'] : 0;
-            $countBstandardPrincipal = $bPrincipalRes['principal'] ? $bPrincipalRes['principal'] : 0;
+            $countUstandardPrincipal = isset($uPrincipalRes['principal']) ? (float)$uPrincipalRes['principal'] : 1;
+            $countBstandardPrincipal = isset($bPrincipalRes['principal']) ? (float)$bPrincipalRes['principal'] : 1;
         } else {
             //本金
             $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
