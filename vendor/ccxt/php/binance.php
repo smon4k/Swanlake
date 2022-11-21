@@ -374,6 +374,7 @@ class binance extends Exchange {
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
@@ -445,6 +446,7 @@ class binance extends Exchange {
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'fundingRate' => 1,
                         'premiumIndex' => 1,
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
@@ -538,6 +540,7 @@ class binance extends Exchange {
                         'aggTrades' => 1,
                         'historicalTrades' => 5,
                         'klines' => 1,
+                        'ticker/price' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
@@ -1686,6 +1689,28 @@ class binance extends Exchange {
             return $this->parse_ticker($firstTicker, $market);
         }
         return $this->parse_ticker($response, $market);
+    }
+
+    /**
+     * 获取最新价格
+     * @author qinlh
+     * @since 2022-11-20
+     */
+    public function fetch_ticker_price($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $method = 'publicGetTickerPrice';
+        if ($market['linear']) {
+            $method = 'fapiPublicGetTickerPrice';
+        } else if ($market['inverse']) {
+            $method = 'dapiPublicGetTickerPrice';
+        }
+        $response = $this->$method (array_merge($request, $params));
+        // p($response);
+        return $response;
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
@@ -4262,12 +4287,12 @@ class binance extends Exchange {
      * @author qinlh
      * @since 2022-08-16
      */
-    public function fetch_margin_asset($params = array()) {
-        $this->load_markets();
-        $response = $this->sapiGetMarginAllAssets($params);
-        p($response);
-        return $this->safe_value($data, 0);
-    }
+    // public function fetch_margin_asset($params = array()) {
+    //     $this->load_markets();
+    //     $response = $this->fetch_balance();
+    //     p($response);
+    //     return $this->safe_value($data, 0);
+    // }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {

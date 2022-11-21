@@ -197,6 +197,22 @@ class TaskController extends ToolsBaseController
         return (time() - $begin_time) . "s\n";
     }
 
+    /**
+     * BIFI/BUSD https://www.binancezh.top/zh-CN/trade/BIFI_BUSD?theme=dark&type=spot
+     * 登录账号密码：smon4k08/Zx112211@
+     * Okx 按照比例平衡仓位 出售赎回
+     * 每日数据统计
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function binancePiggybankDate() {
+        $begin_time = time();
+
+        Binance::piggybankDate();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
      /**
      * Okx 出入金 币种统计 U本文 币本位计算
      * @author qinlh

@@ -5,6 +5,7 @@ use think\Request;
 use think\Controller;
 use okex\okv5;
 use RequestService\RequestService;
+use app\tools\model\Binance;
 
 class TestController extends BaseController
 {
@@ -200,5 +201,10 @@ class TestController extends BaseController
         } catch (\Exception $e) {
             return array(0, $e->getMessage());
         }
+    }
+
+    public function fetch_margin_asset() {
+        $data = Binance::fetchMarketIndexTickers('BIFI-BUSD');
+        p($data);
     }
 }
