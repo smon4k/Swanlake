@@ -204,7 +204,7 @@ class TestController extends BaseController
     }
 
     public function fetch_margin_asset() {
-        $data = Binance::fetchMarketIndexTickers('BIFI-BUSD');
-        p($data);
+        Binance::testBalancePosition();
+        // p($data);
     }
 }
