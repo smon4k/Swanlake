@@ -441,7 +441,12 @@ class Binance extends Base
         return 0;
     }
 
-    public static function order() {
+    /**
+     * 测试平衡仓位
+     * @author qinlh
+     * @since 2022-11-21
+     */
+    public static function testBalancePosition() {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
         $transactionCurrency = "BIFI-BUSD"; //交易币种
@@ -459,9 +464,34 @@ class Binance extends Base
             'secret' => self::$secret
         ));
         $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
-        $result = $exchange->create_order($order_symbol, 'market', 'BUY', '1', null, ['newClientOrderId' => $clientOrderId]);
+        // $result = $exchange->create_order($order_symbol, 'market', 'BUY', '1', null, ['newClientOrderId' => $clientOrderId]);
         // $result = $exchange->fetch_markets(['symbol'=>$symbol]);
-        p($result);
+        // p($result);
+
+        //获取最小下单数量
+        $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
+        // p($rubikStatTakerValume);
+        $minSizeOrderNum = isset($rubikStatTakerValume[0]['limits']['amount']['min']) ? $rubikStatTakerValume[0]['limits']['amount']['min'] : 0; //最小下单数量
+        $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
+        $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
+
+        $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+        // p($tradeValuation);
+        $bifiBalance = $tradeValuation['bifiBalance'];
+        $busdBalance = $tradeValuation['busdBalance'];
+        $bifiValuation = $tradeValuation['bifiValuation'];
+        $busdValuation = $tradeValuation['busdValuation'];
+        $tradingPrice = $tradeValuation['tradingPrice'];
+
+        $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
+        $changeRatio = $balancedValuation > 0 ? abs($bifiValuation - $busdValuation) / $balancedValuation * 100 : abs($bifiValuation / $busdValuation);
+        echo "最小下单量: " . $minSizeOrderNum . "\r\n";
+        echo "交易货币币种: " . $base_ccy . "\r\n";
+        echo "计价货币币种: " . $quote_ccy . "\r\n";
+        echo "BIFI价格: " . $tradingPrice . "\r\n";
+        echo "BUSD余额: " . $busdBalance . "BUSD估值: " . $busdValuation . "\r\n";
+        echo "BIFI余额: " . $bifiBalance . "BIFI估值" . $bifiValuation . "\r\n";
+        echo "涨跌比例: " . $changeRatio;
     }
     
 }
