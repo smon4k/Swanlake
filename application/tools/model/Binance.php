@@ -79,7 +79,7 @@ class Binance extends Base
             // $changeRatio01 = abs($btcValuation / $usdtValuation);
             // $changeRatio02 = abs($usdtValuation / $btcValuation);
             $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
-            $changeRatio = $balancedValuation > 0 ? abs($bifiValuation - $busdValuation) / $balancedValuation * 100 : abs($bifiValuation / $busdValuation);
+            $changeRatio = $balancedValuation > 0 ? abs($bifiValuation - $busdValuation) / $balancedValuation * 100 : abs($bifiValuation - $busdValuation) / $busdValuation * 100;
             $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
             // $result = $exchange->create_order($order_symbol, 'market', 'SELL', '0.01', null, ['newClientOrderId' => $clientOrderId]);
             // p($changeRatio);
