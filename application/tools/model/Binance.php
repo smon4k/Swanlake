@@ -62,7 +62,7 @@ class Binance extends Base
             $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
             $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
             // p($minSizeOrderNum);
-            $changeRatioNum = 2; //涨跌比例 2%
+            $changeRatioNum = 1; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             // p($balanceRatioArr);
