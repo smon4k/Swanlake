@@ -62,7 +62,7 @@ class Binance extends Base
             $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
             $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
             // p($minSizeOrderNum);
-            $changeRatioNum = 3; //涨跌比例 2%
+            $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             // p($balanceRatioArr);
@@ -488,7 +488,7 @@ class Binance extends Base
         $tradingPrice = $tradeValuation['tradingPrice'];
 
         $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
-        $changeRatio = $balancedValuation > 0 ? abs($bifiValuation - $busdValuation) / $balancedValuation * 100 : abs($bifiValuation / $busdValuation);
+        $changeRatio = $balancedValuation > 0 ? abs($bifiValuation - $busdValuation) / $balancedValuation * 100 : abs($bifiValuation - $busdValuation) / $busdValuation * 100;
 
         $bifiSellNum = $balanceRatioArr[0] * (($bifiValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
         $bifiSellOrdersNumber = $bifiSellNum / $tradingPrice;
