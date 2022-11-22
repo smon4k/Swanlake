@@ -468,7 +468,7 @@ class Binance extends Base
         // $result = $exchange->fetch_markets(['symbol'=>$symbol]);
         // p($result);
 
-        $changeRatioNum = 3; //涨跌比例 2%
+        $changeRatioNum = 1; //涨跌比例 2%
         $balanceRatio = '1:1'; //平衡比例
         $balanceRatioArr = explode(':', $balanceRatio);
 
