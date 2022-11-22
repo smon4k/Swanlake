@@ -2,7 +2,7 @@
   <div>
     <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item to="">BIFI存钱罐管理</el-breadcrumb-item>
+        <el-breadcrumb-item to="">BIFI 存钱罐管理</el-breadcrumb-item>
         <el-breadcrumb-item to="">出/入金</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">
@@ -85,7 +85,7 @@ export default {
         pageSize: 20, //每页显示条数
         total: 100, //总条数
         PageSearchWhere: [], //分页搜索数组
-        product_name: "BTC-BUSD",
+        product_name: "BIFI-BUSD",
         address: "",
         status: "",
         class_id: "",
