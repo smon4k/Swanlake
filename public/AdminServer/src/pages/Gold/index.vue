@@ -2,7 +2,7 @@
   <div>
     <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item to="">存钱罐管理</el-breadcrumb-item>
+        <el-breadcrumb-item to="">BTC存钱罐管理</el-breadcrumb-item>
         <el-breadcrumb-item to="">出/入金</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">

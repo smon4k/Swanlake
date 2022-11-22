@@ -2,7 +2,7 @@
 
 namespace app\admin\model;
 
-use Think\Cache;
+use think\Cache;
 use think\Model;
 
 class Base extends Model

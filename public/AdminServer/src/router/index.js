@@ -22,6 +22,7 @@ const GoldIndex = () => import('@/pages/Gold/index.vue')
 // BIFI存钱罐
 const PiggybankBifiOrder = () => import('@/pages/PiggybankBifi/list.vue')
 const PiggybankBifiDate = () => import('@/pages/PiggybankBifi/date.vue')
+const GoldBifi = () => import('@/pages/Gold/bifi.vue')
 
 Vue.use(Router)
 
@@ -142,6 +143,15 @@ const router = new Router({
           component: PiggybankBifiDate,
           meta: {
             name: '产品统计',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'gold/bifi',
+          name: 'GoldBifi',
+          component: GoldBifi,
+          meta: {
+            name: '出入金',
             notKeepAlive: true
           }
         },
