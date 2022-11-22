@@ -363,7 +363,7 @@ class Piggybank extends Base
         if ($amount !== 0 && $type > 0) {
             $insertData = [
                 'amount' => $amount,
-                'price' => $price,
+                // 'price' => $price,
                 'type' => $type,
                 'total_balance' => self::getInoutGoldTotalBalance() + (float)$amount,
                 'remark' => $remark,
