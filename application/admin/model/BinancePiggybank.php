@@ -196,8 +196,9 @@ class BinancePiggybank extends Base
         $dailyBProfitRate = 0; //昨日B本位利润率
         $yestUTotalBalance = isset($uPrincipalRes['total_balance']) ? (float)$uPrincipalRes['total_balance'] : 0;
         $yestBTotalBalance = isset($bPrincipalRes['total_balance']) ? (float)$bPrincipalRes['total_balance'] : 0;
-        $dailyUProfit = $UTotalBalance - $yestUTotalBalance; //U本位日利润 = 今日的总结余-昨日的总结余
-        $dailyBProfit = $BTotalBalance - $yestBTotalBalance; //币本位日利润 = 今日的总结余-昨日的总结余
+        $depositToday = self::getInoutGoldDepositToday(); //获取今日入金数量
+        $dailyUProfit = $UTotalBalance - $yestUTotalBalance - $depositToday; //U本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
+        $dailyBProfit = $BTotalBalance - $yestBTotalBalance - $depositToday; //币本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
         $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance : 0;
         $dailyBProfitRate = $yestBTotalBalance > 0 ? $dailyBProfit / $yestBTotalBalance : 0;
 
@@ -396,6 +397,20 @@ class BinancePiggybank extends Base
         $count = self::name('binance_inout_gold')->sum('amount');
         if ($count !== 0) {
             return $count;
+        }
+        return 0;
+    }
+
+    /**
+     * 获取今日入金总数量
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function getInoutGoldDepositToday()
+    {
+        $amount = self::name('binance_inout_gold')->whereTime('time', 'today')->where('type', 1)->sum('amount');
+        if ($amount !== 0) {
+            return $amount;
         }
         return 0;
     }
