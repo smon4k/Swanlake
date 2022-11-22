@@ -361,11 +361,18 @@ class Piggybank extends Base
     public static function setInoutGoldRecord($amount='', $price, $type=0, $remark='')
     {
         if ($amount !== 0 && $type > 0) {
+            if($type == 1) {
+                $amount_num = $amount;
+                $total_balance = self::getInoutGoldTotalBalance() + (float)$amount;
+            } else {
+                $amount_num = $amount *= -1;
+                $total_balance = self::getInoutGoldTotalBalance() - (float)$amount;
+            }
             $insertData = [
-                'amount' => $amount,
+                'amount' => $amount_num,
                 // 'price' => $price,
                 'type' => $type,
-                'total_balance' => self::getInoutGoldTotalBalance() + (float)$amount,
+                'total_balance' => $total_balance,
                 'remark' => $remark,
                 'time' => date('Y-m-d H:i:s'),
             ];
