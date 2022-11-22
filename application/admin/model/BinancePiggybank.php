@@ -168,7 +168,7 @@ class BinancePiggybank extends Base
         } else {
             //本金
             $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
-            if ($direction == 1) {
+            if ($direction == 1) { //入金
                 $countUstandardPrincipal = (float)$total_balance + (float)$amount;
                 $countBstandardPrincipal = ((float)$total_balance / $tradingPrice) + ((float)$amount / $tradingPrice);
             } else {
@@ -362,11 +362,17 @@ class BinancePiggybank extends Base
     public static function setInoutGoldRecord($amount='', $price, $type=0, $remark='')
     {
         if ($amount !== 0 && $type > 0) {
+            $total_balance = 0;
+            if($type == 1) {
+                $total_balance = self::getInoutGoldTotalBalance() + (float)$amount;
+            } else {
+                $total_balance = self::getInoutGoldTotalBalance() - (float)$amount;
+            }
             $insertData = [
                 'amount' => $amount,
                 // 'price' => $price,
                 'type' => $type,
-                'total_balance' => self::getInoutGoldTotalBalance() + (float)$amount,
+                'total_balance' => $total_balance,
                 'remark' => $remark,
                 'time' => date('Y-m-d H:i:s'),
             ];
