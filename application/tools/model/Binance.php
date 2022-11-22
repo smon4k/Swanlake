@@ -155,12 +155,9 @@ class Binance extends Base
                 if($bifiValuation < $busdValuation) { //btc的估值低于usdt时，买btc，u换成btc
                     // $usdtBuyNum = ($busdValuation - $bifiValuation) / 2;
                     $usdtBuyNum = $balanceRatioArr[1] * (($busdValuation - $bifiValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
-                    $usdtSellOrdersNumber = $usdtBuyNum;
+                    $usdtSellOrdersNumber = $usdtBuyNum / $tradingPrice;
                     // p($usdtSellOrdersNumber);
                     if($usdtSellOrdersNumber > $minSizeOrderNum) {
-                        if($usdtSellOrdersNumber > 100) {
-                            $usdtSellOrdersNumber = 100;
-                        }
                         $orderDetails = $exchange->create_order($order_symbol, 'market', 'BUY', $usdtSellOrdersNumber, null, ['newClientOrderId' => $clientOrderId]);
                         if($orderDetails && $orderDetails['info']) {
                             //获取上一次是否成对出现
