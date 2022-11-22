@@ -237,7 +237,7 @@ class Binance extends Base
     public static function piggybankDate() {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
-        $transactionCurrency = "BIFI-USDT"; //交易币种
+        $transactionCurrency = "BIFI-BUSD"; //交易币种
         $assetArr = explode('-', $transactionCurrency);
         $className = "\ccxt\\binance";
         $exchange  = new $className(array( //子账户
