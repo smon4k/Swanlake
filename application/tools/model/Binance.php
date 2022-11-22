@@ -158,6 +158,9 @@ class Binance extends Base
                     $usdtSellOrdersNumber = $usdtBuyNum;
                     // p($usdtSellOrdersNumber);
                     if($usdtSellOrdersNumber > $minSizeOrderNum) {
+                        if($usdtSellOrdersNumber > 100) {
+                            $usdtSellOrdersNumber = 100;
+                        }
                         $orderDetails = $exchange->create_order($order_symbol, 'market', 'BUY', $usdtSellOrdersNumber, null, ['newClientOrderId' => $clientOrderId]);
                         if($orderDetails && $orderDetails['info']) {
                             //获取上一次是否成对出现
