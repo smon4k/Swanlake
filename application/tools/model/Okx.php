@@ -276,7 +276,7 @@ class Okx extends Base
             $countProfitRate = $countProfit / $totalAssets * 100; //网格总利润率 = 总利润 / 总市值
             $dayProfit = Piggybank::getUStandardProfit($transactionCurrency, $date); //获取总的利润 网格利润
             $dayProfitRate = $dayProfit / $totalAssets * 100; //网格日利润率 = 日利润 / 总市值
-            $averageDayRate = Db::name('binance_piggybank_date')->whereNotIn('date', $date)->avg('grid_day_spread_rate'); //获取平均日利润率
+            $averageDayRate = Db::name('okx_piggybank_date')->whereNotIn('date', $date)->avg('grid_day_spread_rate'); //获取平均日利润率
             $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
             $data = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->find();
             if($data && count((array)$data) > 0) {
