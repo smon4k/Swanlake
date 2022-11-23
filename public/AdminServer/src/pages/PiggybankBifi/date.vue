@@ -34,7 +34,7 @@
                 </el-table-column>
                 <el-table-column prop="" label="网格日利润率" align="center">
                     <template slot-scope="scope">
-                      <span v-if="scope.row.grid_day_spread_rate">{{ keepDecimalNotRounding(scope.row.grid_day_spread_rate, 4, true) }}%</span>
+                      <span v-if="Number(scope.row.grid_day_spread_rate) > 0">{{ keepDecimalNotRounding(scope.row.grid_day_spread_rate, 4, true) }}%</span>
                       <span v-else>{{ keepDecimalNotRounding(scope.row.grid_day_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
                     </template>
                 </el-table-column>
@@ -55,7 +55,7 @@
                 </el-table-column>
                 <el-table-column prop="" label="网格总利润率" align="center">
                     <template slot-scope="scope">
-                      <span v-if="scope.row.grid_spread_rate">{{ keepDecimalNotRounding(scope.row.grid_spread_rate, 4, true) }}%</span>
+                      <span v-if="Number(scope.row.grid_spread_rate) > 0">{{ keepDecimalNotRounding(scope.row.grid_spread_rate, 4, true) }}%</span>
                       <span v-else>{{ keepDecimalNotRounding(scope.row.grid_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
                     </template>
                 </el-table-column>
