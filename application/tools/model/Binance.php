@@ -275,7 +275,7 @@ class Binance extends Base
 
             //获取总的利润
             $countProfit = BinancePiggybank::getUStandardProfit($transactionCurrency); //获取总的利润 网格利润
-            $countProfitRate = $countProfitRate / $totalAssets; //网格总利润率 = 总利润 / 总市值
+            $countProfitRate = $countProfit / $totalAssets; //网格总利润率 = 总利润 / 总市值
             $dayProfit = BinancePiggybank::getUStandardProfit($transactionCurrency, $date); //获取日利润 网格利润
             $dayProfitRate = $dayProfit / $totalAssets; //网格日利润率 = 日利润 / 总市值
             $averageDayRate = Db::name('binance_piggybank_date')->svg('grid_day_spread_rate'); //获取平均日利润率
