@@ -208,7 +208,7 @@ class BinancePiggybank extends Base
         $yestBTotalBalance = isset($bPrincipalRes['total_balance']) ? (float)$bPrincipalRes['total_balance'] : 0;
         $depositToday = self::getInoutGoldDepositToday(); //获取今日入金数量
         $dailyUProfit = $UTotalBalance - $yestUTotalBalance - $depositToday; //U本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
-        $dailyBProfit = $BTotalBalance - $yestBTotalBalance - $depositToday; //币本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
+        $dailyBProfit = $BTotalBalance - $yestBTotalBalance - ($depositToday / $tradingPrice); //币本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
         $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance : 0;
         $dailyBProfitRate = $yestBTotalBalance > 0 ? $dailyBProfit / $yestBTotalBalance : 0;
 
