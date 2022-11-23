@@ -273,13 +273,21 @@ class Okx extends Base
 
             //获取总的利润
             $countProfit = Piggybank::getUStandardProfit($transactionCurrency); //获取总的利润 网格利润
+            $countProfitRate = $countProfit / $totalAssets * 100; //网格总利润率 = 总利润 / 总市值
             $dayProfit = Piggybank::getUStandardProfit($transactionCurrency, $date); //获取总的利润 网格利润
+            $dayProfitRate = $dayProfit / $totalAssets * 100; //网格日利润率 = 日利润 / 总市值
+            $averageDayRate = Db::name('binance_piggybank_date')->whereNotIn('date', $date)->avg('grid_day_spread_rate'); //获取平均日利润率
+            $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
             $data = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->find();
             if($data && count((array)$data) > 0) {
                 $upData = [
                     'count_market_value'=>$totalAssets, 
                     'grid_spread' => $countProfit,
+                    'grid_spread_rate' => $countProfitRate,
                     'grid_day_spread' => $dayProfit,
+                    'grid_day_spread_rate' => $dayProfitRate,
+                    'average_day_rate' => $averageDayRate,
+                    'average_year_rate' => $averageYearRate,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $res = Db::name('okx_piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->update($upData);
@@ -289,7 +297,11 @@ class Okx extends Base
                     'date'=>$date, 
                     'count_market_value'=>$totalAssets, 
                     'grid_spread' => $countProfit,
+                    'grid_spread_rate' => $countProfitRate,
                     'grid_day_spread' => $dayProfit,
+                    'grid_day_spread_rate' => $dayProfitRate,
+                    'average_day_rate' => $averageDayRate,
+                    'average_year_rate' => $averageYearRate,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
                 $res = Db::name('okx_piggybank_date')->insertGetId($insertData);

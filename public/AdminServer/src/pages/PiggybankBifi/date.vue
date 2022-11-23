@@ -34,7 +34,18 @@
                 </el-table-column>
                 <el-table-column prop="" label="网格日利润率" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
+                      <span v-if="scope.row.grid_day_spread_rate">{{ keepDecimalNotRounding(scope.row.grid_day_spread_rate, 4, true) }}%</span>
+                      <span v-else>{{ keepDecimalNotRounding(scope.row.grid_day_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="average_day_rate" label="平均日利率" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 4, true) }}%</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="average_year_rate" label="平均年利率" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 4, true) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="网格总利润" align="center">
@@ -44,7 +55,8 @@
                 </el-table-column>
                 <el-table-column prop="" label="网格总利润率" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
+                      <span v-if="scope.row.grid_spread_rate">{{ keepDecimalNotRounding(scope.row.grid_spread_rate, 4, true) }}%</span>
+                      <span v-else>{{ keepDecimalNotRounding(scope.row.grid_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
                     </template>
                 </el-table-column>
             </el-table>
