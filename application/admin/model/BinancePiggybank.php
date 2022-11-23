@@ -211,7 +211,10 @@ class BinancePiggybank extends Base
         $dailyBProfit = $BTotalBalance - $yestBTotalBalance - ($depositToday / $tradingPrice); //币本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
         $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance : 0;
         $dailyBProfitRate = $yestBTotalBalance > 0 ? $dailyBProfit / $yestBTotalBalance : 0;
-
+        $UaverageDayRate = self::name('binance_piggybank_currency_date')->where('standard', 1)->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取U本位平均日利率
+        $UaverageYearRate = $UaverageDayRate * 365; //平均年利率 = 平均日利率 * 365
+        $BaverageDayRate = self::name('binance_piggybank_currency_date')->where('standard', 2)->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取B本位平均日利率
+        $BaverageYearRate = $BaverageDayRate * 365; //平均年利率 = 平均日利率 * 365
         self::startTrans();
         try {
             // $URes = self::name('binance_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
@@ -221,6 +224,8 @@ class BinancePiggybank extends Base
                     'total_balance' => $UTotalBalance,
                     'daily_profit' => $dailyUProfit,
                     'daily_profit_rate' => $dailyUProfitRate,
+                    'average_day_rate' => $UaverageDayRate,
+                    'average_year_rate' => $UaverageYearRate,
                     'profit' => $UProfit,
                     'profit_rate' => $UProfitRate,
                     'price' => $tradingPrice,
@@ -236,6 +241,8 @@ class BinancePiggybank extends Base
                     'total_balance' => $UTotalBalance,
                     'daily_profit' => $dailyUProfit,
                     'daily_profit_rate' => $dailyUProfitRate,
+                    'average_day_rate' => $UaverageDayRate,
+                    'average_year_rate' => $UaverageYearRate,
                     'profit' => $UProfit,
                     'profit_rate' => $UProfitRate,
                     'price' => $tradingPrice,
@@ -251,6 +258,8 @@ class BinancePiggybank extends Base
                         'total_balance' => $BTotalBalance,
                         'daily_profit' => $dailyBProfit,
                         'daily_profit_rate' => $dailyBProfitRate,
+                        'average_day_rate' => $BaverageDayRate,
+                        'average_year_rate' => $BaverageYearRate,
                         'profit' => $BProfit,
                         'profit_rate' => $BProfitRate,
                         'price' => $tradingPrice,
@@ -266,6 +275,8 @@ class BinancePiggybank extends Base
                         'total_balance' => $BTotalBalance,
                         'daily_profit' => $dailyBProfit,
                         'daily_profit_rate' => $dailyBProfitRate,
+                        'average_day_rate' => $BaverageDayRate,
+                        'average_year_rate' => $BaverageYearRate,
                         'profit' => $BProfit,
                         'profit_rate' => $BProfitRate,
                         'price' => $tradingPrice,

@@ -17,19 +17,19 @@
       </el-form>
     </div>
     <el-tabs type="card" @tab-click="tabClick">
-        <el-tab-pane label="网格数据">
+        <el-tab-pane label="数据">
             <el-table :data="tableData" style="width: 100%;">
-                <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
-                <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                <!-- <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column> -->
+                <!-- <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
                 <el-table-column prop="date" label="日期" align="center"></el-table-column>
                 <el-table-column prop="amount" label="总市值" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.count_market_value, 8, true) }} USDT</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.count_market_value, 2, true) }} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="grid_spread" label="网格日利润" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread, 4, true) }} {{scope.row.base_ccy}} USDT</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread, 2, true) }} {{scope.row.base_ccy}} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="网格日利润率" align="center">
@@ -50,7 +50,7 @@
                 </el-table-column>
                 <el-table-column prop="" label="网格总利润" align="center">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 4, true) }} USDT</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 2, true) }} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="网格总利润率" align="center">
@@ -79,27 +79,27 @@
                 <el-tab-pane label="U本位">
                     <div v-if="UtableData.length">
                         <el-table :data="UtableData" style="width: 100%;">
-                            <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
-                            <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                            <!-- <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column> -->
+                            <!-- <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
                             <el-table-column prop="date" label="日期" align="center"></el-table-column>
                             <el-table-column prop="principal" label="累计本金" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} USDT</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.principal, 2, true) }} USDT</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="总结余" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }} USDT</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="币价" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} USDT</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="日利润" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 4, true) }} USDT</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 2, true) }} USDT</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="日利润率" align="center">
@@ -107,9 +107,19 @@
                                 <span>{{ keepDecimalNotRounding(scope.row.daily_profit_rate, 4, true) }}%</span>
                                 </template>
                             </el-table-column>
+                            <el-table-column prop="" label="平均日利率" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 4, true) }}%</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="" label="平均年利率" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 4, true) }}%</span>
+                                </template>
+                            </el-table-column>
                             <el-table-column prop="" label="利润" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} USDT</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.profit, 2, true) }} USDT</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="利润率" align="center">
@@ -139,8 +149,8 @@
                 <el-tab-pane label="币本位">
                     <div v-if="BtableData.length">
                         <el-table :data="BtableData" style="width: 100%;">
-                            <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
-                            <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                            <!-- <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column> -->
+                            <!-- <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
                             <el-table-column prop="date" label="日期" align="center"></el-table-column>
                             <el-table-column prop="principal" label="累计本金" align="center">
                                 <template slot-scope="scope">
@@ -154,7 +164,7 @@
                             </el-table-column>
                             <el-table-column prop="" label="币价" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} USDT</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="日利润" align="center">
@@ -165,6 +175,16 @@
                             <el-table-column prop="" label="日利润率" align="center">
                                 <template slot-scope="scope">
                                 <span>{{ keepDecimalNotRounding(scope.row.daily_profit_rate, 4, true) }}%</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="" label="平均日利率" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 4, true) }}%</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="" label="平均年利率" align="center">
+                                <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 4, true) }}%</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="利润" align="center">
