@@ -162,9 +162,9 @@ class BinancePiggybank extends Base
         $countBstandardPrincipal = 0;
         $uPrincipalRes = self::getPiggybankCurrencyPrincipal(1); //获取昨天的U数据
         $bPrincipalRes = self::getPiggybankCurrencyPrincipal(2); //获取昨天的B数据
-        if (!$amount || $amount == 0) {
-            $countUstandardPrincipal = isset($uPrincipalRes['principal']) ? (float)$uPrincipalRes['principal'] : 1;
-            $countBstandardPrincipal = isset($bPrincipalRes['principal']) ? (float)$bPrincipalRes['principal'] : 1;
+        if (!$amount || $amount == 0) { //今日第一次执行 获取昨日本金
+            $countUstandardPrincipal = isset($uPrincipalRes['principal']) ? (float)$uPrincipalRes['principal'] : 0;
+            $countBstandardPrincipal = isset($bPrincipalRes['principal']) ? (float)$bPrincipalRes['principal'] : 0;
         } else {
             //本金
             $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
@@ -206,6 +206,9 @@ class BinancePiggybank extends Base
         try {
             $URes = self::name('binance_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
             if ($URes && count((array)$URes) > 0) {
+                if(!$amount || $amount == 0) {
+                    $countUstandardPrincipal = $URes['principal'];
+                }
                 $upDataU = [
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
@@ -236,6 +239,9 @@ class BinancePiggybank extends Base
             if ($saveUres !== false) {
                 $BRes = self::name('binance_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->find();
                 if ($BRes && count((array)$BRes) > 0) {
+                    if(!$amount || $amount == 0) {
+                        $countBstandardPrincipal = $BRes['principal'];
+                    }
                     $upDataB = [
                         'principal' => $countBstandardPrincipal,
                         'total_balance' => $BTotalBalance,
