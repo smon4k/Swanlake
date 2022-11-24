@@ -431,5 +431,86 @@ class Okx extends Base
         }
         return 0;
     }
+
+    /**
+     * 测试平衡仓位
+     * @author qinlh
+     * @since 2022-11-21
+     */
+    public static function testBalancePosition() {
+        $result = [];
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $transactionCurrency = "BTC-BUSD"; //交易币种
+        $className = "\ccxt\\okex5";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+            'password' => self::$password,
+        ));
+        // $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
+        // $result = $exchange->create_order($order_symbol, 'market', 'BUY', '1', null, ['newClientOrderId' => $clientOrderId]);
+        // $result = $exchange->fetch_markets(['symbol'=>$symbol]);
+        // p($result);
+
+        $changeRatioNum = 2; //涨跌比例 2%
+        $balanceRatio = '1:1'; //平衡比例
+        $balanceRatioArr = explode(':', $balanceRatio);
+
+        //获取最小下单数量
+        $rubikStatTakerValume = $exchange->fetch_markets_by_type('SPOT', ['instId'=>$transactionCurrency]);
+        $minSizeOrderNum = isset($rubikStatTakerValume[0]['info']['minSz']) ? $rubikStatTakerValume[0]['info']['minSz'] : 0; //最小下单数量
+        $base_ccy = isset($rubikStatTakerValume[0]['info']['baseCcy']) ? $rubikStatTakerValume[0]['info']['baseCcy'] : ''; //交易货币币种
+        $quote_ccy = isset($rubikStatTakerValume[0]['info']['quoteCcy']) ? $rubikStatTakerValume[0]['info']['quoteCcy'] : ''; //计价货币币种
+
+        $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+        $btcBalance = $tradeValuation['btcBalance'];
+        $usdtBalance = $tradeValuation['usdtBalance'];
+        $btcValuation = $tradeValuation['btcValuation'];
+        $usdtValuation = $tradeValuation['usdtValuation'];
+        $btcPrice = $tradeValuation['btcPrice'];
+
+
+        $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
+        $changeRatio = $balancedValuation > 0 ? abs($btcValuation - $usdtValuation) / $balancedValuation * 100 : abs($btcValuation - $usdtValuation) / $usdtValuation * 100;
+
+        $btcSellNum = $balanceRatioArr[0] * (($btcValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+        $btcSellOrdersNumber = $btcSellNum / $btcPrice;
+
+        $usdtBuyNum = $balanceRatioArr[1] * (($usdtValuation - $btcValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
+        $usdtBuyOrdersNumber = $usdtBuyNum;
+
+        $result['minSizeOrderNum'] = $minSizeOrderNum;
+        $result['base_ccy'] = $base_ccy;
+        $result['quote_ccy'] = $quote_ccy;
+        $result['tradingPrice'] = $btcPrice;
+        $result['usdtBalance'] = $usdtBalance;
+        $result['usdtValuation'] = $usdtValuation;
+        $result['btcBalance'] = $btcBalance;
+        $result['btcValuation'] = $btcValuation;
+        $result['defaultRatio'] = $changeRatioNum;
+        $result['changeRatio'] = $changeRatio;
+        $result['sellOrdersNumberStr'] = '';
+        if($btcValuation > $usdtValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
+            $result['sellOrdersNumberStr'] = 'BTC出售数量: ' . $btcSellOrdersNumber ;
+        }
+        if($bifiValuation < $usdtValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
+            $result['sellOrdersNumberStr'] = 'USDT购买数量: ' . $usdtBuyOrdersNumber ;
+        }
+        return $result;
+        // echo "最小下单量: " . $minSizeOrderNum . "<br>";
+        // echo "交易货币币种: " . $base_ccy . "<br>";
+        // echo "计价货币币种: " . $quote_ccy . "<br>";
+        // echo "BIFI价格: " . $tradingPrice . "<br>";
+        // echo "BUSD余额: " . $busdBalance . "<br>BUSD估值: " . $usdtValuation . "<br>";
+        // echo "BIFI余额: " . $bifiBalance . "<br>BIFI估值: " . $bifiValuation . "<br>";
+        // echo "涨跌比例: " . $changeRatio . "<br>";
+        // if($bifiValuation > $usdtValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
+        //     echo "BIFI出售数量: " . $bifiSellOrdersNumber . "<br>";
+        // }
+        // if($bifiValuation < $usdtValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
+        //     echo "BUSD购买数量: " . $busdBuyOrdersNumber . "<br>";
+        // }
+    }
     
 }
