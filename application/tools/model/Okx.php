@@ -441,7 +441,7 @@ class Okx extends Base
         $result = [];
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
-        $transactionCurrency = "BTC-BUSD"; //交易币种
+        $transactionCurrency = "BTC-USDT"; //交易币种
         $className = "\ccxt\\okex5";
         $exchange  = new $className(array( //子账户
             'apiKey' => self::$apiKey,
