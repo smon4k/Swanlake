@@ -494,7 +494,7 @@ class Okx extends Base
         if($btcValuation > $usdtValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
             $result['sellOrdersNumberStr'] = 'BTC出售数量: ' . $btcSellOrdersNumber ;
         }
-        if($bifiValuation < $usdtValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
+        if($btcValuation < $usdtValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
             $result['sellOrdersNumberStr'] = 'USDT购买数量: ' . $usdtBuyOrdersNumber ;
         }
         return $result;
