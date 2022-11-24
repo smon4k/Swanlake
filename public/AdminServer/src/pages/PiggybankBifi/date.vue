@@ -79,8 +79,8 @@
                 <el-tab-pane label="U本位">
                     <div v-if="UtableData.length">
                         <el-table :data="UtableData" style="width: 100%;">
-                            <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
-                            <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                            <!-- <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
+                            <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
                             <el-table-column prop="date" label="日期" align="center"></el-table-column>
                             <el-table-column prop="principal" label="累计本金" align="center">
                                 <template slot-scope="scope">
@@ -149,8 +149,8 @@
                 <el-tab-pane label="币本位">
                     <div v-if="BtableData.length">
                         <el-table :data="BtableData" style="width: 100%;">
-                            <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
-                            <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column>
+                            <!-- <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column>
+                            <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
                             <el-table-column prop="date" label="日期" align="center"></el-table-column>
                             <el-table-column prop="principal" label="累计本金" align="center">
                                 <template slot-scope="scope">

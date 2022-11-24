@@ -20,6 +20,7 @@ const PiggybankDate = () => import('@/pages/Piggybank/date.vue')
 const GoldIndex = () => import('@/pages/Gold/index.vue')
 
 // BIFI存钱罐
+const PiggybankBifiDetail = () => import('@/pages/PiggybankBifi/detail.vue')
 const PiggybankBifiOrder = () => import('@/pages/PiggybankBifi/list.vue')
 const PiggybankBifiDate = () => import('@/pages/PiggybankBifi/date.vue')
 const GoldBifis = () => import('@/pages/Gold/bifis.vue')
@@ -128,6 +129,15 @@ const router = new Router({
           }
         },
          // BIFI-存钱罐管理
+        {
+          path: 'piggybank/bifi/detail',
+          name: 'PiggybankBifiDetail',
+          component: PiggybankBifiDetail,
+          meta: {
+            name: '项目详情',
+            notKeepAlive: true
+          }
+        },
          {
           path: 'piggybank/bifi/order',
           name: 'PiggybankBifiOrder',

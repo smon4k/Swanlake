@@ -216,21 +216,6 @@
                 </el-tab-pane>
             </el-tabs>
         </el-tab-pane>
-        <el-tab-pane label="原始数据">
-          <el-descriptions title="" :column="4" border>
-              <el-descriptions-item label="最小下单量">0.001</el-descriptions-item>
-              <el-descriptions-item label="交易货币币种">BIFI</el-descriptions-item>
-              <el-descriptions-item label="计价货币币种">BUSD</el-descriptions-item>
-              <el-descriptions-item label="BIFI价格">343.6</el-descriptions-item>
-              <el-descriptions-item label="BUSD余额">3152.09474949</el-descriptions-item>
-              <el-descriptions-item label="BUSD估值">BUSD估值</el-descriptions-item>
-              <el-descriptions-item label="BIFI余额">9.219</el-descriptions-item>
-              <el-descriptions-item label="BIFI估值">3167.6484</el-descriptions-item>
-              <el-descriptions-item label="默认比例">1%</el-descriptions-item>
-              <el-descriptions-item label="涨跌比例">0.49%</el-descriptions-item>
-              <el-descriptions-item label="BIFI出售数量">0.022633368029686</el-descriptions-item>
-          </el-descriptions>
-        </el-tab-pane>
     </el-tabs>
 
     <el-dialog
