@@ -12,6 +12,7 @@ use think\Request;
 use lib\ClCrypt;
 use ClassLibrary\ClFile;
 use app\admin\model\Piggybank;
+use app\tools\model\Okx;
 
 class PiggybankController extends BaseController
 {
@@ -119,6 +120,16 @@ class PiggybankController extends BaseController
         $allpage = $data['allpage'];
         $lists = $data['lists'];
         return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+    }
+
+    /**
+     * 获取项目详情数据
+     * @author qinlh
+     * @since 2022-11-24
+     */
+    public function testBalancePosition() {
+        $data = Okx::testBalancePosition();
+        return $this->as_json($data);
     }
 
 }
