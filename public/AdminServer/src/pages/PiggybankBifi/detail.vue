@@ -60,6 +60,10 @@
             <el-col :span="12">
                 <span>{{ detailData.sellOrdersNumberStr }}</span>
             </el-col>
+            <el-col :span="12">
+                <span>最近一次成交价格：</span>
+                <span>{{ detailData.lastTimePrice }}</span>
+            </el-col>
         </el-row>
     </div>
   </div>

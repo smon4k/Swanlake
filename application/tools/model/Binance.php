@@ -457,6 +457,19 @@ class Binance extends Base
     }
 
     /**
+     * 获取最近一次成交数据
+     * @author qinlh
+     * @since 2022-08-19
+     */
+    public  static function getLastRes() {
+        $data = Db::name('binance_piggybank')->order('id desc, time desc')->find();
+        if($data && count((array)$data) > 0) {
+            return $data->toArray();
+        }
+        return [];
+    }
+
+    /**
      * 测试平衡仓位
      * @author qinlh
      * @since 2022-11-21
@@ -523,6 +536,8 @@ class Binance extends Base
         $result['defaultRatio'] = $changeRatioNum;
         $result['changeRatio'] = $changeRatio;
         $result['sellOrdersNumberStr'] = '';
+        $getLastRes = self::getLastRes();
+        $result['lastTimePrice'] = $getLastRes['price'];
         if($bifiValuation > $busdValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
             $result['sellOrdersNumberStr'] = 'BIFI出售数量: ' . $bifiSellOrdersNumber ;
         }
