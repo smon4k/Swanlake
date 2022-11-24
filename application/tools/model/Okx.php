@@ -440,7 +440,7 @@ class Okx extends Base
     public  static function getLastRes() {
         $data = Db::name('okx_piggybank')->order('id desc, time desc')->find();
         if($data && count((array)$data) > 0) {
-            return $data->toArray();
+            return $data;
         }
         return [];
     }
