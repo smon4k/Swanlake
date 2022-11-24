@@ -76,10 +76,10 @@
                         <div v-else>——</div>
                     </template>
                 </el-table-column>
-                <el-table-column prop="capped" label="价格/均价" align="center">
+                <el-table-column prop="capped" label="价格" align="center">
                     <template slot-scope="scope">
                       <div v-if="scope.row.price">
-                        <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }}/{{ keepDecimalNotRounding(scope.row.make_deal_price, 8, true) }}  {{scope.row.quote_ccy}}</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.price, 4, true) }} {{scope.row.quote_ccy}}</span>
                       </div>
                       <div v-else>——</div>
                     </template>
