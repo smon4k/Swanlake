@@ -58,10 +58,6 @@
         </el-row>
         <el-row>
             <el-col :span="12">
-                <span>BIFI出售数量:</span>
-                <span>0.022633368029686</span>
-            </el-col>
-            <el-col :span="12">
                 <span>{{ detailData.sellOrdersNumberStr }}</span>
             </el-col>
         </el-row>
