@@ -537,8 +537,8 @@ class Binance extends Base
         $result['sellOrdersNumberStr'] = '';
         $getLastRes = self::getLastRes();
         $result['lastTimePrice'] = $getLastRes['price'];
-        $result['sellingPrice'] = $getLastRes['price'] * 1.02;
-        $result['buyingPrice'] = $getLastRes['price'] * 0.98;
+        $result['sellingPrice'] = (float)$getLastRes['price'] * 1.02;
+        $result['buyingPrice'] = (float)$getLastRes['price'] * 0.98;
         if($bifiValuation > $busdValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
             $result['sellOrdersNumberStr'] = 'BIFI出售数量: ' . $bifiSellOrdersNumber ;
         }
