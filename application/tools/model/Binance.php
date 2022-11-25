@@ -62,7 +62,7 @@ class Binance extends Base
             $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
             $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
             // p($minSizeOrderNum);
-            $changeRatioNum = 2; //涨跌比例 2%
+            $changeRatioNum = 3; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             // p($balanceRatioArr);
@@ -103,14 +103,14 @@ class Binance extends Base
                             $isPair = false;
                             $profit = 0;
                             // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
-                            $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=1 AND pair = 0 ORDER BY `time` DESC,abs('$theDealPrice'-`price`) LIMIT 1;";
+                            $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=1 AND pair = 0 ORDER BY `time` DESC,abs('$makeDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             $pairId = 0; //配对ID
                             if($res && count((array)$res) > 0 && $theDealPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
                                 $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ($clinch_number * $tradingPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
-                                $profit = $clinch_number * ($theDealPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
+                                $profit = $clinch_number * ($makeDealPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
                             }
                             $usdtValuationPoise = $tradeValuationPoise['busdValuation'];
                             $insertOrderData = [
@@ -170,10 +170,10 @@ class Binance extends Base
                             $makeDealPrice = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['price'] ? $orderDetails['info']['fills'][0]['price'] : 1; //成交均价
                             $isPair = false;
                             $profit = 0;
-                            $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$theDealPrice'-`price`) LIMIT 1;";
+                            $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$makeDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             $pairId = 0;
-                            if($res && count((array)$res) > 0 && $theDealPrice < $res[0]['price']) { //计算利润
+                            if($res && count((array)$res) > 0 && $makeDealPrice < $res[0]['price']) { //计算利润
                                 $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $tradingPrice);
