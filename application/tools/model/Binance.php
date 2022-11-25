@@ -232,6 +232,61 @@ class Binance extends Base
     }
 
     /**
+     * 平衡仓位 - 挂单
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function balancePendingOrder() {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $transactionCurrency = "BIFI-BUSD"; //交易币种
+        $symbol = str_replace("-",'', $transactionCurrency);
+        $order_symbol = str_replace("-",'/', $transactionCurrency);
+        $className = "\binance";
+        $className = "\ccxt\\binance";
+        $exchange  = new $className(array(
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret
+        ));
+        try {
+            $changeRatioNum = 2; //涨跌比例 2%
+            $balanceRatio = '1:1'; //平衡比例
+            $balanceRatioArr = explode(':', $balanceRatio);
+            $peningOrderList = self::getOpenPeningOrder();
+            if($peningOrderList && count((array)$peningOrderList) > 0) {
+
+            } else { //开始挂单
+                $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+                $getLastRes = self::getLastRes();
+                $price = (float)$getLastRes['price'];
+                $sellingPrice = $price * 1.02; //出售价格
+                $buyingPrice = $price  * 0.98; //购买价格
+
+                $bifiBalance = $tradeValuation['bifiBalance']; //BIFI余额
+                $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
+                $bifiSellValuation = $sellingPrice * $bifiBalance; //BIFI 出售估值
+                $bifiBuyValuation = $buyingPrice * $bifiBalance; //BIFI 购买估值
+                $busdValuation = $tradeValuation['busdValuation'];
+                
+                $clientBuyOrderId = 'Zx1'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
+                $clientSellOrderId = 'Zx2'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
+
+                $buyNum = $balanceRatioArr[0] * (($bifiBuyValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+                $buyOrdersNumber = $buyNum / $buyingPrice;
+                $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
+                p($buyOrderDetails);
+                // $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+                // $sellOrdersNumber = $sellNum / $sellingPrice;
+                // $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientSellOrderId]);
+
+            }
+        } catch (\Exception $e) {
+            p($e);
+            return array(0, $e->getMessage());
+        }
+    }
+
+    /**
      * 每日存钱罐数据统计
      * @author qinlh
      * @since 2022-08-17
@@ -462,6 +517,19 @@ class Binance extends Base
      */
     public  static function getLastRes() {
         $data = Db::name('binance_piggybank')->order('id desc, time desc')->find();
+        if($data && count((array)$data) > 0) {
+            return $data;
+        }
+        return [];
+    }
+
+    /**
+     * 获取当前挂单数据
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function getOpenPeningOrder() {
+        $data = Db::name('binance_piggybank_pendord')->where('status', 1)->order('id desc, time desc')->limit(2)->select();
         if($data && count((array)$data) > 0) {
             return $data;
         }

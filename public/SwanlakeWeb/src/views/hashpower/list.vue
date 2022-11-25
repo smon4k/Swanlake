@@ -169,7 +169,7 @@
                     <template slot-scope="scope">
                         <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
                             {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
-                            {{ toFixed(scope.row.total_income_btcb || 0, 10) }} BTC
+                            {{ fromSATBTCNum(scope.row.total_income_btcb, 2) }} BTC
                         </el-link>
                     </template>
                 </el-table-column>
