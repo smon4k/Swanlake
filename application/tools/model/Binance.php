@@ -95,8 +95,6 @@ class Binance extends Base
                         // print_r($orderDetails['info']);
                         if($orderDetails && $orderDetails['info']) {
                             //获取平衡状态下的USDT估值
-                            $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
-                            $theDealPrice = $tradeValuationPoise['tradingPrice']; //最新价格
                             $clinch_number = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['qty'] ? $orderDetails['info']['fills'][0]['qty'] : 0; //最新成交数量
                             $makeDealPrice = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['price'] ? $orderDetails['info']['fills'][0]['price'] : 1; //成交均价
                             //获取上一次是否成对出现
@@ -106,12 +104,14 @@ class Binance extends Base
                             $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=1 AND pair = 0 ORDER BY `time` DESC,abs('$makeDealPrice'-`price`) LIMIT 1;";
                             $res = Db::query($sql);
                             $pairId = 0; //配对ID
-                            if($res && count((array)$res) > 0 && $theDealPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
+                            if($res && count((array)$res) > 0 && $makeDealPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
                                 $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ($clinch_number * $tradingPrice) - ((float)$res['clinch_number'] * (float)$res['price']);
                                 $profit = $clinch_number * ($makeDealPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
                             }
+                            $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
+                            $theDealPrice = $tradeValuationPoise['tradingPrice']; //最新价格
                             $usdtValuationPoise = $tradeValuationPoise['busdValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
@@ -163,8 +163,6 @@ class Binance extends Base
                         if($orderDetails && $orderDetails['info']) {
                             //获取上一次是否成对出现
                             // $orderDetails = $exchange->fetch_trade_order($symbol, $clientOrderId, null); //获取成交数量
-                            $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
-                            $theDealPrice = $tradeValuationPoise['tradingPrice']; //最新价格
                             $clinch_number = 0; //累计成交数量
                             $clinch_number = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['qty'] ? $orderDetails['info']['fills'][0]['qty'] : 0; //最新成交数量
                             $makeDealPrice = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['price'] ? $orderDetails['info']['fills'][0]['price'] : 1; //成交均价
@@ -177,9 +175,11 @@ class Binance extends Base
                                 $pairId = $res[0]['id'];
                                 $isPair = true;
                                 // $profit = ((float)$res['clinch_number'] * (float)$res['price']) - ($clinch_number * $tradingPrice);
-                                $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $theDealPrice); //卖出的成交数量 * 价差
+                                $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $makeDealPrice); //卖出的成交数量 * 价差
                             }
                             //获取平衡状态下的USDT估值
+                            $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
+                            $theDealPrice = $tradeValuationPoise['tradingPrice']; //最新价格
                             $usdtValuationPoise = $tradeValuationPoise['busdValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
