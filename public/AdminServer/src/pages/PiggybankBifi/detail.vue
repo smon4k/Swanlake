@@ -65,6 +65,16 @@
                 <span>{{ detailData.buyingPrice }}</span>
             </el-col>
         </el-row>
+        <el-row>
+            <el-col :span="12">
+                <span>待卖出价：</span>
+                <span>{{ detailData.sellingPrice }}</span>
+            </el-col>
+            <el-col :span="12">
+                <span>待买入价：</span>
+                <span>{{ detailData.lastTimePrice }}</span>
+            </el-col>
+        </el-row>
     </div>
   </div>
 </template>
