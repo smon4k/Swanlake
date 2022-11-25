@@ -180,7 +180,6 @@ class Binance extends Base
                                 $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $theDealPrice); //卖出的成交数量 * 价差
                             }
                             //获取平衡状态下的USDT估值
-                            $tradeValuationPoise = self::getTradeValuation($transactionCurrency);
                             $usdtValuationPoise = $tradeValuationPoise['busdValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
