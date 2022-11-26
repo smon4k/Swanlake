@@ -55,12 +55,6 @@ class Binance extends Base
             // $usdtBalance = $balanceDetails['usdtBalance'];
 
             // p($btcBalance);
-            //获取最小下单数量
-            $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
-            // p($rubikStatTakerValume);
-            $minSizeOrderNum = isset($rubikStatTakerValume[0]['limits']['amount']['min']) ? $rubikStatTakerValume[0]['limits']['amount']['min'] : 0; //最小下单数量
-            $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
-            $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
             // p($minSizeOrderNum);
             $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
@@ -85,6 +79,12 @@ class Binance extends Base
             // p($changeRatio);
             if((float)$changeRatio > $changeRatioNum) { //涨跌大于1%
                 // p($busdValuation);
+                //获取最小下单数量
+                $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
+                // p($rubikStatTakerValume);
+                $minSizeOrderNum = isset($rubikStatTakerValume[0]['limits']['amount']['min']) ? $rubikStatTakerValume[0]['limits']['amount']['min'] : 0; //最小下单数量
+                $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
+                $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
                 if($bifiValuation > $busdValuation) { //btc的估值超过usdt时候，卖btc换成u
                     // $btcSellNum = ($bifiValuation - $busdValuation) / 2;
                     $btcSellNum = $balanceRatioArr[0] * (($bifiValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
@@ -95,6 +95,7 @@ class Binance extends Base
                         // print_r($orderDetails['info']);
                         if($orderDetails && $orderDetails['info']) {
                             //获取平衡状态下的USDT估值
+                            $order_id = $orderDetails['info']['orderId']; //返回的订单id
                             $clinch_number = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['qty'] ? $orderDetails['info']['fills'][0]['qty'] : 0; //最新成交数量
                             $makeDealPrice = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['price'] ? $orderDetails['info']['fills'][0]['price'] : 1; //成交均价
                             //获取上一次是否成对出现
@@ -115,6 +116,7 @@ class Binance extends Base
                             $usdtValuationPoise = $tradeValuationPoise['busdValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
+                                'order_id' => $order_id,
                                 'order_number' => $clientOrderId,
                                 'td_mode' => 'cross',
                                 'base_ccy' => $base_ccy,
@@ -163,6 +165,7 @@ class Binance extends Base
                         if($orderDetails && $orderDetails['info']) {
                             //获取上一次是否成对出现
                             // $orderDetails = $exchange->fetch_trade_order($symbol, $clientOrderId, null); //获取成交数量
+                            $order_id = $orderDetails['info']['orderId']; //返回的订单id
                             $clinch_number = 0; //累计成交数量
                             $clinch_number = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['qty'] ? $orderDetails['info']['fills'][0]['qty'] : 0; //最新成交数量
                             $makeDealPrice = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['price'] ? $orderDetails['info']['fills'][0]['price'] : 1; //成交均价
@@ -183,6 +186,7 @@ class Binance extends Base
                             $usdtValuationPoise = $tradeValuationPoise['busdValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
+                                'order_id' => $order_id,
                                 'order_number' => $clientOrderId,
                                 'td_mode' => 'cross',
                                 'base_ccy' => $base_ccy,
@@ -227,6 +231,7 @@ class Binance extends Base
             return false;
         } catch (\Exception $e) {
             p($e);
+            Db::rollback();
             return array(0, $e->getMessage());
         }
     }
@@ -248,44 +253,103 @@ class Binance extends Base
             'apiKey' => self::$apiKey,
             'secret' => self::$secret
         ));
+        Db::startTrans();
         try {
             $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             $peningOrderList = self::getOpenPeningOrder();
             if($peningOrderList && count((array)$peningOrderList) > 0) {
-
+                
             } else { //开始挂单
+                // $orderDetail = self::fetchTradeOrder('108228005', "Zx12022112649509949", $order_symbol); //查询订单
+                // p($orderDetail);
+                // $orderDetail = self::fetchCancelOrder('108228005', "Zx12022112649509949", $order_symbol); //撤销订单 status：已取消：CANCELED 未取消：NEW
+                // p($orderDetail);
+                
                 $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
                 $getLastRes = self::getLastRes();
                 $price = (float)$getLastRes['price'];
                 $sellingPrice = $price * 1.02; //出售价格
-                $buyingPrice = $price  * 0.98; //购买价格
-
+                $buyingPrice = $price * 0.98; //购买价格
                 $bifiBalance = $tradeValuation['bifiBalance']; //BIFI余额
                 $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
                 $bifiSellValuation = $sellingPrice * $bifiBalance; //BIFI 出售估值
                 $bifiBuyValuation = $buyingPrice * $bifiBalance; //BIFI 购买估值
                 $busdValuation = $tradeValuation['busdValuation'];
-                
+                // p($bifiBuyValuation);
                 $clientBuyOrderId = 'Zx1'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
                 $clientSellOrderId = 'Zx2'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
-
-                $buyNum = $balanceRatioArr[0] * (($bifiBuyValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+                
+                //挂单 购买
+                $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                 $buyOrdersNumber = $buyNum / $buyingPrice;
+                // p($buyOrdersNumber);
+                // echo $buyingPrice;die;
                 $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
-                p($buyOrderDetails);
-                // $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-                // $sellOrdersNumber = $sellNum / $sellingPrice;
-                // $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientSellOrderId]);
-
+                // p($buyOrderDetails);
+                if($buyOrderDetails['info']) { //如果挂单购买成功
+                    $buyOrderDetailsArr = $buyOrderDetails['info'];
+                    $isSetBuyRes = self::setPiggybankPendordData($symbol, $transactionCurrency, $buyOrderDetailsArr['orderId'], $buyOrderDetailsArr['clientOrderId'], 1, 'LIMIT', $buyOrderDetailsArr['origQty'], $buyOrderDetailsArr['price'], $bifiBalance, $busdBalance); //记录挂单购买订单数据
+                    if($isSetBuyRes) {
+                        //挂单 出售
+                        $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+                        $sellOrdersNumber = $sellNum / $sellingPrice;
+                        // p($sellOrdersNumber);
+                        $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientSellOrderId]);
+                        // p($sellOrderDetails);
+                        if($sellOrderDetails['info']) { //如果挂单出售成功
+                            $isSetSellRes = self::setPiggybankPendordData($symbol, $transactionCurrency, $sellOrderDetails['orderId'], $sellOrderDetails['clientOrderId'], 2, 'LIMIT', $sellOrderDetails['origQty'], $sellOrderDetails['price'], $bifiBalance, $busdBalance); //记录挂单出售订单数据
+                            if($isSetSellRes) {
+                                Db::commit();
+                                return true;
+                            }
+                        }
+                    }
+                }
+                Db::rollback();
+                return false;
             }
         } catch (\Exception $e) {
             p($e);
+            Db::rollback();
             return array(0, $e->getMessage());
         }
     }
 
+
+    
+    /**
+     * 记录挂单订单数据
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function setPiggybankPendordData($symbol='', $product_name='', $order_id='', $order_number='', $type=0, $order_type='', $amount='', $price='', $currency1='', $currency2='') {
+        if($order_id) {
+            $insertOrderData = [
+                'product_name' => $product_name,
+                'symbol' => $symbol,
+                'order_id' => $order_id,
+                'order_number' => $order_number,
+                'type' => $type,
+                'order_type' => $order_type,
+                'amount' => $amount,
+                'price' => $price,
+                'currency1' => $currency1,
+                'currency2' => $currency2,
+                'balanced_valuation' => $usdtValuationPoise,
+                'time' => date('Y-m-d H:i:s'),
+                'up_time' => date('Y-m-d H:i:s'),
+                'status' => 1
+            ];
+            $insertId = Db::name('binance_piggybank_pendord')->insertGetId($insertOrderData);
+            if($insertId) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     /**
      * 每日存钱罐数据统计
      * @author qinlh
@@ -424,9 +488,10 @@ class Binance extends Base
     /**
      * 获取订单数据
      * @author qinlh
+     * info['status']：已取消：CANCELED  未取消：NEW
      * @since 2022-08-19
      */
-    public static function fetchTradeOrder($transactionCurrency="BTC-USDT", $clientOrderId='Zx2022082010055985') {
+    public static function fetchTradeOrder($order_id='', $order_number='', $order_symbol='') {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
         $className = "\ccxt\\binance";
@@ -435,7 +500,28 @@ class Binance extends Base
             'secret' => self::$secret,
         ));
         try {
-            $tradeOrder = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null);
+            $tradeOrder = $exchange->fetch_order($order_id, $order_symbol, ['origClientOrderId' => $order_number]);
+            return $tradeOrder;
+        } catch (\Exception $e) {
+            return array(0, $e->getMessage());
+        }
+    }
+    
+    /**
+     * 撤销订单数据
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function fetchCancelOrder($order_id='', $order_number='', $order_symbol='') {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\binance";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+        ));
+        try {
+            $tradeOrder = $exchange->cancel_order($order_id, $order_symbol, ['origClientOrderId' => $order_number]);
             return $tradeOrder;
         } catch (\Exception $e) {
             return array(0, $e->getMessage());
@@ -590,7 +676,7 @@ class Binance extends Base
         $bifiSellOrdersNumber = $bifiSellNum / $tradingPrice;
 
         $busdBuyNum = $balanceRatioArr[1] * (($busdValuation - $bifiValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
-        $busdBuyOrdersNumber = $busdBuyNum;
+        $busdBuyOrdersNumber = $busdBuyNum / $tradingPrice;
 
         $result['minSizeOrderNum'] = $minSizeOrderNum;
         $result['base_ccy'] = $base_ccy;
