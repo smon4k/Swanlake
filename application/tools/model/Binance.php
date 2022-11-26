@@ -255,19 +255,22 @@ class Binance extends Base
         ));
         Db::startTrans();
         try {
+            // $isPendingOrder = self::startPendingOrder($transactionCurrency); //开始挂单
+            // exit();
             $peningOrderList = self::getOpenPeningOrder();
             if($peningOrderList && count((array)$peningOrderList) > 0) {
                 foreach ($peningOrderList as $key => $val) {
-                    $isClinchInfo = self::fetchTradeOrder($val['order_id'], $val['order_number'], $val['symbol']);
+                    $isClinchInfo = self::fetchTradeOrder($val['order_id'], $val['order_number'], $order_symbol); //获取订单数据
                     if($isClinchInfo && isset($isClinchInfo['info'])) {
+                        // p($isClinchInfo['info']);
                         if($isClinchInfo['info']['origQty'] == $isClinchInfo['info']['executedQty']) { //如果原始订单数量等于交易订单数量 设置为已下单 撤销另一个订单
                             $setClinchRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 2, 'up_time' => date('Y-m-d H:i:s')]);
                             if($setClinchRes) { //如果修改状态为已成交
                                 //撤销另一个订单
                                 $revokeKey = $key == 0 ? 1 : 0; //撤销订单key值
-                                $orderAmount = $isClinchInfo['info']['executedQty']; //订单数量
+                                $orderAmount = $isClinchInfo['info']['origQty']; //订单数量
                                 $dealAmount = $isClinchInfo['info']['executedQty']; //成交数量
-                                $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $peningOrderList[$revokeKey]['symbol']);
+                                $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $order_symbol);
                                 if($revokeOrder) { //已撤销
                                     $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
                                     if($setRevokeRes) {
@@ -375,8 +378,23 @@ class Binance extends Base
      * @since 2022-11-26
      */
     public static function startPendingOrder($transactionCurrency='') {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\binance";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+        ));
+        $order_symbol = str_replace("-",'/', $transactionCurrency);
+        // $orderDetail = self::fetchTradeOrder('', "Zx22022112657545610", $order_symbol); //查询订单
+        // p($orderDetail);
+        // $orderDetail = self::fetchCancelOrder('', "Zx22022112657100495", $order_symbol); //撤销订单 status：已取消：CANCELED 未取消：NEW
+        // p($orderDetail);
+        
         if($transactionCurrency) {
-            $changeRatioNum = 0.5; //涨跌比例 2%
+            $symbol = str_replace("-",'', $transactionCurrency);
+            $order_symbol = str_replace("-",'/', $transactionCurrency);
+            $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
@@ -391,11 +409,14 @@ class Binance extends Base
             $bifiSellValuation = $sellingPrice * $bifiBalance; //BIFI 出售估值
             $bifiBuyValuation = $buyingPrice * $bifiBalance; //BIFI 购买估值
             $busdValuation = $tradeValuation['busdValuation'];
-            // p($bifiBuyValuation);
+            // p($buyingPrice);
             $clientBuyOrderId = 'Zx1'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
             $clientSellOrderId = 'Zx2'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
-            
+            echo "购买订单号：" . $clientBuyOrderId . "\r\n";
+            echo "出售订单号：" . $clientSellOrderId . "\r\n";
             //挂单 购买
+            
+            // p($bifiBuyValuation);        
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $buyOrdersNumber = $buyNum / $buyingPrice;
             // p($buyOrdersNumber);
@@ -403,18 +424,45 @@ class Binance extends Base
             $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
             // p($buyOrderDetails);
             if($buyOrderDetails['info']) { //如果挂单购买成功
+                echo "挂单购买成功" . "\r\n";
                 $buyOrderDetailsArr = $buyOrderDetails['info'];
-                $isSetBuyRes = self::setPiggybankPendordData($symbol, $transactionCurrency, $buyOrderDetailsArr['orderId'], $buyOrderDetailsArr['clientOrderId'], 1, 'LIMIT', $buyOrderDetailsArr['origQty'], $buyOrderDetailsArr['price'], $bifiBalance, $busdBalance); //记录挂单购买订单数据
+                $isSetBuyRes = self::setPiggybankPendordData(
+                    $order_symbol, 
+                    $transactionCurrency, 
+                    $buyOrderDetailsArr['orderId'], 
+                    $buyOrderDetailsArr['clientOrderId'], 
+                    1, 
+                    'LIMIT', 
+                    $buyOrderDetailsArr['origQty'], 
+                    $buyOrderDetailsArr['price'], 
+                    $bifiBalance, 
+                    $busdBalance
+                ); //记录挂单购买订单数据
                 if($isSetBuyRes) {
+                    echo "挂单购买记录数据库成功" . "\r\n";
                     //挂单 出售
                     $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                     $sellOrdersNumber = $sellNum / $sellingPrice;
                     // p($sellOrdersNumber);
-                    $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientSellOrderId]);
+                    $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
                     // p($sellOrderDetails);
                     if($sellOrderDetails['info']) { //如果挂单出售成功
-                        $isSetSellRes = self::setPiggybankPendordData($symbol, $transactionCurrency, $sellOrderDetails['orderId'], $sellOrderDetails['clientOrderId'], 2, 'LIMIT', $sellOrderDetails['origQty'], $sellOrderDetails['price'], $bifiBalance, $busdBalance); //记录挂单出售订单数据
+                        echo "挂单出售成功" . "\r\n";
+                        $sellOrderDetailsArr = $sellOrderDetails['info'];
+                        $isSetSellRes = self::setPiggybankPendordData(
+                            $order_symbol, 
+                            $transactionCurrency, 
+                            $sellOrderDetailsArr['orderId'], 
+                            $sellOrderDetailsArr['clientOrderId'], 
+                            2, 
+                            'LIMIT', 
+                            $sellOrderDetailsArr['origQty'], 
+                            $sellOrderDetailsArr['price'], 
+                            $bifiBalance, 
+                            $busdBalance
+                        ); //记录挂单出售订单数据
                         if($isSetSellRes) {
+                            echo "挂单出售记录数据库成功" . "\r\n";
                             return true;
                         }
                     }
@@ -423,19 +471,40 @@ class Binance extends Base
         }
         return false;
     }
-
-
+    
+    /**
+     * 取消订单
+     * @author qinlh
+     * @since 2022-11-26
+     */
+    public static function cancelOrder() {
+        // $orderDetail = self::fetchTradeOrder('', "Zx22022112657545610", $order_symbol); //查询订单
+        // p($orderDetail);
+        $orderDetail = self::fetchCancelOrder('', "Zx22022112657100495", 'BIFI/BUSD'); //撤销订单 status：已取消：CANCELED 未取消：NEW
+        return;
+    }
+    
     
     /**
      * 记录挂单订单数据
      * @author qinlh
      * @since 2022-11-25
      */
-    public static function setPiggybankPendordData($symbol='', $product_name='', $order_id='', $order_number='', $type=0, $order_type='', $amount='', $price='', $currency1='', $currency2='') {
+    public static function setPiggybankPendordData(
+        $order_symbol='', 
+        $product_name='', 
+        $order_id='', 
+        $order_number='', 
+        $type=0, 
+        $order_type='', 
+        $amount='', 
+        $price='', 
+        $currency1='', 
+        $currency2='') {
         if($order_id) {
             $insertOrderData = [
                 'product_name' => $product_name,
-                'symbol' => $symbol,
+                'symbol' => $order_symbol,
                 'order_id' => $order_id,
                 'order_number' => $order_number,
                 'type' => $type,
