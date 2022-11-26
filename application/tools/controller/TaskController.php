@@ -197,6 +197,20 @@ class TaskController extends ToolsBaseController
     }
 
     /**
+     * Binance 平衡仓位 
+     * 取消订单
+     * @author qinlh
+     * @since 2022-08-17
+     */
+    public function cancelOrder() {
+        $begin_time = time();
+
+        Binance::cancelOrder();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
      * BTC-USDT https://www.okx.com/trade-spot/btc-usdt
      * 登录账号密码：smon4k08/Zx112211@
      * Okx 按照比例平衡仓位 出售赎回
