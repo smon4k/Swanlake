@@ -263,13 +263,14 @@ class Binance extends Base
                     $isClinchInfo = self::fetchTradeOrder($val['order_id'], $val['order_number'], $order_symbol); //获取订单数据
                     if($isClinchInfo && isset($isClinchInfo['info'])) {
                         // p($isClinchInfo['info']);
-                        if($isClinchInfo['info']['origQty'] == $isClinchInfo['info']['executedQty']) { //如果原始订单数量等于交易订单数量 设置为已下单 撤销另一个订单
+                        $orderAmount = $isClinchInfo['info']['origQty']; //订单数量
+                        $dealAmount = $isClinchInfo['info']['executedQty']; //成交数量
+                        $minOrderAmount = $orderAmount * 0.5; //最小成交数量
+                        if($dealAmount >= $minOrderAmount) { //如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
                             $setClinchRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 2, 'up_time' => date('Y-m-d H:i:s')]);
                             if($setClinchRes) { //如果修改状态为已成交
                                 //撤销另一个订单
                                 $revokeKey = $key == 0 ? 1 : 0; //撤销订单key值
-                                $orderAmount = $isClinchInfo['info']['origQty']; //订单数量
-                                $dealAmount = $isClinchInfo['info']['executedQty']; //成交数量
                                 $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $order_symbol);
                                 if($revokeOrder) { //已撤销
                                     $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
@@ -336,6 +337,7 @@ class Binance extends Base
                                                     $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
                                                     if($isPendingOrder) {
                                                         Db::commit();
+                                                        // self::balancePendingOrder(); //挂完单直接获取是否已成交
                                                         return true;
                                                     }
                                                 }
@@ -360,14 +362,15 @@ class Binance extends Base
                 $isPendingOrder = self::startPendingOrder($transactionCurrency); //开始挂单
                 if($isPendingOrder) {
                     Db::commit();
+                    // self::balancePendingOrder(); //挂完单直接获取是否已成交
                     return true;
                 }
             }
             Db::rollback();
             return false;
         } catch (\Exception $e) {
-            p($e);
             Db::rollback();
+            p($e);
             return array(0, $e->getMessage());
         }
     }
