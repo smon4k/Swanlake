@@ -902,8 +902,8 @@ class Binance extends Base
             } else {
                 $result['pendingOrder']['sell']['price'] = $val['price'];
                 $result['pendingOrder']['sell']['amount'] = $val['amount'];
-                $result['pendingOrder']['buy']['bifiValuation'] = ($bifiBalance - (float)$val['amount']) * $val['price'];
-                $result['pendingOrder']['buy']['busdValuation'] = $busdValuation + ((float)$val['amount'] * $val['price']);
+                $result['pendingOrder']['sell']['bifiValuation'] = ($bifiBalance - (float)$val['amount']) * $val['price'];
+                $result['pendingOrder']['sell']['busdValuation'] = $busdValuation + ((float)$val['amount'] * $val['price']);
             }
         }
         return $result;
