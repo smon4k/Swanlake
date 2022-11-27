@@ -287,7 +287,7 @@ class Binance extends Base
                                         $side = $isClinchInfo['info']['side'] === 'BUY' ? 1 : 2; //订单方向
                                         // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
                                         if($side == 1) { //购买的话
-                                            $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$makeDealPrice'-`price`) LIMIT 1;";
+                                            $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
                                             $res = Db::query($sql);
                                             $pairId = 0;
                                             if($res && count((array)$res) > 0 && $dealPrice < $res[0]['price']) { //计算利润
