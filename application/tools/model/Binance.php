@@ -276,7 +276,7 @@ class Binance extends Base
                                 $revokeKey = $key == 0 ? 1 : 0; //撤销订单key值
                                 $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $order_symbol);
                                 if($revokeOrder) { //已撤销
-                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
                                     if($setRevokeRes) {
                                         echo "挂单已撤销 \r\n";
                                         //开始记录订单数据
@@ -433,6 +433,8 @@ class Binance extends Base
             // p($bifiBuyValuation);        
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $buyOrdersNumber = $buyNum / $buyingPrice;
+            $busdClinchBalance = $busdBalance + $buyNum;
+            $bifiClinchBalance = $bifiBalance - $buyOrdersNumber;
             // p($buyOrdersNumber);
             // echo $buyingPrice;die;
             $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
@@ -450,13 +452,17 @@ class Binance extends Base
                     $buyOrderDetailsArr['origQty'], 
                     $buyOrderDetailsArr['price'], 
                     $bifiBalance, 
-                    $busdBalance
+                    $busdBalance,
+                    $busdClinchBalance,
+                    $bifiClinchBalance
                 ); //记录挂单购买订单数据
                 if($isSetBuyRes) {
                     echo "挂单购买记录数据库成功" . "\r\n";
                     //挂单 出售
                     $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                     $sellOrdersNumber = $sellNum / $sellingPrice;
+                    $busdClinchBalance = $busdBalance - $sellNum;
+                    $bifiClinchBalance = $bifiBalance + $sellOrdersNumber;
                     // p($sellOrdersNumber);
                     $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
                     // p($sellOrderDetails);
@@ -473,7 +479,9 @@ class Binance extends Base
                             $sellOrderDetailsArr['origQty'], 
                             $sellOrderDetailsArr['price'], 
                             $bifiBalance, 
-                            $busdBalance
+                            $busdBalance,
+                            $busdClinchBalance,
+                            $bifiClinchBalance
                         ); //记录挂单出售订单数据
                         if($isSetSellRes) {
                             echo "挂单出售记录数据库成功" . "\r\n";
@@ -513,8 +521,10 @@ class Binance extends Base
         $order_type='', 
         $amount='', 
         $price='', 
-        $currency1='', 
-        $currency2='') {
+        $currency1=0, 
+        $currency2=0,
+        $busdClinchBalance=0,
+        $bifiClinchBalance=0) {
         if($order_id) {
             $insertOrderData = [
                 'product_name' => $product_name,
@@ -527,6 +537,8 @@ class Binance extends Base
                 'price' => $price,
                 'currency1' => $currency1,
                 'currency2' => $currency2,
+                'clinch_currency1' => $busdClinchBalance,
+                'clinch_currency2' => $bifiClinchBalance,
                 'time' => date('Y-m-d H:i:s'),
                 'up_time' => date('Y-m-d H:i:s'),
                 'status' => 1
