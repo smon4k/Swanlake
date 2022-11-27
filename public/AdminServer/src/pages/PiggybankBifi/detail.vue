@@ -75,6 +75,21 @@
                 <span>{{ detailData.buyingPrice }}</span>
             </el-col>
         </el-row>
+        <br>
+        <el-row>
+            <el-col :span="6">
+                <span>挂单买入价：</span>
+                <span>{{ detailData.pendingOrder.buy.price }}</span>
+            </el-col>
+            <el-col :span="6">
+                <span>挂单买入数量：</span>
+                <span>{{ detailData.pendingOrder.buy.amount }}</span>
+            </el-col>
+            <el-col :span="6">
+                <span>BIFI估值：</span>
+                <span>{{ detailData.pendingOrder.buy.amount }}</span>
+            </el-col>
+        </el-row>
     </div>
   </div>
 </template>

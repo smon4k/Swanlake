@@ -891,6 +891,21 @@ class Binance extends Base
         if($bifiValuation < $busdValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
             $result['sellOrdersNumberStr'] = 'BUSD购买数量: ' . $busdBuyOrdersNumber ;
         }
+        $peningOrderList = self::getOpenPeningOrder();
+        $result['pendingOrder'] = [];
+        foreach ($peningOrderList as $key => $val) {
+            if($val['type'] == 1) {
+                $result['pendingOrder']['buy']['price'] = $val['price'];
+                $result['pendingOrder']['buy']['amount'] = $val['amount'];
+                $result['pendingOrder']['buy']['bifiValuation'] = ($bifiBalance + (float)$val['amount']) * $val['price'];
+                $result['pendingOrder']['buy']['busdValuation'] = $busdValuation - ((float)$val['amount'] * $val['price']);
+            } else {
+                $result['pendingOrder']['sell']['price'] = $val['price'];
+                $result['pendingOrder']['sell']['amount'] = $val['amount'];
+                $result['pendingOrder']['buy']['bifiValuation'] = ($bifiBalance - (float)$val['amount']) * $val['price'];
+                $result['pendingOrder']['buy']['busdValuation'] = $busdValuation + ((float)$val['amount'] * $val['price']);
+            }
+        }
         return $result;
         // echo "最小下单量: " . $minSizeOrderNum . "<br>";
         // echo "交易货币币种: " . $base_ccy . "<br>";
