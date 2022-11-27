@@ -75,19 +75,42 @@
                 <span>{{ detailData.buyingPrice }}</span>
             </el-col>
         </el-row>
-        <br>
+        <el-divider></el-divider>
+        <h3>挂单信息</h3>
         <el-row>
             <el-col :span="6">
-                <span>挂单买入价：</span>
-                <span>{{ detailData.pendingOrder.buy.price }}</span>
+                <span>买入价：</span>
+                <span>{{ detailData.pendingOrder.buy.price || 0 }}</span>
             </el-col>
             <el-col :span="6">
-                <span>挂单买入数量：</span>
-                <span>{{ detailData.pendingOrder.buy.amount }}</span>
+                <span>买入数量：</span>
+                <span>{{ detailData.pendingOrder.buy.amount || 0 }}</span>
             </el-col>
             <el-col :span="6">
                 <span>BIFI估值：</span>
-                <span>{{ detailData.pendingOrder.buy.amount }}</span>
+                <span>{{ detailData.pendingOrder.buy.bifiValuation || 0 }}</span>
+            </el-col>
+            <el-col :span="6">
+                <span>BUSD估值：</span>
+                <span>{{ detailData.pendingOrder.buy.busdValuation || 0 }}</span>
+            </el-col>
+        </el-row>
+        <el-row>
+            <el-col :span="6">
+                <span>卖出价：</span>
+                <span>{{ detailData.pendingOrder.sell.price || 0 }}</span>
+            </el-col>
+            <el-col :span="6">
+                <span>卖出数量：</span>
+                <span>{{ detailData.pendingOrder.sell.amount || 0 }}</span>
+            </el-col>
+            <el-col :span="6">
+                <span>BIFI估值：</span>
+                <span>{{ detailData.pendingOrder.sell.bifiValuation || 0 }}</span>
+            </el-col>
+            <el-col :span="6">
+                <span>BUSD估值：</span>
+                <span>{{ detailData.pendingOrder.sell.busdValuation || 0 }}</span>
             </el-col>
         </el-row>
     </div>
