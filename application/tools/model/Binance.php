@@ -433,8 +433,8 @@ class Binance extends Base
             // p($bifiBuyValuation);        
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $buyOrdersNumber = $buyNum / $buyingPrice;
-            $busdClinchBalance = $busdBalance + $buyNum;
-            $bifiClinchBalance = $bifiBalance - $buyOrdersNumber;
+            $busdBuyClinchBalance = $busdBalance + $buyNum;
+            $bifiBuyClinchBalance = $bifiBalance - $buyOrdersNumber;
             // p($buyOrdersNumber);
             // echo $buyingPrice;die;
             $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
@@ -453,16 +453,16 @@ class Binance extends Base
                     $buyOrderDetailsArr['price'], 
                     $bifiBalance, 
                     $busdBalance,
-                    $busdClinchBalance,
-                    $bifiClinchBalance
+                    $bifiBuyClinchBalance,
+                    $busdBuyClinchBalance
                 ); //记录挂单购买订单数据
                 if($isSetBuyRes) {
                     echo "挂单购买记录数据库成功" . "\r\n";
                     //挂单 出售
                     $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                     $sellOrdersNumber = $sellNum / $sellingPrice;
-                    $busdClinchBalance = $busdBalance - $sellNum;
-                    $bifiClinchBalance = $bifiBalance + $sellOrdersNumber;
+                    $busdSellClinchBalance = $busdBalance - $sellNum;
+                    $bifiSellClinchBalance = $bifiBalance + $sellOrdersNumber;
                     // p($sellOrdersNumber);
                     $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
                     // p($sellOrderDetails);
@@ -480,8 +480,8 @@ class Binance extends Base
                             $sellOrderDetailsArr['price'], 
                             $bifiBalance, 
                             $busdBalance,
-                            $busdClinchBalance,
-                            $bifiClinchBalance
+                            $bifiSellClinchBalance,
+                            $busdSellClinchBalance
                         ); //记录挂单出售订单数据
                         if($isSetSellRes) {
                             echo "挂单出售记录数据库成功" . "\r\n";
@@ -523,8 +523,9 @@ class Binance extends Base
         $price='', 
         $currency1=0, 
         $currency2=0,
-        $busdClinchBalance=0,
-        $bifiClinchBalance=0) {
+        $bifiClinchBalance=0,
+        $busdClinchBalance=0
+    ) {
         if($order_id) {
             $insertOrderData = [
                 'product_name' => $product_name,
@@ -537,8 +538,8 @@ class Binance extends Base
                 'price' => $price,
                 'currency1' => $currency1,
                 'currency2' => $currency2,
-                'clinch_currency1' => $busdClinchBalance,
-                'clinch_currency2' => $bifiClinchBalance,
+                'clinch_currency1' => $bifiClinchBalance,
+                'clinch_currency2' => $busdClinchBalance,
                 'time' => date('Y-m-d H:i:s'),
                 'up_time' => date('Y-m-d H:i:s'),
                 'status' => 1
