@@ -324,7 +324,7 @@
 import Page from "@/components/Page.vue";
 import { get, post } from "@/common/axios.js";
 import { mapGetters, mapState } from "vuex";
-import { getPoolBtcData } from "@/wallet/serve";
+import { getPoolBtcData, setStatiscData } from "@/wallet/serve";
 import { keepDecimalNotRounding, fromSATBTCNum } from "@/utils/tools";
 import { depositPoolsIn } from "@/wallet/trade";
 export default {
@@ -395,6 +395,9 @@ export default {
 
     },
     created() {
+        setTimeout(async() => {
+            await setStatiscData(1);
+        },300)
     },
     watch: {
         isConnected: {

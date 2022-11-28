@@ -64,7 +64,8 @@ import { approve, depositPoolsIn, depositPoolsOut } from "@/wallet/trade";
 import {
   getBalance,
   isApproved,
-  getH2OUserInfo
+  getH2OUserInfo,
+  setStatiscData
 } from "@/wallet/serve";
 import { get, post } from "@/common/axios.js";
 import { keepDecimalNotRounding } from "@/utils/tools";
@@ -254,8 +255,9 @@ export default {
             hashId: this.hashId, 
             number: this.depositNum,
             type: this.type
-        }, (json) => {
+        }, async (json) => {
           this.loading = false;
+          await setStatiscData(3, this.hashId);
           console.log(json);
           if (json && json.code == 10000) {
               this.trading = false;

@@ -429,7 +429,7 @@
 <script>
 import axios from 'axios'
 import { approve, BuyTokenToS19 } from "@/wallet/trade";
-import {getBalance,isApproved} from "@/wallet/serve";
+import {getBalance,isApproved, setStatiscData} from "@/wallet/serve";
 import Address from "@/wallet/address.json";
 import { keepDecimalNotRounding, getUrlParams } from "@/utils/tools";
 import { mapState } from "vuex";
@@ -473,6 +473,9 @@ export default {
                 this.hashpowerAddress = hashpowerAddress;
                 this.detailLoding = true;
                 this.getBoxDetail();
+                setTimeout(async() => {
+                  await setStatiscData(1, hashId);
+                },300)
             } else {
               this.$router.go(-1);
             }
@@ -602,6 +605,7 @@ export default {
         BuyTokenToS19(this.hashpowerAddress, amount).then(async (hash) => {
           if(hash) {
             await this.setPurchaseLog(hash);
+            await setStatiscData(2, this.hashId);
           }
         }).finally(() => {
           this.trading = false;

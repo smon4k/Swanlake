@@ -447,3 +447,15 @@ export const getHashpowerDetail = async function(hashId){
   }
   return result;
 }
+
+//记录算力币数据统计
+export const setStatiscData = async function(type=0, hashId=0){
+  const nftUrl = __ownInstance__.$store.state.base.nftUrl;
+  const address = __ownInstance__.$store.state.base.address;
+  let result = [];
+  let data = await $get(nftUrl + '/Hashpower/Hashpower/setStatiscData?hashId='+hashId+'&type='+type);
+  if(data && data.code == 10000) {
+    result = data.data;
+  }
+  return result;
+}
