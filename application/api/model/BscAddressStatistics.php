@@ -263,7 +263,11 @@ class BscAddressStatistics extends Base
         $addHolders = 0; //新增地址数
         $count = count((array)$lists);
         foreach ($lists as $key => $val) {
-            $times[] = date('Y-m-d H:i',strtotime($val['date']));
+            if($time_range === '1 day') {
+                $times[] = date('Y-m-d H:i',strtotime($val['date']));
+            } else {
+                $times[] = date('Y-m-d',strtotime($val['date']));
+            }
             $prices[] = $val['price'];
             if($val['price'] < $min_price) {
                 $min_price = $val['price'];
@@ -325,14 +329,16 @@ class BscAddressStatistics extends Base
      */
     public static function getDestructionDataList($name='', $time_range='', $this_year='', $start_time='', $end_time='') {
         // p($time_range);
-        $sql = "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name' AND balance != 0 ";
+        $sql = "";
         if($time_range && $time_range !== '') {
             if($time_range === '1 day') {
                 // $sql .= " AND to_days( `time`) = to_days(NOW())";
-                $sql .= " AND time >= (NOW() - interval 24 hour)";
+                $sql .= "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name' AND time >= (NOW() - interval 24 hour)";
             } else {
-                $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
+                $sql .= "SELECT * FROM s_bsc_address_statistics_date WHERE `name`='$name' AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
             }
+        } else {
+            $sql .= "SELECT * FROM s_bsc_address_statistics_date WHERE `name`='$name'";
         }
         if($this_year && $this_year !== '') {
             $sql .= " AND YEAR(`time`) = YEAR(NOW())";
@@ -343,6 +349,7 @@ class BscAddressStatistics extends Base
             $sql .= " AND `time` >= '$start_time' AND `time` <= '$end_time'";
         }
         $sql .= " ORDER BY time asc";
+        // p($sql);
         $lists = self::query($sql);
         if (!$lists || count((array)$lists) <= 0) {
             return [];
@@ -366,7 +373,11 @@ class BscAddressStatistics extends Base
         $addDestroy = 0; //新增销毁数
         $count = count((array)$lists);
         foreach ($lists as $key => $val) {
-            $times[] = date('Y-m-d H:i',strtotime($val['date']));
+            if($time_range === '1 day') {
+                $times[] = date('Y-m-d H:i',strtotime($val['date']));
+            } else {
+                $times[] = date('Y-m-d',strtotime($val['date']));
+            }
 
             //销毁统计
             $prices[] = $val['price'];
@@ -408,7 +419,7 @@ class BscAddressStatistics extends Base
         // $formerlyHolders = (float)$lists[0]['holders'] - (float)$lists[0]['add_holders']; //计算原来的地址数量
         $formerlyHolders = (float)$lists[$count - 1]['balance'] - (float)$lists[0]['balance']; //计算原来的地址数量
         // $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
-        $addPercentage = $formerlyHolders / (float)$lists[0]['balance'] * 100; //计算新增百分比
+        $addPercentage = (float)$lists[0]['balance'] > 0 ? $formerlyHolders / (float)$lists[0]['balance'] * 100 : 0; //计算新增百分比
         $dataList = [
             'times' => $times, 
             'prices' => [

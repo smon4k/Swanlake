@@ -181,8 +181,12 @@ export default {
                         formatter: function (value) {//在这里写你需要的时间格式
                             var t_date = new Date(value);
                             // console.log(t_date);
-                            return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
-                            + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                            if(_this.timesIndex == 1) {
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
+                                + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                            } else {
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-');
+                            }
                         }
                     }
                 },
@@ -334,8 +338,13 @@ export default {
                         formatter: function (value) {//在这里写你需要的时间格式
                             var t_date = new Date(value);
                             // console.log(t_date);
-                            return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
-                            + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                            if(_this.timesIndex == 1) {
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
+                                + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                            } else {
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-');
+                            }
+                            // + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
                         }
                     }
                 },
@@ -475,8 +484,12 @@ export default {
                         formatter: function (value) {//在这里写你需要的时间格式
                             var t_date = new Date(value);
                             // console.log(t_date);
-                            return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
-                            + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                            if(_this.timesIndex == 1) {
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
+                                + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                            } else {
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-');
+                            }
                         }
                     }
                 },
@@ -615,8 +628,12 @@ export default {
                         formatter: function (value) {//在这里写你需要的时间格式
                             var t_date = new Date(value);
                             // console.log(t_date);
-                            return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
-                            + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                            if(_this.timesIndex == 1) {
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-')
+                                + " " + [t_date.getHours(), t_date.getMinutes()].join(':'); //时分
+                            } else {
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('-');
+                            }
                         }
                     }
                 },
