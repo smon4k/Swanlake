@@ -63,7 +63,7 @@ class BscAddressStatistics extends Base
                         'time' => date('Y-m-d H:i:s')
                     ]);
                     if($saveRes !== false) {
-                        return true;
+                        $setDateDataRes = self::setBscAddressDateStatistics($name, $token, $data);
                     }   
                 } else {
                     $insertData = [
@@ -81,7 +81,7 @@ class BscAddressStatistics extends Base
                     // p($insertData);
                     $saveRes = self::insertGetId($insertData);
                     if($saveRes) {
-                        return true;
+                        $setDateDataRes = self::setBscAddressDateStatistics($name, $token, $data);
                     }
                 }
             } else {
@@ -100,7 +100,76 @@ class BscAddressStatistics extends Base
                  // p($insertData);
                  $saveRes = self::insertGetId($insertData);
                  if($saveRes) {
-                     return true;
+                    $setDateDataRes = self::setBscAddressDateStatistics($name, $token, $data);
+                 }
+            }
+            if($setDateDataRes) {
+                return true;
+            }
+        }
+    }
+
+    /**
+     * 每天写入统计数据
+     * @author qinlh
+     * @since 2022-10-22
+     */
+    public static function setBscAddressDateStatistics($name='', $token='', $data=[]) {
+        if($data && count((array)$data) > 0) {
+            $date = date("Y-m-d");
+            // p($date);
+            $lessRes = self::name('bsc_address_statistics_date')->where(['name' => $name, 'date' => $date])->order('date desc')->find();
+            if($lessRes && count((array)$lessRes) > 0) {
+                $res = self::name('bsc_address_statistics_date')->where(['name' => $name, 'date' => $date])->find();
+                if($res && count((array)$res) > 0) {
+                    $saveRes = self::name('bsc_address_statistics_date')->where(['name' => $name, 'date' => $date])->update([
+                        'price' => $data['price'], 
+                        'holders' => $data['holders'], 
+                        'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
+                        'balance' => $data['balance'],
+                        'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
+                        'value' => $data['value'],
+                        'time' => date('Y-m-d H:i:s')
+                    ]);
+                    if($saveRes !== false) {
+                        return true;
+                    }   
+                } else {
+                    $insertData = [
+                        'name' => $name,
+                        'token' => $token,
+                        'price' => $data['price'],
+                        'holders' => $data['holders'],
+                        'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
+                        'balance' => $data['balance'],
+                        'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
+                        'value' => $data['value'],
+                        'date' => $date,
+                        'time' => date('Y-m-d H:i:s'),
+                    ];
+                    // p($insertData);
+                    $saveRes = self::name('bsc_address_statistics_date')->insertGetId($insertData);
+                    if($saveRes) {
+                        return true;
+                    }
+                }
+            } else {
+                $insertData = [
+                    'name' => $name,
+                    'token' => $token,
+                    'price' => $data['price'],
+                    'holders' => $data['holders'],
+                    'add_holders' => 0, 
+                    'balance' => $data['balance'],
+                    'add_balance' => 0,
+                    'value' => $data['value'],
+                    'date' => $date,
+                    'time' => date('Y-m-d H:i:s'),
+                 ];
+                 // p($insertData);
+                 $saveRes = self::name('bsc_address_statistics_date')->insertGetId($insertData);
+                 if($saveRes) {
+                    return true;
                  }
             }
         }
@@ -371,5 +440,16 @@ class BscAddressStatistics extends Base
         return $dataList;
     }
 
-    
+    public static function delTimeData() {
+        $data = self::name('bsc_address_statistics_date')->select();
+        foreach ($data as $key => $val) {
+            $arr = explode(' ', $val['date']);
+            if($arr[1] !== '00:00:00') {
+                $delRes = self::name('bsc_address_statistics_date')->where('id', $val['id'])->delete();
+                if($delRes) {
+                    echo "删除【".$val['id'] . "-" . $val['date']."】成功\r\n";
+                }
+            }
+        }
+    }
 }

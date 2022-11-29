@@ -354,6 +354,8 @@ class TaskController extends ToolsBaseController
         //     // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
         //     // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
         // );
+        // p($tokens);
+        // p(Config::get('www_bscscan_contract'));
         foreach ($tokens as $key => $val) {
             $name = $val['name'];
             $params = ['token' => $val['token'], 'chain' => $val['chain']];
@@ -380,6 +382,14 @@ class TaskController extends ToolsBaseController
         $begin_time = time();
 
         BscAddressStatistics::AnalogData();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    public function delTimeData() {
+        $begin_time = time();
+
+        BscAddressStatistics::delTimeData();
 
         return (time() - $begin_time) . "s\n";
     }
