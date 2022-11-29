@@ -269,14 +269,14 @@ class Binance extends Base
                         $minOrderAmount = $orderAmount * 0.5; //最小成交数量
                         echo $side_type . "订单数量【" . $orderAmount . "】成交数量【". $dealAmount ."】\r\n";
                         if($dealAmount >= $minOrderAmount) { //如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
-                            $setClinchRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 2, 'up_time' => date('Y-m-d H:i:s')]);
+                            $setClinchRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
                             if($setClinchRes) { //如果修改状态为已成交
                                 echo $side_type . "已成交，修改挂单状态为已挂单成功 \r\n";
                                 //撤销另一个订单
                                 $revokeKey = $key == 0 ? 1 : 0; //撤销订单key值
                                 $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $order_symbol);
                                 if($revokeOrder) { //已撤销
-                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
                                     if($setRevokeRes) {
                                         echo "挂单已撤销 \r\n";
                                         //开始记录订单数据
