@@ -161,7 +161,8 @@ class BscAddressStatistics extends Base
         $sql = "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name'";
         if($time_range && $time_range !== '') {
             if($time_range === '1 day') {
-                $sql .= " AND to_days( `time`) = to_days(NOW())";
+                // $sql .= " AND to_days( `time`) = to_days(NOW())";
+                $sql .= " AND DATE_SUB( curdate(), INTERVAL 1 DAY ) <= `time`";
             } else {
                 $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
             }
@@ -258,7 +259,8 @@ class BscAddressStatistics extends Base
         $sql = "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name' AND balance != 0 ";
         if($time_range && $time_range !== '') {
             if($time_range === '1 day') {
-                $sql .= " AND to_days( `time`) = to_days(NOW())";
+                // $sql .= " AND to_days( `time`) = to_days(NOW())";
+                $sql .= " AND DATE_SUB( curdate(), INTERVAL 1 DAY ) <= `time`";
             } else {
                 $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
             }
