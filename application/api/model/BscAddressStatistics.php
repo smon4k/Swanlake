@@ -260,7 +260,7 @@ class BscAddressStatistics extends Base
         if($time_range && $time_range !== '') {
             if($time_range === '1 day') {
                 // $sql .= " AND to_days( `time`) = to_days(NOW())";
-                $sql .= " AND DATE_SUB( curdate(), INTERVAL 1 DAY ) <= `time`";
+                $sql .= " AND time >= (NOW() - interval 24 hour)";
             } else {
                 $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
             }
