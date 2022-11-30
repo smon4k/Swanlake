@@ -393,4 +393,12 @@ class TaskController extends ToolsBaseController
 
         return (time() - $begin_time) . "s\n";
     }
+
+    // public function startRecoverData() {
+    //     $begin_time = time();
+
+    //     Binance::startRecoverData();
+
+    //     return (time() - $begin_time) . "s\n";
+    // }
 }

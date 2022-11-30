@@ -363,25 +363,29 @@ class Binance extends Base
                                 }
                             }
                             break;
-                        } else {
-                            //检测余额是否变化，如果变化撤单重新下单
-                            $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
-                            $bifiBalance = $tradeValuation['bifiBalance']; //BIFI余额
-                            $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
-                            if((float)$val['currency1'] !== $bifiBalance || (float)$val['currency2'] !== $busdBalance) {
-                                $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['order_number']);
-                                if($orderCancelRes) {
-                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
-                                    if($setRevokeRes) {
-                                        $isReOrder = true;
-                                        $reOrderNum ++;
-                                    }
-                                }
-                            }
-                        }
+                        } 
+                        // else {
+                        //     //检测余额是否变化，如果变化撤单重新下单
+                        //     $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+                        //     $bifiBalanceNew = $tradeValuationNew['bifiBalance']; //BIFI余额
+                        //     $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
+                        //     // echo "BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
+                        //     if((float)$val['currency1'] !== $bifiBalanceNew || (float)$val['currency2'] !== $busdBalanceNew) {
+                        //         echo "价格有变化，撤单重新挂单 \r\n";
+                        //         $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['order_number']);
+                        //         if($orderCancelRes) {
+                        //             $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                        //             if($setRevokeRes) {
+                        //                 $isReOrder = true;
+                        //                 $reOrderNum ++;
+                        //             }
+                        //         }
+                        //     }
+                        // }
                     }
                 }
                 if($isReOrder && $reOrderNum == 2) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
+                    echo "开始重新挂单 \r\n";
                     $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
                     if($isPendingOrder) {
                         echo "已重新挂单 \r\n";
@@ -456,7 +460,7 @@ class Binance extends Base
             echo "购买订单号：" . $clientBuyOrderId . "\r\n";
             echo "出售订单号：" . $clientSellOrderId . "\r\n";
             //挂单 购买
-            
+            // echo "BIFI余额:" . $bifiBalance . "BUSD余额:" . $busdBalance . "\r\n";
             // p($bifiBuyValuation);        
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $buyOrdersNumber = $buyNum / $buyingPrice;
@@ -527,11 +531,36 @@ class Binance extends Base
      * @since 2022-11-26
      */
     public static function cancelOrder() {
-        // $orderDetail = self::fetchTradeOrder('', "Zx22022112657545610", $order_symbol); //查询订单
-        // p($orderDetail);
-        $orderDetail = self::fetchCancelOrder('', "Zx22022112657100495", 'BIFI/BUSD'); //撤销订单 status：已取消：CANCELED 未取消：NEW
+        $orderDetail = self::fetchTradeOrder('', "Zx22022112957494899", 'BIFI/BUSD'); //查询订单
+        p($orderDetail);
+        $orderDetail = self::fetchCancelOrder('', "Zx12022113049494810", 'BIFI/BUSD'); //撤销订单 status：已取消：CANCELED 未取消：NEW
         return;
     }
+    
+    
+    // public static function startRecoverData() {
+    //     $data = self::name('binance_piggybank')->where(['id'=>['<', 133]])->select()->toArray();
+    //     // p($data);
+    //     foreach ($data as $key => $val) {
+    //         $orderDetail = self::fetchTradeOrder('', $val['order_number'], 'BIFI/BUSD'); //查询订单
+    //         if($orderDetail['price']) {
+    //             $price = $orderDetail['price'];
+    //             $currency2 = $price * $val['currency1'];
+    //             $updateParams = [
+    //                 'price' => $price,
+    //                 'make_deal_price' => $price,
+    //                 'currency2' => $currency2,
+    //                 'balanced_valuation' => $currency2
+    //             ];
+    //             $saveRes = self::name('binance_piggybank')->where('id', $val['id'])->update($updateParams);
+    //             if($saveRes !== false) {
+    //                 echo "修改id【".$val['id']."】成功 \r\n";
+    //             }
+    //         }
+    //         // exit();
+    //         // p($element);
+    //     }
+    // }
     
     
     /**
