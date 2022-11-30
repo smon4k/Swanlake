@@ -259,6 +259,8 @@ class Binance extends Base
             // exit();
             $peningOrderList = self::getOpenPeningOrder();
             if($peningOrderList && count((array)$peningOrderList) > 0) {
+                $isReOrder = false; //是否撤单重新挂单
+                $reOrderNum = 0; //撤单数量
                 foreach ($peningOrderList as $key => $val) {
                     $isClinchInfo = self::fetchTradeOrder($val['order_id'], $val['order_number'], $order_symbol); //获取订单数据
                     if($isClinchInfo && isset($isClinchInfo['info'])) {
@@ -361,9 +363,34 @@ class Binance extends Base
                                 }
                             }
                             break;
+                        } else {
+                            //检测余额是否变化，如果变化撤单重新下单
+                            $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+                            $bifiBalance = $tradeValuation['bifiBalance']; //BIFI余额
+                            $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
+                            if((float)$val['currency1'] !== $bifiBalance || (float)$val['currency2'] !== $busdBalance) {
+                                $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['order_number']);
+                                if($orderCancelRes) {
+                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                                    if($setRevokeRes) {
+                                        $isReOrder = true;
+                                        $reOrderNum ++;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                if($isReOrder && $reOrderNum == 2) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
+                    $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                    if($isPendingOrder) {
+                        echo "已重新挂单 \r\n";
+                        Db::commit();
+                        // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                        return true;
+                    }
+                }
+
             } else { //开始挂单
                 // $orderDetail = self::fetchTradeOrder('108228005', "Zx12022112649509949", $order_symbol); //查询订单
                 // p($orderDetail);
