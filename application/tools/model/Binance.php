@@ -463,7 +463,14 @@ class Binance extends Base
             // echo "BIFI余额:" . $bifiBalance . "BUSD余额:" . $busdBalance . "\r\n";
             // p($bifiBuyValuation);        
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-            $buyOrdersNumber = $buyNum / $buyingPrice;
+            $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
+
+            //计算购买成交完以后得估值
+            // $bifiBuyValuationComplete = ($bifiBalance + $buyOrdersNumber) * $buyingPrice; //购买成交以后得BIFI估值 = （BIFI余额 + 成交数量） * 购买价格
+            // $busdBuyValuationComplete = $busdValuation - $buyNum; //购买成交以后得BUSD估值 = BUSD余额 - 成交数量
+            // $buyNumComplete = $balanceRatioArr[1] * (($busdBuyValuationComplete - $bifiBuyValuationComplete) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+            // $buyOrdersNumberComplete = $buyNumComplete / $buyingPrice; //购买数量
+
             $busdBuyClinchBalance = $busdBalance + $buyNum;
             $bifiBuyClinchBalance = $bifiBalance - $buyOrdersNumber;
             // p($buyOrdersNumber);
@@ -476,6 +483,13 @@ class Binance extends Base
                 //挂单 出售
                 $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                 $sellOrdersNumber = $sellNum / $sellingPrice;
+
+                // //计算出售成交完以后得估值
+                // $bifiSellValuationComplete = ($bifiBalance - $sellOrdersNumber) * $sellingPrice; //出售成交以后得BIFI估值 = （BIFI余额 - 成交数量） * 出售价格
+                // $busdSellValuationComplete = $busdValuation + $sellNum; //出售成交以后得BUSD估值 = BUSD估值 + 出售数量
+                // $sellNumComplete = $balanceRatioArr[1] * (($bifiSellValuationComplete - $busdSellValuationComplete) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+                // $sellOrdersNumberComplete = $sellNumComplete / $sellingPrice; //出售数量
+
                 $newBalanceDetails = self::getTradePairBalance($transactionCurrency); //获取最新余额
                 $busdSellClinchBalance = $newBalanceDetails['busdBalance'] - $sellNum;
                 $bifiSellClinchBalance = $newBalanceDetails['bifiBalance'] + $sellOrdersNumber;
