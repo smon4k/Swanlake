@@ -372,7 +372,7 @@ class Binance extends Base
                             // echo "BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
                             if((float)$val['currency1'] !== $bifiBalanceNew || (float)$val['currency2'] !== $busdBalanceNew) {
                                 echo "价格有变化，撤单重新挂单 \r\n";
-                                $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['order_number']);
+                                $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['symbol']);
                                 if($orderCancelRes) {
                                     $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
                                     if($setRevokeRes) {
