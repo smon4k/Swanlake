@@ -494,8 +494,8 @@ class Binance extends Base
                         'LIMIT', 
                         $buyOrderDetailsArr['origQty'], 
                         $buyOrderDetailsArr['price'], 
-                        $newBalanceDetailsInfo['busdBalance'], 
                         $newBalanceDetailsInfo['bifiBalance'],
+                        $newBalanceDetailsInfo['busdBalance'], 
                         $bifiBuyClinchBalance,
                         $busdBuyClinchBalance
                     ); //记录挂单购买订单数据
@@ -518,8 +518,8 @@ class Binance extends Base
                             'LIMIT', 
                             $sellOrderDetailsArr['origQty'], 
                             $sellOrderDetailsArr['price'], 
-                            $newBalanceDetailsInfo['busdBalance'], 
                             $newBalanceDetailsInfo['bifiBalance'],
+                            $newBalanceDetailsInfo['busdBalance'], 
                             $bifiSellClinchBalance,
                             $busdSellClinchBalance
                         ); //记录挂单出售订单数据
