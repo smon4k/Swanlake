@@ -364,24 +364,24 @@ class Binance extends Base
                             }
                             break;
                         } 
-                        // else {
-                        //     //检测余额是否变化，如果变化撤单重新下单
-                        //     $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
-                        //     $bifiBalanceNew = $tradeValuationNew['bifiBalance']; //BIFI余额
-                        //     $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
-                        //     // echo "BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
-                        //     if((float)$val['currency1'] !== $bifiBalanceNew || (float)$val['currency2'] !== $busdBalanceNew) {
-                        //         echo "价格有变化，撤单重新挂单 \r\n";
-                        //         $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['order_number']);
-                        //         if($orderCancelRes) {
-                        //             $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
-                        //             if($setRevokeRes) {
-                        //                 $isReOrder = true;
-                        //                 $reOrderNum ++;
-                        //             }
-                        //         }
-                        //     }
-                        // }
+                        else {
+                            //检测余额是否变化，如果变化撤单重新下单
+                            $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+                            $bifiBalanceNew = $tradeValuationNew['bifiBalance']; //BIFI余额
+                            $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
+                            // echo "BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
+                            if((float)$val['currency1'] !== $bifiBalanceNew || (float)$val['currency2'] !== $busdBalanceNew) {
+                                echo "价格有变化，撤单重新挂单 \r\n";
+                                $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['order_number']);
+                                if($orderCancelRes) {
+                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                                    if($setRevokeRes) {
+                                        $isReOrder = true;
+                                        $reOrderNum ++;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 if($isReOrder && $reOrderNum == 2) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
@@ -473,33 +473,42 @@ class Binance extends Base
             if($buyOrderDetails['info']) { //如果挂单购买成功
                 echo "挂单购买成功" . "\r\n";
                 $buyOrderDetailsArr = $buyOrderDetails['info'];
-                $isSetBuyRes = self::setPiggybankPendordData(
-                    $order_symbol, 
-                    $transactionCurrency, 
-                    $buyOrderDetailsArr['orderId'], 
-                    $buyOrderDetailsArr['clientOrderId'], 
-                    1, 
-                    'LIMIT', 
-                    $buyOrderDetailsArr['origQty'], 
-                    $buyOrderDetailsArr['price'], 
-                    $bifiBalance, 
-                    $busdBalance,
-                    $bifiBuyClinchBalance,
-                    $busdBuyClinchBalance
-                ); //记录挂单购买订单数据
-                if($isSetBuyRes) {
-                    echo "挂单购买记录数据库成功" . "\r\n";
-                    //挂单 出售
-                    $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-                    $sellOrdersNumber = $sellNum / $sellingPrice;
-                    $busdSellClinchBalance = $busdBalance - $sellNum;
-                    $bifiSellClinchBalance = $bifiBalance + $sellOrdersNumber;
-                    // p($sellOrdersNumber);
-                    $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
-                    // p($sellOrderDetails);
-                    if($sellOrderDetails['info']) { //如果挂单出售成功
-                        echo "挂单出售成功" . "\r\n";
-                        $sellOrderDetailsArr = $sellOrderDetails['info'];
+                //挂单 出售
+                $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+                $sellOrdersNumber = $sellNum / $sellingPrice;
+                $newBalanceDetails = self::getTradePairBalance($transactionCurrency); //获取最新余额
+                $busdSellClinchBalance = $newBalanceDetails['busdBalance'] - $sellNum;
+                $bifiSellClinchBalance = $newBalanceDetails['bifiBalance'] + $sellOrdersNumber;
+                // p($sellOrdersNumber);
+                $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
+                if($sellOrderDetails['info']) { //如果挂单出售成功
+                    echo "挂单出售成功" . "\r\n";
+                    $newBalanceDetailsInfo = self::getTradePairBalance($transactionCurrency); //获取最新余额
+                    $sellOrderDetailsArr = $sellOrderDetails['info'];
+                    $isSetBuyRes = self::setPiggybankPendordData(
+                        $order_symbol, 
+                        $transactionCurrency, 
+                        $buyOrderDetailsArr['orderId'], 
+                        $buyOrderDetailsArr['clientOrderId'], 
+                        1, 
+                        'LIMIT', 
+                        $buyOrderDetailsArr['origQty'], 
+                        $buyOrderDetailsArr['price'], 
+                        $newBalanceDetailsInfo['busdBalance'], 
+                        $newBalanceDetailsInfo['bifiBalance'],
+                        $bifiBuyClinchBalance,
+                        $busdBuyClinchBalance
+                    ); //记录挂单购买订单数据
+                    if($isSetBuyRes) {
+                        echo "挂单购买记录数据库成功" . "\r\n";
+                        // //挂单 出售
+                        // $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+                        // $sellOrdersNumber = $sellNum / $sellingPrice;
+                        // $busdSellClinchBalance = $busdBalance - $sellNum;
+                        // $bifiSellClinchBalance = $bifiBalance + $sellOrdersNumber;
+                        // // p($sellOrdersNumber);
+                        // $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
+                        // p($sellOrderDetails);
                         $isSetSellRes = self::setPiggybankPendordData(
                             $order_symbol, 
                             $transactionCurrency, 
@@ -509,8 +518,8 @@ class Binance extends Base
                             'LIMIT', 
                             $sellOrderDetailsArr['origQty'], 
                             $sellOrderDetailsArr['price'], 
-                            $bifiBalance, 
-                            $busdBalance,
+                            $newBalanceDetailsInfo['busdBalance'], 
+                            $newBalanceDetailsInfo['bifiBalance'],
                             $bifiSellClinchBalance,
                             $busdSellClinchBalance
                         ); //记录挂单出售订单数据
