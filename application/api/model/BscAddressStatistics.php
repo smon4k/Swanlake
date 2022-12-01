@@ -229,14 +229,16 @@ class BscAddressStatistics extends Base
      */
     public static function getHourDataList($name='', $time_range='', $this_year='', $start_time='', $end_time='') {
         // p($time_range);
-        $sql = "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name'";
+        $sql = "";
         if($time_range && $time_range !== '') {
             if($time_range === '1 day') {
                 // $sql .= " AND to_days( `time`) = to_days(NOW())";
-                $sql .= " AND time >= (NOW() - interval 24 hour)";
+                $sql .= "SELECT * FROM s_bsc_address_statistics WHERE `name`='$name' AND time >= (NOW() - interval 24 hour)";
             } else {
-                $sql .= " AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
+                $sql .= "SELECT * FROM s_bsc_address_statistics_date WHERE `name`='$name' AND DATE_SUB( curdate(), INTERVAL $time_range ) <= `time`";
             }
+        } else {
+            $sql .= "SELECT * FROM s_bsc_address_statistics_date WHERE `name`='$name'";
         }
         if($this_year && $this_year !== '') {
             $sql .= " AND YEAR(`time`) = YEAR(NOW())";
