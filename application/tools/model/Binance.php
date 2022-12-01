@@ -261,6 +261,32 @@ class Binance extends Base
             if($peningOrderList && count((array)$peningOrderList) > 0) {
                 $isReOrder = false; //是否撤单重新挂单
                 $reOrderNum = 0; //撤单数量
+
+                $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价
+                $busdValuation = $tradeValuation['busdValuation'];
+                $bifiValuation = $tradeValuation['bifiValuation'];
+                $minMaxRes = bccomp($busdValuation, $bifiValuation);
+                if($minMaxRes == 1) { //busd大
+                    $perDiffRes = ($busdValuation - $bifiValuation) / $bifiValuation * 100;
+                } else {
+                    $perDiffRes = ($bifiValuation - $busdValuation) / $busdValuation * 100;
+                }
+                if($perDiffRes > 2) { //如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
+                    $reOrderNum02 = 0;
+                    foreach ($peningOrderList as $key => $val) { //开始撤单买 卖
+                        $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['symbol']);
+                        if($orderCancelRes) {
+                            $reOrderNum02 ++;
+                        }
+                    }
+                    if($reOrderNum02 == 2) { //撤单成功 开始吃单
+                        $toEatMeal = self::balancePendingOrder();
+                        if($toEatMeal) { //如果吃单成功 重新挂单
+                            self::balancePendingOrder();
+                        }
+                    }
+                }
+                
                 foreach ($peningOrderList as $key => $val) {
                     $isClinchInfo = self::fetchTradeOrder($val['order_id'], $val['order_number'], $order_symbol); //获取订单数据
                     if($isClinchInfo && isset($isClinchInfo['info'])) {
@@ -363,8 +389,7 @@ class Binance extends Base
                                 }
                             }
                             break;
-                        } 
-                        else {
+                        } else {
                             //检测余额是否变化，如果变化撤单重新下单
                             $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
                             $bifiBalanceNew = $tradeValuationNew['bifiBalance']; //BIFI余额
