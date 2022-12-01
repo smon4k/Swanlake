@@ -117,8 +117,10 @@ class BscAddressStatistics extends Base
     public static function setBscAddressDateStatistics($name='', $token='', $data=[]) {
         if($data && count((array)$data) > 0) {
             $date = date("Y-m-d");
+            $yerstDate = date('Y-m-d', strtotime("-1 days", strtotime($date)));
+
             // p($date);
-            $lessRes = self::name('bsc_address_statistics_date')->where(['name' => $name, 'date' => $date])->order('date desc')->find();
+            $lessRes = self::name('bsc_address_statistics_date')->where(['name' => $name, 'date' => $yerstDate])->order('date desc')->find();
             if($lessRes && count((array)$lessRes) > 0) {
                 $res = self::name('bsc_address_statistics_date')->where(['name' => $name, 'date' => $date])->find();
                 if($res && count((array)$res) > 0) {
@@ -452,15 +454,84 @@ class BscAddressStatistics extends Base
     }
 
     public static function delTimeData() {
-        $data = self::name('bsc_address_statistics_date')->select();
-        foreach ($data as $key => $val) {
-            $arr = explode(' ', $val['date']);
-            if($arr[1] !== '00:00:00') {
-                $delRes = self::name('bsc_address_statistics_date')->where('id', $val['id'])->delete();
-                if($delRes) {
-                    echo "删除【".$val['id'] . "-" . $val['date']."】成功\r\n";
+        // $data = self::name('bsc_address_statistics_date')->select()->toArray();
+        self::startTrans();
+        // //首先删除数据
+        // foreach ($data as $key => $val) {
+        //     $arr = explode(' ', $val['date']);
+        //     if($arr[1] !== '00:00:00') {
+        //         $delRes = self::name('bsc_address_statistics_date')->where('id', $val['id'])->delete();
+        //         if($delRes) {
+        //             echo "删除【".$val['id'] . "-" . $val['date']."】成功\r\n";
+        //         }
+        //     }
+        // }
+        // self::commit();
+        // die;
+
+        // $dataArr2 = self::name('bsc_address_statistics_date')->select()->toArray();
+        // // 修改日期
+        // foreach ($dataArr2 as $key => $val) {
+        //     $date = $val['date'];
+        //     $yerstDate = date('Y-m-d', strtotime("-1 days", strtotime($date)));
+        //     $saveRes = self::name('bsc_address_statistics_date')->where('id', $val['id'])->setField('date', $yerstDate);
+        //     if($saveRes) {
+        //         echo "修改【".$val['id'] . "-" . $val['date']."】成功\r\n";
+        //     }
+        // }
+        // self::commit();
+        // die;
+
+        $dataArr3 = self::name('bsc_address_statistics_date')->select()->toArray();
+        // 修改每日新增量
+        $newArray = [];
+        foreach ($dataArr3 as $key => $val) {
+            $newArray[$val['name']][] = $val;
+        }
+        p($newArray);
+        foreach ($newArray as $key => $val) {
+            $add_holders = 0;
+            $add_balance = 0;
+            $holders = 0;
+            $balance = 0;
+            foreach ($val as $k => $v) {
+                if($k == 0) {
+                    $where = [];
+                    $where['date'] = ['like',"%" . $v['date'] . "%"];
+                    $where['name'] = $v['name'];
+                    $serverAddHolders = self::name('bsc_address_statistics')->where($where)->sum('add_holders');
+                    $serverAddBalance = self::name('bsc_address_statistics')->where($where)->sum('add_balance');
+                    
+                    //获取0点数据 数据丢失的情况下 去源数据中获取
+                    // $add1_add_holders = 0;
+                    // $add1_add_balance = 0;
+                    // $add1Date = date('Y-m-d 00:00:00', strtotime("+1 days", strtotime($v['date'])));
+                    // $add1Holders = self::name('bsc_address_statistics')->where(['date' => $add1Date, 'name' => $v['name']])->find();
+                    // if($add1Holders) {
+                    //     $add1_add_holders = $add1Holders['add_holders'];
+                    //     $add1_add_balance = $add1Holders['add_balance'];
+                    // }
+                    // $add_holders = $serverAddHolders + (float)$add1_add_holders;
+                    // $add_balance = $serverAddBalance + (float)$add1_add_balance;
+
+                    $add_holders = $serverAddHolders + (float)$v['add_holders'];
+                    $add_balance = $serverAddBalance + (float)$v['add_balance'];
+                    $saveRes = self::name('bsc_address_statistics_date')->where('id', $v['id'])->update(['add_holders' => $add_holders, 'add_balance' => $add_balance]);
+                    if($saveRes) {
+                        echo "修改第一个【".$v['id'] . "】成功\r\n";
+                    }
+                } else {
+                    $add_holders = (float)$v['holders'] - (float)$holders;
+                    $add_balance = (float)$v['balance'] - (float)$balance;
+                    $saveRes = self::name('bsc_address_statistics_date')->where('id', $v['id'])->setField(['add_holders' => $add_holders, 'add_balance' => $add_balance]);
+                    if($saveRes !== false) {
+                        echo "修改【".$v['id'] . "】成功\r\n";
+                    }
                 }
+                $holders = $v['holders'];
+                $balance = $v['balance'];
             }
         }
+        self::commit();
     }
 }

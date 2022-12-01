@@ -67,4 +67,9 @@ class BscaddressStatisticsController extends BaseController
         $result = BscAddressStatistics::getDestructionDataList($name, $time_range, $this_year, $start_time, $end_time);
         return $this->as_json($result);
     }
+
+    public function delTimeData() {
+        $result = BscAddressStatistics::delTimeData();
+        return $this->as_json($result);
+    }
 }
