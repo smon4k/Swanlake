@@ -464,16 +464,10 @@ class Binance extends Base
             // p($bifiBuyValuation);        
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
-
-            //计算购买成交完以后得估值
-            // $bifiBuyValuationComplete = ($bifiBalance + $buyOrdersNumber) * $buyingPrice; //购买成交以后得BIFI估值 = （BIFI余额 + 成交数量） * 购买价格
-            // $busdBuyValuationComplete = $busdValuation - $buyNum; //购买成交以后得BUSD估值 = BUSD余额 - 成交数量
-            // $buyNumComplete = $balanceRatioArr[1] * (($busdBuyValuationComplete - $bifiBuyValuationComplete) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-            // $buyOrdersNumberComplete = $buyNumComplete / $buyingPrice; //购买数量
-
-            $busdBuyClinchBalance = $busdBalance + $buyNum;
-            $bifiBuyClinchBalance = $bifiBalance - $buyOrdersNumber;
             // p($buyOrdersNumber);
+
+            $busdBuyClinchBalance = $busdBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
+            $bifiBuyClinchBalance = $bifiBalance + $buyOrdersNumber; //挂买以后BIFI数量 BIFI余额 加上 购买数量
             // echo $buyingPrice;die;
             $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
             // p($buyOrderDetails);
@@ -484,15 +478,9 @@ class Binance extends Base
                 $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                 $sellOrdersNumber = $sellNum / $sellingPrice;
 
-                // //计算出售成交完以后得估值
-                // $bifiSellValuationComplete = ($bifiBalance - $sellOrdersNumber) * $sellingPrice; //出售成交以后得BIFI估值 = （BIFI余额 - 成交数量） * 出售价格
-                // $busdSellValuationComplete = $busdValuation + $sellNum; //出售成交以后得BUSD估值 = BUSD估值 + 出售数量
-                // $sellNumComplete = $balanceRatioArr[1] * (($bifiSellValuationComplete - $busdSellValuationComplete) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-                // $sellOrdersNumberComplete = $sellNumComplete / $sellingPrice; //出售数量
-
-                $newBalanceDetails = self::getTradePairBalance($transactionCurrency); //获取最新余额
-                $busdSellClinchBalance = $newBalanceDetails['busdBalance'] - $sellNum;
-                $bifiSellClinchBalance = $newBalanceDetails['bifiBalance'] + $sellOrdersNumber;
+                // $newBalanceDetails = self::getTradePairBalance($transactionCurrency); //获取最新余额
+                $busdSellClinchBalance = $busdBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
+                $bifiSellClinchBalance = $bifiBalance - $sellOrdersNumber; //挂卖以后BIFI数量 BIFI余额 减去 出售数量
                 // p($sellOrdersNumber);
                 $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
                 if($sellOrderDetails['info']) { //如果挂单出售成功
@@ -554,7 +542,7 @@ class Binance extends Base
      * @since 2022-11-26
      */
     public static function cancelOrder() {
-        $orderDetail = self::fetchTradeOrder('', "Zx22022112957494899", 'BIFI/BUSD'); //查询订单
+        $orderDetail = self::fetchTradeOrder('', "Zx22022120154545299", 'BIFI/BUSD'); //查询订单
         p($orderDetail);
         $orderDetail = self::fetchCancelOrder('', "Zx12022113049494810", 'BIFI/BUSD'); //撤销订单 status：已取消：CANCELED 未取消：NEW
         return;
@@ -989,13 +977,17 @@ class Binance extends Base
             if($val['type'] == 1) {
                 $result['pendingOrder']['buy']['price'] = $val['price'];
                 $result['pendingOrder']['buy']['amount'] = $val['amount'];
-                $result['pendingOrder']['buy']['bifiValuation'] = ($bifiBalance + (float)$val['amount']) * $val['price'];
-                $result['pendingOrder']['buy']['busdValuation'] = $busdValuation - ((float)$val['amount'] * $val['price']);
+                // $result['pendingOrder']['buy']['bifiValuation'] = ($bifiBalance + (float)$val['amount']) * $val['price'];
+                $result['pendingOrder']['buy']['bifiValuation'] = $bifiBalance * $val['price'];
+                // $result['pendingOrder']['buy']['busdValuation'] = $busdValuation - ((float)$val['amount'] * $val['price']);
+                $result['pendingOrder']['buy']['busdValuation'] = $busdValuation;
             } else {
                 $result['pendingOrder']['sell']['price'] = $val['price'];
                 $result['pendingOrder']['sell']['amount'] = $val['amount'];
-                $result['pendingOrder']['sell']['bifiValuation'] = ($bifiBalance - (float)$val['amount']) * $val['price'];
-                $result['pendingOrder']['sell']['busdValuation'] = $busdValuation + ((float)$val['amount'] * $val['price']);
+                // $result['pendingOrder']['sell']['bifiValuation'] = ($bifiBalance - (float)$val['amount']) * $val['price'];
+                $result['pendingOrder']['sell']['bifiValuation'] = $bifiBalance * $val['price'];
+                // $result['pendingOrder']['sell']['busdValuation'] = $busdValuation + ((float)$val['amount'] * $val['price']);
+                $result['pendingOrder']['sell']['busdValuation'] = $busdValuation;
             }
         }
         return $result;

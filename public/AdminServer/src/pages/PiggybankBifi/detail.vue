@@ -76,7 +76,7 @@
             </el-col>
         </el-row>
         <el-divider></el-divider>
-        <div v-if="detailData.pendingOrder.length">
+        <div v-if="Object.keys(detailData.pendingOrder).length">
             <h3>挂单信息</h3>
             <el-row>
                 <el-col :span="6">
