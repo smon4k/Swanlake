@@ -179,6 +179,8 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let power_consumption_ratio = 0
   let chain_address = ''
   if(id) {
+    const transaction = await new web3.eth.getTransaction("0x8247f33547a65ae8e774442a5091c8ce613b6614fd1b5fe815d4ae9126fb0de7");
+    console.log(transaction);
     // h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
     btcbReward = await getH2OPendingBonus(goblinAddress, 8); //获取BTCB奖励
     if(address && address !== undefined && address !== '') {

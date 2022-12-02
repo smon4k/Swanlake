@@ -249,12 +249,13 @@ export default {
         this.goblin,
         this.decimals,
         this.depositNum
-      ).then(() => {
+      ).then((hash) => {
         post(this.nftUrl + '/Hashpower/Hashpower/startInvestNow', { 
             address: this.address, 
             hashId: this.hashId, 
             number: this.depositNum,
-            type: this.type
+            type: this.type,
+            hash: hash,
         }, async (json) => {
           this.loading = false;
           await setStatiscData(3, this.hashId);
