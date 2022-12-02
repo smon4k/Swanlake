@@ -65,7 +65,8 @@ import {
   getBalance,
   isApproved,
   getH2OUserInfo,
-  setStatiscData
+  setStatiscData,
+  getH2OPendingBonus
 } from "@/wallet/serve";
 import { get, post } from "@/common/axios.js";
 import { keepDecimalNotRounding } from "@/utils/tools";
@@ -206,7 +207,7 @@ export default {
       this.depositNum = "";
       this.$router.go(-1);
     },
-    submitOrder() { //开始存或者取
+    async submitOrder() { //开始存或者取
       if (!this.isConnected) return this.$connect();
       if (this.trading) return;
       if (this.approved === 2 && this.type == 1) { 
@@ -245,6 +246,7 @@ export default {
       //       this.$message.error(json.msg);
       //   }
       // })
+      let btcbReward = await getH2OPendingBonus(this.goblin); //获取BTCB奖励
       tradeFunc(
         this.goblin,
         this.decimals,
@@ -256,6 +258,7 @@ export default {
             number: this.depositNum,
             type: this.type,
             hash: hash,
+            reward_amount: btcbReward,
         }, async (json) => {
           this.loading = false;
           await setStatiscData(3, this.hashId);
