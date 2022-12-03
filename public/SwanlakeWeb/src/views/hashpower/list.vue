@@ -58,7 +58,8 @@
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
                         <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
                         <br>
-                        <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.currency_price), 2) || "--" }}</span>
+                        <!-- <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.currency_price), 2) || "--" }}</span> -->
+                        <span>{{ fromSATBTCNum(Number(count_btc_output), 2) || "--" }}</span>
                     </el-col>
                     <!-- 总质押算力 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">总质押算力<br /> 
@@ -351,6 +352,7 @@ export default {
             hashpowerDetail: false,
 
             count_output: 0,
+            count_btc_output: 0,
             online_days: 0, //上线天数
             to_output: 0, //今日产出
             yester_output: 0, //昨日产出
@@ -465,6 +467,7 @@ export default {
                 console.log(json);
                 if (json.code == 10000) {
                     this.count_output = json.data.count_output;
+                    this.count_btc_output = json.data.count_btc_output;
                     this.online_days = json.data.online_days;
                     this.to_output = json.data.to_output;
                     this.yester_output = json.data.yester_output;
