@@ -286,7 +286,7 @@ class Binance extends Base
                         }
                     }
                 }
-                
+
                 foreach ($peningOrderList as $key => $val) {
                     $isClinchInfo = self::fetchTradeOrder($val['order_id'], $val['order_number'], $order_symbol); //获取订单数据
                     if($isClinchInfo && isset($isClinchInfo['info'])) {
@@ -950,6 +950,8 @@ class Binance extends Base
         $changeRatioNum = 2; //涨跌比例 2%
         $balanceRatio = '1:1'; //平衡比例
         $balanceRatioArr = explode(':', $balanceRatio);
+        $sellPropr = ($changeRatioNum / 2) + ($changeRatioNum / 100); //出售比例
+        $buyPropr = ($changeRatioNum / 2) - ($changeRatioNum / 100); //购买比例
 
         //获取最小下单数量
         $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
@@ -988,8 +990,8 @@ class Binance extends Base
         $result['sellOrdersNumberStr'] = '';
         $getLastRes = self::getLastRes();
         $result['lastTimePrice'] = $getLastRes['price'];
-        $result['sellingPrice'] = (float)$getLastRes['price'] * 1.02;
-        $result['buyingPrice'] = (float)$getLastRes['price'] * 0.98;
+        $result['sellingPrice'] = (float)$getLastRes['price'] * $sellPropr;
+        $result['buyingPrice'] = (float)$getLastRes['price'] * $buyPropr;
         if($bifiValuation > $busdValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
             $result['sellOrdersNumberStr'] = 'BIFI出售数量: ' . $bifiSellOrdersNumber ;
         }

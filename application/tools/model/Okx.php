@@ -469,6 +469,8 @@ class Okx extends Base
         $changeRatioNum = 2; //涨跌比例 2%
         $balanceRatio = '1:1'; //平衡比例
         $balanceRatioArr = explode(':', $balanceRatio);
+        $sellPropr = ($changeRatioNum / 2) + ($changeRatioNum / 100); //出售比例
+        $buyPropr = ($changeRatioNum / 2) - ($changeRatioNum / 100); //购买比例
 
         //获取最小下单数量
         $rubikStatTakerValume = $exchange->fetch_markets_by_type('SPOT', ['instId'=>$transactionCurrency]);
@@ -505,13 +507,46 @@ class Okx extends Base
         $result['changeRatio'] = $changeRatio;
         $result['sellOrdersNumberStr'] = '';
         $getLastRes = self::getLastRes();
-        $result['lastTimePrice'] = $getLastRes['price'];
+        $lastPrice = (float)$getLastRes['price']; //最近一次交易价格
+        $result['lastTimePrice'] = $lastPrice;
+        $result['sellingPrice'] = $lastPrice * $sellPropr;
+        $result['buyingPrice'] = $lastPrice * $buyPropr;
         if($btcValuation > $usdtValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
             $result['sellOrdersNumberStr'] = 'BTC出售数量: ' . $btcSellOrdersNumber ;
         }
         if($btcValuation < $usdtValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
             $result['sellOrdersNumberStr'] = 'USDT购买数量: ' . $usdtBuyOrdersNumber ;
         }
+
+        //计算下一次下单购买出售数据
+        $result['pendingOrder'] = [];
+        $sellingPrice = $lastPrice * $sellPropr; //出售价格
+        $btcSellValuation = $sellingPrice * $btcBalance; //BTC 出售估值
+
+        $buyingPrice = $lastPrice * $buyPropr; //购买价格
+        $btcBuyValuation = $buyingPrice * $btcBalance; //BTC 购买估值
+
+        //计算购买数量
+        $buyNum = $balanceRatioArr[1] * (($usdtValuation - $btcBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+        $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
+        $usdtBuyClinchBalance = $busdBalance - $buyNum; //挂买以后USDT数量 USDT余额 减去 购买busd数量
+        $btcBuyClinchBalance = $bifiBalance + $buyOrdersNumber; //挂买以后BTC数量 BTC余额 加上 购买数量
+
+        $result['pendingOrder']['buy']['price'] = $buyingPrice;
+        $result['pendingOrder']['buy']['amount'] = $buyOrdersNumber;
+        $result['pendingOrder']['buy']['btcValuation'] = $btcBuyClinchBalance * $buyingPrice;
+        $result['pendingOrder']['buy']['usdtValuation'] = $usdtBuyClinchBalance;
+
+        //计算 出售数量
+        $sellNum = $balanceRatioArr[0] * (($btcSellValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+        $sellOrdersNumber = $sellNum / $sellingPrice;
+        $usdtSellClinchBalance = $usdtBalance + $sellNum; //挂卖以后USDT数量 USDT余额 加上 出售USDT数量
+        $btcSellClinchBalance = $btcBalance - $sellOrdersNumber; //挂卖以后BIFI数量 BTC余额 减去 出售数量
+        $result['pendingOrder']['sell']['price'] = $sellingPrice;
+        $result['pendingOrder']['sell']['amount'] = $sellOrdersNumber;
+        $result['pendingOrder']['sell']['btcValuation'] = $btcSellClinchBalance * $sellingPrice;
+        $result['pendingOrder']['sell']['usdtValuation'] = $usdtSellClinchBalance;
+
         return $result;
         // echo "最小下单量: " . $minSizeOrderNum . "<br>";
         // echo "交易货币币种: " . $base_ccy . "<br>";
