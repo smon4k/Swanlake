@@ -280,7 +280,7 @@ class Binance extends Base
                         }
                     }
                     if($reOrderNum02 == 2) { //撤单成功 开始吃单
-                        $toEatMeal = self::balancePendingOrder();
+                        $toEatMeal = self::balancePositionOrder();
                         if($toEatMeal) { //如果吃单成功 重新挂单
                             self::balancePendingOrder();
                         }
