@@ -2,7 +2,7 @@
   <div>
     <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item to="">BIFI 存钱罐管理</el-breadcrumb-item>
+        <el-breadcrumb-item to="">BTC 存钱罐管理</el-breadcrumb-item>
         <el-breadcrumb-item to="">项目详情</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="mian" v-loading="loading">
@@ -22,7 +22,7 @@
                 <span>{{ detailData.quote_ccy }}</span>
             </el-col>
             <el-col :span="12">
-                <span>BIFI价格:</span>
+                <span>BTC价格:</span>
                 <span>{{ detailData.tradingPrice }}</span>
             </el-col>
         </el-row>
@@ -88,11 +88,11 @@
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.buy.amount, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
-                    <span>BIFI估值：</span>
+                    <span>BTC估值：</span>
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.buy.btcValuation, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
-                    <span>BUSD估值：</span>
+                    <span>USDT估值：</span>
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.buy.usdtValuation, 8) || 0 }}</span>
                 </el-col>
             </el-row>
@@ -106,11 +106,11 @@
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.sell.amount, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
-                    <span>BIFI估值：</span>
+                    <span>BTC估值：</span>
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.sell.btcValuation, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
-                    <span>BUSD估值：</span>
+                    <span>USDT估值：</span>
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.sell.usdtValuation, 8) || 0 }}</span>
                 </el-col>
             </el-row>
