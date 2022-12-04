@@ -529,8 +529,8 @@ class Okx extends Base
         //计算购买数量
         $buyNum = $balanceRatioArr[1] * (($usdtValuation - $btcBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
         $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
-        $usdtBuyClinchBalance = $busdBalance - $buyNum; //挂买以后USDT数量 USDT余额 减去 购买busd数量
-        $btcBuyClinchBalance = $bifiBalance + $buyOrdersNumber; //挂买以后BTC数量 BTC余额 加上 购买数量
+        $usdtBuyClinchBalance = $usdtBalance - $buyNum; //挂买以后USDT数量 USDT余额 减去 购买busd数量
+        $btcBuyClinchBalance = $btcBalance + $buyOrdersNumber; //挂买以后BTC数量 BTC余额 加上 购买数量
 
         $result['pendingOrder']['buy']['price'] = $buyingPrice;
         $result['pendingOrder']['buy']['amount'] = $buyOrdersNumber;
