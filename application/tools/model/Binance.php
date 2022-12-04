@@ -405,12 +405,12 @@ class Binance extends Base
                                         $reOrderNum ++;
                                     }
                                 }
-                                
+                                break;
                             }
                         }
                     }
                 }
-                if($isReOrder && $reOrderNum == 2) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
+                if($isReOrder) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
                     echo "开始重新挂单 \r\n";
                     $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
                     if($isPendingOrder) {
@@ -470,9 +470,11 @@ class Binance extends Base
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
             $getLastRes = self::getLastRes(); //获取上次成交价格
+            // $price = (float)$getLastRes['price'];
             $price = (float)$getLastRes['price'];
             $sellPropr = ($changeRatioNum / 2) + ($changeRatioNum / 100); //出售比例
             $buyPropr = ($changeRatioNum / 2) - ($changeRatioNum / 100); //购买比例
+            // echo $buyPropr;die;
             $sellingPrice = $price * $sellPropr; //出售价格
             $buyingPrice = $price * $buyPropr; //购买价格
             $bifiBalance = $tradeValuation['bifiBalance']; //BIFI余额
@@ -481,15 +483,15 @@ class Binance extends Base
             $bifiSellValuation = $sellingPrice * $bifiBalance; //BIFI 出售估值
             $bifiBuyValuation = $buyingPrice * $bifiBalance; //BIFI 购买估值
             $busdValuation = $tradeValuation['busdValuation'];
-            // p($buyingPrice);
+            
             $clientBuyOrderId = 'Zx1'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
             $clientSellOrderId = 'Zx2'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
             echo "购买订单号：" . $clientBuyOrderId . "\r\n";
             echo "出售订单号：" . $clientSellOrderId . "\r\n";
             //挂单 购买
-            // echo "BIFI余额:" . $bifiBalance . "BUSD余额:" . $busdBalance . "\r\n";
-            // p($bifiBuyValuation);     
-
+            echo "BIFI估值:" . $bifiBuyValuation . "BUSD估值:" . $busdValuation . "\r\n";
+            // p($bifiBuyValuation);  
+            
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
             // p($buyOrdersNumber);
@@ -497,7 +499,8 @@ class Binance extends Base
             //挂单 出售
             $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $sellOrdersNumber = $sellNum / $sellingPrice;
-
+            // p($sellOrdersNumber);
+            
             $busdBuyClinchBalance = $busdBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
             $bifiBuyClinchBalance = $bifiBalance + $buyOrdersNumber; //挂买以后BIFI数量 BIFI余额 加上 购买数量
             $busdSellClinchBalance = $busdBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
@@ -506,18 +509,6 @@ class Binance extends Base
             $buyOrderDetailsArr = [];
             $sellOrderDetailsArr = [];
             if($bifiValuation > $busdValuation) { //BIFI的估值超过BUSD时候，出售 BIFI换成BUSDT
-                $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
-                if($buyOrderDetails['info']) { //如果挂单购买成功
-                    echo "挂单购买成功" . "\r\n";
-                    $buyOrderDetailsArr = $buyOrderDetails['info'];
-                    $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
-                    if($sellOrderDetails['info']) { //如果挂单出售成功
-                        echo "挂单出售成功" . "\r\n";
-                        $sellOrderDetailsArr = $sellOrderDetails['info'];
-                    }
-                }
-            }
-            if($bifiValuation < $busdValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
                 $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
                 if($sellOrderDetails['info']) { //如果挂单出售成功
                     echo "挂单出售成功" . "\r\n";
@@ -526,6 +517,18 @@ class Binance extends Base
                     if($buyOrderDetails['info']) { //如果挂单购买成功
                         echo "挂单购买成功" . "\r\n";
                         $buyOrderDetailsArr = $buyOrderDetails['info'];
+                    }
+                }
+            }
+            if($bifiValuation < $busdValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
+                $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
+                if($buyOrderDetails['info']) { //如果挂单购买成功
+                    echo "挂单购买成功" . "\r\n";
+                    $buyOrderDetailsArr = $buyOrderDetails['info'];
+                    $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
+                    if($sellOrderDetails['info']) { //如果挂单出售成功
+                        echo "挂单出售成功" . "\r\n";
+                        $sellOrderDetailsArr = $sellOrderDetails['info'];
                     }
                 }
             }
@@ -578,9 +581,9 @@ class Binance extends Base
      * @since 2022-11-26
      */
     public static function cancelOrder() {
-        $orderDetail = self::fetchTradeOrder('', "Zx22022120154545299", 'BIFI/BUSD'); //查询订单
+        $orderDetail = self::fetchTradeOrder('', "Zx12022120599575299", 'BIFI/BUSD'); //查询订单
         p($orderDetail);
-        $orderDetail = self::fetchCancelOrder('', "Zx12022113049494810", 'BIFI/BUSD'); //撤销订单 status：已取消：CANCELED 未取消：NEW
+        $orderDetail = self::fetchCancelOrder('', "Zx22022120599575299", 'BIFI/BUSD'); //撤销订单 status：已取消：CANCELED 未取消：NEW
         return;
     }
     
