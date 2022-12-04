@@ -49,11 +49,11 @@
         <el-row>
             <el-col :span="12">
                 <span>默认比例:</span>
-                <span>{{ detailData.defaultRatio }}</span>
+                <span>{{ detailData.defaultRatio }}%</span>
             </el-col>
             <el-col :span="12">
                 <span>涨跌比例:</span>
-                <span>{{ detailData.changeRatio }}</span>
+                <span>{{ detailData.changeRatio }}%</span>
             </el-col>
         </el-row>
         <el-row>

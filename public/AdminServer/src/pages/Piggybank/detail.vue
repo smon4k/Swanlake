@@ -49,11 +49,11 @@
         <el-row>
             <el-col :span="12">
                 <span>默认比例:</span>
-                <span>{{ detailData.defaultRatio }}</span>
+                <span>{{ detailData.defaultRatio }}%</span>
             </el-col>
             <el-col :span="12">
                 <span>涨跌比例:</span>
-                <span>{{ detailData.changeRatio }}</span>
+                <span>{{ detailData.changeRatio }}%</span>
             </el-col>
         </el-row>
         <el-row>
@@ -85,15 +85,15 @@
                 </el-col>
                 <el-col :span="6">
                     <span>买入数量：</span>
-                    <span>{{ detailData.pendingOrder.buy.amount || 0 }}</span>
+                    <span>{{ keepDecimalNotRounding(detailData.pendingOrder.buy.amount, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
                     <span>BIFI估值：</span>
-                    <span>{{ detailData.pendingOrder.buy.btcValuation || 0 }}</span>
+                    <span>{{ keepDecimalNotRounding(detailData.pendingOrder.buy.btcValuation, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
                     <span>BUSD估值：</span>
-                    <span>{{ detailData.pendingOrder.buy.usdtValuation || 0 }}</span>
+                    <span>{{ keepDecimalNotRounding(detailData.pendingOrder.buy.usdtValuation, 8) || 0 }}</span>
                 </el-col>
             </el-row>
             <el-row>
@@ -103,15 +103,15 @@
                 </el-col>
                 <el-col :span="6">
                     <span>卖出数量：</span>
-                    <span>{{ detailData.pendingOrder.sell.amount || 0 }}</span>
+                    <span>{{ keepDecimalNotRounding(detailData.pendingOrder.sell.amount, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
                     <span>BIFI估值：</span>
-                    <span>{{ detailData.pendingOrder.sell.btcValuation || 0 }}</span>
+                    <span>{{ keepDecimalNotRounding(detailData.pendingOrder.sell.btcValuation, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
                     <span>BUSD估值：</span>
-                    <span>{{ detailData.pendingOrder.sell.usdtValuation || 0 }}</span>
+                    <span>{{ keepDecimalNotRounding(detailData.pendingOrder.sell.usdtValuation, 8) || 0 }}</span>
                 </el-col>
             </el-row>
         </div>
