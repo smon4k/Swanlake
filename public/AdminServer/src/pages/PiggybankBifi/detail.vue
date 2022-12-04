@@ -106,11 +106,11 @@
                     <span>{{ detailData.pendingOrder.sell.amount || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
-                    <span>BIFI估值：</span>
+                    <span>BTC估值：</span>
                     <span>{{ detailData.pendingOrder.sell.bifiValuation || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
-                    <span>BUSD估值：</span>
+                    <span>USDT估值：</span>
                     <span>{{ detailData.pendingOrder.sell.busdValuation || 0 }}</span>
                 </el-col>
             </el-row>
