@@ -89,11 +89,11 @@
                 </el-col>
                 <el-col :span="6">
                     <span>BIFI估值：</span>
-                    <span>{{ detailData.pendingOrder.buy.bifiValuation || 0 }}</span>
+                    <span>{{ detailData.pendingOrder.buy.btcValuation || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
                     <span>BUSD估值：</span>
-                    <span>{{ detailData.pendingOrder.buy.busdValuation || 0 }}</span>
+                    <span>{{ detailData.pendingOrder.buy.usdtValuation || 0 }}</span>
                 </el-col>
             </el-row>
             <el-row>
@@ -107,11 +107,11 @@
                 </el-col>
                 <el-col :span="6">
                     <span>BIFI估值：</span>
-                    <span>{{ detailData.pendingOrder.sell.bifiValuation || 0 }}</span>
+                    <span>{{ detailData.pendingOrder.sell.btcValuation || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
                     <span>BUSD估值：</span>
-                    <span>{{ detailData.pendingOrder.sell.busdValuation || 0 }}</span>
+                    <span>{{ detailData.pendingOrder.sell.usdtValuation || 0 }}</span>
                 </el-col>
             </el-row>
         </div>
