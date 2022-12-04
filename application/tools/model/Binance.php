@@ -405,6 +405,7 @@ class Binance extends Base
                                         $reOrderNum ++;
                                     }
                                 }
+                                
                             }
                         }
                     }
@@ -476,6 +477,7 @@ class Binance extends Base
             $buyingPrice = $price * $buyPropr; //购买价格
             $bifiBalance = $tradeValuation['bifiBalance']; //BIFI余额
             $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
+            $bifiValuation = $tradeValuation['bifiValuation'];
             $bifiSellValuation = $sellingPrice * $bifiBalance; //BIFI 出售估值
             $bifiBuyValuation = $buyingPrice * $bifiBalance; //BIFI 购买估值
             $busdValuation = $tradeValuation['busdValuation'];
@@ -486,74 +488,83 @@ class Binance extends Base
             echo "出售订单号：" . $clientSellOrderId . "\r\n";
             //挂单 购买
             // echo "BIFI余额:" . $bifiBalance . "BUSD余额:" . $busdBalance . "\r\n";
-            // p($bifiBuyValuation);        
+            // p($bifiBuyValuation);     
+
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
             // p($buyOrdersNumber);
 
+            //挂单 出售
+            $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+            $sellOrdersNumber = $sellNum / $sellingPrice;
+
             $busdBuyClinchBalance = $busdBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
             $bifiBuyClinchBalance = $bifiBalance + $buyOrdersNumber; //挂买以后BIFI数量 BIFI余额 加上 购买数量
-            // echo $buyingPrice;die;
-            $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
-            // p($buyOrderDetails);
-            if($buyOrderDetails['info']) { //如果挂单购买成功
-                echo "挂单购买成功" . "\r\n";
-                $buyOrderDetailsArr = $buyOrderDetails['info'];
-                //挂单 出售
-                $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-                $sellOrdersNumber = $sellNum / $sellingPrice;
+            $busdSellClinchBalance = $busdBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
+            $bifiSellClinchBalance = $bifiBalance - $sellOrdersNumber; //挂卖以后BIFI数量 BIFI余额 减去 出售数量
 
-                // $newBalanceDetails = self::getTradePairBalance($transactionCurrency); //获取最新余额
-                $busdSellClinchBalance = $busdBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
-                $bifiSellClinchBalance = $bifiBalance - $sellOrdersNumber; //挂卖以后BIFI数量 BIFI余额 减去 出售数量
-                // p($sellOrdersNumber);
+            $buyOrderDetailsArr = [];
+            $sellOrderDetailsArr = [];
+            if($bifiValuation > $busdValuation) { //BIFI的估值超过BUSD时候，出售 BIFI换成BUSDT
+                $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
+                if($buyOrderDetails['info']) { //如果挂单购买成功
+                    echo "挂单购买成功" . "\r\n";
+                    $buyOrderDetailsArr = $buyOrderDetails['info'];
+                    $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
+                    if($sellOrderDetails['info']) { //如果挂单出售成功
+                        echo "挂单出售成功" . "\r\n";
+                        $sellOrderDetailsArr = $sellOrderDetails['info'];
+                    }
+                }
+            }
+            if($bifiValuation < $busdValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
                 $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
                 if($sellOrderDetails['info']) { //如果挂单出售成功
                     echo "挂单出售成功" . "\r\n";
-                    $newBalanceDetailsInfo = self::getTradePairBalance($transactionCurrency); //获取最新余额
                     $sellOrderDetailsArr = $sellOrderDetails['info'];
-                    $isSetBuyRes = self::setPiggybankPendordData(
+                    $buyOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'BUY', $buyOrdersNumber, $buyingPrice, ['newClientOrderId' => $clientBuyOrderId]);
+                    if($buyOrderDetails['info']) { //如果挂单购买成功
+                        echo "挂单购买成功" . "\r\n";
+                        $buyOrderDetailsArr = $buyOrderDetails['info'];
+                    }
+                }
+            }
+            if($buyOrderDetailsArr && $sellOrderDetailsArr && count((array)$buyOrderDetailsArr) > 0 && count((array)$sellOrderDetailsArr) > 0) {
+                $newBalanceDetailsInfo = self::getTradePairBalance($transactionCurrency); //获取最新余额
+                $isSetBuyRes = self::setPiggybankPendordData(
+                    $order_symbol, 
+                    $transactionCurrency, 
+                    $buyOrderDetailsArr['orderId'], 
+                    $buyOrderDetailsArr['clientOrderId'], 
+                    1, 
+                    'LIMIT', 
+                    $buyOrderDetailsArr['origQty'], 
+                    $buyOrderDetailsArr['price'], 
+                    $newBalanceDetailsInfo['bifiBalance'],
+                    $newBalanceDetailsInfo['busdBalance'], 
+                    $bifiBuyClinchBalance,
+                    $busdBuyClinchBalance
+                ); //记录挂单购买订单数据
+                if($isSetBuyRes) {
+                    echo "挂单购买记录数据库成功" . "\r\n";
+                    // //挂单 出售
+                    $isSetSellRes = self::setPiggybankPendordData(
                         $order_symbol, 
                         $transactionCurrency, 
-                        $buyOrderDetailsArr['orderId'], 
-                        $buyOrderDetailsArr['clientOrderId'], 
-                        1, 
+                        $sellOrderDetailsArr['orderId'], 
+                        $sellOrderDetailsArr['clientOrderId'], 
+                        2, 
                         'LIMIT', 
-                        $buyOrderDetailsArr['origQty'], 
-                        $buyOrderDetailsArr['price'], 
+                        $sellOrderDetailsArr['origQty'], 
+                        $sellOrderDetailsArr['price'], 
                         $newBalanceDetailsInfo['bifiBalance'],
                         $newBalanceDetailsInfo['busdBalance'], 
-                        $bifiBuyClinchBalance,
-                        $busdBuyClinchBalance
-                    ); //记录挂单购买订单数据
-                    if($isSetBuyRes) {
-                        echo "挂单购买记录数据库成功" . "\r\n";
-                        // //挂单 出售
-                        // $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-                        // $sellOrdersNumber = $sellNum / $sellingPrice;
-                        // $busdSellClinchBalance = $busdBalance - $sellNum;
-                        // $bifiSellClinchBalance = $bifiBalance + $sellOrdersNumber;
-                        // // p($sellOrdersNumber);
-                        // $sellOrderDetails = $exchange->create_order($order_symbol, 'LIMIT', 'SELL', $sellOrdersNumber, $sellingPrice, ['newClientOrderId' => $clientSellOrderId]);
-                        // p($sellOrderDetails);
-                        $isSetSellRes = self::setPiggybankPendordData(
-                            $order_symbol, 
-                            $transactionCurrency, 
-                            $sellOrderDetailsArr['orderId'], 
-                            $sellOrderDetailsArr['clientOrderId'], 
-                            2, 
-                            'LIMIT', 
-                            $sellOrderDetailsArr['origQty'], 
-                            $sellOrderDetailsArr['price'], 
-                            $newBalanceDetailsInfo['bifiBalance'],
-                            $newBalanceDetailsInfo['busdBalance'], 
-                            $bifiSellClinchBalance,
-                            $busdSellClinchBalance
-                        ); //记录挂单出售订单数据
-                        if($isSetSellRes) {
-                            echo "挂单出售记录数据库成功" . "\r\n";
-                            return true;
-                        }
+                        $bifiSellClinchBalance,
+                        $busdSellClinchBalance
+                    ); //记录挂单出售订单数据
+                    if($isSetSellRes) {
+                        echo "挂单出售记录数据库成功" . "\r\n";
+                        return true;
                     }
                 }
             }
