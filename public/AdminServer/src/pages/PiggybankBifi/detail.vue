@@ -49,7 +49,7 @@
         <el-row>
             <el-col :span="12">
                 <span>默认比例:</span>
-                <span v-if="!isDefaultRatio">{{ detailData.defaultRatio }}%</span>
+                <span v-if="!isDefaultRatio">{{ keepDecimalNotRounding(detailData.defaultRatio, 1, true) }}%</span>
                 <el-input v-else v-model="default_ratio" placeholder="请输入涨跌比例" style="width:100px;">
                     <template slot="append">
                         <span>%</span>
