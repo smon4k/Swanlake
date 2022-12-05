@@ -357,6 +357,8 @@ class Binance extends Base
                     $dealPrice = $makeArray['price']; //成交价格
     
                     if($make_side == 1) { //挂买成交的话
+                        $orderAmount = $buyClinchInfo['info']['origQty']; //订单数量
+                        $dealAmount = $buyClinchInfo['info']['executedQty']; //成交数量
                         $setBuyClinchRes = Db::name('binance_piggybank_pendord')->where('id', $buyOrderData['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
                         if($setBuyClinchRes) { //如果修改状态为已成交
                             echo "BUY 已成交，修改挂单状态为已挂单成功 \r\n";
@@ -378,6 +380,8 @@ class Binance extends Base
                             }
                         }
                     } else if($make_side == 2) { //挂卖成交的话
+                        $orderAmount = $sellClinchInfo['info']['origQty']; //订单数量
+                        $dealAmount = $sellClinchInfo['info']['executedQty']; //成交数量
                         $setSellClinchRes = Db::name('binance_piggybank_pendord')->where('id', $sellOrderData['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
                         if($setSellClinchRes) { //如果修改状态为已成交
                             echo "SELL 已成交，修改挂单状态为已挂单成功 \r\n";
