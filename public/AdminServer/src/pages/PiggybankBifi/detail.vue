@@ -87,7 +87,7 @@
             </el-col>
         </el-row>
         <el-divider></el-divider>
-        <!-- <div v-if="Object.keys(detailData.pendingOrder).length">
+        <div v-if="Object.keys(detailData.pendingOrder).length">
             <h3>挂单信息</h3>
             <el-row>
                 <el-col :span="6">
@@ -125,7 +125,7 @@
                     <span>{{ detailData.pendingOrder.sell.busdValuation || 0 }}</span>
                 </el-col>
             </el-row>
-        </div> -->
+        </div>
     </div>
   </div>
 </template>
@@ -142,7 +142,7 @@ export default {
   },
   methods: {
     getListData() { //获取U本位数据
-        // this.loading = true;
+        this.loading = true;
         get("/Admin/Binancepiggybank/testBalancePosition", {}, json => {
             console.log(json);
             if (json.data.code == 10000) {
