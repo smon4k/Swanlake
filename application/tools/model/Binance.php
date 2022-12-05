@@ -263,9 +263,8 @@ class Binance extends Base
         try {
             // $isPendingOrder = self::startPendingOrder($transactionCurrency); //开始挂单
             // exit();
-            $ordersList = self::fetchGetOpenOrder($order_symbol);
-            p($ordersList);
-            $revokeOrder = self::fetchCancelOpenOrder($order_symbol);
+            // $ordersList = self::fetchGetOpenOrder($order_symbol);
+            // p($ordersList);
             $peningOrderList = self::getOpenPeningOrder();
             if($peningOrderList && count((array)$peningOrderList) > 0) {
                 $isReOrder = false; //是否撤单重新挂单
@@ -281,14 +280,8 @@ class Binance extends Base
                     $perDiffRes = ($bifiValuation - $busdValuation) / $busdValuation * 100;
                 }
                 if($perDiffRes > 2) { //如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
-                    $reOrderNum02 = 0;
-                    foreach ($peningOrderList as $key => $val) { //开始撤单买 卖
-                        $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['symbol']);
-                        if($orderCancelRes) {
-                            $reOrderNum02 ++;
-                        }
-                    }
-                    if($reOrderNum02 == 2) { //撤单成功 开始吃单
+                    $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
+                    if($orderCancelRes) { //撤单成功 开始吃单
                         $toEatMeal = self::balancePositionOrder();
                         if($toEatMeal) { //如果吃单成功 重新挂单
                             self::balancePendingOrder();
@@ -311,8 +304,9 @@ class Binance extends Base
                                 echo $side_type . "已成交，修改挂单状态为已挂单成功 \r\n";
                                 //撤销另一个订单
                                 $revokeKey = $key == 0 ? 1 : 0; //撤销订单key值
-                                $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $order_symbol);
-                                if($revokeOrder) { //已撤销
+                                // $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $order_symbol);
+                                $revokeOrder = self::fetchCancelOpenOrder($order_symbol); //撤销当前交易对所有挂单
+                                if($revokeOrder) { //已撤销全部挂单
                                     $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
                                     if($setRevokeRes) {
                                         echo "挂单已撤销 \r\n";
@@ -420,13 +414,16 @@ class Binance extends Base
                     }
                 }
                 if($isReOrder) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
-                    echo "开始重新挂单 \r\n";
-                    $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
-                    if($isPendingOrder) {
-                        echo "已重新挂单 \r\n";
-                        Db::commit();
-                        // self::balancePendingOrder(); //挂完单直接获取是否已成交
-                        return true;
+                    $orderCancelRes = self::fetchCancelOpenOrder($order_symbol); //取消当前订单下所有挂单
+                    if($orderCancelRes) {
+                        echo "开始重新挂单 \r\n";
+                        $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                        if($isPendingOrder) {
+                            echo "已重新挂单 \r\n";
+                            Db::commit();
+                            // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                            return true;
+                        }
                     }
                 }
 
@@ -875,8 +872,8 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";die;
-            return false;        
+            echo $error_msg . "\r\n";
+            return true;        
         }
     }
 
@@ -895,7 +892,7 @@ class Binance extends Base
         ));
         try {
             $tradeOrder = $exchange->cancel_open_order($order_symbol);
-            if($tradeOrder) {
+            if($tradeOrder && isset($tradeOrder['info'])) {
                 return true;
             }
             return false;
@@ -906,8 +903,8 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";die;
-            return false;
+            echo $error_msg . "\r\n";
+            return true;
         }
     }
 

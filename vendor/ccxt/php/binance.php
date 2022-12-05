@@ -2523,7 +2523,7 @@ class binance extends Exchange {
      * @author qinlh
      * @since 2022-12-05
      */
-    public function cancel_open_order($id, $symbol = null, $params = array ()) {
+    public function cancel_open_order($symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' openOrders() requires a $symbol argument');
         }
@@ -2532,7 +2532,7 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
-        $method = 'privateDeleteoOpenOrders';
+        $method = 'privateDeleteOpenOrders';
         if ($type === 'future') {
             $method = 'fapiPrivateDeleteOpenOrders';
         } else if ($type === 'delivery') {
@@ -2540,6 +2540,10 @@ class binance extends Exchange {
         } else if ($type === 'margin') {
             $method = 'sapiDeleteMarginOpenOrders';
         }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $query = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response);
     }
