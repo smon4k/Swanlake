@@ -230,9 +230,15 @@ class Binance extends Base
             }
             return false;
         } catch (\Exception $e) {
-            p($e);
             Db::rollback();
-            return array(0, $e->getMessage());
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";die;
+            return false;
         }
     }
 
@@ -440,8 +446,14 @@ class Binance extends Base
             return false;
         } catch (\Exception $e) {
             Db::rollback();
-            p($e);
-            return array(0, $e->getMessage());
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";die;
+            return false;
         }
     }
 
@@ -796,7 +808,14 @@ class Binance extends Base
             self::setCache($cache_params, $dataJson);
             return $returnArray;
         } catch (\Exception $e) {
-            return array(0, $e->getMessage());
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";die;
+            return false;
         }
     }
 
@@ -818,7 +837,14 @@ class Binance extends Base
             $tradeOrder = $exchange->fetch_order($order_id, $order_symbol, ['origClientOrderId' => $order_number]);
             return $tradeOrder;
         } catch (\Exception $e) {
-            return array(0, $e->getMessage());
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";die;
+            return false;
         }
     }
     
@@ -842,7 +868,14 @@ class Binance extends Base
             }
             return false;
         } catch (\Exception $e) {
-            return array(0, $e->getMessage());
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";die;
+            return false;        
         }
     }
 
@@ -866,7 +899,14 @@ class Binance extends Base
             }
             return false;
         } catch (\Exception $e) {
-            return array(0, $e->getMessage());
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";die;
+            return false;
         }
     }
 
@@ -897,8 +937,14 @@ class Binance extends Base
             self::setCache($cache_params, $dataJson);
             return $marketIndexPrice;
         } catch (\Exception $e) {
-            // p($e);
-            return array(0, $e->getMessage());
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";die;
+            return false;
         }
     }
 
