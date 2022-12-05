@@ -298,6 +298,7 @@ class Binance extends Base
                 if($perDiffRes > 2) { //如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
                     $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
                     if($orderCancelRes) { //撤单成功 开始吃单
+                        Db::commit();
                         $toEatMeal = self::balancePositionOrder();
                         if($toEatMeal) { //如果吃单成功 重新挂单
                             self::balancePendingOrder();
@@ -914,6 +915,12 @@ class Binance extends Base
         try {
             $tradeOrder = $exchange->cancel_open_order($order_symbol);
             if($tradeOrder && isset($tradeOrder['info'])) {
+                $peningOrderList = self::getOpenPeningOrder();
+                if($peningOrderList && count((array)$peningOrderList) > 0) {
+                    foreach ($peningOrderList as $key => $val) {
+                        @Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                    }
+                }
                 return true;
             }
             return false;
