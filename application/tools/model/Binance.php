@@ -282,7 +282,7 @@ class Binance extends Base
             // $ordersList = self::fetchGetOpenOrder($order_symbol);
             // p($ordersList);
             $peningOrderList = self::getOpenPeningOrder();
-            if($peningOrderList && count((array)$peningOrderList) > 0) {
+            if($peningOrderList && count((array)$peningOrderList) == 2) {
                 $isReOrder = false; //是否撤单重新挂单
                 $reOrderNum = 0; //撤单数量
 
@@ -915,12 +915,13 @@ class Binance extends Base
         try {
             $tradeOrder = $exchange->cancel_open_order($order_symbol);
             if($tradeOrder && isset($tradeOrder['info'])) {
-                $peningOrderList = self::getOpenPeningOrder();
-                if($peningOrderList && count((array)$peningOrderList) > 0) {
-                    foreach ($peningOrderList as $key => $val) {
-                        @Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
-                    }
-                }
+                @Db::name('binance_piggybank_pendord')->where('status', 1)->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                // $peningOrderList = self::getOpenPeningOrder();
+                // if($peningOrderList && count((array)$peningOrderList) > 0) {
+                //     foreach ($peningOrderList as $key => $val) {
+                //         @Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                //     }
+                // }
                 return true;
             }
             return false;
