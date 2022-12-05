@@ -413,9 +413,10 @@ class Binance extends Base
                             $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
                             $bifiBalanceNew = $tradeValuationNew['bifiBalance']; //BIFI余额
                             $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
-                            // echo "BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
                             if((float)$val['currency1'] !== $bifiBalanceNew || (float)$val['currency2'] !== $busdBalanceNew) {
-                                echo "价格有变化，撤单重新挂单 \r\n";
+                                echo "余额有变化，撤单重新挂单 \r\n";
+                                echo "变化前 BIFI余额:" . $val['currency1'] . "BUSD余额:" . $val['currency2'] . "\r\n";
+                                echo "最新 BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
                                 $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['symbol']);
                                 if($orderCancelRes) {
                                     $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
@@ -432,10 +433,11 @@ class Binance extends Base
                 if($isReOrder) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
                     $orderCancelRes = self::fetchCancelOpenOrder($order_symbol); //取消当前订单下所有挂单
                     if($orderCancelRes) {
-                        echo "开始重新挂单 \r\n";
-                        $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
-                        if($isPendingOrder) {
-                            echo "已重新挂单 \r\n";
+                        echo "开始重新吃单 \r\n";
+                        // $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                        $isPositionOrder = self::balancePositionOrder(); //开始吃单 平衡
+                        if($isPositionOrder) {
+                            echo "已重新吃单 \r\n";
                             Db::commit();
                             // self::balancePendingOrder(); //挂完单直接获取是否已成交
                             return true;
@@ -615,7 +617,7 @@ class Binance extends Base
      * @since 2022-11-26
      */
     public static function cancelOrder() {
-        $orderDetail = self::fetchTradeOrder('', "Zx12022120599575299", 'BIFI/BUSD'); //查询订单
+        $orderDetail = self::fetchCancelOpenOrder('BIFI/BUSD'); //查询订单
         p($orderDetail);
         $orderDetail = self::fetchCancelOrder('', "Zx22022120599575299", 'BIFI/BUSD'); //撤销订单 status：已取消：CANCELED 未取消：NEW
         return;
