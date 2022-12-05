@@ -428,7 +428,7 @@ class Binance extends Base
                         'td_mode' => 'cross',
                         'base_ccy' => $base_ccy,
                         'quote_ccy' => $quote_ccy,
-                        'type' => $side,
+                        'type' => $make_side,
                         'order_type' => 'LIMIT',
                         'amount' => $orderAmount,
                         'clinch_number' => $dealAmount,
