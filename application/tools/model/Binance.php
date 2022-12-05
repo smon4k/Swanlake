@@ -263,8 +263,9 @@ class Binance extends Base
         try {
             // $isPendingOrder = self::startPendingOrder($transactionCurrency); //开始挂单
             // exit();
+            $ordersList = self::fetchGetOpenOrder($order_symbol);
+            p($ordersList);
             $revokeOrder = self::fetchCancelOpenOrder($order_symbol);
-            p($revokeOrder);
             $peningOrderList = self::getOpenPeningOrder();
             if($peningOrderList && count((array)$peningOrderList) > 0) {
                 $isReOrder = false; //是否撤单重新挂单
@@ -896,6 +897,37 @@ class Binance extends Base
             $tradeOrder = $exchange->cancel_open_order($order_symbol);
             if($tradeOrder) {
                 return true;
+            }
+            return false;
+        } catch (\Exception $e) {
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";die;
+            return false;
+        }
+    }
+
+    /**
+     * 查询单一交易对全部挂单
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function fetchGetOpenOrder($order_symbol='') {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\binance";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+        ));
+        try {
+            $orderList = $exchange->fetch_open_orders($order_symbol);
+            if($orderList) {
+                return $orderList;
             }
             return false;
         } catch (\Exception $e) {
