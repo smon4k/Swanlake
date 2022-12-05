@@ -501,7 +501,7 @@ class Binance extends Base
             echo "购买订单号：" . $clientBuyOrderId . "\r\n";
             echo "出售订单号：" . $clientSellOrderId . "\r\n";
             //挂单 购买
-            echo "BIFI估值:" . $bifiBuyValuation . "BUSD估值:" . $busdValuation . "\r\n";
+            // echo "BIFI估值:" . $bifiBuyValuation . "BUSD估值:" . $busdValuation . "\r\n";
             // p($bifiBuyValuation);  
             
             $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
