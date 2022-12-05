@@ -78,6 +78,7 @@ class Binance extends Base
             // $result = $exchange->create_order($order_symbol, 'market', 'SELL', '0.01', null, ['newClientOrderId' => $clientOrderId]);
             // p($changeRatio);
             if((float)$changeRatio > $changeRatioNum) { //涨跌大于1%
+                echo "涨跌幅度大于".$changeRatioNum."% 开始下单\r\n";
                 // p($busdValuation);
                 //获取最小下单数量
                 $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
@@ -86,14 +87,17 @@ class Binance extends Base
                 $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
                 $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
                 if($bifiValuation > $busdValuation) { //btc的估值超过usdt时候，卖btc换成u
+                    echo "BIFI的估值大于USDT 开始下单出售 \r\n";
                     // $btcSellNum = ($bifiValuation - $busdValuation) / 2;
                     $btcSellNum = $balanceRatioArr[0] * (($bifiValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                     $btcSellOrdersNumber = $btcSellNum / $tradingPrice;
                     // p($btcSellOrdersNumber);
                     if((float)$btcSellOrdersNumber > (float)$minSizeOrderNum) {
+                        echo "下单出售 大于 最小下单量".$minSizeOrderNum." \r\n";
                         $orderDetails = $exchange->create_order($order_symbol, 'market', 'SELL', $btcSellOrdersNumber, null, ['newClientOrderId' => $clientOrderId]);
                         // print_r($orderDetails['info']);
                         if($orderDetails && $orderDetails['info']) {
+                            echo "下单出售成功 \r\n";
                             //获取平衡状态下的USDT估值
                             $order_id = $orderDetails['info']['orderId']; //返回的订单id
                             $clinch_number = $orderDetails['info']['fills'][0] && $orderDetails['info']['fills'][0]['qty'] ? $orderDetails['info']['fills'][0]['qty'] : 0; //最新成交数量
@@ -137,7 +141,9 @@ class Binance extends Base
                             Db::startTrans();
                             $insertId = Db::name('binance_piggybank')->insertGetId($insertOrderData);
                             if ($insertId) {
+                                echo "写入出售下单数据成功 \r\n";
                                 if(isset($pairId) && $pairId > 0) {
+                                    echo "出售下单配对成功 \r\n";
                                     $isPair = Db::name('binance_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
                                     if ($isPair) {
                                         Db::commit();
@@ -152,17 +158,21 @@ class Binance extends Base
                         }
                         return false;
                     } else {
+                        echo "下单出售 小于 最小下单量".$minSizeOrderNum." 停止下单 \r\n";
                         return false;
                     }
                 }
                 if($bifiValuation < $busdValuation) { //btc的估值低于usdt时，买btc，u换成btc
+                    echo "BIFI的估值小于BUSD 开始下单购买 \r\n";
                     // $usdtBuyNum = ($busdValuation - $bifiValuation) / 2;
                     $usdtBuyNum = $balanceRatioArr[1] * (($busdValuation - $bifiValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
                     $usdtSellOrdersNumber = $usdtBuyNum / $tradingPrice;
                     // p($usdtSellOrdersNumber);
                     if($usdtSellOrdersNumber > $minSizeOrderNum) {
+                        echo "下单购买 大于 最小下单量".$minSizeOrderNum." \r\n";
                         $orderDetails = $exchange->create_order($order_symbol, 'market', 'BUY', $usdtSellOrdersNumber, null, ['newClientOrderId' => $clientOrderId]);
                         if($orderDetails && $orderDetails['info']) {
+                            echo "下单购买成功 \r\n";
                             //获取上一次是否成对出现
                             // $orderDetails = $exchange->fetch_trade_order($symbol, $clientOrderId, null); //获取成交数量
                             $order_id = $orderDetails['info']['orderId']; //返回的订单id
@@ -207,9 +217,11 @@ class Binance extends Base
                             Db::startTrans();
                             $insertId = Db::name('binance_piggybank')->insertGetId($insertOrderData);
                             if($insertId) {
+                                echo "写入购买下单数据成功 \r\n";
                                 if (isset($pairId) && $pairId > 0) {
                                     $isPair = Db::name('binance_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
                                     if ($isPair) {
+                                        echo "出售下购买配对成功 \r\n";
                                         Db::commit();
                                         return true;
                                     }
@@ -222,10 +234,12 @@ class Binance extends Base
                         }
                         return false;
                     } else {
+                        echo "下单出售 小于 最小下单量".$minSizeOrderNum." 停止下单 \r\n";
                         return false;
                     }
                 }
             } else {
+                echo "涨跌幅度小于".$changeRatioNum."% 停止下单\r\n";
                 return false;
             }
             return false;
