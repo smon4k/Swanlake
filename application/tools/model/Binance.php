@@ -281,8 +281,8 @@ class Binance extends Base
             // exit();
             // $ordersList = self::fetchGetOpenOrder($order_symbol);
             // p($ordersList);
-            $peningOrderList = self::getOpenPeningOrder();
-            if($peningOrderList && count((array)$peningOrderList) == 2) {
+            $peningOrderList = self::getOpenPeningOrders();
+            if($peningOrderList && count((array)$peningOrderList) > 1) {
                 $isReOrder = false; //是否撤单重新挂单
                 $reOrderNum = 0; //撤单数量
 
@@ -296,162 +296,321 @@ class Binance extends Base
                     $perDiffRes = ($bifiValuation - $busdValuation) / $busdValuation * 100;
                 }
                 if($perDiffRes > 2) { //如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
+                    echo "两个币种估值差大于2% 开始全部撤单 \r\n";
                     $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
                     if($orderCancelRes) { //撤单成功 开始吃单
+                        echo "撤单成功 开始吃单 \r\n";
                         Db::commit();
                         $toEatMeal = self::balancePositionOrder();
                         if($toEatMeal) { //如果吃单成功 重新挂单
+                            echo "吃单成功 重新挂单 \r\n";
                             self::balancePendingOrder();
                         }
                     }
                 }
 
-                foreach ($peningOrderList as $key => $val) {
-                    $isClinchInfo = self::fetchTradeOrder($val['order_id'], $val['order_number'], $order_symbol); //获取订单数据
-                    if($isClinchInfo && isset($isClinchInfo['info'])) {
-                        // p($isClinchInfo['info']);
-                        $orderAmount = $isClinchInfo['info']['origQty']; //订单数量
-                        $dealAmount = $isClinchInfo['info']['executedQty']; //成交数量
-                        $side_type = $isClinchInfo['info']['side']; //订单方向
-                        $minOrderAmount = $orderAmount * 0.5; //最小成交数量
-                        echo $side_type . "订单数量【" . $orderAmount . "】成交数量【". $dealAmount ."】\r\n";
-                        if($dealAmount >= $minOrderAmount) { //如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
-                            $setClinchRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
-                            if($setClinchRes) { //如果修改状态为已成交
-                                echo $side_type . "已成交，修改挂单状态为已挂单成功 \r\n";
-                                //撤销另一个订单
-                                $revokeKey = $key == 0 ? 1 : 0; //撤销订单key值
-                                // $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $order_symbol);
-                                $revokeOrder = self::fetchCancelOpenOrder($order_symbol); //撤销当前交易对所有挂单
-                                if($revokeOrder) { //已撤销全部挂单
-                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
-                                    if($setRevokeRes) {
-                                        echo "挂单已撤销 \r\n";
-                                        //开始记录订单数据
-                                        //获取上一次是否成对出现
-                                        $isPair = false;
-                                        $profit = 0;
-                                        $dealPrice = $val['price']; //成交价格
-                                        $side = $isClinchInfo['info']['side'] === 'BUY' ? 1 : 2; //订单方向
-                                        // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
-                                        if($side == 1) { //购买的话
-                                            $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
-                                            $res = Db::query($sql);
-                                            $pairId = 0;
-                                            if($res && count((array)$res) > 0 && $dealPrice < $res[0]['price']) { //计算利润
-                                                $pairId = $res[0]['id'];
-                                                $isPair = true;
-                                                $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $dealPrice); //卖出的成交数量 * 价差
-                                            }
-                                        } else { //出售的话
-                                            $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=1 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
-                                            $res = Db::query($sql);
-                                            $pairId = 0; //配对ID
-                                            if($res && count((array)$res) > 0 && $dealPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
-                                                $pairId = $res[0]['id'];
-                                                $isPair = true;
-                                                $profit = $dealAmount * ($dealPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
-                                            }
-                                        }
-        
-                                        //获取最小下单数量
-                                        $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
-                                        // p($rubikStatTakerValume);
-                                        $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
-                                        $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
-                                        //开始下单 写入下单表
-                                        $balanceDetails = self::getTradePairBalance($transactionCurrency);
-                                        $insertOrderData = [
-                                            'product_name' => $val['product_name'],
-                                            'order_id' => $val['order_id'],
-                                            'order_number' => $val['order_number'],
-                                            'td_mode' => 'cross',
-                                            'base_ccy' => $base_ccy,
-                                            'quote_ccy' => $quote_ccy,
-                                            'type' => $side,
-                                            'order_type' => 'LIMIT',
-                                            'amount' => $orderAmount,
-                                            'clinch_number' => $dealAmount,
-                                            'price' => $dealPrice,
-                                            'make_deal_price' => $dealPrice,
-                                            'profit' => $profit,
-                                            'currency1' => $balanceDetails['bifiBalance'],
-                                            'currency2' => $balanceDetails['busdBalance'],
-                                            'balanced_valuation' => $balanceDetails['busdBalance'],
-                                            'pair' => $pairId,
-                                            'time' => date('Y-m-d H:i:s'),
-                                        ];
-                                        $insertId = Db::name('binance_piggybank')->insertGetId($insertOrderData);
-                                        if($insertId) {
-                                            echo "记录订单成交数据成功 \r\n";
-                                            if (isset($pairId) && $pairId > 0) {
-                                                $isPair = Db::name('binance_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
-                                                if ($isPair) {
-                                                    $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
-                                                    if($isPendingOrder) {
-                                                        echo "已重新挂单 \r\n";
-                                                        Db::commit();
-                                                        // self::balancePendingOrder(); //挂完单直接获取是否已成交
-                                                        return true;
-                                                    }
-                                                }
-                                            } else {
-                                                $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
-                                                if($isPendingOrder) {
-                                                    echo "已重新挂单 \r\n";
-                                                    Db::commit();
-                                                    // self::balancePendingOrder(); //挂完单直接获取是否已成交
-                                                    return true;
-                                                }
-                                            }
-                                        }
-                                    }
+                $buyOrderData = $peningOrderList['buy']; //购买挂单数据
+                $sellOrderData = $peningOrderList['sell']; //出售挂单数据
+                $makeArray = []; //成交的数据
+
+                $orderAmount = 0;
+                $dealAmount = 0;
+                $side_type = '';
+                $minOrderAmount = 0;
+                $make_side = 0; //成交状态 1：buy 2： sell
+                $dealPrice = 0; //成交均价
+
+                //首先获取挂买信息
+                $buyClinchInfo = self::fetchTradeOrder($buyOrderData['order_id'], $buyOrderData['order_number'], $order_symbol); //获取挂买数据
+                if($buyClinchInfo && isset($buyClinchInfo['info'])) {
+                    $orderAmount = $buyClinchInfo['info']['origQty']; //订单数量
+                    $dealAmount = $buyClinchInfo['info']['executedQty']; //成交数量
+                    $side_type = $buyClinchInfo['info']['side']; //订单方向
+                    $minOrderAmount = $orderAmount * 0.5; //最小成交数量
+                    echo $side_type . "订单数量【" . $orderAmount . "】成交数量【". $dealAmount ."】\r\n";
+                    if($dealAmount >= $minOrderAmount) { //如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
+                        $make_side = 1;
+                        $makeArray = $buyOrderData;
+                    }
+                }  
+                
+                //然后获取挂卖信息
+                $sellClinchInfo = self::fetchTradeOrder($sellOrderData['order_id'], $sellOrderData['order_number'], $order_symbol); //获取挂买数据
+                if($sellClinchInfo && isset($sellClinchInfo['info'])) {
+                    $orderAmount = $sellClinchInfo['info']['origQty']; //订单数量
+                    $dealAmount = $sellClinchInfo['info']['executedQty']; //成交数量
+                    $side_type = $sellClinchInfo['info']['side']; //订单方向
+                    $minOrderAmount = $orderAmount * 0.5; //最小成交数量
+                    echo $side_type . "订单数量【" . $orderAmount . "】成交数量【". $dealAmount ."】\r\n";
+                    if($dealAmount >= $minOrderAmount) { //如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
+                        $make_side = 2;
+                        $makeArray = $sellOrderData;
+                    }
+                }  
+
+                if($make_side > 0) { // 如果有挂单已成交
+                    //开始记录订单数据
+                    //获取上一次是否成对出现
+                    $isPair = false;
+                    $profit = 0;
+                    $pairId = 0; //配对ID
+                    $dealPrice = $makeArray['price']; //成交价格
+    
+                    if($make_side == 1) { //挂买成交的话
+                        $setBuyClinchRes = Db::name('binance_piggybank_pendord')->where('id', $buyOrderData['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
+                        if($setBuyClinchRes) { //如果修改状态为已成交
+                            echo $side_type . "已成交，修改挂单状态为已挂单成功 \r\n";
+                            //撤销所有订单
+                            $revokeOrder = self::fetchCancelOpenOrder($order_symbol); //撤销当前交易对所有挂单
+                            if($revokeOrder) { //已撤销全部挂单
+                                echo "该交易对所有挂单挂单已撤销 \r\n";
+                                $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
+                                $res = Db::query($sql);
+                                if($res && count((array)$res) > 0 && $dealPrice < $res[0]['price']) { //计算利润
+                                    $pairId = $res[0]['id'];
+                                    $isPair = true;
+                                    $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $dealPrice); //卖出的成交数量 * 价差
                                 }
                             }
-                            break;
+                        }
+                    } else if($make_side == 2) { //挂卖成交的话
+                        $setSellClinchRes = Db::name('binance_piggybank_pendord')->where('id', $sellOrderData['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
+                        if($setSellClinchRes) { //如果修改状态为已成交
+                            echo $side_type . "已成交，修改挂单状态为已挂单成功 \r\n";
+                            //撤销所有订单
+                            $revokeOrder = self::fetchCancelOpenOrder($order_symbol); //撤销当前交易对所有挂单
+                            if($revokeOrder) { //已撤销全部挂单
+                                echo "该交易对所有挂单挂单已撤销 \r\n";
+                                $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=1 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
+                                $res = Db::query($sql);
+                                if($res && count((array)$res) > 0 && $dealPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
+                                    $pairId = $res[0]['id'];
+                                    $isPair = true;
+                                    $profit = $dealAmount * ($dealPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
+                                }
+                            }
+                        }
+                    } else { //两笔挂单都没有成交
+                        //检测余额是否变化，如果变化撤单重新下单
+                        $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+                        $bifiBalanceNew = $tradeValuationNew['bifiBalance']; //BIFI余额
+                        $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
+                        if((float)$buyOrderData['currency1'] !== $bifiBalanceNew || (float)$buyOrderData['currency2'] !== $busdBalanceNew) {
+                            echo "余额有变化，撤单重新挂单 \r\n";
+                            echo "变化前 BIFI余额:" . $buyOrderData['currency1'] . "BUSD余额:" . $buyOrderData['currency2'] . "\r\n";
+                            echo "最新 BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
+                            $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
+                            if($orderCancelRes) {
+                                echo "开始重新吃单模式 \r\n";
+                                // $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                                $isPositionOrder = self::balancePositionOrder(); //开始吃单 平衡
+                                if($isPositionOrder) {
+                                    echo "已重新吃单 \r\n";
+                                    Db::commit();
+                                    // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+    
+                    //获取最小下单数量
+                    $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
+                    // p($rubikStatTakerValume);
+                    $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
+                    $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
+                    //开始下单 写入下单表
+                    $balanceDetails = self::getTradePairBalance($transactionCurrency);
+                    $insertOrderData = [
+                        'product_name' => $makeArray['product_name'],
+                        'order_id' => $makeArray['order_id'],
+                        'order_number' => $makeArray['order_number'],
+                        'td_mode' => 'cross',
+                        'base_ccy' => $base_ccy,
+                        'quote_ccy' => $quote_ccy,
+                        'type' => $side,
+                        'order_type' => 'LIMIT',
+                        'amount' => $orderAmount,
+                        'clinch_number' => $dealAmount,
+                        'price' => $dealPrice,
+                        'make_deal_price' => $dealPrice,
+                        'profit' => $profit,
+                        'currency1' => $balanceDetails['bifiBalance'],
+                        'currency2' => $balanceDetails['busdBalance'],
+                        'balanced_valuation' => $balanceDetails['busdBalance'],
+                        'pair' => $pairId,
+                        'time' => date('Y-m-d H:i:s'),
+                    ];
+                    $insertId = Db::name('binance_piggybank')->insertGetId($insertOrderData);
+                    if($insertId) {
+                        echo "记录订单成交数据成功 \r\n";
+                        if (isset($pairId) && $pairId > 0) {
+                            $isPair = Db::name('binance_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
+                            if ($isPair) {
+                                $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                                if($isPendingOrder) {
+                                    echo "已重新挂单 \r\n";
+                                    Db::commit();
+                                    // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                                    return true;
+                                }
+                            }
                         } else {
-                            //检测余额是否变化，如果变化撤单重新下单
-                            $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
-                            $bifiBalanceNew = $tradeValuationNew['bifiBalance']; //BIFI余额
-                            $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
-                            if((float)$val['currency1'] !== $bifiBalanceNew || (float)$val['currency2'] !== $busdBalanceNew) {
-                                echo "余额有变化，撤单重新挂单 \r\n";
-                                echo "变化前 BIFI余额:" . $val['currency1'] . "BUSD余额:" . $val['currency2'] . "\r\n";
-                                echo "最新 BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
-                                $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['symbol']);
-                                if($orderCancelRes) {
-                                    $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
-                                    if($setRevokeRes) {
-                                        $isReOrder = true;
-                                        $reOrderNum ++;
-                                    }
-                                }
-                                break;
+                            $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                            if($isPendingOrder) {
+                                echo "已重新挂单 \r\n";
+                                Db::commit();
+                                // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                                return true;
                             }
                         }
                     }
-                }
-                if($isReOrder) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
-                    $orderCancelRes = self::fetchCancelOpenOrder($order_symbol); //取消当前订单下所有挂单
-                    if($orderCancelRes) {
-                        echo "开始重新吃单 \r\n";
-                        // $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
-                        $isPositionOrder = self::balancePositionOrder(); //开始吃单 平衡
-                        if($isPositionOrder) {
-                            echo "已重新吃单 \r\n";
-                            Db::commit();
-                            // self::balancePendingOrder(); //挂完单直接获取是否已成交
-                            return true;
-                        }
-                    }
+                } else {
+                    echo "挂单进行中 \r\n";
                 }
 
+
+                // foreach ($peningOrderList as $key => $val) {
+                //     $isClinchInfo = self::fetchTradeOrder($val['order_id'], $val['order_number'], $order_symbol); //获取订单数据
+                //     if($isClinchInfo && isset($isClinchInfo['info'])) {
+                //         // p($isClinchInfo['info']);
+                //         $orderAmount = $isClinchInfo['info']['origQty']; //订单数量
+                //         $dealAmount = $isClinchInfo['info']['executedQty']; //成交数量
+                //         $side_type = $isClinchInfo['info']['side']; //订单方向
+                //         $minOrderAmount = $orderAmount * 0.5; //最小成交数量
+                //         echo $side_type . "订单数量【" . $orderAmount . "】成交数量【". $dealAmount ."】\r\n";
+                //         if($dealAmount >= $minOrderAmount) { //如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
+                //             $setClinchRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
+                //             if($setClinchRes) { //如果修改状态为已成交
+                //                 echo $side_type . "已成交，修改挂单状态为已挂单成功 \r\n";
+                //                 //撤销另一个订单
+                //                 $revokeKey = $key == 0 ? 1 : 0; //撤销订单key值
+                //                 // $revokeOrder = self::fetchCancelOrder($peningOrderList[$revokeKey]['order_id'], $peningOrderList[$revokeKey]['order_number'], $order_symbol);
+                //                 $revokeOrder = self::fetchCancelOpenOrder($order_symbol); //撤销当前交易对所有挂单
+                //                 if($revokeOrder) { //已撤销全部挂单
+                //                     $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $peningOrderList[$revokeKey]['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                //                     if($setRevokeRes) {
+                //                         echo "挂单已撤销 \r\n";
+                //                         //开始记录订单数据
+                //                         //获取上一次是否成对出现
+                //                         $isPair = false;
+                //                         $profit = 0;
+                //                         $dealPrice = $val['price']; //成交价格
+                //                         $side = $isClinchInfo['info']['side'] === 'BUY' ? 1 : 2; //订单方向
+                //                         // $res = Db::name('okx_piggybank')->order('id desc')->limit(1)->find();
+                //                         if($side == 1) { //购买的话
+                //                             $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
+                //                             $res = Db::query($sql);
+                //                             $pairId = 0;
+                //                             if($res && count((array)$res) > 0 && $dealPrice < $res[0]['price']) { //计算利润
+                //                                 $pairId = $res[0]['id'];
+                //                                 $isPair = true;
+                //                                 $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $dealPrice); //卖出的成交数量 * 价差
+                //                             }
+                //                         } else { //出售的话
+                //                             $sql = "SELECT id,price,clinch_number FROM s_binance_piggybank WHERE `type`=1 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
+                //                             $res = Db::query($sql);
+                //                             $pairId = 0; //配对ID
+                //                             if($res && count((array)$res) > 0 && $dealPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
+                //                                 $pairId = $res[0]['id'];
+                //                                 $isPair = true;
+                //                                 $profit = $dealAmount * ($dealPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
+                //                             }
+                //                         }
+        
+                //                         //获取最小下单数量
+                //                         $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
+                //                         // p($rubikStatTakerValume);
+                //                         $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
+                //                         $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
+                //                         //开始下单 写入下单表
+                //                         $balanceDetails = self::getTradePairBalance($transactionCurrency);
+                //                         $insertOrderData = [
+                //                             'product_name' => $val['product_name'],
+                //                             'order_id' => $val['order_id'],
+                //                             'order_number' => $val['order_number'],
+                //                             'td_mode' => 'cross',
+                //                             'base_ccy' => $base_ccy,
+                //                             'quote_ccy' => $quote_ccy,
+                //                             'type' => $side,
+                //                             'order_type' => 'LIMIT',
+                //                             'amount' => $orderAmount,
+                //                             'clinch_number' => $dealAmount,
+                //                             'price' => $dealPrice,
+                //                             'make_deal_price' => $dealPrice,
+                //                             'profit' => $profit,
+                //                             'currency1' => $balanceDetails['bifiBalance'],
+                //                             'currency2' => $balanceDetails['busdBalance'],
+                //                             'balanced_valuation' => $balanceDetails['busdBalance'],
+                //                             'pair' => $pairId,
+                //                             'time' => date('Y-m-d H:i:s'),
+                //                         ];
+                //                         $insertId = Db::name('binance_piggybank')->insertGetId($insertOrderData);
+                //                         if($insertId) {
+                //                             echo "记录订单成交数据成功 \r\n";
+                //                             if (isset($pairId) && $pairId > 0) {
+                //                                 $isPair = Db::name('binance_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
+                //                                 if ($isPair) {
+                //                                     $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                //                                     if($isPendingOrder) {
+                //                                         echo "已重新挂单 \r\n";
+                //                                         Db::commit();
+                //                                         // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                //                                         return true;
+                //                                     }
+                //                                 }
+                //                             } else {
+                //                                 $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                //                                 if($isPendingOrder) {
+                //                                     echo "已重新挂单 \r\n";
+                //                                     Db::commit();
+                //                                     // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                //                                     return true;
+                //                                 }
+                //                             }
+                //                         }
+                //                     }
+                //                 }
+                //             }
+                //             break;
+                //         } else {
+                //             //检测余额是否变化，如果变化撤单重新下单
+                //             $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+                //             $bifiBalanceNew = $tradeValuationNew['bifiBalance']; //BIFI余额
+                //             $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
+                //             if((float)$val['currency1'] !== $bifiBalanceNew || (float)$val['currency2'] !== $busdBalanceNew) {
+                //                 echo "余额有变化，撤单重新挂单 \r\n";
+                //                 echo "变化前 BIFI余额:" . $val['currency1'] . "BUSD余额:" . $val['currency2'] . "\r\n";
+                //                 echo "最新 BIFI余额:" . $bifiBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
+                //                 $orderCancelRes = self::fetchCancelOrder($val['order_id'], $val['order_number'], $val['symbol']);
+                //                 if($orderCancelRes) {
+                //                     $setRevokeRes = Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                //                     if($setRevokeRes) {
+                //                         $isReOrder = true;
+                //                         $reOrderNum ++;
+                //                     }
+                //                 }
+                //                 break;
+                //             }
+                //         }
+                //     }
+                // }
+                // if($isReOrder) { // 如果币种余额有变化 两个单已经全部撤单成功 重新挂单 
+                //     $orderCancelRes = self::fetchCancelOpenOrder($order_symbol); //取消当前订单下所有挂单
+                //     if($orderCancelRes) {
+                //         echo "开始重新吃单 \r\n";
+                //         // $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                //         $isPositionOrder = self::balancePositionOrder(); //开始吃单 平衡
+                //         if($isPositionOrder) {
+                //             echo "已重新吃单 \r\n";
+                //             Db::commit();
+                //             // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                //             return true;
+                //         }
+                //     }
+                // }
+
             } else { //开始挂单
-                // $orderDetail = self::fetchTradeOrder('108228005', "Zx12022112649509949", $order_symbol); //查询订单
-                // p($orderDetail);
-                // $orderDetail = self::fetchCancelOrder('108228005', "Zx12022112649509949", $order_symbol); //撤销订单 status：已取消：CANCELED 未取消：NEW
-                // p($orderDetail);
-                
                 $isPendingOrder = self::startPendingOrder($transactionCurrency); //开始挂单
                 if($isPendingOrder) {
                     Db::commit();
@@ -915,7 +1074,8 @@ class Binance extends Base
         try {
             $tradeOrder = $exchange->cancel_open_order($order_symbol);
             if($tradeOrder && isset($tradeOrder['info'])) {
-                @Db::name('binance_piggybank_pendord')->where('status', 1)->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                echo "修改挂单表 撤销全部挂单商品\r\n";
+                self::setRevokePendingOrder();
                 // $peningOrderList = self::getOpenPeningOrder();
                 // if($peningOrderList && count((array)$peningOrderList) > 0) {
                 //     foreach ($peningOrderList as $key => $val) {
@@ -932,9 +1092,26 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";
+            if($e->getCode() == '-2011') {
+                echo "修改挂单表 撤销全部挂单商品\r\n";
+                self::setRevokePendingOrder();
+            }
+            // echo $error_msg . "\r\n";
             return true;
         }
+    }
+
+    /**
+     * 撤销全部挂单商品
+     * @author qinlh
+     * @since 2022-12-05
+     */
+    public static function setRevokePendingOrder() {
+        $res = self::name('binance_piggybank_pendord')->where('status', 1)->find();
+        if($res && count((array)$res) > 0) {
+            @Db::name('binance_piggybank_pendord')->where('status', 1)->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+        }
+        return true;
     }
 
     /**
@@ -1064,6 +1241,29 @@ class Binance extends Base
         $data = Db::name('binance_piggybank_pendord')->where('status', 1)->order('id desc, time desc')->limit(2)->select();
         if($data && count((array)$data) > 0) {
             return $data;
+        }
+        return [];
+    }
+
+    /**
+     * 获取当前挂单数据 分开获取
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function getOpenPeningOrders() {
+        $data = Db::name('binance_piggybank_pendord')->where('status', 1)->order('id desc, time desc')->limit(2)->select();
+        if($data && count((array)$data) > 0) {
+            $buyArray = [];
+            $sellArray = [];
+            foreach ($data as $key => $val) {
+                if($val['type'] == 1) {
+                    $buyArray = $val;
+                }
+                if($val['type'] == 2) {
+                    $sellArray = $val;
+                }
+            }
+            return ['buy' => $buyArray, 'sell' => $sellArray];
         }
         return [];
     }
