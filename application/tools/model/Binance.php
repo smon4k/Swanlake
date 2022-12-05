@@ -257,6 +257,8 @@ class Binance extends Base
         try {
             // $isPendingOrder = self::startPendingOrder($transactionCurrency); //开始挂单
             // exit();
+            $revokeOrder = self::fetchCancelOpenOrder($order_symbol);
+            p($revokeOrder);
             $peningOrderList = self::getOpenPeningOrder();
             if($peningOrderList && count((array)$peningOrderList) > 0) {
                 $isReOrder = false; //是否撤单重新挂单
@@ -501,6 +503,11 @@ class Binance extends Base
             $sellOrdersNumber = $sellNum / $sellingPrice;
             // p($sellOrdersNumber);
             
+            if((float)$buyOrdersNumber < 0 || (float)$sellOrdersNumber < 0) {
+                echo "购买出售出现负数，开始吃单 \r\n";
+                self::balancePositionOrder();
+            }
+
             $busdBuyClinchBalance = $busdBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
             $bifiBuyClinchBalance = $bifiBalance + $buyOrdersNumber; //挂买以后BIFI数量 BIFI余额 加上 购买数量
             $busdSellClinchBalance = $busdBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
@@ -831,6 +838,30 @@ class Binance extends Base
         try {
             $tradeOrder = $exchange->cancel_order($order_id, $order_symbol, ['origClientOrderId' => $order_number]);
             if($tradeOrder && isset($tradeOrder['info']) && $tradeOrder['info']['status'] === 'CANCELED') {
+                return true;
+            }
+            return false;
+        } catch (\Exception $e) {
+            return array(0, $e->getMessage());
+        }
+    }
+
+    /**
+     * 撤销单一交易对全部挂单
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function fetchCancelOpenOrder($order_symbol='') {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\binance";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+        ));
+        try {
+            $tradeOrder = $exchange->cancel_open_order($order_symbol);
+            if($tradeOrder) {
                 return true;
             }
             return false;

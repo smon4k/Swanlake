@@ -2518,6 +2518,32 @@ class binance extends Exchange {
         return $this->parse_order($response);
     }
 
+    /**
+     * 撤销单一交易对所有挂单
+     * @author qinlh
+     * @since 2022-12-05
+     */
+    public function cancel_open_order($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' openOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        // https://github.com/ccxt/ccxt/issues/6507
+        $method = 'privateDeleteoOpenOrders';
+        if ($type === 'future') {
+            $method = 'fapiPrivateDeleteOpenOrders';
+        } else if ($type === 'delivery') {
+            $method = 'dapiPrivateDeleteOpenOrders';
+        } else if ($type === 'margin') {
+            $method = 'sapiDeleteMarginOpenOrders';
+        }
+        $response = $this->$method (array_merge($request, $query));
+        return $this->parse_order($response);
+    }
+
     public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
