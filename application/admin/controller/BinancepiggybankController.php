@@ -56,7 +56,7 @@ class BinancepiggybankController extends BaseController
         $order_number = $request->request('order_number', '', 'trim');
         // $standard = $request->request('standard', 0, 'intval');
         $where = [];
-        // $where['standard'] = $standard;
+        $where['state'] = 1;
         $data = BinancePiggybank::getPiggybankDateList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
