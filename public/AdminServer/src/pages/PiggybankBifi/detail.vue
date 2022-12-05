@@ -49,7 +49,18 @@
         <el-row>
             <el-col :span="12">
                 <span>默认比例:</span>
-                <span>{{ detailData.defaultRatio }}%</span>
+                <span v-if="!isDefaultRatio">{{ detailData.defaultRatio }}%</span>
+                <el-input v-else v-model="default_ratio" placeholder="请输入涨跌比例" style="width:100px;">
+                    <template slot="append">
+                        <span>%</span>
+                    </template>
+                </el-input>
+
+                <el-link v-if="!isDefaultRatio" type="primary" @click="isDefaultRatio = true">修改</el-link>
+                <span v-else>
+                    <el-link type="primary" @click="saveDefaultRatio">保存</el-link>
+                    <el-link type="primary" @click="isDefaultRatio = false">取消</el-link>
+                </span>
             </el-col>
             <el-col :span="12">
                 <span>涨跌比例:</span>
@@ -76,7 +87,7 @@
             </el-col>
         </el-row>
         <el-divider></el-divider>
-        <div v-if="Object.keys(detailData.pendingOrder).length">
+        <!-- <div v-if="Object.keys(detailData.pendingOrder).length">
             <h3>挂单信息</h3>
             <el-row>
                 <el-col :span="6">
@@ -114,7 +125,7 @@
                     <span>{{ detailData.pendingOrder.sell.busdValuation || 0 }}</span>
                 </el-col>
             </el-row>
-        </div>
+        </div> -->
     </div>
   </div>
 </template>
@@ -125,22 +136,38 @@ export default {
     return {
         detailData: {},
         loading: true,
+        default_ratio: 0,
+        isDefaultRatio: false,
     };
   },
   methods: {
     getListData() { //获取U本位数据
-        this.loading = true;
+        // this.loading = true;
         get("/Admin/Binancepiggybank/testBalancePosition", {}, json => {
             console.log(json);
             if (json.data.code == 10000) {
                 this.detailData = json.data.data;
+                this.default_ratio = this.detailData.defaultRatio;
             } else {
                 this.$message.error("加载数据失败");
             }
             this.loading = false;
-      });
-    }
+        });
+    },
+    saveDefaultRatio() { //开始修改涨跌比例
+        get("/Admin/Binancepiggybank/setChangeRatio", {
+            default_ratio: this.default_ratio
+        }, json => {
+            console.log(json);
+            if (json.data.code == 10000) {
+                this.getListData();
+            } else {
+                this.$message.error("加载数据失败");
+            }
+            this.isDefaultRatio = false;
+        });
 
+    }
   },
   created() {
     this.getListData();
@@ -150,7 +177,12 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+ /deep/ {
   .el-row {
     margin-top: 20px;
   }
+  .el-input-group__append {
+    padding: 0 10px !important;
+  }
+ }
 </style>

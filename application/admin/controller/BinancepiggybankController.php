@@ -12,6 +12,7 @@ use think\Request;
 use lib\ClCrypt;
 use ClassLibrary\ClFile;
 use app\admin\model\BinancePiggybank;
+use app\admin\model\BinanceConfig;
 use app\tools\model\Binance;
 
 class BinancepiggybankController extends BaseController
@@ -130,6 +131,17 @@ class BinancepiggybankController extends BaseController
     public function testBalancePosition() {
         $data = Binance::testBalancePosition();
         return $this->as_json($data);
+    }
+
+    /**
+     * 修改涨跌比例
+     * @author qinlh
+     * @since 2022-12-05
+     */
+    public function setChangeRatio(Request $request) {
+        $default_ratio = $request->request('default_ratio', '', 'trim');
+        $result = BinanceConfig::setChangeRatio($default_ratio);
+        return $this->as_json($result);
     }
 
 }

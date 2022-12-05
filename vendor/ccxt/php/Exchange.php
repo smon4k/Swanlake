@@ -1001,8 +1001,8 @@ class Exchange {
 
         $this->curlopt_interface = null;
         $this->timeout = 10000; // in milliseconds
-        // $this->proxy = 'http://127.0.0.1:7890';
-        $this->proxy = '';
+        $this->proxy = 'http://127.0.0.1:7890';
+        // $this->proxy = '';
         // $this->proxy = getLocalProxies();
         $this->origin = '*'; // CORS origin
         $this->headers = array();

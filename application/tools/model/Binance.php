@@ -18,6 +18,7 @@ use RequestService\RequestService;
 use hbdm\hbdm;
 use okex\okv5;
 use app\admin\model\BinancePiggybank;
+use app\admin\model\BinanceConfig;
 
 class Binance extends Base
 {
@@ -56,7 +57,8 @@ class Binance extends Base
 
             // p($btcBalance);
             // p($minSizeOrderNum);
-            $changeRatioNum = 2; //涨跌比例 2%
+            $changeRatioNum = BinanceConfig::getChangeRatio(); //涨跌比例
+            // $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             // p($balanceRatioArr);
@@ -491,7 +493,8 @@ class Binance extends Base
         if($transactionCurrency) {
             $symbol = str_replace("-",'', $transactionCurrency);
             $order_symbol = str_replace("-",'/', $transactionCurrency);
-            $changeRatioNum = 2; //涨跌比例 2%
+            $changeRatioNum = BinanceConfig::getChangeRatio(); //涨跌比例
+            // $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
@@ -803,14 +806,16 @@ class Binance extends Base
             // p($balanceDetails);
             $busdBalance = 0;
             $bifiBalance = 0;
-            foreach ($balanceDetails['info']['balances'] as $k => $v) {
-                if(isset($v['asset'])) {
-                    if($v['asset'] == $assetArr[1] || $v['asset'] == $assetArr[0]) {
-                        if($v['asset'] == $assetArr[1] && (float)$v['free'] > 0) {
-                            $busdBalance += (float)$v['free'];
-                        }
-                        if($v['asset'] == $assetArr[0] && (float)$v['free'] > 0) {
-                            $bifiBalance += (float)$v['free'];
+            if(isset($balanceDetails['info']['balances'])) {
+                foreach ($balanceDetails['info']['balances'] as $k => $v) {
+                    if(isset($v['asset'])) {
+                        if($v['asset'] == $assetArr[1] || $v['asset'] == $assetArr[0]) {
+                            if($v['asset'] == $assetArr[1] && (float)$v['free'] > 0) {
+                                $busdBalance += (float)$v['free'];
+                            }
+                            if($v['asset'] == $assetArr[0] && (float)$v['free'] > 0) {
+                                $bifiBalance += (float)$v['free'];
+                            }
                         }
                     }
                 }
@@ -1081,7 +1086,7 @@ class Binance extends Base
         // $result = $exchange->fetch_markets(['symbol'=>$symbol]);
         // p($result);
 
-        $changeRatioNum = 2; //涨跌比例 2%
+        $changeRatioNum = BinanceConfig::getChangeRatio(); //涨跌比例
         $balanceRatio = '1:1'; //平衡比例
         $balanceRatioArr = explode(':', $balanceRatio);
         $sellPropr = ($changeRatioNum / 2) + ($changeRatioNum / 100); //出售比例
