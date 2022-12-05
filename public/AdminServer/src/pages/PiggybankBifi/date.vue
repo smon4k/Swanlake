@@ -124,7 +124,7 @@
                             </el-table-column>
                             <el-table-column prop="" label="利润率" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.profit_rate, 4, true) }}%</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 4, true) }}%</span>
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -194,7 +194,7 @@
                             </el-table-column>
                             <el-table-column prop="" label="利润率" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.profit_rate, 4, true) }}%</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 4, true) }}%</span>
                                 </template>
                             </el-table-column>
                         </el-table>
