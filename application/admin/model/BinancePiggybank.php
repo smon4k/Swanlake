@@ -187,9 +187,19 @@ class BinancePiggybank extends Base
             }
         }
 
+        //获取挂单数据
+        $peningOrderList = self::getOpenPeningOrders();
+        $buyOrderData = $peningOrderList['buy']; //购买挂单数据
+        $sellOrderData = $peningOrderList['sell']; //出售挂单数据
+        $buy_amount = $buyOrderData['amount'] && $buyOrderData['amount'] > 0 ? $buyOrderData['amount'] : 0; //挂买数量
+        $sell_amount = $sellOrderData['amount'] && $sellOrderData['amount'] > 0 ? $sellOrderData['amount'] : 0; //挂卖数量
 
-        $UTotalBalance = $balanceDetails['busdBalance'] + $balanceDetails['bifiValuation']; //U本位总结余 = BUSD数量+BIFI数量*价格
-        $BTotalBalance = $balanceDetails['bifiBalance'] + $balanceDetails['busdBalance'] / $tradingPrice; //币本位结余 = BTC数量+USDT数量/价格
+        $busdValuation = $balanceDetails['busdBalance'] + ($buy_amount * $tradingPrice); //BUSD估值 = 可用余额 + 挂买的数
+        $bifiValuation = $balanceDetails['bifiValuation'] + ($sell_amount * $tradingPrice); //BIFI估值 = 可用余额 + 挂卖的数量
+        $bifiBalance = $balanceDetails['bifiBalance'] + $sell_amount; //BIFI余额 = 可用余额  + 挂卖的数量）*bifi现价
+
+        $UTotalBalance = $busdValuation + $bifiValuation; //U本位总结余 = BUSD数量+BIFI数量*价格
+        $BTotalBalance = $bifiBalance + $busdValuation / $tradingPrice; //币本位结余 = BTC数量+USDT数量/价格
 
         //总利润 = 总结余 - 本金
         $UProfit = $UTotalBalance - $countUstandardPrincipal;
