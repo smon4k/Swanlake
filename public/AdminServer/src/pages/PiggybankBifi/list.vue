@@ -53,16 +53,16 @@
                 </el-table-column>
                 <el-table-column prop="amount" label="委托数量" align="center" width="150">
                     <template slot-scope="scope">
-                      <div v-if="scope.row.clinch_number">
+                      <div v-if="scope.row.amount">
                         <div v-if="scope.row.type == 1">
-                            <span>{{ keepDecimalNotRounding(scope.row.clinch_number, 8, true) }} {{scope.row.base_ccy}}</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} {{scope.row.base_ccy}}</span>
                             <br>
-                            <span>{{ keepDecimalNotRounding(scope.row.clinch_number * scope.row.price, 8, true) }} {{scope.row.quote_ccy}}</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.amount * scope.row.price, 8, true) }} {{scope.row.quote_ccy}}</span>
                         </div>
                         <div v-else>
-                            <span>{{ keepDecimalNotRounding(scope.row.clinch_number, 8, true) }} {{scope.row.base_ccy}}</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} {{scope.row.base_ccy}}</span>
                             <br>
-                            <span>{{ keepDecimalNotRounding(scope.row.clinch_number * scope.row.price, 8, true) }} {{scope.row.quote_ccy}}</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.amount * scope.row.price, 8, true) }} {{scope.row.quote_ccy}}</span>
                         </div>
                       </div>
                       <div v-else>——</div>
