@@ -57,7 +57,13 @@ class BinanceConfig extends Base
         if($ratio) {
             $res = self::where('id', 1)->update(['change_ratio' => $ratio, 'time' => date('Y-m-d H:i:s')]);
             if($res !== false) {
-                return true;
+                //重新撤单挂单
+                $transactionCurrency = "BIFI-BUSD"; //交易币种
+                $order_symbol = str_replace("-",'/', $transactionCurrency);
+                $orderCancelRes = Binance::fetchCancelOpenOrder($order_symbol);
+                if($orderCancelRes) { //撤单成功
+                    return true;
+                }
             }
         }
         return false;
