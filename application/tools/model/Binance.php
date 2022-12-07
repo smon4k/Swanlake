@@ -237,12 +237,12 @@ class Binance extends Base
                         return false;
                     } else {
                         echo "下单出售 小于 最小下单量".$minSizeOrderNum." 停止下单 \r\n";
-                        return false;
+                        return true;
                     }
                 }
             } else {
                 echo "涨跌幅度小于".$changeRatioNum."% 停止下单\r\n";
-                return false;
+                return true;
             }
             return false;
         } catch (\Exception $e) {
@@ -708,7 +708,11 @@ class Binance extends Base
             
             if((float)$buyOrdersNumber < 0 || (float)$sellOrdersNumber < 0) {
                 echo "购买出售出现负数，开始吃单 \r\n";
-                self::balancePositionOrder();
+                $res = self::balancePositionOrder();
+                if($res) {
+                    Db::commit();
+                    exit();
+                }
             }
 
             $busdBuyClinchBalance = $busdBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
@@ -791,8 +795,9 @@ class Binance extends Base
      * @since 2022-11-26
      */
     public static function cancelOrder() {
-        $orderDetail = self::fetchCancelOpenOrder('BIFI/BUSD'); //查询订单
+        $orderDetail = self::fetchTradeOrder('', "Zx22022120655525654", 'BIFI/BUSD'); //查询订单
         p($orderDetail);
+        $orderDetail = self::fetchCancelOpenOrder('BIFI/BUSD'); //查询订单
         $orderDetail = self::fetchCancelOrder('', "Zx22022120599575299", 'BIFI/BUSD'); //撤销订单 status：已取消：CANCELED 未取消：NEW
         return;
     }
