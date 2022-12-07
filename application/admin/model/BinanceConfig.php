@@ -60,7 +60,7 @@ class BinanceConfig extends Base
                 //重新撤单挂单
                 $transactionCurrency = "BIFI-BUSD"; //交易币种
                 $order_symbol = str_replace("-",'/', $transactionCurrency);
-                $orderCancelRes = Binance::fetchCancelOpenOrder($order_symbol);
+                $orderCancelRes = Binance::fetchCancelOpenOrder($order_symbol, false);
                 if($orderCancelRes) { //撤单成功
                     return true;
                 }

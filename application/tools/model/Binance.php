@@ -1077,7 +1077,7 @@ class Binance extends Base
      * @author qinlh
      * @since 2022-11-25
      */
-    public static function fetchCancelOpenOrder($order_symbol='') {
+    public static function fetchCancelOpenOrder($order_symbol='', $isEcho=true) {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
         $className = "\ccxt\\binance";
@@ -1088,7 +1088,9 @@ class Binance extends Base
         try {
             $tradeOrder = $exchange->cancel_open_order($order_symbol);
             if($tradeOrder && isset($tradeOrder['info'])) {
-                echo "修改挂单表 撤销全部挂单商品\r\n";
+                if($isEcho) {
+                    echo "修改挂单表 撤销全部挂单商品\r\n";
+                }
                 self::setRevokePendingOrder();
                 // $peningOrderList = self::getOpenPeningOrder();
                 // if($peningOrderList && count((array)$peningOrderList) > 0) {
@@ -1107,7 +1109,9 @@ class Binance extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             if($e->getCode() == '-2011') {
-                echo "修改挂单表 撤销全部挂单商品\r\n";
+                if($isEcho) {
+                    echo "修改挂单表 撤销全部挂单商品\r\n";
+                }
                 self::setRevokePendingOrder();
             }
             // echo $error_msg . "\r\n";
