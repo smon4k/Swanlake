@@ -155,12 +155,15 @@ export default {
         });
     },
     saveDefaultRatio() { //开始修改涨跌比例
+        this.loading = true;
         get("/Admin/Binancepiggybank/setChangeRatio", {
             default_ratio: this.default_ratio
         }, json => {
             console.log(json);
             if (json.data.code == 10000) {
-                this.getListData();
+                setTimeout(() => {
+                    this.getListData();
+                }, 3000)
             } else {
                 this.$message.error("加载数据失败");
             }
