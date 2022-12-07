@@ -677,8 +677,8 @@ class Binance extends Base
             $getLastRes = self::getLastRes(); //获取上次成交价格
             // $price = (float)$getLastRes['price'];
             $price = (float)$getLastRes['price'];
-            $sellPropr = $changeRatioNum + ($changeRatioNum / 100); //出售比例
-            $buyPropr = $changeRatioNum - ($changeRatioNum / 100); //购买比例
+            $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
+            $buyPropr = ($changeRatioNum / $changeRatioNum) - ($changeRatioNum / 100); //购买比例
             // echo $buyPropr;die;
             $sellingPrice = $price * $sellPropr; //出售价格
             $buyingPrice = $price * $buyPropr; //购买价格
@@ -1322,8 +1322,8 @@ class Binance extends Base
         $changeRatioNum = BinanceConfig::getChangeRatio(); //涨跌比例
         $balanceRatio = '1:1'; //平衡比例
         $balanceRatioArr = explode(':', $balanceRatio);
-        $sellPropr = $changeRatioNum + ($changeRatioNum / 100); //出售比例
-        $buyPropr = $changeRatioNum - ($changeRatioNum / 100); //购买比例
+        $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
+        $buyPropr = ($changeRatioNum / $changeRatioNum) - ($changeRatioNum / 100); //购买比例
 
         //获取最小下单数量
         $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
