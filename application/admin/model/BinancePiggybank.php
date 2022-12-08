@@ -188,7 +188,7 @@ class BinancePiggybank extends Base
         }
 
         //获取挂单数据
-        $peningOrderList = self::getOpenPeningOrders();
+        $peningOrderList = Binance::getOpenPeningOrders();
         $buyOrderData = $peningOrderList['buy']; //购买挂单数据
         $sellOrderData = $peningOrderList['sell']; //出售挂单数据
         $buy_amount = $buyOrderData['amount'] && $buyOrderData['amount'] > 0 ? $buyOrderData['amount'] : 0; //挂买数量
