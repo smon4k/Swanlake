@@ -458,6 +458,9 @@ class BinancePiggybank extends Base
             $res = self::name('binance_piggybank_currency_date')->where(['date' => $date, 'standard' => $standard])->find();
             if ($res && count((array)$res) > 0) {
                 return $res;
+            } else {
+                $res = self::name('binance_piggybank_currency_date')->where(['standard' => $standard])->order('date desc')->find();
+                return $res;
             }
         }
         return [];
