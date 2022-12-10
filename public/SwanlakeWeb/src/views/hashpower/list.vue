@@ -664,7 +664,7 @@ export default {
                     duration: 6000,
                 });
             let query = {
-                hashId: item.hash_id,
+                hashId: item.id,
                 pId: item.pId,
                 currencyToken: item.currencyToken,
                 goblin: item.goblin,

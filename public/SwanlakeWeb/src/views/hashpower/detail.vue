@@ -103,10 +103,7 @@ export default {
       // this.tokenAddress = info.token;
       this.currencyToken = info.currencyToken;
       this.goblin = info.goblin;
-      this.isDemand = info.demand;
-      this.decimals = info.decimals;
       this.name = info.name;
-      this.originName = info.originName;
       this.hashId = info.hashId;
     } catch (err) {}
   },
@@ -246,6 +243,7 @@ export default {
       //       this.$message.error(json.msg);
       //   }
       // })
+      // console.log(this.hashId);
       let btcbReward = await getH2OPendingBonus(this.goblin); //获取BTCB奖励
       tradeFunc(
         this.goblin,
