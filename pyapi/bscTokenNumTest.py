@@ -80,18 +80,27 @@ class JDSpider(object):
     def getListData(self, token, chain):
         # urls = self.bscscan_url + str(token)
         if chain == 'etherscan':
-            urls = f'https://{chain}.io/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
+            urls = f'https://www.oklink.com/zh-cn/eth'
+            self.browser.get(urls)
+            time.sleep(5)
+            # 获取地址数量
+            HoldersDom = self.browser.find_element_by_xpath('//*[@id="root"]/main/div/div[3]/div[1]/div[3]')
+            HoldersList = HoldersDom.text.split('\n')
+            BalanceValueDom = self.browser.find_element_by_xpath('//*[@id="root"]/main/div/div[3]/div[1]/div[2]')
+            BalanceValueList = BalanceValueDom.text.split('\n')
+            # print(BalanceValueList)
+            holders = re.sub("[^0-9.]", "", HoldersList[2])
         else:
             urls = f'https://{chain}.com/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
-        # print(self.page, self.num, self.count, urls)
-        self.browser.get(urls)
-        time.sleep(5)
+            # print(self.page, self.num, self.count, urls)
+            self.browser.get(urls)
+            time.sleep(5)
+            # 获取地址数量
+            HoldersDom = self.browser.find_element_by_class_name('card-body')
+            HoldersList = HoldersDom.text.split('\n')
+            print(HoldersList)
+            holders = re.sub("[^0-9.]", "", HoldersList[7])
 
-        # 获取地址数量
-        HoldersDom = self.browser.find_element_by_class_name('card-body')
-        HoldersList = HoldersDom.text.split('\n')
-        print(HoldersList)
-        holders = re.sub("[^0-9.]", "", HoldersList[7])
 
         # 获取价格
         if token == "0xF1932eC9784B695520258F968b9575724af6eFa8": # Guru
@@ -126,6 +135,13 @@ class JDSpider(object):
             # print(price)
         elif token == "0x36E714D63B676236B72a0a4405F726337b06b6e5": # GUT
             price = self.getToken2TokenPrice(self.cakeRouterContractAddress, token, self.USDT)
+        elif token == "0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1": # ETH
+            ethUrls = f'https://www.oklink.com/zh-cn/eth/address/{token}'
+            self.browser.get(ethUrls)
+            time.sleep(5)
+            priceElement = self.browser.find_element_by_xpath('//*[@id="root"]/main/div/div/div[3]/div/div[2]/div/div/div[1]/div[2]/span[2]')
+            priceStr = priceElement.text.split('\n')
+            price = re.sub("[^0-9.]", "", priceStr[0])
             # print(price)
         else:
             priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
@@ -141,6 +157,9 @@ class JDSpider(object):
             valueStr = balanceValueElement.get_attribute('data-original-title')
             value = re.sub("[^0-9.]", "", valueStr)
             # print(balance, value)
+        elif token == "0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1":
+            balance = re.sub("[^0-9.]", "", BalanceValueList[2])
+            value = re.sub("[^0-9.]", "", BalanceValueList[15])
         else:
             balanceValueElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_filteredByAddress"]')
             balanceValueList = balanceValueElement.text.split('\n')
@@ -220,7 +239,7 @@ if __name__ == "__main__":
     # searchName = sys.argv[1] # 接受参数
     # print(searchName)
     spider = JDSpider()
-    data = spider.getListData('0x761D38e5ddf6ccf6Cf7c55759d5210750B5D60F3', 'etherscan')
+    data = spider.getListData('0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1', 'etherscan')
     json_str = json.dumps(data)
     print(json_str)
 
