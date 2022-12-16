@@ -80,16 +80,14 @@ class JDSpider(object):
     def getListData(self, token, chain):
         # urls = self.bscscan_url + str(token)
         if chain == 'etherscan':
-            urls = f'https://www.oklink.com/zh-cn/eth'
+            urls = f'https://www.oklink.com/zh-cn/eth/token/{token}'
             self.browser.get(urls)
-            time.sleep(5)
+            time.sleep(10)
             # 获取地址数量
-            HoldersDom = self.browser.find_element_by_xpath('//*[@id="root"]/main/div/div[3]/div[1]/div[3]')
+            HoldersDom = self.browser.find_element_by_xpath('//*[@id="root"]/section/div/div/div[5]/div/div[2]/div/span') #获取持币地址数量
             HoldersList = HoldersDom.text.split('\n')
-            BalanceValueDom = self.browser.find_element_by_xpath('//*[@id="root"]/main/div/div[3]/div[1]/div[2]')
-            BalanceValueList = BalanceValueDom.text.split('\n')
             # print(BalanceValueList)
-            holders = re.sub("[^0-9.]", "", HoldersList[2])
+            holders = re.sub("[^0-9.]", "", HoldersList[0])
         else:
             urls = f'https://{chain}.com/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
             # print(self.page, self.num, self.count, urls)
@@ -98,7 +96,7 @@ class JDSpider(object):
             # 获取地址数量
             HoldersDom = self.browser.find_element_by_class_name('card-body')
             HoldersList = HoldersDom.text.split('\n')
-            print(HoldersList)
+            # print(HoldersList)
             holders = re.sub("[^0-9.]", "", HoldersList[7])
 
         # 获取价格
@@ -136,10 +134,7 @@ class JDSpider(object):
             price = self.getToken2TokenPrice(self.cakeRouterContractAddress, token, self.USDT)
             # print(price)
         elif token == "0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1": # ETH
-            ethUrls = f'https://www.oklink.com/zh-cn/eth/address/{token}'
-            self.browser.get(ethUrls)
-            time.sleep(5)
-            priceElement = self.browser.find_element_by_xpath('//*[@id="root"]/main/div/div/div[3]/div/div[2]/div/div/div[1]/div[2]/span[2]')
+            priceElement = self.browser.find_element_by_xpath('//*[@id="root"]/section/div/div/div[3]/div[2]/div[1]/div/div')
             priceStr = priceElement.text.split('\n')
             price = re.sub("[^0-9.]", "", priceStr[0])
             # print(price)
@@ -158,8 +153,8 @@ class JDSpider(object):
             value = re.sub("[^0-9.]", "", valueStr)
             # print(balance, value)
         elif token == "0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1": # ETH
-            balance = re.sub("[^0-9.]", "", BalanceValueList[2])
-            value = re.sub("[^0-9.]", "", BalanceValueList[15])
+            balance = 0
+            value = 0
         else:
             balanceValueElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_filteredByAddress"]')
             balanceValueList = balanceValueElement.text.split('\n')
@@ -192,7 +187,7 @@ class JDSpider(object):
             price = 0
             contract = self.web3Client.eth.contract(address=Web3.toChecksumAddress(routerAddress), abi=self.mdexABI)
             result = contract.functions.getAmountsOut(Gwei1, path).call()
-            print(result)
+            # print(result)
             if(result):
                 if bnbAddress or bnbAddress != '':
                     price = result[2] / Gwei1
