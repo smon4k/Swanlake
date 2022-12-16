@@ -23,7 +23,7 @@ class BscAddressStatistics extends Base
      * @since 2022-11-04
      */
     public static function getTokensList() {
-        $data = self::name('bsc_tokens')->where('start', 1)->select()->toArray();
+        $data = self::name('bsc_tokens')->where('start', 1)->order('sort asc')->select()->toArray();
         if($data && count((array)$data) > 0) {
             return $data;
         }
