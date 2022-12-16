@@ -68,7 +68,9 @@
             </el-tab-pane>
             <el-tab-pane label="新增销毁量" name="4">
                 <div style="text-align:right;">  
-                    Address:  <el-link :underline="false" style="text-decoration:underline;" :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
+                    Address:  
+                    <el-link v-if="name === 'TON(ETH)'" :underline="false" style="text-decoration:underline;" :href="'https://www.oklink.com/zh-cn/eth/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
+                    <el-link v-else :underline="false" style="text-decoration:underline;" :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
                     <i class="el-icon-document-copy" style="cursor: pointer" v-clipboard:copy="selectAddress" v-clipboard:success="copySuccess"></i>
                 </div>
                 <div v-if="currencyIndex == 2" style="position: absolute;right: 200px;font-size: 13px;line-height: 23px;">自动销毁 {{ numberFormatFilter(autoDestruction) }} BNB, 手续费实时销毁 {{ numberFormatFilter(bnbNewValues) }} BNB，总计销毁（{{numberFormatFilter(autoDestruction + bnbNewValues)}}）BNB</div>
