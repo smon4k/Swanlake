@@ -262,10 +262,10 @@ export default {
                             name: '我的租赁',
                             path: "/power/user",
                         },
-                        // {
-                        //     name: 'Pool',
-                        //     path: "/power/pool",
-                        // },
+                        {
+                            name: 'BTCB 充提',
+                            path: "/deposit/withdraw/btcb",
+                        },
                     ]
                 },
                 {

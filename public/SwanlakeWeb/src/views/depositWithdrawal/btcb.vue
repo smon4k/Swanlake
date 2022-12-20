@@ -10,9 +10,12 @@
                             <el-col :span="24">
                                 <div>
                                     <!-- <span>平台余额：{{ Math.trunc(Number(localBalance) + Number(walletBalance)) }} USDT</span> -->
-                                    <span>平台余额：{{ toFixed(Number(localBalance) + Number(walletBalance), 4) }} USDT</span>
-                                    <br />
-                                    <span>钱包余额：{{ toFixed(Number(usdtBalance), 4) }} USDT</span>
+                                    <div>平台余额：{{ toFixed(Number(localBalance) + Number(walletBalance), 10) }} BTCB</div>
+                                    <!-- <br /> -->
+                                    <div>
+                                        钱包余额：
+                                        <span @click.stop="WalletBalanceAll()" style="color:#409EFF;text-decoration: underline;cursor:pointer;">{{ toFixed(Number(btcbBalance), 10) }} BTCB</span>
+                                    </div>
                                     <!-- <span>GS Balance：{{localBalance}}</span> -->
                                     <!-- <span v-else>GS Balance：<el-skeleton-item variant="text" style="width: 5%;" /></span> -->
                                 </div>
@@ -31,18 +34,18 @@
                         </el-row>
                         <el-row>
                             <el-col :span="24">
-                                <el-form :model="depositForm" ref="depositForm">
-                                    <el-input 
-                                        type="number" 
-                                        label="H2O:" 
-                                        v-model="depositForm.amount" 
-                                        placeholder="请输入充值金额" 
-                                        onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))" 
-                                        :rules="[{ validator: checkDepositAmount, message: '请输入正确内容' }]"
-                                        >
-                                            <template slot="prepend">USDT</template>
+                                <el-form :model="depositForm" ref="depositForm" :rules="depositFormRules">
+                                    <el-form-item prop="amount">
+                                        <el-input 
+                                            type="number" 
+                                            label="BTCB:" 
+                                            v-model="depositForm.amount" 
+                                            placeholder="请输入充值金额" 
+                                            >
+                                                <template slot="prepend">BTCB</template>
                                         </el-input>
-                                    <el-row class="button-amount">
+                                    </el-form-item>
+                                    <!-- <el-row class="button-amount">
                                         <el-col :span="8">
                                             <el-button type="primary" plain @click="buttonAmount(100)">100</el-button>
                                         </el-col>
@@ -63,12 +66,12 @@
                                         <el-col :span="8">
                                             <el-button type="primary" plain @click="buttonAmount(50000)">50000</el-button>
                                         </el-col>
-                                    </el-row>
-                                    <div class="submit-name">
+                                    </el-row> -->
+                                    <el-form-item class="submit-name">
                                         <el-button type="primary" :loading="trading" :disabled="trading" @click="startApprove" v-if="!approve">批准</el-button>
                                         <el-button type="primary" :loading="trading" :disabled="trading || isStatus || isWithdraw" @click="submitForm('depositForm')" v-else>存入</el-button>
                                         <!-- <el-button @click="resetForm('depositForm')">Cancel</el-button> -->
-                                    </div>
+                                    </el-form-item>
                                 </el-form>
                             </el-col>
                         </el-row>
@@ -77,9 +80,16 @@
                         <el-row class="balance">
                             <el-col :span="24">
                                 <div>
-                                    <span>平台余额：{{ toFixed(Number(localBalance) + Number(walletBalance), 4) }} USDT</span>
+                                    <span>
+                                        平台余额：
+                                        <span @click="PlatformBalanceAll()" style="color:#409EFF;text-decoration: underline;cursor:pointer;">
+                                            {{ toFixed(Number(localBalance) + Number(walletBalance), 10) }} BTCB</span>
+                                        </span>
                                     <br />
-                                    <span>钱包余额：{{ toFixed(Number(usdtBalance), 4) }} USDT</span>
+                                    <span>
+                                        钱包余额：
+                                        <span>{{ toFixed(Number(btcbBalance), 10) }} BTCB</span>
+                                    </span>
                                     <!-- <span>GS Balance：{{localBalance}}</span> -->
                                 </div>
                             </el-col>
@@ -95,20 +105,19 @@
                         </el-row>
                         <el-row>
                             <el-col :span="24">
-                                <el-form  :model="withdrawForm" ref="withdrawForm">
-                                    <el-input 
-                                        label="H2O:" 
-                                        type="number" 
-                                        v-model="withdrawForm.amount" 
-                                        placeholder="请输入金额" 
-                                        min="0" 
-                                        :max="maxWithdrawableBalance()" 
-                                        onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))" 
-                                        :rules="[{ validator: checkWithdrawalAmount, message: '请输入正确内容' }]"
-                                    >
-                                        <template slot="prepend">USDT</template>
-                                    </el-input>
-                                    <el-row class="button-amount">
+                                <el-form :model="withdrawForm" ref="withdrawForm" :rules="withdrawFormRules">
+                                    <el-form-item prop="amount">
+                                        <el-input 
+                                            label="H2O:" 
+                                            type="number" 
+                                            v-model="withdrawForm.amount" 
+                                            placeholder="请输入金额" 
+                                            min="0" 
+                                        >
+                                            <template slot="prepend">BTCB</template>
+                                        </el-input>
+                                    </el-form-item>
+                                    <!-- <el-row class="button-amount">
                                         <el-col :span="8">
                                             <el-button type="primary" plain @click="buttonAmount(100)">100</el-button>
                                         </el-col>
@@ -129,7 +138,7 @@
                                         <el-col :span="8">
                                             <el-button type="primary" plain @click="buttonAmount(50000)">50000</el-button>
                                         </el-col>
-                                    </el-row>
+                                    </el-row> -->
                                     <div class="submit-name">
                                         <el-button type="primary" :loading="trading" :disabled="trading" @click="startApprove" v-if="!approve">批准</el-button>
                                         <el-button type="primary" :loading="trading" :disabled="trading || isStatus || isGame || isWithdraw" @click="submitForm('withdrawForm')" v-else>提取</el-button>
@@ -156,6 +165,17 @@ import { approve, gamesBuyTokenTogToken, gamesGTokenToBuyToken } from "@/wallet/
 import {getBalance,isApproved, getGameFillingBalance, saveNotifyStatus, getGameFillingWithdrawStatus, setDepWithdrawStatus, getFillingIncreasingId} from "@/wallet/serve";
 import { keepDecimalNotRounding } from "@/utils/tools";
 import Address from '@/wallet/address.json'
+let checkDepositAmount = (rule, value, callback) => { //充值输入框验证
+    console.log(value);
+    if (!value) {
+       return callback(new Error("请输入充值金额! "));
+    }
+    let num = this.btcbBalance;
+    console.log(this.btcbBalance);
+    if(Number(value) > num) {
+        return callback(new Error("余额不足! "));
+    }
+}
 export default {
   name: "Index",
   data() {
@@ -170,12 +190,42 @@ export default {
         approve: false,
         trading: false,
         buttonAmountNum: 0, //按钮选择额度值
-        usdtBalance: 0,
+        btcbBalance: 0,
         depositForm: {
             amount: '',
         },
+        depositFormRules: {
+            amount: [
+                { required: true, validator: (rule, value, callback) => {
+                    if (!value) {
+                        return callback(new Error("请输入充值金额! "));
+                    }
+                    let num = this.btcbBalance;
+                    if(Number(value) > num) {
+                        return callback(new Error("余额不足! "));
+                    } else {
+                        callback();
+                    }
+                }, trigger: 'blur' },
+            ]
+        },
         withdrawForm: {
             amount: '',
+        },
+        withdrawFormRules: {
+            amount: [
+                { required: true, validator: (rule, value, callback) => {
+                    if (!value) {
+                        return callback(new Error("请输入充值金额! "));
+                    }
+                    let num = this.maxWithdrawableBalance();
+                    if(Number(value) > num) {
+                        return callback(new Error("余额不足! "));
+                    } else {
+                        callback();
+                    }
+                }, trigger: 'blur' },
+            ]
         },
         balanceTimeInterval: null,
         refreshTime: 5000, //数据刷新间隔时间
@@ -212,13 +262,53 @@ export default {
                     await this.refreshData();
                 }
             }
-        }
+        },
+        "depositForm.amount": function (newVal, oldVal) {
+            if (newVal < 0) {
+                this.$toast(this.languag === 'zh' ? "输⼊⾦额不能为负数！" : "The input amount cannot be negative!");
+                this.depositForm.amount = "";
+            }
+            // 解决数字键盘可以输⼊输⼊多个⼩数点问题
+            if (newVal === "" && oldVal && oldVal.toString().indexOf(".") > 0) {
+                this.depositForm.amount = oldVal;
+                return;
+            }
+            // 保留两位⼩数
+            if (newVal) {
+                newVal = newVal.toString();
+                var pointIndex = newVal.indexOf(".");
+                if (pointIndex > 0 && newVal.length - pointIndex > 3) {
+                    this.depositForm.amount = oldVal;
+                    return;
+                }
+            }
+        },
+        "withdrawForm.amount": function (newVal, oldVal) {
+            if (newVal < 0) {
+                this.$toast(this.languag === 'zh' ? "输⼊⾦额不能为负数！" : "The input amount cannot be negative!");
+                this.withdrawForm.amount = "";
+            }
+            // 解决数字键盘可以输⼊输⼊多个⼩数点问题
+            if (newVal === "" && oldVal && oldVal.toString().indexOf(".") > 0) {
+                this.withdrawForm.amount = oldVal;
+                return;
+            }
+            // 保留两位⼩数
+            if (newVal) {
+                newVal = newVal.toString();
+                var pointIndex = newVal.indexOf(".");
+                if (pointIndex > 0 && newVal.length - pointIndex > 3) {
+                    this.withdrawForm.amount = oldVal;
+                    return;
+                }
+            }
+        },
   },
   computed: {
       ...mapState({
         isConnected:state=>state.base.isConnected,
         address:state=>state.base.address,
-        gamesFillingAddress:state=>state.base.gamesFillingAddress,
+        gamesFillingAddress:state=>state.base.btcbFillingAddress,
         apiUrl:state=>state.base.apiUrl,
         userId:state=>state.base.userId,
         isMobel:state=>state.comps.isMobel,
@@ -231,29 +321,11 @@ export default {
     }
   },
   methods: {
-    checkDepositAmount(value) { //充值输入框验证
-        console.log(value);
-        if (!value) {
-            return false;
-        }
-        let num = this.usdtBalance;
-        if(Number(value) > num) {
-            return false;
-        } else {
-            return true;
-        }
+    WalletBalanceAll() { //点击钱包余额
+        this.depositForm.amount = keepDecimalNotRounding(this.btcbBalance, 10, true);
     },
-    checkWithdrawalAmount(value) { //提取输入验证
-        console.log(value);
-        if (!value) {
-            return false;
-        }
-        let num = this.maxWithdrawableBalance();
-        if(Number(value) > num) {
-            return false
-        } else {
-            return true
-        }
+    PlatformBalanceAll() { //点击平台余额
+        this.withdrawForm.amount = keepDecimalNotRounding(Number(this.localBalance) + Number(this.walletBalance), 0, true);
     },
     pageSwitchChange(evt, hidden) { //浏览器页面 切换事件
         //hidden为false的时候，表示从别的页面切换回当前页面
@@ -271,8 +343,8 @@ export default {
     async refreshData() {
         // this.walletBalance = await getGameFillingBalance(); //获取余额
         this.timeInterval = setInterval(async() => {
-            this.walletBalance = await getGameFillingBalance(); //获取余额
-            this.usdtBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
+            this.walletBalance = await getGameFillingBalance(18, this.gamesFillingAddress); //获取余额
+            this.btcbBalance = await getBalance(Address.BTCB, 18); //获取BTCB余额
             // console.log(this.walletBalance);
         }, this.refreshTime)
     },
@@ -288,10 +360,10 @@ export default {
       this.withdrawForm.amount = '';
     },
     async getIsApprove() { //获取余额 查看是否授权
-      let balance = await getBalance(Address.BUSDT, 18); //获取余额
-      console.log("USDT balance", balance);
+      let balance = await getBalance(Address.BTCB, 18); //获取余额
+      console.log("BTCB balance", balance);
       this.tokenBalance = balance;
-      isApproved(Address.BUSDT, 18, balance, this.gamesFillingAddress).then((bool) => {
+      isApproved(Address.BTCB, 18, balance, this.gamesFillingAddress).then((bool) => {
         console.log("isApprove", bool);
         this.approve = bool ? true : false;
       });
@@ -304,7 +376,7 @@ export default {
           background: 'rgba(0, 0, 0, 0.7)'
         });
       this.trading = true;
-      approve(Address.BUSDT, this.gamesFillingAddress).then((hash) => {
+      approve(Address.BTCB, this.gamesFillingAddress).then((hash) => {
         // console.log(result);
         loading.close();
         if(hash) {
@@ -316,7 +388,7 @@ export default {
         this.trading = false;
       });
     },
-    async submitForm(formName) {//1. 提交调用合约
+    submitForm(formName) {//1. 提交调用合约
         // console.log(this.$refs[formName]);
         this.$refs[formName].validate(async (valid) => {
           if (valid) {
@@ -379,11 +451,11 @@ export default {
                 local_balance: this.localBalance,
                 wallet_balance: this.walletBalance,
                 hash: '',
-                currency: 'usdt',
+                currency: 'btcb',
                 orderId: orderId,
                 source: 1, //渠道： 1：天鹅湖 2：短视频 3：一站到底
             };
-            contractName(amount, Address.BUSDT, 18, fillingRecordParams, orderId).then(async (hash) => {
+            contractName(amount, Address.BTCB, 18, fillingRecordParams, orderId).then(async (hash) => {
                 loading.close();
                 if(hash) {
                     if(this.activeName == 1) {//充值的话 二次检测是否充值成功
@@ -484,7 +556,7 @@ export default {
                     clearInterval(withdrawTimer);
                     await saveNotifyStatus(0, true); //通知GS更新余额
                     setTimeout(async () => {
-                        this.walletBalance = await getGameFillingBalance(); //重新获取一次余额
+                        this.walletBalance = await getGameFillingBalance(18, this.gamesFillingAddress); //重新获取一次余额
                         this.isWithdraw = false;
                         this.isStatus = false;
                     }, 300) //停2秒
@@ -504,8 +576,8 @@ export default {
         return false;
     },
     allWalletBlanceFun() { //全部钱包余额
-        if(this.usdtBalance > 0) {
-            this.depositForm.amount = Math.trunc(this.usdtBalance);
+        if(this.btcbBalance > 0) {
+            this.depositForm.amount = Math.trunc(this.btcbBalance);
             return true;
         }
         return false;
@@ -516,7 +588,7 @@ export default {
         }, async json => {
             console.log(json);
             if (json.code == 10000) {
-                this.localBalance = keepDecimalNotRounding(json.data.local_balance, 4, true);
+                this.localBalance = keepDecimalNotRounding(json.data.btcb_local_balance, 4, true);
                 // this.walletBalance = json.data.walletBalance;
                 this.isGame = json.data.isGame;
                 if(!isHint && json.data.isGame) {
@@ -527,7 +599,7 @@ export default {
                     });
                 }
                 console.log('是否打赏中：', this.isGame);
-                this.walletBalance = await getGameFillingBalance(); //获取合约余额
+                this.walletBalance = await getGameFillingBalance(18, this.gamesFillingAddress); //获取合约余额
                 console.log('链上余额：', this.walletBalance);
                 this.isStatus = json.data.dw_status == 1 ? true : false;
                 this.isWithdraw = json.data.isDeWith; //是否充提中
@@ -548,8 +620,8 @@ export default {
                         }
                     }
                 }
-                this.usdtBalance = await getBalance(Address.BUSDT, 18); //获取H2O余额
-                console.log('USDT 余额：', this.usdtBalance);
+                this.btcbBalance = await getBalance(Address.BTCB, 18); //获取BTCB余额
+                console.log('BTCB 余额：', this.btcbBalance);
             } else {
                 console.log("get Data error");
             }
@@ -725,6 +797,9 @@ export default {
                 line-height: 30px;
                 // color: #fff;
                 // @include mainFont($color-mainFont-light);
+            }
+            .el-row::after {
+                display: none !important;
             }
             .el-button {
                 border-radius: 30px;

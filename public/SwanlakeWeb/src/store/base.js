@@ -46,6 +46,7 @@ export default {
         Env: 'dev',
         // gamesFillingAddress: '0x079bDC8845D0C6878716A3f5219f1D0DcdF15308', //游戏系统-充提清算系统-合约地址
         gamesFillingAddress: '0xB433036377478dD94f94e4467C14835438b648Db', //游戏系统-充提清算系统-合约地址-升级增加订单id
+        btcbFillingAddress: '0x92403c4dddC9275C186d1aFBE2ff64D003aa13f1', //算力币短期租赁-BTCB充提池子合约地址
         hashpowerAddress: '0x5fE319Cad2B7203891AC9a9536A4a054636A2340', //算力币合约地址 测试
         fairLaunchAddress:'0x08D027B330F3A8ace9290235D575475150EA14Ff', //_launch
         hashPowerPoolsList: [],

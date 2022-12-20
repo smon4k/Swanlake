@@ -348,9 +348,9 @@ export const getSwapPoolsAmountsOut = async function (routerContractAddress, tk0
 
 
 //获取游戏-充提系统-充提余额
-export async function getGameFillingBalance(decimals=18) {
+export async function getGameFillingBalance(decimals=18, gamesFillingAddress='') {
   const address = __ownInstance__.$store.state.base.address;
-  const contractAddress = __ownInstance__.$store.state.base.gamesFillingAddress;
+  const contractAddress = gamesFillingAddress || __ownInstance__.$store.state.base.gamesFillingAddress;
   const contract = new web3.eth.Contract(gameFillingABI, contractAddress);
   let num = 0;
   await contract.methods.userInfo(address).call((error, result) => {

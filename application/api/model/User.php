@@ -247,6 +247,8 @@ class User extends Base
                     'sct_wallet_balance' => 0,
                     'sst_local_balance' => 0,
                     'sst_wallet_balance' => 0,
+                    'btcb_local_balance' => 0,
+                    'btcb_wallet_balance' => 0,
                     'status' => 1,
                 ];
                 $userId = self::insertGetId($insertData);
@@ -295,6 +297,8 @@ class User extends Base
                 'sct_wallet_balance' => 0,
                 'sst_local_balance' => 0,
                 'sst_wallet_balance' => 0,
+                'btcb_local_balance' => 0,
+                'btcb_wallet_balance' => 0,
                 'status' => 1,
             ];
             $userId = self::insertGetId($insertData);

@@ -85,6 +85,12 @@ export const constantRoutes = [
           component: () => import('@/views/depositWithdrawal/index'),
           meta: { title: 'depositWithdrawal', keepAlive: false }
         },
+        {
+          path: 'deposit/withdraw/btcb',
+          name: 'depositWithdrawBtcb',
+          component: () => import('@/views/depositWithdrawal/btcb'),
+          meta: { title: 'depositWithdrawBtcb', keepAlive: false }
+        },
         // BSC 币种统计
         {
           path: 'bscTokenStatistics',
@@ -142,18 +148,6 @@ export const constantRoutes = [
           component: () => import('@/views/power/userPower'),
           meta: { title: 'powerUser', keepAlive: false }
         },
-        {
-          path: 'power/pool',
-          name: 'powerPool',
-          component: () => import('@/views/power/pool'),
-          meta: { title: 'powerPool', keepAlive: false }
-        },
-        {
-          path: 'power/pool/detail',
-          name: 'powerPoolDetail',
-          component: () => import('@/views/power/detail'),
-          meta: { title: 'powerPoolDetail', keepAlive: false }
-        }
       ]
     },
 ]
