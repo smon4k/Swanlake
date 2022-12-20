@@ -20,4 +20,5 @@ database.php
 /public/upload
 /runtime/
 /runtime/cache
+database_hp*.php
 

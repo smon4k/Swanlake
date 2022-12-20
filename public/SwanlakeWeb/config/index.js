@@ -70,6 +70,14 @@ module.exports = {
         },
         timeout: 600000,
       },
+      "/Power": {
+        target: "http://www.swan.com",
+        changeOrigin: true,
+        pathRewrite: {
+          "^/Power": "/Power"
+        },
+        timeout: 600000,
+      },
     },
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README

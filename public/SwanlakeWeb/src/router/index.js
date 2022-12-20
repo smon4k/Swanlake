@@ -122,6 +122,37 @@ export const constantRoutes = [
           name: 'hashpowerHistory',
           component: () => import('@/views/hashpower/history'),
           meta: { title: 'hashpowerHistory', keepAlive: false }
+        },
+        // 算力租赁
+        {
+          path: 'power/list',
+          name: 'powerList',
+          component: () => import('@/views/power/list'),
+          meta: { title: 'powerList', keepAlive: false }
+        },
+        {
+          path: 'power/buy',
+          name: 'powerBuy',
+          component: () => import('@/views/power/buy'),
+          meta: { title: 'powerBuy', keepAlive: false }
+        },
+        {
+          path: 'power/user',
+          name: 'powerUser',
+          component: () => import('@/views/power/userPower'),
+          meta: { title: 'powerUser', keepAlive: false }
+        },
+        {
+          path: 'power/pool',
+          name: 'powerPool',
+          component: () => import('@/views/power/pool'),
+          meta: { title: 'powerPool', keepAlive: false }
+        },
+        {
+          path: 'power/pool/detail',
+          name: 'powerPoolDetail',
+          component: () => import('@/views/power/detail'),
+          meta: { title: 'powerPoolDetail', keepAlive: false }
         }
       ]
     },

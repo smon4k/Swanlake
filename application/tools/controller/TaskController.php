@@ -15,6 +15,7 @@ use app\api\model\BscAddressStatistics;
 use app\answer\model\DayNetworth as DayNetworthAnswer;
 use app\admin\model\Piggybank;
 use app\admin\model\BinancePiggybank;
+use app\power\model\PowerUser;
 use ClassLibrary\ClFieldVerify;
 use ClassLibrary\CLFfmpeg;
 use ClassLibrary\CLFile;
@@ -375,6 +376,19 @@ class TaskController extends ToolsBaseController
             }
         }
 
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * 短期算力币 发放收益
+     * @author qinlh
+     * @since 2022-12-18
+     */
+    public function powerSendingIncome() {
+        $begin_time = time();
+
+        PowerUser::startSendingIncome();
+        
         return (time() - $begin_time) . "s\n";
     }
 

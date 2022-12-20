@@ -75,6 +75,7 @@
                     @open="menuSelectOpen" 
                     :collapse-transition="false"
                     :default-openeds="defaultOpenedsArray"
+                    :unique-opened="true"
                 >
                     <template v-for="(item, index) in navList">
                         <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
@@ -254,6 +255,20 @@ export default {
                     ]
                 },
                 {
+                    name: '算力租赁',
+                    path: "/power/list",
+                    children: [
+                        {
+                            name: '我的租赁',
+                            path: "/power/user",
+                        },
+                        // {
+                        //     name: 'Pool',
+                        //     path: "/power/pool",
+                        // },
+                    ]
+                },
+                {
                     name: '资金账户监控',
                     path: "/fund/monitoring/account",
                     children: [],
@@ -398,10 +413,10 @@ export default {
         menuSelectOpen(index, indexPath) {
             let formPath = this.$route.path;
             console.log(index, formPath, indexPath, this.isHashpowerMenu);
-            if(formPath !== '/hashpower/list') {
+            if(index !== formPath) {
                 this.defaultOpenedsArray = [];
             }
-            if(index === '/hashpower/list' && formPath !== '/hashpower/list') {
+            if((index === '/hashpower/list' && formPath !== '/hashpower/list') || (index === '/power/list' && formPath !== '/power/list')) {
                 this.$router.push({path: indexPath[0]})
                 this.isHashpowerMenu = true;
                 this.menuDrawerShow = false;
