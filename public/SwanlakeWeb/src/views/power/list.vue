@@ -21,10 +21,10 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="服务器"
+                    label="服务期"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ scope.row.validity_period }}</span>
+                        <span>{{ scope.row.validity_period }} 天</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -70,7 +70,7 @@
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="年化">{{ '1' }}%</el-descriptions-item>
-                    <el-descriptions-item label="服务器">{{ item.validity_period }}</el-descriptions-item>
+                    <el-descriptions-item label="服务期">{{ item.validity_period }} 天</el-descriptions-item>
                     <el-descriptions-item label="算力">{{ item.hash_rate }}</el-descriptions-item>
                     <el-descriptions-item label="合约价格">{{ keepDecimalNotRounding(item.price, 4) }} USDT</el-descriptions-item>
                     <el-descriptions-item>
