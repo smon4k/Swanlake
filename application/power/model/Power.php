@@ -42,7 +42,14 @@ class Power extends Base
         }
         foreach ($lists as $key => $val) {
             $lists[$key]['price'] = self::getPowerPrice($val['id']);
-        }
+            $totalQuotaNum = PowerUser::getTotalQuotaNum($val['id']); //总本金额度
+            $powerCountIncome = PowerUser::getPowerUserTotalRevenue($val['id']); //获取7天有效期内 总收入
+            $profit = $powerCountIncome - $totalQuotaNum; //利润 = 收入减去本金
+            $lists[$key]['profit'] = $profit;
+            $profit_rate = $totalQuotaNum > 0 ? $profit / $totalQuotaNum : 0; //利润率 = 利润除以本金
+            $lists[$key]['profit_rate'] = $profit_rate;
+            $lists[$key]['annualized_rate'] = $profit_rate / 7 * 365 * 100; //年化收益率 = 利润率 / 7 * 365 * 100
+        } 
         return ['count'=>$count, 'allpage'=>$allpage, 'lists'=>$lists];
     }
 

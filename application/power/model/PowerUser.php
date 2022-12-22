@@ -189,7 +189,7 @@ class PowerUser extends Base
                         if(!$dayIsIncome) {
                             $incomeArr = self::calcBtcIncome($powerDetail['electricity_price'], $powerDetail['power_consumption_ratio'], $powerDetail['cost_revenue']); 
                             $dailyIncome = $incomeArr['dailyIncome']; //日收益
-                            $userRewardNum = convert_scientific_number_to_normal($val['amount'] * $dailyIncome); //用户今日收益数数量
+                            $userRewardNum = convert_scientific_number_to_normal($val['amount'] * ($dailyIncome * 7)); //用户今日收益数数量
                             $setPowerIncome = PowerUserIncome::setPowerUserIncome($val['id'], $val['hash_id'], $val['address'], $userRewardNum);
                             if($setPowerIncome) { //如果写入奖励数据 
                                 $res = User::setUserLocalBalance($val['address'], $userRewardNum, 1); //开始增加用户余额
@@ -255,9 +255,25 @@ class PowerUser extends Base
      * @author qinlh
      * @since 2022-12-22
      */
-    public static function getTotalQuotaNum() {
-        $num = self::where('state', 1)->sum('total_quota');
-        return $num;
+    public static function getTotalQuotaNum($hash_id=0) {
+        if($hash_id) {
+            $num = self::where(['hash_id' => $hash_id, 'state' => 1])->sum('total_quota');
+            return $num;
+        }
+        return 0;
+    }
+
+    /**
+     * 获取7天内总收入
+     * @author qinlh
+     * @since 2022-12-22
+     */
+    public static function getPowerUserTotalRevenue($hash_id=0) {
+        if($hash_id) {
+            $amount = self::alias('a')->join('hp_power_user_income b', 'a.id=b.user_power_id')->where('a.state', 1)->sum('b.amount');
+            return $amount;
+        }
+        return 0;
     }
 
 }

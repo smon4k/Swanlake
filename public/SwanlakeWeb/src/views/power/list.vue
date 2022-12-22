@@ -12,11 +12,27 @@
                     width="150">
                 </el-table-column>
                 <el-table-column
-                    prop="annualized_income"
-                    label="年化"
+                    prop=""
+                    label="预期年化收益"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.annualized_income || 0, 2) }}%</span>
+                        <span>{{ toFixed(scope.row.annualized_rate || 0, 2) }}%</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="预期利润"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.profit || 0, 2) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="预期利润率"
+                    align="center">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.profit_rate || 0, 2) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -69,7 +85,9 @@
             <div v-if="tableData.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="年化">{{ '1' }}%</el-descriptions-item>
+                    <el-descriptions-item label="预期年化收益">{{ item.annualized_rate }}%</el-descriptions-item>
+                    <el-descriptions-item label="预期利润">{{ item.profit }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="预期利润率">{{ item.profit_rate }}%</el-descriptions-item>
                     <el-descriptions-item label="服务期">{{ item.validity_period }} 天</el-descriptions-item>
                     <el-descriptions-item label="算力">{{ item.hash_rate }}</el-descriptions-item>
                     <el-descriptions-item label="合约价格">{{ keepDecimalNotRounding(item.price, 4) }} USDT</el-descriptions-item>

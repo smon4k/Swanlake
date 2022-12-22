@@ -174,7 +174,17 @@ class PowerUserIncome extends Base {
      * @since 2022-12-18
      */
     public static function getUserPowerCountIncome($user_power_id=0, $hash_id=0, $address='') {
-        $amount = self::where(['user_power_id' => $user_power_id, 'hash_id' => $hash_id, 'address' => $address])->sum('amount');
+        $where = [];
+        if($user_power_id) {
+            $where['user_power_id'] = $user_power_id;
+        }
+        if($hash_id) {
+            $where['hash_id'] = $hash_id;
+        }
+        if($address && $address !== '') {
+            $where['address'] = $address;
+        }
+        $amount = self::where($where)->sum('amount');
         return $amount;
-    }
+    }   
 }
