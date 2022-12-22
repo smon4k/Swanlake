@@ -117,8 +117,13 @@ class Power extends Base
         $powerDailyIncomeArr = self::getHashPowerDailyIncome($hashId);
         $daily_income_usdt = isset($powerDailyIncomeArr['daily_income_usdt']) ? $powerDailyIncomeArr['daily_income_usdt'] : 0; //净收入
         $poolBtcData = self::getPoolBtc();
-        $next_difficulty = $poolBtcData['next_difficulty']; //预测下次难度
-        $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 - $next_difficulty);
+        $next_difficulty = (float)$poolBtcData['next_difficulty']; //预测下次难度
+        $price = 1;
+        if($next_difficulty > 0) {
+            $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 - $next_difficulty);
+        } else {
+            $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 + $next_difficulty);
+        }
         if($price) {
             return $price;
         }
