@@ -59,7 +59,7 @@ class PowerUser extends Base
     public static function buyHashPower($hashId=0, $address='', $amount=0) {
         if($hashId && $address) {
             $powerDetail = Power::getPowerDetail($hashId);
-            $buy_price = 1;
+            $buy_price = Power::getPowerPrice($hashId);
             $quota = $amount * $buy_price; //计算消耗额度 usdt
             self::startTrans();
             try {
@@ -248,6 +248,16 @@ class PowerUser extends Base
             return ['currency_price' => $poolBtcData['currency_price'], 'dailyIncome' => $dailyIncome, 'annualizedIncome' => $annualizedIncome, 'estimateBill' => $estimateBill];
         }
         return false;
+    }
+
+    /**
+     * 获取总的本金额度
+     * @author qinlh
+     * @since 2022-12-22
+     */
+    public static function getTotalQuotaNum() {
+        $num = self::where('state', 1)->sum('total_quota');
+        return $num;
     }
 
 }
