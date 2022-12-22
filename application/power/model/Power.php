@@ -118,7 +118,7 @@ class Power extends Base
         $daily_income_usdt = isset($powerDailyIncomeArr['daily_income_usdt']) ? $powerDailyIncomeArr['daily_income_usdt'] : 0; //净收入
         $poolBtcData = self::getPoolBtc();
         $next_difficulty = $poolBtcData['next_difficulty']; //预测下次难度
-        $price = 0.99 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 - $next_difficulty);
+        $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 - $next_difficulty);
         if($price) {
             return $price;
         }
