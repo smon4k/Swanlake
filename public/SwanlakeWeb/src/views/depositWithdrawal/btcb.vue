@@ -263,46 +263,46 @@ export default {
                 }
             }
         },
-        "depositForm.amount": function (newVal, oldVal) {
-            if (newVal < 0) {
-                this.$toast(this.languag === 'zh' ? "输⼊⾦额不能为负数！" : "The input amount cannot be negative!");
-                this.depositForm.amount = "";
-            }
-            // 解决数字键盘可以输⼊输⼊多个⼩数点问题
-            if (newVal === "" && oldVal && oldVal.toString().indexOf(".") > 0) {
-                this.depositForm.amount = oldVal;
-                return;
-            }
-            // 保留两位⼩数
-            if (newVal) {
-                newVal = newVal.toString();
-                var pointIndex = newVal.indexOf(".");
-                if (pointIndex > 0 && newVal.length - pointIndex > 3) {
-                    this.depositForm.amount = oldVal;
-                    return;
-                }
-            }
-        },
-        "withdrawForm.amount": function (newVal, oldVal) {
-            if (newVal < 0) {
-                this.$toast(this.languag === 'zh' ? "输⼊⾦额不能为负数！" : "The input amount cannot be negative!");
-                this.withdrawForm.amount = "";
-            }
-            // 解决数字键盘可以输⼊输⼊多个⼩数点问题
-            if (newVal === "" && oldVal && oldVal.toString().indexOf(".") > 0) {
-                this.withdrawForm.amount = oldVal;
-                return;
-            }
-            // 保留两位⼩数
-            if (newVal) {
-                newVal = newVal.toString();
-                var pointIndex = newVal.indexOf(".");
-                if (pointIndex > 0 && newVal.length - pointIndex > 3) {
-                    this.withdrawForm.amount = oldVal;
-                    return;
-                }
-            }
-        },
+        // "depositForm.amount": function (newVal, oldVal) {
+        //     if (newVal < 0) {
+        //         this.$toast(this.languag === 'zh' ? "输⼊⾦额不能为负数！" : "The input amount cannot be negative!");
+        //         this.depositForm.amount = "";
+        //     }
+        //     // 解决数字键盘可以输⼊输⼊多个⼩数点问题
+        //     if (newVal === "" && oldVal && oldVal.toString().indexOf(".") > 0) {
+        //         this.depositForm.amount = oldVal;
+        //         return;
+        //     }
+        //     // 保留两位⼩数
+        //     if (newVal) {
+        //         newVal = newVal.toString();
+        //         var pointIndex = newVal.indexOf(".");
+        //         if (pointIndex > 0 && newVal.length - pointIndex > 3) {
+        //             this.depositForm.amount = oldVal;
+        //             return;
+        //         }
+        //     }
+        // },
+        // "withdrawForm.amount": function (newVal, oldVal) {
+        //     if (newVal < 0) {
+        //         this.$toast(this.languag === 'zh' ? "输⼊⾦额不能为负数！" : "The input amount cannot be negative!");
+        //         this.withdrawForm.amount = "";
+        //     }
+        //     // 解决数字键盘可以输⼊输⼊多个⼩数点问题
+        //     if (newVal === "" && oldVal && oldVal.toString().indexOf(".") > 0) {
+        //         this.withdrawForm.amount = oldVal;
+        //         return;
+        //     }
+        //     // 保留两位⼩数
+        //     if (newVal) {
+        //         newVal = newVal.toString();
+        //         var pointIndex = newVal.indexOf(".");
+        //         if (pointIndex > 0 && newVal.length - pointIndex > 3) {
+        //             this.withdrawForm.amount = oldVal;
+        //             return;
+        //         }
+        //     }
+        // },
   },
   computed: {
       ...mapState({
