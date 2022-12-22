@@ -122,7 +122,7 @@ class Power extends Base
         if($next_difficulty > 0) {
             $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 - $next_difficulty);
         } else {
-            $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 + $next_difficulty);
+            $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 + abs($next_difficulty));
         }
         if($price) {
             return $price;
