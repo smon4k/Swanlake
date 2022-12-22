@@ -24,7 +24,7 @@
                     label="预期利润"
                     align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.profit || 0, 2) }} USDT</span>
+                        <span>{{ toFixed(scope.row.profit || 0, 4) }} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -85,9 +85,9 @@
             <div v-if="tableData.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="预期年化收益">{{ item.annualized_rate }}%</el-descriptions-item>
-                    <el-descriptions-item label="预期利润">{{ item.profit }} USDT</el-descriptions-item>
-                    <el-descriptions-item label="预期利润率">{{ item.profit_rate }}%</el-descriptions-item>
+                    <el-descriptions-item label="预期年化收益">{{ keepDecimalNotRounding(item.annualized_rate, 2) }}%</el-descriptions-item>
+                    <el-descriptions-item label="预期利润">{{ keepDecimalNotRounding(item.profit, 4) }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="预期利润率">{{ keepDecimalNotRounding(item.profit_rate, 2) }}%</el-descriptions-item>
                     <el-descriptions-item label="服务期">{{ item.validity_period }} 天</el-descriptions-item>
                     <el-descriptions-item label="算力">{{ item.hash_rate }}</el-descriptions-item>
                     <el-descriptions-item label="合约价格">{{ keepDecimalNotRounding(item.price, 4) }} USDT</el-descriptions-item>

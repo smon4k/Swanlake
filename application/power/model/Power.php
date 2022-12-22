@@ -41,9 +41,12 @@ class Power extends Base
             ['count'=>0,'allpage'=>0,'lists'=>[]];
         }
         foreach ($lists as $key => $val) {
-            $lists[$key]['price'] = self::getPowerPrice($val['id']);
-            $totalQuotaNum = PowerUser::getTotalQuotaNum($val['id']); //总本金额度
-            $powerCountIncome = PowerUser::getPowerUserTotalRevenue($val['id']); //获取7天有效期内 总收入
+            $price = self::getPowerPrice($val['id']);
+            $lists[$key]['price'] = $price;
+            $totalQuotaNum = $price; //本金
+            $incomeArr = self::calcBtcIncome($val['electricity_price'], $val['power_consumption_ratio'], $val['cost_revenue']); 
+            $dailyIncome = $incomeArr['dailyIncome']; //日收益
+            $powerCountIncome = $dailyIncome * 7; //获取7天有效期内收入 = 日收益 * 7
             $profit = $powerCountIncome - $totalQuotaNum; //利润 = 收入减去本金
             $lists[$key]['profit'] = $profit;
             $profit_rate = $totalQuotaNum > 0 ? $profit / $totalQuotaNum : 0; //利润率 = 利润除以本金
