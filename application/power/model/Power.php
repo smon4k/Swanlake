@@ -132,13 +132,13 @@ class Power extends Base
         if($next_difficulty_days < 7) {
             if($next_difficulty > 0) {
                 // $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 - $next_difficulty);
-                $price =  0.997 * ((7 - $next_difficulty_days) * $daily_income + $next_difficulty_days * ($daily_output * (1 - $next_difficulty) - $daily_expenditure));
+                $price =  0.99 * ((7 - $next_difficulty_days) * $daily_income + $next_difficulty_days * ($daily_output * (1 - $next_difficulty) - $daily_expenditure));
             } else {
                 // $price = 0.997 * (2 * $daily_income_usdt + 5 * $daily_income_usdt) * (1 + abs($next_difficulty));
-                $price =  0.997 * ((7 - $next_difficulty_days) * $daily_income + $next_difficulty_days * ($daily_output * (1 + abs($next_difficulty)) - $daily_expenditure));
+                $price =  0.99 * ((7 - $next_difficulty_days) * $daily_income + $next_difficulty_days * ($daily_output * (1 + abs($next_difficulty)) - $daily_expenditure));
             }
         } else {
-            $price = $daily_income_usdt * 7 * 0.997; //价格 = 收入 * 7 * 0.997
+            $price = $daily_income_usdt * 7 * 0.99; //价格 = 收入 * 7 * 0.997
         }
         if($price) {
             return $price;
