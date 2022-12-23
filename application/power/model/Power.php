@@ -46,8 +46,8 @@ class Power extends Base
             $lists[$key]['price'] = $price;
             $totalQuotaNum = $price; //本金
             $incomeArr = self::calcBtcIncome($val['electricity_price'], $val['power_consumption_ratio'], $val['cost_revenue']); 
-            $daily_expenditure = (float)$incomeArr['estimateBill']; //日支出 usdt
-            $daily_output = (float)$poolBtcData['daily_income']; //日产出/T
+            // $daily_expenditure = (float)$incomeArr['estimateBill']; //日支出 usdt
+            // $daily_output = (float)$poolBtcData['daily_income']; //日产出/T
 
             $dailyIncome = $incomeArr['dailyIncome']; //日收益
             $powerCountIncome = $dailyIncome * 7; //获取7天有效期内收入 = 日收益 * 7
@@ -118,14 +118,16 @@ class Power extends Base
      */
     public static function getPowerPrice($hashId, $electricity_price, $power_consumption_ratio, $cost_revenue) {
         //获取长期算力币数据详情
-        $powerDailyIncomeArr = self::getHashPowerDailyIncome($hashId);
-        $daily_income_usdt = isset($powerDailyIncomeArr['daily_income_usdt']) ? $powerDailyIncomeArr['daily_income_usdt'] : 0; //净收入
+        // $powerDailyIncomeArr = self::getHashPowerDailyIncome($hashId);
+        // $daily_income_usdt = isset($powerDailyIncomeArr['daily_income_usdt']) ? $powerDailyIncomeArr['daily_income_usdt'] : 0; //净收入
         $poolBtcData = self::getPoolBtc();
         // p($poolBtcData);
         $incomeArr = self::calcBtcIncome($electricity_price, $power_consumption_ratio, $cost_revenue); 
+        
         $daily_expenditure = (float)$incomeArr['estimateBill']; //日支出 usdt
         $daily_output = (float)$poolBtcData['daily_income']; //日产出/T
-        $daily_income = $daily_output - $daily_expenditure; //日收益 = 日产出-日支出
+        // $daily_income = $daily_output - $daily_expenditure; //日收益 = 日产出-日支出
+        $daily_income = $incomeArr['dailyIncome'];
         $next_difficulty = (float)$poolBtcData['next_difficulty']; //预测下次难度
         $next_difficulty_days = (float)$poolBtcData['next_difficulty_days']; //预测天数
         $price = 1;
@@ -138,7 +140,7 @@ class Power extends Base
                 $price =  0.99 * ((7 - $next_difficulty_days) * $daily_income + $next_difficulty_days * ($daily_output * (1 + abs($next_difficulty)) - $daily_expenditure));
             }
         } else {
-            $price = $daily_income_usdt * 7 * 0.99; //价格 = 收入 * 7 * 0.997
+            $price = $daily_income * 7 * 0.99; //价格 = 收入 * 7 * 0.997
         }
         if($price) {
             return $price;
