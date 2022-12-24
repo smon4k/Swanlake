@@ -63,7 +63,7 @@
                     label="操作"
                     align="center">
                     <template slot-scope="scope">
-                        <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button>
+                        <el-button @click="buyClick(scope.row, 1)" type="text">租赁</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -93,7 +93,7 @@
                     <el-descriptions-item label="合约价格">{{ keepDecimalNotRounding(item.price, 4) }} USDT</el-descriptions-item>
                     <el-descriptions-item>
                         <div class="operate">
-                            <el-button size="mini" type="primary" @click="buyClick(item, 1)">购买</el-button>
+                            <el-button size="mini" type="primary" @click="buyClick(item, 1)">租赁</el-button>
                         </div>
                     </el-descriptions-item>
                 </el-descriptions>

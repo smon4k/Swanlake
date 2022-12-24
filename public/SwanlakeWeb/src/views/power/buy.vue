@@ -119,7 +119,7 @@
                 >
               </div>
               <div class="agree-item-buttom">
-                <el-button :disabled="!agree|| trading || detailData.stock <= 0" v-loading="trading" @click="startPurchase">{{ detailData.stock > 0 ? $t('subscribe:Purchase') : $t('subscribe:SoldOut') }}</el-button>
+                <el-button :disabled="!agree|| trading || detailData.stock <= 0" v-loading="trading" @click="startPurchase">{{ detailData.stock > 0 ? '租赁' : $t('subscribe:SoldOut') }}</el-button>
               </div>
               <!-- <div class="receive-agree-item-buttom">
                 <span>{{ $t('subscribe:RequiresPledgeIncome') }}</span>
@@ -129,7 +129,7 @@
           </el-row>
 
           <!-- 算力币说明 -->
-          <el-row v-show="true">
+          <el-row v-show="false">
               <el-col :span="24" class="content">
                   <el-card class="box-card" shadow="never" v-if="$t('public:language') === 'zh'">
                       <section data-role="paragraph" class="_135editor">
