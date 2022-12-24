@@ -59,7 +59,7 @@ class PowerUser extends Base
     public static function buyHashPower($hashId=0, $address='', $amount=0) {
         if($hashId && $address) {
             $powerDetail = Power::getPowerDetail($hashId);
-            $buy_price = Power::getPowerPrice($hashId);
+            $buy_price = Power::getPowerPrice($hashId, $powerDetail['electricity_price'], $powerDetail['power_consumption_ratio'], $powerDetail['cost_revenue']);
             $quota = $amount * $buy_price; //计算消耗额度 usdt
             self::startTrans();
             try {
