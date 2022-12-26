@@ -38,7 +38,7 @@ class PowerUser extends Base
                     ->where($where)
                     ->page($page, $limit)
                     ->order($order)
-                    ->field('a.*,b.name')
+                    ->field('a.*,b.name,b.validity_period')
                     ->select()
                     ->toArray();
         if (!$lists) {
@@ -46,6 +46,12 @@ class PowerUser extends Base
         }
         foreach ($lists as $key => $val) {
             $lists[$key]['income'] = PowerUserIncome::getUserPowerCountIncome($val['id'], $val['hash_id'], $val['address']);
+            $days = $val['validity_period'] + 1;
+            if($val['expire_date'] == '') {
+                $lists[$key]['expire_date'] = date('Y-m-d H:i:s', strtotime($val['add_time'] . ' +'.$days.' day'));
+            } else {
+                $lists[$key]['expire_date'] = $val['expire_date'];
+            }
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
@@ -63,31 +69,34 @@ class PowerUser extends Base
             $quota = $amount * $buy_price; //计算消耗额度 usdt
             self::startTrans();
             try {
-                $res = self::where(['hash_id' => $hashId, 'address' => $address, 'state' => 1])->find();
-                if($res && count((array)$res) > 0) {
-                    $amount_data = (float)$amount + (float)$res['amount'];
-                    $total_quota = (float)$res['total_quota'] + (float)$quota; //计算总额度
-                    $res = self::where(['hash_id' => $hashId, 'address' => $address, 'state' => 1])->update(['amount' => $amount_data, 'total_quota' => $total_quota, 'update_time' => date('Y-m-d H:i:s')]);
-                    if($res !== false) {
-                        $setPowerOrderRes = PowerOrder::setPowerOrder($address, $hashId, $amount, $buy_price, $quota);
-                        if($setPowerOrderRes) {
-                            $setUserBalanceRes = User::setUserLocalBalance($address, $quota, 2);
-                            if($setUserBalanceRes) {
-                                $stockRes = Power::setPowerStock($hashId, $amount); //减库存
-                                if($stockRes) {
-                                    self::commit();
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                } else {
+                // $res = self::where(['hash_id' => $hashId, 'address' => $address, 'state' => 1])->find();
+                // if($res && count((array)$res) > 0) {
+                //     $amount_data = (float)$amount + (float)$res['amount'];
+                //     $total_quota = (float)$res['total_quota'] + (float)$quota; //计算总额度
+                //     $res = self::where(['hash_id' => $hashId, 'address' => $address, 'state' => 1])->update(['amount' => $amount_data, 'total_quota' => $total_quota, 'update_time' => date('Y-m-d H:i:s')]);
+                //     if($res !== false) {
+                //         $setPowerOrderRes = PowerOrder::setPowerOrder($address, $hashId, $amount, $buy_price, $quota);
+                //         if($setPowerOrderRes) {
+                //             $setUserBalanceRes = User::setUserLocalBalance($address, $quota, 2);
+                //             if($setUserBalanceRes) {
+                //                 $stockRes = Power::setPowerStock($hashId, $amount); //减库存
+                //                 if($stockRes) {
+                //                     self::commit();
+                //                     return true;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // } else {
+                    // $expire_date = date("Y-m-d H:i:s",strtotime("+8 day"));
+                    $days = $powerDetail['validity_period'] + 1;
                     $insertData = [
                         'hash_id' => $hashId,
                         'address' => $address,
                         'amount' => $amount,
                         'total_quota' => $quota,
                         'add_time' => date('Y-m-d H:i:s'),
+                        'expire_date' => date("Y-m-d H:i:s", strtotime("+".$days." day")),
                         'update_time' => date('Y-m-d H:i:s'),
                         'state' => 1
                     ];
@@ -106,7 +115,7 @@ class PowerUser extends Base
                             }
                         }
                     }
-                }
+                // }
                 self::rollback();
                 return false;
             } catch ( PDOException $e) {
@@ -175,6 +184,8 @@ class PowerUser extends Base
             if($list && count((array)$list) > 0) {
                 $countRum = 0;
                 $date = date('Y-m-d');
+                $poolBtcData = self::getPoolBtc();
+                $currency_price = $poolBtcData['currency_price'];
                 foreach ($list as $key => $val) {
                     //检查是否超过有效天数
                     $powerDetail = Power::getPowerDetail($val['hash_id']);
@@ -189,10 +200,11 @@ class PowerUser extends Base
                         if(!$dayIsIncome) {
                             $incomeArr = self::calcBtcIncome($powerDetail['electricity_price'], $powerDetail['power_consumption_ratio'], $powerDetail['cost_revenue']); 
                             $dailyIncome = $incomeArr['dailyIncome']; //日收益
-                            $userRewardNum = convert_scientific_number_to_normal($val['amount'] * ($dailyIncome * 7)); //用户今日收益数数量
-                            $setPowerIncome = PowerUserIncome::setPowerUserIncome($val['id'], $val['hash_id'], $val['address'], $userRewardNum);
+                            $userRewardNum = convert_scientific_number_to_normal($val['amount'] * ($dailyIncome * 7)); //用户今日收益数数量 usdt
+                            $userRewardNumBtcb = convert_scientific_number_to_normal($userRewardNum / $currency_price);
+                            $setPowerIncome = PowerUserIncome::setPowerUserIncome($val['id'], $val['hash_id'], $val['address'], $userRewardNum, $userRewardNumBtcb);
                             if($setPowerIncome) { //如果写入奖励数据 
-                                $res = User::setUserLocalBalance($val['address'], $userRewardNum, 1); //开始增加用户余额
+                                $res = User::setUserCurrencyLocalBalance($val['address'], $userRewardNumBtcb, 1, 'btcb'); //开始增加用户余额
                             }
                         } else {
                             $res = true;

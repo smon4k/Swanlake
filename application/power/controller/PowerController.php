@@ -122,6 +122,7 @@ class PowerController extends BaseController
         $page = $request->request('page', 1, 'intval');
         $limit = $request->request('limit', 20, 'intval');
         $hashId = $request->request('hash_id', 0, 'intval');
+        $user_power_id = $request->request('user_power_id', 0, 'intval');
         $address = $request->request('address', '', 'trim');
         if ($hashId <= 0 || $address == '') {
             return $this->as_json('70001', 'Missing parameters');
@@ -129,6 +130,7 @@ class PowerController extends BaseController
         $where = [];
         $where['a.address'] = $address;
         $where['a.hash_id'] = $hashId;
+        $where['a.user_power_id'] = $user_power_id;
         $result = PowerUserIncome::getPowerDailyincomeList($where, $page, $limit);
         if ($result) {
             return $this->as_json($result);

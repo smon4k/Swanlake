@@ -127,12 +127,12 @@ class PowerUserIncome extends Base {
      * @author qinlh
      * @since 2022-12-18
      */
-    public static function setPowerUserIncome($user_power_id=0, $hash_id=0, $address='', $amount='') {
+    public static function setPowerUserIncome($user_power_id=0, $hash_id=0, $address='', $usdt_amount=0, $btcb_amount=0) {
         $date = date('Y-m-d');
         if($user_power_id && $hash_id && $address !== '') {
             $dataRes = self::where(['user_power_id' => $user_power_id, 'hash_id' => $hash_id, 'address' => $address, 'date' => $date])->find();
             if($dataRes && count((array)$dataRes) > 0) {
-                $res = self::where(['user_power_id' => $user_power_id, 'hash_id' => $hash_id, 'address' => $address, 'date' => $date])->setField('amount', $amount);
+                $res = self::where(['user_power_id' => $user_power_id, 'hash_id' => $hash_id, 'address' => $address, 'date' => $date])->update(['btcb_amount' => $btcb_amount, 'usdt_amount' => $usdt_amount]);
                 if(false !== $res) {
                     return true;
                 }
@@ -141,7 +141,8 @@ class PowerUserIncome extends Base {
                     'user_power_id' => $user_power_id,
                     'address' => $address,
                     'hash_id' => $hash_id,
-                    'amount' => $amount,
+                    'btcb_amount' => $btcb_amount,
+                    'usdt_amount' => $usdt_amount,
                     'date' => $date,
                     'time' => date('Y-m-d H:i:s'),
                 ];
@@ -184,7 +185,7 @@ class PowerUserIncome extends Base {
         if($address && $address !== '') {
             $where['address'] = $address;
         }
-        $amount = self::where($where)->sum('amount');
+        $amount = self::where($where)->sum('btcb_amount');
         return $amount;
     }   
 }
