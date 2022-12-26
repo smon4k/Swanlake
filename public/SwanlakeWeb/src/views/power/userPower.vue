@@ -31,7 +31,7 @@
                     prop=""
                     label="购买时间"
                     align="center"
-                    width="180">
+                    width="200">
                     <template slot-scope="scope">
                         <span>{{ scope.row.add_time }}</span>
                     </template>
@@ -48,9 +48,10 @@
                 <el-table-column
                     prop=""
                     label="收益"
-                    align="center">
+                    align="center"
+                    width="180">
                     <template slot-scope="scope">
-                        <span>{{ keepDecimalNotRounding(scope.row.income, 6, true) }} BTCB</span>
+                        <span>{{ fromSATBTCNum(scope.row.income, 2) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -93,7 +94,7 @@
                     <el-descriptions-item label="数量">{{ toFixed(item.amount || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="金额">{{ toFixed(item.total_quota || 0, 2) }} USDT</el-descriptions-item>
                     <el-descriptions-item label="购买时间">{{ item.add_time }}</el-descriptions-item>
-                    <el-descriptions-item label="收益">{{ keepDecimalNotRounding(item.income, 6, true) }} BTCB</el-descriptions-item>
+                    <el-descriptions-item label="收益">{{ fromSATBTCNum(item.income, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="状态">
                         <span v-if="item.state == 1">有效</span>
                         <span v-else>失效</span>
@@ -118,7 +119,7 @@
                 <el-table-column property="name" label="收益" align="center">
                     <template slot-scope="scope">
                         <span>
-                            {{ toFixed(scope.row.btcb_amount || 0, 6) }} BTCB
+                            {{ fromSATBTCNum(Number(scope.row.btcb_amount || 0), 2) }}
                             <!-- {{ toFixed(scope.row.income_usdt || 0, 4) }} USDT / {{ fromSATBTCNum(scope.row.income_usdt / poolBtcData.currency_price, 2)}} -->
                         </span>
                     </template>

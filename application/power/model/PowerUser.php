@@ -48,7 +48,7 @@ class PowerUser extends Base
             $lists[$key]['income'] = PowerUserIncome::getUserPowerCountIncome($val['id'], $val['hash_id'], $val['address']);
             $days = $val['validity_period'] + 1;
             if($val['expire_date'] == '') {
-                $lists[$key]['expire_date'] = date('Y-m-d H:i:s', strtotime($val['add_time'] . ' +'.$days.' day'));
+                $lists[$key]['expire_date'] = date('Y-m-d', strtotime($val['add_time'] . ' +'.$days.' day'));
             } else {
                 $lists[$key]['expire_date'] = $val['expire_date'];
             }
