@@ -184,7 +184,7 @@ class PowerUser extends Base
             if($list && count((array)$list) > 0) {
                 $countRum = 0;
                 $date = date('Y-m-d');
-                $poolBtcData = self::getPoolBtc();
+                $poolBtcData = Power::getPoolBtc();
                 $currency_price = $poolBtcData['currency_price'];
                 foreach ($list as $key => $val) {
                     //检查是否超过有效天数
