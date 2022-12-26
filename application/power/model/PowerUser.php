@@ -50,7 +50,7 @@ class PowerUser extends Base
             if($val['expire_date'] == '') {
                 $lists[$key]['expire_date'] = date('Y-m-d', strtotime($val['add_time'] . ' +'.$days.' day'));
             } else {
-                $lists[$key]['expire_date'] = $val['expire_date'];
+                $lists[$key]['expire_date'] = date('Y-m-d', strtotime($val['expire_date']));
             }
         }
         // p($lists);
