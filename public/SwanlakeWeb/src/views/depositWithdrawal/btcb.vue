@@ -588,7 +588,7 @@ export default {
         }, async json => {
             console.log(json);
             if (json.code == 10000) {
-                this.localBalance = keepDecimalNotRounding(json.data.btcb_local_balance, 4, true);
+                this.localBalance = keepDecimalNotRounding(json.data.btcb_local_balance, 10, true);
                 // this.walletBalance = json.data.walletBalance;
                 this.isGame = json.data.isGame;
                 if(!isHint && json.data.isGame) {
