@@ -1,6 +1,9 @@
 #!/bin/bash
 
+while [ true ]; do
+
 echo "开始检查python脚本是否运行..."
+/bin/sleep 1
 
 cd /home/www/Swanlake/pyapi/
 bscTokenNum=$(netstat -an|grep LISTEN | grep 8013)
@@ -15,3 +18,5 @@ then
 else
     echo "python脚本[bsc币种新增地址量统计 端口8013]正在运行中..."
 fi
+
+done
