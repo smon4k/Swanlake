@@ -1,4 +1,5 @@
 #!/bin/bash
+# 不需要启用 备用
 
 while [ true ]; do
 
