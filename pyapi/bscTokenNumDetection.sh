@@ -3,7 +3,7 @@
 while [ true ]; do
 
 echo "开始检查python脚本是否运行..."
-/bin/sleep 1
+/bin/sleep 3600
 
 cd /home/www/Swanlake/pyapi/
 bscTokenNum=$(netstat -an|grep LISTEN | grep 8013)
