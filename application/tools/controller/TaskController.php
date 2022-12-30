@@ -22,6 +22,7 @@ use ClassLibrary\CLFile;
 use RequestService\RequestService;
 use think\Log;
 use think\Config;
+use cache\Rediscache;
 
 /**
  * 任务
@@ -192,7 +193,17 @@ class TaskController extends ToolsBaseController
     public function binancePiggybankPendingOrder() {
         $begin_time = time();
 
-        Binance::balancePendingOrder();
+        $key = "Binance:PendingOrder:Lock";
+
+        $isPendingOrderLock = Rediscache::getInstance()->get($key); 
+
+        if(!$isPendingOrderLock) {
+            Rediscache::getInstance()->set($key, 1); 
+    
+            Binance::balancePendingOrder();
+
+            Rediscache::getInstance()->del($key); 
+        }
 
         return (time() - $begin_time) . "s\n";
     }
