@@ -253,7 +253,7 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";die;
+            echo $error_msg . "\r\n";
             return false;
         }
     }
@@ -642,7 +642,7 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";die;
+            echo $error_msg . "\r\n";
             return false;
         }
     }
@@ -1013,7 +1013,7 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";die;
+            echo $error_msg . "\r\n";
             return false;
         }
     }
@@ -1042,7 +1042,7 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";die;
+            echo $error_msg . "\r\n";
             return false;
         }
     }
@@ -1164,7 +1164,7 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";die;
+            echo $error_msg . "\r\n";
             return false;
         }
     }
@@ -1202,7 +1202,7 @@ class Binance extends Base
                 'line' => $e->getLine(),
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";die;
+            echo $error_msg . "\r\n";
             return false;
         }
     }
