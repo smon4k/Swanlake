@@ -60,7 +60,7 @@ class Power extends Base
             $profit = $powerCountIncome - $totalQuotaNum; //利润 = 收入减去本金
             // p($powerCountIncome);
             $lists[$key]['profit'] = $profit;
-            $profit_rate = $totalQuotaNum > 0 ? $profit / $totalQuotaNum : 0; //利润率 = 利润除以本金
+            $profit_rate = $totalQuotaNum > 0 ? ($profit / $totalQuotaNum) * 100 : 0; //利润率 = 利润除以本金
             $lists[$key]['profit_rate'] = $profit_rate;
             $lists[$key]['annualized_rate'] = $profit_rate / 7 * 365 * 100; //年化收益率 = 利润率 / 7 * 365 * 100
         } 
