@@ -7,7 +7,7 @@ echo "开始检查python脚本是否运行..."
 /bin/sleep 3600
 
 cd /home/www/Swanlake/pyapi/
-bscTokenNum=$(netstat -an|grep LISTEN | grep 8013)
+bscTokenNum="netstat -an|grep LISTEN | grep 8013"
 echo $bscTokenNum
 # 判断$bscTokenNum为空,此处意思为如果$bscTokenNum为空，那么重启
 if ["$bscTokenNum"!=""];

@@ -51,7 +51,14 @@ class Power extends Base
 
             $dailyIncome = $incomeArr['dailyIncome']; //日收益
             $powerCountIncome = $dailyIncome * 7; //获取7天有效期内收入 = 日收益 * 7
+            $next_difficulty_days = (float)$poolBtcData['next_difficulty_days']; //预测天数
+            if($next_difficulty_days < 7) {
+                $powerCountIncome = $price / 0.99;
+            } else {
+                $powerCountIncome = $dailyIncome * 7; //获取7天有效期内收入 = 日收益 * 7
+            }
             $profit = $powerCountIncome - $totalQuotaNum; //利润 = 收入减去本金
+            // p($powerCountIncome);
             $lists[$key]['profit'] = $profit;
             $profit_rate = $totalQuotaNum > 0 ? $profit / $totalQuotaNum : 0; //利润率 = 利润除以本金
             $lists[$key]['profit_rate'] = $profit_rate;
