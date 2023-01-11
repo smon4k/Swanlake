@@ -121,7 +121,8 @@ export default {
             { required: true, message: '请选择方向', trigger: 'change' }
           ],
         },
-        tradingPairData: {}
+        tradingPairData: {},
+        loading: true,
     };
   },
   methods: {
@@ -197,6 +198,9 @@ export default {
     submitForm(formName) {
         this.$refs[formName].validate((valid) => {
             if (valid) {
+                const loading = this.$loading({
+                  target: '.el-dialog',
+                });
                 get('/Admin/Piggybank/calcDepositAndWithdrawal', {
                     product_name: this.product_name,
                     direction: this.ruleForm.direction,
@@ -206,9 +210,11 @@ export default {
                     if (json && json.data.code == 10000) {
                         this.$message.success('更新成功');
                         this.$refs[formName].resetFields();
+                        loading.close();
                         this.dialogVisibleShow = false;
                         this.getListData();
                     } else {
+                        loading.close();
                         this.$message.error(json.data.msg);
                     }
                 })
@@ -221,7 +227,7 @@ export default {
     resetForm(formName) {
         this.$refs[formName].resetFields();
     },
-    DepositWithdrawalShow() { //出入金 弹框显示
+    DepositWithdrawalShow() { //出入金 弹框显示\
         this.dialogVisibleShow = true;
     },
     handleClose() {
