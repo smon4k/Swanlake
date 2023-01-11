@@ -154,12 +154,12 @@
                             <el-table-column prop="date" label="日期" align="center"></el-table-column>
                             <el-table-column prop="principal" label="累计本金" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} BTC</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} {{tradingPairData.transaction_currency}}</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="总结余" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} BTC</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} {{tradingPairData.transaction_currency}}</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="币价" align="center">
@@ -169,7 +169,7 @@
                             </el-table-column>
                             <el-table-column prop="" label="日利润" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 4, true) }} BTC</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 4, true) }} {{tradingPairData.transaction_currency}}</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="日利润率" align="center">
@@ -189,7 +189,7 @@
                             </el-table-column>
                             <el-table-column prop="" label="利润" align="center">
                                 <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} BTC</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} {{tradingPairData.transaction_currency}}</span>
                                 </template>
                             </el-table-column>
                             <el-table-column prop="" label="利润率" align="center">
@@ -298,10 +298,21 @@ export default {
           direction: [
             { required: true, message: '请选择方向', trigger: 'change' }
           ],
-        }
+        },
+        tradingPairData: {}
     };
   },
   methods: {
+    getTradingPairData() { //获取交易币种信息
+      get("/Admin/Piggybank/getTradingPairData", {}, json => {
+          console.log(json);
+        if (json.data.code == 10000) {
+          this.tradingPairData = json.data.data;
+        } else {
+          this.$message.error("加载数据失败");
+        }
+      });
+    },
     tabClick(item) {
         console.log(item);
         if(item.label === '币种统计') {
@@ -487,8 +498,8 @@ export default {
 
   },
   created() {
+    this.getTradingPairData();
     this.getListData();
-    this.UserAuthUid = localStorage.getItem("UserAuthUid");
   },
   components: {
     "wbc-page": Page, //加载分页组件
