@@ -417,9 +417,9 @@ class Okx extends Base
         $btcPrice = 1;
         $btcValuation = 0;
         $usdtValuation = 0;
-        if($marketIndexTickers && $marketIndexTickers['idxPx'] > 0) {
-            $btcPrice = (float)$marketIndexTickers['idxPx'];
-            $btcValuation = $btcBalance * (float)$marketIndexTickers['idxPx'];
+        if($marketIndexTickers && $marketIndexTickers['last'] > 0) {
+            $btcPrice = (float)$marketIndexTickers['last'];
+            $btcValuation = $btcBalance * (float)$marketIndexTickers['last'];
             $usdtValuation = $usdtBalance;
         }
         return ['btcPrice' => $btcPrice, 'usdtBalance' => $usdtBalance, 'btcBalance' => $btcBalance, 'btcValuation' => $btcValuation, 'usdtValuation' => $usdtValuation];
