@@ -185,8 +185,8 @@ class Piggybank extends Base
         $BProfit = $BTotalBalance - $countBstandardPrincipal;
 
         //总利润率 = 利润 / 本金
-        $UProfitRate = $UProfit / $countUstandardPrincipal;
-        $BProfitRate = $BProfit / $countBstandardPrincipal;
+        $UProfitRate = $countUstandardPrincipal > 0 ? $UProfit / $countUstandardPrincipal : 0;
+        $BProfitRate = $countBstandardPrincipal > 0 ? $BProfit / $countBstandardPrincipal : 0;
 
         //日利润 日利润率
         $dailyUProfit = 0; //昨日U本位利润
