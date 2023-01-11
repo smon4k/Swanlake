@@ -34,7 +34,7 @@ class Okx extends Base
     public static function balancePositionOrder() {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
-        $transactionCurrency = "BTC-USDT"; //交易币种
+        $transactionCurrency = self::gettTradingPairName('Okx'); //交易币种
         $className = "\ccxt\\okex5";
         // $exchange  = new $className(array( //母账户
         //     'apiKey' => '21d3e612-910b-4f51-8f8d-edf2fc6f22f5',
@@ -237,7 +237,10 @@ class Okx extends Base
     public static function piggybankDate() {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
-        $transactionCurrency = "BTC-USDT"; //交易币种
+        $transactionCurrency = self::gettTradingPairName('Okx'); //交易币种
+        $currencyArr = explode('-', $transactionCurrency);
+        $currency1 = $currencyArr[0]; //交易币种
+        $currency2 = $currencyArr[1]; //USDT
         $className = "\ccxt\\okex5";
         $exchange  = new $className(array( //子账户
             'apiKey' => self::$apiKey,
@@ -251,11 +254,11 @@ class Okx extends Base
             $usdtBalance = 0;
             foreach ($balanceDetails['details'] as $k => $v) {
                 if(isset($v['eq'])) {
-                    if($v['ccy'] == 'BTC' || $v['ccy'] == 'USDT') {
-                        if($v['ccy'] == 'BTC' && (float)$v['eq'] > 0) {
+                    if($v['ccy'] == $currency1 || $v['ccy'] == $currency2) {
+                        if($v['ccy'] == $currency1 && (float)$v['eq'] > 0) {
                             $btcBalance += (float)$v['eq'];
                         }
-                        if($v['ccy'] == 'USDT' && (float)$v['eq'] > 0) {
+                        if($v['ccy'] == $currency2 && (float)$v['eq'] > 0) {
                             $usdtBalance += (float)$v['eq'];
                         }
                     }
@@ -324,6 +327,10 @@ class Okx extends Base
     public static function getTradePairBalance($transactionCurrency) {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
+        $transactionCurrency = self::gettTradingPairName('Okx'); //交易币种
+        $currencyArr = explode('-', $transactionCurrency);
+        $currency1 = $currencyArr[0]; //交易币种
+        $currency2 = $currencyArr[1]; //USDT
         $className = "\ccxt\\okex5";
         $exchange  = new $className(array( //子账户
             'apiKey' => self::$apiKey,
@@ -337,11 +344,11 @@ class Okx extends Base
             $usdtBalance = 0;
             foreach ($balanceDetails['details'] as $k => $v) {
                 if(isset($v['eq'])) {
-                    if($v['ccy'] == 'BTC' || $v['ccy'] == 'USDT') {
-                        if($v['ccy'] == 'BTC' && (float)$v['eq'] > 0) {
+                    if($v['ccy'] == $currency1 || $v['ccy'] == $currency2) {
+                        if($v['ccy'] == $currency1 && (float)$v['eq'] > 0) {
                             $btcBalance += (float)$v['eq'];
                         }
-                        if($v['ccy'] == 'USDT' && (float)$v['eq'] > 0) {
+                        if($v['ccy'] == $currency2 && (float)$v['eq'] > 0) {
                             $usdtBalance += (float)$v['eq'];
                         }
                     }
@@ -454,7 +461,10 @@ class Okx extends Base
         $result = [];
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
-        $transactionCurrency = "BTC-USDT"; //交易币种
+        $transactionCurrency = self::gettTradingPairName('Okx'); //交易币种
+        $currencyArr = explode('-', $transactionCurrency);
+        $currency1 = $currencyArr[0]; //交易币种
+        $currency2 = $currencyArr[1]; //USDT
         $className = "\ccxt\\okex5";
         $exchange  = new $className(array( //子账户
             'apiKey' => self::$apiKey,
@@ -512,10 +522,10 @@ class Okx extends Base
         $result['sellingPrice'] = $lastPrice * $sellPropr;
         $result['buyingPrice'] = $lastPrice * $buyPropr;
         if($btcValuation > $usdtValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
-            $result['sellOrdersNumberStr'] = 'BTC出售数量: ' . $btcSellOrdersNumber ;
+            $result['sellOrdersNumberStr'] = $currency1 . '出售数量: ' . $btcSellOrdersNumber ;
         }
         if($btcValuation < $usdtValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
-            $result['sellOrdersNumberStr'] = 'USDT购买数量: ' . $usdtBuyOrdersNumber ;
+            $result['sellOrdersNumberStr'] = $currency2 . '购买数量: ' . $usdtBuyOrdersNumber ;
         }
 
         //计算下一次下单购买出售数据
@@ -562,5 +572,43 @@ class Okx extends Base
         //     echo "BUSD购买数量: " . $busdBuyOrdersNumber . "<br>";
         // }
     }
-    
+
+    /**
+     * 获取交易对名称
+     * @author qinlh
+     * @since 2023-01-10
+     */
+    public static function getTradingPairData($exchange='') {
+        $data = Db::name('piggybank_list')->where(['exchange' => $exchange, 'state' => 1])->find();
+        if($data && count((array)$data) > 0) {
+            return $data;
+        }
+        return [];
+    }
+
+     /**
+     * 获取交易对名称
+     * @author qinlh
+     * @since 2023-01-10
+     */
+    public static function gettTradingPairName($exchange='') {
+        $data = Db::name('piggybank_list')->where(['exchange' => $exchange, 'state' => 1])->find();
+        if($data && count((array)$data) > 0) {
+            return $data['name'];
+        }
+        return [];
+    }
+
+    /**
+     * 获取交易对ID
+     * @author qinlh
+     * @since 2023-01-10
+     */
+    public static function gettTradingPairId($exchange='') {
+        $data = Db::name('piggybank_list')->where(['exchange' => $exchange, 'state' => 1])->find();
+        if($data && count((array)$data) > 0) {
+            return $data['id'];
+        }
+        return [];
+    }
 }

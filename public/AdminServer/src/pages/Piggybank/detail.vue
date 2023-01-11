@@ -2,7 +2,7 @@
   <div>
     <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item to="">BTC 存钱罐管理</el-breadcrumb-item>
+        <el-breadcrumb-item to="">{{ tradingPairData.transaction_currency }} 存钱罐管理</el-breadcrumb-item>
         <el-breadcrumb-item to="">项目详情</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="mian" v-loading="loading">
@@ -22,7 +22,7 @@
                 <span>{{ detailData.quote_ccy }}</span>
             </el-col>
             <el-col :span="12">
-                <span>BTC价格:</span>
+                <span>{{ tradingPairData.transaction_currency }}价格:</span>
                 <span>{{ detailData.tradingPrice }}</span>
             </el-col>
         </el-row>
@@ -38,11 +38,11 @@
         </el-row>
         <el-row>
             <el-col :span="12">
-                <span>BTC余额:</span>
+                <span>{{ tradingPairData.transaction_currency }}余额:</span>
                 <span>{{ detailData.btcBalance }}</span>
             </el-col>
             <el-col :span="12">
-                <span>BTC估值:</span>
+                <span>{{ tradingPairData.transaction_currency }}估值:</span>
                 <span>{{ detailData.btcValuation }}</span>
             </el-col>
         </el-row>
@@ -88,7 +88,7 @@
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.buy.amount, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
-                    <span>BTC估值：</span>
+                    <span>{{ tradingPairData.transaction_currency }}估值：</span>
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.buy.btcValuation, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
@@ -106,7 +106,7 @@
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.sell.amount, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
-                    <span>BTC估值：</span>
+                    <span>{{ tradingPairData.transaction_currency }}估值：</span>
                     <span>{{ keepDecimalNotRounding(detailData.pendingOrder.sell.btcValuation, 8) || 0 }}</span>
                 </el-col>
                 <el-col :span="6">
@@ -124,10 +124,21 @@ export default {
   data() {
     return {
         detailData: {},
+        tradingPairData: {},
         loading: true,
     };
   },
   methods: {
+    getTradingPairData() { //获取交易币种信息
+      get("/Admin/Piggybank/getTradingPairData", {}, json => {
+          console.log(json);
+        if (json.data.code == 10000) {
+          this.tradingPairData = json.data.data;
+        } else {
+          this.$message.error("加载数据失败");
+        }
+      });
+    },
     getListData() { //获取U本位数据
         this.loading = true;
         get("/Admin/Piggybank/testBalancePosition", {}, json => {
@@ -143,6 +154,7 @@ export default {
 
   },
   created() {
+    this.getTradingPairData();
     this.getListData();
   },
   components: {

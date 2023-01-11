@@ -5,17 +5,17 @@
         <el-breadcrumb-item to="">存钱罐管理</el-breadcrumb-item>
         <el-breadcrumb-item to="">数据统计</el-breadcrumb-item>
     </el-breadcrumb>
-    <div class="project-top">
+    <!-- <div class="project-top">
       <el-form :inline="true" class="demo-form-inline" size="mini">
         <el-form-item label="产品名称:">
           <el-input clearable placeholder="产品名称" v-model="product_name"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="SearchClick()">搜索</el-button>
-          <!-- <el-button class="pull-right" type="primary" @click="DepositWithdrawalShow()">出/入金</el-button> -->
+          <el-button class="pull-right" type="primary" @click="DepositWithdrawalShow()">出/入金</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </div> -->
     <el-tabs type="card" @tab-click="tabClick">
         <el-tab-pane label="数据">
             <el-table :data="tableData" style="width: 100%;">

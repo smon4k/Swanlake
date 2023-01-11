@@ -381,7 +381,9 @@ class Piggybank extends Base
                 $amount_num = $amount *= -1;
                 $total_balance = self::getInoutGoldTotalBalance() - (float)$amount;
             }
+            $pig_id = Okx::gettTradingPairId('Okx');
             $insertData = [
+                'pig_id' => $pig_id,
                 'amount' => $amount_num,
                 // 'price' => $price,
                 'type' => $type,
@@ -404,7 +406,8 @@ class Piggybank extends Base
      */
     public static function getInoutGoldTotalBalance()
     {
-        $count = self::name('okx_inout_gold')->sum('amount');
+        $pig_id = Okx::gettTradingPairId('Okx');
+        $count = self::name('okx_inout_gold')->where('pig_id', $pig_id)->sum('amount');
         if ($count !== 0) {
             return $count;
         }

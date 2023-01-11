@@ -2,7 +2,7 @@
   <div>
     <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item to="">BTC存钱罐管理</el-breadcrumb-item>
+        <el-breadcrumb-item to="">{{tradingPairData.transaction_currency}}存钱罐管理</el-breadcrumb-item>
         <el-breadcrumb-item to="">出/入金</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">
@@ -120,10 +120,22 @@ export default {
           direction: [
             { required: true, message: '请选择方向', trigger: 'change' }
           ],
-        }
+        },
+        tradingPairData: {}
     };
   },
   methods: {
+    getTradingPairData() { //获取交易币种信息
+      get("/Admin/Piggybank/getTradingPairData", {}, json => {
+          console.log(json);
+        if (json.data.code == 10000) {
+          this.tradingPairData = json.data.data;
+          this.product_name = this.tradingPairData.name;
+        } else {
+          this.$message.error("加载数据失败");
+        }
+      });
+    },
     getListData(ServerWhere) { //获取U本位数据
       var that = this.$data;
       if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
@@ -218,8 +230,8 @@ export default {
 
   },
   created() {
+    this.getTradingPairData();
     this.getListData();
-    this.UserAuthUid = localStorage.getItem("UserAuthUid");
   },
   components: {
     "wbc-page": Page, //加载分页组件

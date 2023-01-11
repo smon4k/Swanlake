@@ -241,7 +241,7 @@ class TaskController extends ToolsBaseController
     /**
      * BIFI/BUSD https://www.binancezh.top/zh-CN/trade/BIFI_BUSD?theme=dark&type=spot
      * 登录账号密码：smon4k08/Zx112211@
-     * Okx 按照比例平衡仓位 出售赎回
+     * Binance 按照比例平衡仓位 出售赎回
      * 每日数据统计
      * @author qinlh
      * @since 2022-08-17
@@ -261,8 +261,8 @@ class TaskController extends ToolsBaseController
      */
     public function calcDepositAndWithdrawal() {
         $begin_time = time();
-
-        $transactionCurrency = "BTC-USDT"; //交易币种
+        $transactionCurrency = Okx::gettTradingPairName('Okx'); //交易币种
+        // $transactionCurrency = "BTC-USDT"; //交易币种
         Piggybank::calcDepositAndWithdrawal($transactionCurrency, 1, 0);
 
         return (time() - $begin_time) . "s\n";
@@ -276,7 +276,8 @@ class TaskController extends ToolsBaseController
     public function calcBinanceDepositAndWithdrawal() {
         $begin_time = time();
 
-        $transactionCurrency = "BIFI-BUSD"; //交易币种
+        // $transactionCurrency = "BIFI-BUSD"; //交易币种
+        $transactionCurrency = Okx::gettTradingPairName('Binance'); //交易币种
         BinancePiggybank::calcDepositAndWithdrawal($transactionCurrency, 1, 0);
 
         return (time() - $begin_time) . "s\n";

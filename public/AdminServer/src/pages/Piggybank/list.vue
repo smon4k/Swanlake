@@ -6,7 +6,7 @@
         <el-breadcrumb-item to="">订单列表</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">
-        <h2>BTC/USDT 策略详情</h2>
+        <h2>{{ tradingPairData.name }} 策略详情</h2>
       <!-- <el-form :inline="true" class="demo-form-inline" size="mini">
         <el-form-item label="产品名称:">
           <el-input clearable placeholder="产品名称" v-model="product_name"></el-input>
@@ -190,9 +190,31 @@ export default {
       videoUrl: '',
       videoPoster: '',
       activeNames: ['1'],
+      tradingPairData: {},
     };
   },
+  mounted() {
+      setTimeout(()=>{
+      } , 300)
+  },
+  created() {
+    this.getTradingPairData();
+    this.getListData();
+  },
+  components: {
+    "wbc-page": Page, //加载分页组件
+  },
   methods: {
+    getTradingPairData() { //获取交易币种信息
+      get("/Admin/Piggybank/getTradingPairData", {}, json => {
+          console.log(json);
+        if (json.data.code == 10000) {
+          this.tradingPairData = json.data.data;
+        } else {
+          this.$message.error("加载数据失败");
+        }
+      });
+    },
     getListData(ServerWhere) {
       var that = this.$data;
       if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
@@ -328,13 +350,6 @@ export default {
     }
 
   },
-  created() {
-    this.getListData();
-    this.UserAuthUid = localStorage.getItem("UserAuthUid");
-  },
-  components: {
-    "wbc-page": Page, //加载分页组件
-  }
 };
 </script>
 <style lang="scss" scoped>

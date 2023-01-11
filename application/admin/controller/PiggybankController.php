@@ -30,6 +30,9 @@ class PiggybankController extends BaseController
         $where = [];
         if($product_name && $product_name !== "") {
             $where['a.product_name'] = ['like',"%" . $product_name . "%"];
+        } else {
+            $pigName = Okx::gettTradingPairName('Okx');
+            $where['a.product_name'] = $pigName;
         }
         if($order_number && $order_number !== "") {
             $where['a.order_number'] = ['like',"%" . $order_number . "%"];
@@ -55,6 +58,12 @@ class PiggybankController extends BaseController
         $order_number = $request->request('order_number', '', 'trim');
         // $standard = $request->request('standard', 0, 'intval');
         $where = [];
+        if($product_name && $product_name !== "") {
+            $where['a.product_name'] = ['like',"%" . $product_name . "%"];
+        } else {
+            $pigName = Okx::gettTradingPairName('Okx');
+            $where['a.product_name'] = $pigName;
+        }
         // $where['standard'] = $standard;
         $data = Piggybank::getPiggybankDateList($page, $where, $limits);
         $count = $data['count'];
@@ -77,6 +86,8 @@ class PiggybankController extends BaseController
         $standard = $request->request('standard', 0, 'intval');
         $where = [];
         $where['standard'] = $standard;
+        $pigName = Okx::gettTradingPairName('Okx');
+        $where['product_name'] = $pigName;
         $data = Piggybank::getUBPiggybankDateList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
@@ -115,6 +126,8 @@ class PiggybankController extends BaseController
         $page = $request->request('page', 1, 'intval');
         $limits = $request->request('limit', 20, 'intval');
         $where = [];
+        $pigId = Okx::gettTradingPairId('Okx');
+        $where['pig_id'] = $pigId;
         $data = Piggybank::getInoutGoldList($where, $page, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
@@ -130,6 +143,16 @@ class PiggybankController extends BaseController
     public function testBalancePosition() {
         $data = Okx::testBalancePosition();
         return $this->as_json($data);
+    }
+
+    /**
+     * 获取交易对信息
+     * @author qinlh
+     * @since 2023-01-11
+     */
+    public function getTradingPairData() {
+        $result = Okx::getTradingPairData('Okx');
+        return $this->as_json($result);
     }
 
 }
