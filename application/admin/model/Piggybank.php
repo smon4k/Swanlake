@@ -200,9 +200,10 @@ class Piggybank extends Base
         $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance : 0;
         $dailyBProfitRate = $yestBTotalBalance > 0 ? $dailyBProfit / $yestBTotalBalance : 0;
 
-        $UaverageDayRate = self::name('okx_piggybank_currency_date')->where('standard', 1)->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取U本位平均日利率
+        $pig_name = Okx::gettTradingPairName('Okx');
+        $UaverageDayRate = self::name('okx_piggybank_currency_date')->where(['standard' => 1, 'product_name' => $pig_name])->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取U本位平均日利率
         $UaverageYearRate = $UaverageDayRate * 365; //平均年利率 = 平均日利率 * 365
-        $BaverageDayRate = self::name('okx_piggybank_currency_date')->where('standard', 2)->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取B本位平均日利率
+        $BaverageDayRate = self::name('okx_piggybank_currency_date')->where(['standard' => 2, 'product_name' => $pig_name])->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取B本位平均日利率
         $BaverageYearRate = $BaverageDayRate * 365; //平均年利率 = 平均日利率 * 365
 
         self::startTrans();
