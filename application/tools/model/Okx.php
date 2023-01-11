@@ -383,7 +383,7 @@ class Okx extends Base
     }
 
     /**
-     * 获取订单数据
+     * 获取单个产品行情信息 价格
      * @author qinlh
      * @since 2022-08-19
      */
@@ -397,7 +397,7 @@ class Okx extends Base
             'password' => self::$password,
         ));
         try {
-            $marketIndexTickers = $exchange->fetch_market_index_tickers($transactionCurrency); //获取交易BTC价格
+            $marketIndexTickers = $exchange->fetch_ticker($transactionCurrency); //获取交易BTC价格
             return $marketIndexTickers;
         } catch (\Exception $e) {
             return array(0, $e->getMessage());
