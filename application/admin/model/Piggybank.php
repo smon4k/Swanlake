@@ -161,9 +161,21 @@ class Piggybank extends Base
         $countBstandardPrincipal = 0;
         $uPrincipalRes = self::getPiggybankCurrencyPrincipal(1); //获取昨天的U数据
         $bPrincipalRes = self::getPiggybankCurrencyPrincipal(2); //获取昨天的B数据
+        $URes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
+        $BRes = self::name('okx_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->find();
         if (!$amount || $amount == 0) {
-            $countUstandardPrincipal = isset($uPrincipalRes['principal']) ? $uPrincipalRes['principal'] : 0;
-            $countBstandardPrincipal = isset($bPrincipalRes['principal']) ? $bPrincipalRes['principal'] : 0;
+            // $countUstandardPrincipal = isset($uPrincipalRes['principal']) ? $uPrincipalRes['principal'] : 0;
+            // $countBstandardPrincipal = isset($bPrincipalRes['principal']) ? $bPrincipalRes['principal'] : 0;
+            if(!$URes || empty($URes)) { //今日第一次执行 获取昨日本金
+                $countUstandardPrincipal = isset($uPrincipalRes['principal']) ? (float)$uPrincipalRes['principal'] : 0;
+            } else {
+                $countUstandardPrincipal = $URes['principal'];
+            }
+            if(!$BRes || empty($BRes)) {
+                $countBstandardPrincipal = isset($bPrincipalRes['principal']) ? (float)$bPrincipalRes['principal'] : 0;
+            } else {
+                $countBstandardPrincipal = $BRes['principal'];
+            }
         } else {
             //本金
             $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
