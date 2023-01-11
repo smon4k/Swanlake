@@ -328,7 +328,8 @@ class Piggybank extends Base
     {
         if ($standard > 0) {
             $date = date('Y-m-d');
-            $total = self::name('okx_piggybank_currency_date')->where(['standard' => $standard, 'date' => ['<>', $date]])->sum('principal');
+            $pig_name = Okx::gettTradingPairName('Okx');
+            $total = self::name('okx_piggybank_currency_date')->where(['product_name' => $pig_name, 'standard' => $standard, 'date' => ['<>', $date]])->sum('principal');
             if ($total) {
                 return $total;
             }
@@ -423,7 +424,8 @@ class Piggybank extends Base
     {
         if ($standard > 0) {
             $date = date("Y-m-d", strtotime("-1 day")); //获取昨天的时间
-            $res = self::name('okx_piggybank_currency_date')->where(['date' => $date, 'standard' => $standard])->find();
+            $pig_name = Okx::gettTradingPairName('Okx');
+            $res = self::name('okx_piggybank_currency_date')->where(['date' => $date, 'standard' => $standard, 'product_name' => $pig_name])->find();
             if ($res && count((array)$res) > 0) {
                 return $res;
             }
