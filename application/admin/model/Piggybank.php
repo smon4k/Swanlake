@@ -209,8 +209,8 @@ class Piggybank extends Base
         $yestBTotalBalance = isset($bPrincipalRes['total_balance']) ? (float)$bPrincipalRes['total_balance'] : 0;
         $depositToday = self::getInoutGoldDepositToday(); //获取今日入金数量
         $dailyUProfit = $UTotalBalance - $yestUTotalBalance - $depositToday; //U本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
-        $dailyBProfit = $BTotalBalance - $yestBTotalBalance - ($depositToday / $tradingPrice); //币本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
-        $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance : 0;
+        $dailyBProfit = $BTotalBalance - $yestBTotalBalance - ($depositToday / $btcPrice); //币本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
+        $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance : 0; // 日利润率
         $dailyBProfitRate = $yestBTotalBalance > 0 ? $dailyBProfit / $yestBTotalBalance : 0;
 
         $pig_name = Okx::gettTradingPairName('Okx');
@@ -227,7 +227,7 @@ class Piggybank extends Base
                     'principal' => $countUstandardPrincipal,
                     'total_balance' => $UTotalBalance,
                     'daily_profit' => $dailyUProfit,
-                    'daily_profit_rate' => $dailyUProfitRate,
+                    'daily_profit_rate' => $dailyUProfitRate, //日利润率
                     'average_day_rate' => $UaverageDayRate,
                     'average_year_rate' => $UaverageYearRate,
                     'profit' => $UProfit,
