@@ -6,6 +6,7 @@ use think\Controller;
 use okex\okv5;
 use RequestService\RequestService;
 use app\tools\model\Binance;
+use app\tools\model\Okx;
 
 class TestController extends BaseController
 {
@@ -203,8 +204,9 @@ class TestController extends BaseController
         }
     }
 
-    public function fetch_margin_asset() {
-        Binance::testBalancePosition();
+    public function fetchOkxBinance() {
+        // Binance::testBalancePosition();
+        Okx::fetchTradeOrder();
         // p($data);
     }
 }

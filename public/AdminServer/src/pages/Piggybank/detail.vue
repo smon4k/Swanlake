@@ -76,7 +76,7 @@
             </el-col>
         </el-row>
         <el-divider></el-divider>
-                <div v-if="Object.keys(detailData.pendingOrder).length">
+        <div v-if="detailData && detailData.pendingOrder && typeof detailData.pendingOrder === 'object' &&  Object.keys(detailData.pendingOrder).length">
             <h3>挂单信息</h3>
             <el-row>
                 <el-col :span="6">
@@ -128,6 +128,12 @@ export default {
         loading: true,
     };
   },
+  mounted() {
+    setTimeout(()=>{
+        this.getTradingPairData();
+        this.getListData();
+    } , 300)
+},
   methods: {
     getTradingPairData() { //获取交易币种信息
       get("/Admin/Piggybank/getTradingPairData", {}, json => {
@@ -154,8 +160,7 @@ export default {
 
   },
   created() {
-    this.getTradingPairData();
-    this.getListData();
+
   },
   components: {
   }

@@ -964,13 +964,13 @@ class Okx extends Base
      */
     public static function getTradeValuation($transactionCurrency) {
         $balanceDetails = self::getTradePairBalance($transactionCurrency);
-        $usdtBalance = $balanceDetails['usdtBalance'];
-        $btcBalance = $balanceDetails['btcBalance'];
+        $usdtBalance = isset($balanceDetails['usdtBalance']) ? $balanceDetails['usdtBalance'] : 0;
+        $btcBalance = isset($balanceDetails['btcBalance']) ? $balanceDetails['btcBalance'] : 0;
         $marketIndexTickers = self::fetchMarketIndexTickers($transactionCurrency); //获取交易BTC价格
         $btcPrice = 1;
         $btcValuation = 0;
         $usdtValuation = 0;
-        if($marketIndexTickers && $marketIndexTickers['last'] > 0) {
+        if($marketIndexTickers && isset($marketIndexTickers['last']) && $marketIndexTickers['last'] > 0) {
             $btcPrice = (float)$marketIndexTickers['last'];
             $btcValuation = $btcBalance * (float)$marketIndexTickers['last'];
             $usdtValuation = $usdtBalance;
@@ -1086,7 +1086,7 @@ class Okx extends Base
 
 
         $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
-        $changeRatio = $balancedValuation > 0 ? abs($btcValuation - $usdtValuation) / $balancedValuation * 100 : abs($btcValuation - $usdtValuation) / $usdtValuation * 100;
+        $changeRatio = $balancedValuation > 0 ? abs($btcValuation - $usdtValuation) / $balancedValuation * 100 : $usdtValuation > 0 ? abs($btcValuation - $usdtValuation) / $usdtValuation * 100 : 0;
 
         $btcSellNum = $balanceRatioArr[0] * (($btcValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
         $btcSellOrdersNumber = $btcSellNum / $btcPrice;
@@ -1120,6 +1120,14 @@ class Okx extends Base
         $peningOrderList = self::getOpenPeningOrder();
         //计算下一次下单购买出售数据
         $result['pendingOrder'] = [];
+        $result['pendingOrder']['buy']['price'] = 0;
+        $result['pendingOrder']['buy']['amount'] = 0;
+        $result['pendingOrder']['buy']['btcValuation'] = 0;
+        $result['pendingOrder']['buy']['usdtValuation'] = 0;
+        $result['pendingOrder']['sell']['price'] = 0;
+        $result['pendingOrder']['sell']['amount'] = 0;
+        $result['pendingOrder']['sell']['btcValuation'] = 0;
+        $result['pendingOrder']['sell']['usdtValuation'] = 0;
         foreach ($peningOrderList as $key => $val) {
             if($val['type'] == 1) {
                 $result['pendingOrder']['buy']['price'] = $val['price'];
