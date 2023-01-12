@@ -1086,7 +1086,7 @@ class Okx extends Base
 
 
         $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
-        $changeRatio = $balancedValuation > 0 ? abs($btcValuation - $usdtValuation) / $balancedValuation * 100 : $usdtValuation > 0 ? abs($btcValuation - $usdtValuation) / $usdtValuation * 100 : 0;
+        $changeRatio = $balancedValuation > 0 ? (abs($btcValuation - $usdtValuation) / $balancedValuation * 100) : $usdtValuation > 0 ? (abs($btcValuation - $usdtValuation) / $usdtValuation * 100) : 0;
 
         $btcSellNum = $balanceRatioArr[0] * (($btcValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
         $btcSellOrdersNumber = $btcSellNum / $btcPrice;
