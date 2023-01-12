@@ -711,7 +711,7 @@ class Binance extends Base
                 $res = self::balancePositionOrder();
                 if($res) {
                     Db::commit();
-                    exit();
+                    return true;
                 }
             }
 

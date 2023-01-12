@@ -255,7 +255,7 @@ class TaskController extends ToolsBaseController
     public function fetchCancelOpenOrder() {
         $begin_time = time();
 
-        Okx::fetchCancelOpenOrder('GMX-USD');
+        Okx::fetchCancelOpenOrder('GMX-USDT');
 
         return (time() - $begin_time) . "s\n";
     }
