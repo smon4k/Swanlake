@@ -439,10 +439,11 @@ class Okx extends Base
                     
                     if($make_side == 1 || $make_side == 2) {
                         //获取最小下单数量
-                        $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
+                        // $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
+                        $rubikStatTakerValume = $exchange->fetch_markets_by_type('SPOT', ['instId'=>$transactionCurrency]);
                         // p($rubikStatTakerValume);
-                        $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
-                        $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
+                        $base_ccy = isset($rubikStatTakerValume[0]['info']['baseCcy']) ? $rubikStatTakerValume[0]['info']['baseCcy'] : ''; //交易货币币种
+                        $quote_ccy = isset($rubikStatTakerValume[0]['info']['quoteCcy']) ? $rubikStatTakerValume[0]['info']['quoteCcy'] : ''; //计价货币币种
                         //开始下单 写入下单表
                         $balanceDetails = self::getTradePairBalance($transactionCurrency);
                         $insertOrderData = [
