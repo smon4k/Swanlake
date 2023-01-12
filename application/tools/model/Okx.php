@@ -298,13 +298,13 @@ class Okx extends Base
                 $reOrderNum = 0; //撤单数量
 
                 $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价
-                $busdValuation = $tradeValuation['busdValuation'];
+                $usdtValuation = $tradeValuation['usdtValuation'];
                 $btcValuation = $tradeValuation['btcValuation'];
-                $minMaxRes = bccomp($busdValuation, $btcValuation);
+                $minMaxRes = bccomp($usdtValuation, $btcValuation);
                 if($minMaxRes == 1) { //busd大
-                    $perDiffRes = ($busdValuation - $btcValuation) / $btcValuation * 100;
+                    $perDiffRes = ($usdtValuation - $btcValuation) / $btcValuation * 100;
                 } else {
-                    $perDiffRes = ($btcValuation - $busdValuation) / $busdValuation * 100;
+                    $perDiffRes = ($btcValuation - $usdtValuation) / $usdtValuation * 100;
                 }
                 if($perDiffRes > 2) { //如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
                     echo "两个币种估值差大于2% 开始全部撤单 \r\n";
@@ -558,22 +558,22 @@ class Okx extends Base
             $btcValuation = $tradeValuation['btcValuation'];
             $bifiSellValuation = $sellingPrice * $btcBalance; //GMX 出售估值
             $bifiBuyValuation = $buyingPrice * $btcBalance; //GMX 购买估值
-            $busdValuation = $tradeValuation['busdValuation'];
+            $usdtValuation = $tradeValuation['usdtValuation'];
             
             $clientBuyOrderId = 'Zx1'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
             $clientSellOrderId = 'Zx2'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
             echo "购买订单号：" . $clientBuyOrderId . "\r\n";
             echo "出售订单号：" . $clientSellOrderId . "\r\n";
             //挂单 购买
-            // echo "GMX估值:" . $bifiBuyValuation . "BUSD估值:" . $busdValuation . "\r\n";
+            // echo "GMX估值:" . $bifiBuyValuation . "BUSD估值:" . $usdtValuation . "\r\n";
             // p($bifiBuyValuation);  
             
-            $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+            $buyNum = $balanceRatioArr[1] * (($usdtValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
             // p($buyOrdersNumber);
 
             //挂单 出售
-            $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+            $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $sellOrdersNumber = $sellNum / $sellingPrice;
             // p($sellOrdersNumber);
             
@@ -593,7 +593,7 @@ class Okx extends Base
 
             $buyOrderDetailsArr = [];
             $sellOrderDetailsArr = [];
-            if($btcValuation > $busdValuation) { //GMX的估值超过BUSD时候，出售 GMX换成BUSDT
+            if($btcValuation > $usdtValuation) { //GMX的估值超过BUSD时候，出售 GMX换成BUSDT
                 $sellOrderDetails = $exchange->create_trade_order($order_symbol, $clientOrderId, 'limit', 'sell', $sellOrdersNumber, $sellingPrice, []);
                 if($sellOrderDetails && count((array)$sellOrderDetails) > 0) { //如果挂单出售成功
                     echo "挂单出售成功" . "\r\n";
@@ -609,7 +609,7 @@ class Okx extends Base
                     }
                 }
             }
-            if($btcValuation < $busdValuation) { //GMX的估值低于BUSD时，买GMX，换成BUSD
+            if($btcValuation < $usdtValuation) { //GMX的估值低于BUSD时，买GMX，换成BUSD
                 $buyOrderDetails = $exchange->create_trade_order($order_symbol, 'limit', 'buy', $buyOrdersNumber, $buyingPrice, []);
                 if($buyOrderDetails && count((array)$buyOrderDetails) > 0) { //如果挂单购买成功
                     echo "挂单购买成功" . "\r\n";
