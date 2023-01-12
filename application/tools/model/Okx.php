@@ -417,7 +417,7 @@ class Okx extends Base
                         //检测余额是否变化，如果变化撤单重新下单
                         $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
                         $btcBalanceNew = $tradeValuationNew['btcBalance']; //GMX余额
-                        $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
+                        $busdBalanceNew = $tradeValuationNew['usdtBalance']; //BUSD余额
                         if((float)$buyOrderData['currency1'] !== $btcBalanceNew || (float)$buyOrderData['currency2'] !== $busdBalanceNew) {
                             echo "余额有变化，撤单重新挂单 \r\n";
                             echo "变化前 GMX余额:" . $buyOrderData['currency1'] . "BUSD余额:" . $buyOrderData['currency2'] . "\r\n";
@@ -460,8 +460,8 @@ class Okx extends Base
                             'make_deal_price' => $dealPrice,
                             'profit' => $profit,
                             'currency1' => $balanceDetails['btcBalance'],
-                            'currency2' => $balanceDetails['busdBalance'],
-                            'balanced_valuation' => $balanceDetails['busdBalance'],
+                            'currency2' => $balanceDetails['usdtBalance'],
+                            'balanced_valuation' => $balanceDetails['usdtBalance'],
                             'pair' => $pairId,
                             'time' => date('Y-m-d H:i:s'),
                         ];
@@ -554,7 +554,7 @@ class Okx extends Base
             $sellingPrice = $price * $sellPropr; //出售价格
             $buyingPrice = $price * $buyPropr; //购买价格
             $btcBalance = $tradeValuation['btcBalance']; //GMX余额
-            $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
+            $usdtBalance = $tradeValuation['usdtBalance']; //BUSD余额
             $btcValuation = $tradeValuation['btcValuation'];
             $bifiSellValuation = $sellingPrice * $btcBalance; //GMX 出售估值
             $bifiBuyValuation = $buyingPrice * $btcBalance; //GMX 购买估值
@@ -586,9 +586,9 @@ class Okx extends Base
                 }
             }
 
-            $busdBuyClinchBalance = $busdBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
+            $busdBuyClinchBalance = $usdtBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
             $bifiBuyClinchBalance = $btcBalance + $buyOrdersNumber; //挂买以后GMX数量 GMX余额 加上 购买数量
-            $busdSellClinchBalance = $busdBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
+            $busdSellClinchBalance = $usdtBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
             $bifiSellClinchBalance = $btcBalance - $sellOrdersNumber; //挂卖以后GMX数量 GMX余额 减去 出售数量
 
             $buyOrderDetailsArr = [];
@@ -637,7 +637,7 @@ class Okx extends Base
                     $buyOrderDetailsArr['amount'], 
                     $buyOrderDetailsArr['price'], 
                     $newBalanceDetailsInfo['btcBalance'],
-                    $newBalanceDetailsInfo['busdBalance'], 
+                    $newBalanceDetailsInfo['usdtBalance'], 
                     $bifiBuyClinchBalance,
                     $busdBuyClinchBalance
                 ); //记录挂单购买订单数据
@@ -654,7 +654,7 @@ class Okx extends Base
                         $sellOrderDetailsArr['amount'], 
                         $sellOrderDetailsArr['price'], 
                         $newBalanceDetailsInfo['btcBalance'],
-                        $newBalanceDetailsInfo['busdBalance'], 
+                        $newBalanceDetailsInfo['usdtBalance'], 
                         $bifiSellClinchBalance,
                         $busdSellClinchBalance
                     ); //记录挂单出售订单数据
@@ -1101,7 +1101,7 @@ class Okx extends Base
         // echo "交易货币币种: " . $base_ccy . "<br>";
         // echo "计价货币币种: " . $quote_ccy . "<br>";
         // echo "GMX价格: " . $tradingPrice . "<br>";
-        // echo "BUSD余额: " . $busdBalance . "<br>BUSD估值: " . $usdtValuation . "<br>";
+        // echo "BUSD余额: " . $usdtBalance . "<br>BUSD估值: " . $usdtValuation . "<br>";
         // echo "GMX余额: " . $btcBalance . "<br>GMX估值: " . $btcValuation . "<br>";
         // echo "涨跌比例: " . $changeRatio . "<br>";
         // if($btcValuation > $usdtValuation) { //GMX的估值超过BUSD时候，卖GMX换成BUSDT
