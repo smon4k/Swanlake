@@ -270,6 +270,405 @@ class Okx extends Base
     }
 
     /**
+     * 平衡仓位 - 挂单
+     * @author qinlh
+     * @since 2023-01-12
+     */
+    public static function balancePendingOrder() {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $transactionCurrency = self::gettTradingPairName('Okx'); //交易币种
+        $symbol = str_replace("-",'', $transactionCurrency);
+        $order_symbol = $transactionCurrency;
+        $className = "\ccxt\\okex5";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+            'password' => self::$password,
+        ));
+        Db::startTrans();
+        try {
+            // $isPendingOrder = self::startPendingOrder($transactionCurrency); //开始挂单
+            // exit();
+            // $ordersList = self::fetchGetOpenOrder($order_symbol);
+            // p($ordersList);
+            $peningOrderList = self::getOpenPeningOrders();
+            if($peningOrderList && count((array)$peningOrderList) > 1) {
+                $isReOrder = false; //是否撤单重新挂单
+                $reOrderNum = 0; //撤单数量
+
+                $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价
+                $busdValuation = $tradeValuation['busdValuation'];
+                $btcValuation = $tradeValuation['btcValuation'];
+                $minMaxRes = bccomp($busdValuation, $btcValuation);
+                if($minMaxRes == 1) { //busd大
+                    $perDiffRes = ($busdValuation - $btcValuation) / $btcValuation * 100;
+                } else {
+                    $perDiffRes = ($btcValuation - $busdValuation) / $busdValuation * 100;
+                }
+                if($perDiffRes > 2) { //如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
+                    echo "两个币种估值差大于2% 开始全部撤单 \r\n";
+                    $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
+                    if($orderCancelRes) { //撤单成功 开始吃单
+                        echo "撤单成功 开始吃单 \r\n";
+                        Db::commit();
+                        $toEatMeal = self::balancePositionOrder();
+                        if($toEatMeal) { //如果吃单成功 重新挂单
+                            echo "吃单成功 重新挂单 \r\n";
+                            self::balancePendingOrder();
+                        }
+                    }
+                }
+
+                $buyOrderData = $peningOrderList['buy']; //购买挂单数据
+                $sellOrderData = $peningOrderList['sell']; //出售挂单数据
+                $makeArray = []; //成交的数据
+
+                $orderAmount = 0;
+                $dealAmount = 0;
+                $side_type = '';
+                $minOrderAmount = 0;
+                $make_side = 0; //成交状态 1：buy 2： sell
+                $dealPrice = 0; //成交均价
+
+                //首先获取挂买信息
+                $buyClinchInfo = self::fetchTradeOrder($buyOrderData['order_id'], $buyOrderData['order_number'], $order_symbol); //获取挂买数据
+                if($buyClinchInfo) {
+                    $orderAmount = $buyClinchInfo['sz']; //订单数量
+                    $dealAmount = $buyClinchInfo['accFillSz']; //成交数量
+                    $side_type = $buyClinchInfo['side']; //订单方向
+                    $minOrderAmount = $orderAmount * 0.5; //最小成交数量
+                    echo $side_type . "订单数量【" . $orderAmount . "】成交数量【". $dealAmount ."】\r\n";
+                    if($dealAmount >= $minOrderAmount) { //如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
+                        $make_side = 1;
+                        $makeArray = $buyOrderData;
+                    }
+                }  
+                
+                //然后获取挂卖信息
+                $sellClinchInfo = self::fetchTradeOrder($sellOrderData['order_id'], $sellOrderData['order_number'], $order_symbol); //获取挂买数据
+                if($sellClinchInfo) {
+                    $orderAmount = $sellClinchInfo['sz']; //订单数量
+                    $dealAmount = $sellClinchInfo['accFillSz']; //成交数量
+                    $side_type = $sellClinchInfo['side']; //订单方向
+                    $minOrderAmount = $orderAmount * 0.5; //最小成交数量
+                    echo $side_type . "订单数量【" . $orderAmount . "】成交数量【". $dealAmount ."】\r\n";
+                    if($dealAmount >= $minOrderAmount) { //如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
+                        $make_side = 2;
+                        $makeArray = $sellOrderData;
+                    }
+                }  
+
+                if($make_side > 0) { // 如果有挂单已成交
+                    //开始记录订单数据
+                    //获取上一次是否成对出现
+                    $isPair = false;
+                    $profit = 0;
+                    $pairId = 0; //配对ID
+                    $dealPrice = $makeArray['price']; //成交价格
+    
+                    if($make_side == 1) { //挂买成交的话
+                        $orderAmount = $buyClinchInfo['sz']; //订单数量
+                        $dealAmount = $buyClinchInfo['accFillSz']; //成交数量
+                        $setBuyClinchRes = Db::name('okx_piggybank_pendord')->where('id', $buyOrderData['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
+                        if($setBuyClinchRes) { //如果修改状态为已成交
+                            echo "BUY 已成交，修改挂单状态为已挂单成功 \r\n";
+                            $setSellClinchRes = Db::name('okx_piggybank_pendord')->where('id', $sellOrderData['id'])->update(['status' => 3, 'clinch_amount' => 0, 'up_time' => date('Y-m-d H:i:s')]);
+                            if($setSellClinchRes !== false) {
+                                echo "修改挂卖状态为已撤销挂单 \r\n";
+                                //撤销所有订单
+                                $revokeOrder = self::fetchCancelOpenOrder($order_symbol); //撤销当前交易对所有挂单
+                                if($revokeOrder) { //已撤销全部挂单
+                                    echo "该交易对所有挂单挂单已撤销 \r\n";
+                                    $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=2 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
+                                    $res = Db::query($sql);
+                                    if($res && count((array)$res) > 0 && $dealPrice < $res[0]['price']) { //计算利润
+                                        $pairId = $res[0]['id'];
+                                        $isPair = true;
+                                        $profit = (float)$res[0]['clinch_number'] * ((float)$res[0]['price'] - $dealPrice); //卖出的成交数量 * 价差
+                                    }
+                                }
+                            }
+                        }
+                    } else if($make_side == 2) { //挂卖成交的话
+                        $orderAmount = $sellClinchInfo['sz']; //订单数量
+                        $dealAmount = $sellClinchInfo['accFillSz']; //成交数量
+                        $setSellClinchRes = Db::name('okx_piggybank_pendord')->where('id', $sellOrderData['id'])->update(['status' => 2, 'clinch_amount' => $dealAmount, 'up_time' => date('Y-m-d H:i:s')]);
+                        if($setSellClinchRes) { //如果修改状态为已成交
+                            echo "SELL 已成交，修改挂单状态为已挂单成功 \r\n";
+                            $setBuyClinchRes = Db::name('okx_piggybank_pendord')->where('id', $buyOrderData['id'])->update(['status' => 3, 'clinch_amount' => 0, 'up_time' => date('Y-m-d H:i:s')]);
+                            if($setBuyClinchRes) {
+                                echo "修改挂买状态为已撤销挂单 \r\n";
+                                //撤销所有订单
+                                $revokeOrder = self::fetchCancelOpenOrder($order_symbol); //撤销当前交易对所有挂单
+                                if($revokeOrder) { //已撤销全部挂单
+                                    echo "该交易对所有挂单挂单已撤销 \r\n";
+                                    $sql = "SELECT id,price,clinch_number FROM s_okx_piggybank WHERE `type`=1 AND pair = 0 ORDER BY `time` DESC,abs('$dealPrice'-`price`) LIMIT 1;";
+                                    $res = Db::query($sql);
+                                    if($res && count((array)$res) > 0 && $dealPrice > $res[0]['price']) { //计算利润 卖出要高于买入才能配对
+                                        $pairId = $res[0]['id'];
+                                        $isPair = true;
+                                        $profit = $dealAmount * ($dealPrice - (float)$res[0]['price']); // 卖出的成交数量 * 价差
+                                    }
+                                }
+                            }
+                        }
+                    } else { //两笔挂单都没有成交
+                        //检测余额是否变化，如果变化撤单重新下单
+                        $tradeValuationNew = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+                        $btcBalanceNew = $tradeValuationNew['btcBalance']; //GMX余额
+                        $busdBalanceNew = $tradeValuationNew['busdBalance']; //BUSD余额
+                        if((float)$buyOrderData['currency1'] !== $btcBalanceNew || (float)$buyOrderData['currency2'] !== $busdBalanceNew) {
+                            echo "余额有变化，撤单重新挂单 \r\n";
+                            echo "变化前 GMX余额:" . $buyOrderData['currency1'] . "BUSD余额:" . $buyOrderData['currency2'] . "\r\n";
+                            echo "最新 GMX余额:" . $btcBalanceNew . "BUSD余额:" . $busdBalanceNew . "\r\n";
+                            $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
+                            if($orderCancelRes) {
+                                echo "开始重新吃单模式 \r\n";
+                                // $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                                $isPositionOrder = self::balancePositionOrder(); //开始吃单 平衡
+                                if($isPositionOrder) {
+                                    echo "已重新吃单 \r\n";
+                                    Db::commit();
+                                    // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if($make_side == 1 || $make_side == 2) {
+                        //获取最小下单数量
+                        $rubikStatTakerValume = $exchange->fetch_markets(['symbol'=>$symbol]);
+                        // p($rubikStatTakerValume);
+                        $base_ccy = isset($rubikStatTakerValume[0]['base']) ? $rubikStatTakerValume[0]['base'] : ''; //交易货币币种
+                        $quote_ccy = isset($rubikStatTakerValume[0]['quote']) ? $rubikStatTakerValume[0]['quote'] : ''; //计价货币币种
+                        //开始下单 写入下单表
+                        $balanceDetails = self::getTradePairBalance($transactionCurrency);
+                        $insertOrderData = [
+                            'product_name' => $makeArray['product_name'],
+                            'order_id' => $makeArray['order_id'],
+                            'order_number' => $makeArray['order_number'],
+                            'td_mode' => 'cross',
+                            'base_ccy' => $base_ccy,
+                            'quote_ccy' => $quote_ccy,
+                            'type' => $make_side,
+                            'order_type' => 'LIMIT',
+                            'amount' => $orderAmount,
+                            'clinch_number' => $dealAmount,
+                            'price' => $dealPrice,
+                            'make_deal_price' => $dealPrice,
+                            'profit' => $profit,
+                            'currency1' => $balanceDetails['btcBalance'],
+                            'currency2' => $balanceDetails['busdBalance'],
+                            'balanced_valuation' => $balanceDetails['busdBalance'],
+                            'pair' => $pairId,
+                            'time' => date('Y-m-d H:i:s'),
+                        ];
+                        $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
+                        if($insertId) {
+                            echo "记录订单成交数据成功 \r\n";
+                            if (isset($pairId) && $pairId > 0) {
+                                $isPair = Db::name('okx_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
+                                if ($isPair) {
+                                    $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                                    if($isPendingOrder) {
+                                        echo "已重新挂单 \r\n";
+                                        Db::commit();
+                                        // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                                        return true;
+                                    }
+                                }
+                            } else {
+                                $isPendingOrder = self::startPendingOrder($transactionCurrency); //重新挂单
+                                if($isPendingOrder) {
+                                    echo "已重新挂单 \r\n";
+                                    Db::commit();
+                                    // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    echo "挂单进行中 \r\n";
+                }
+            } else { //开始挂单
+                $isPendingOrder = self::startPendingOrder($transactionCurrency); //开始挂单
+                if($isPendingOrder) {
+                    Db::commit();
+                    // self::balancePendingOrder(); //挂完单直接获取是否已成交
+                    return true;
+                }
+            }
+            Db::rollback();
+            return false;
+        } catch (\Exception $e) {
+            Db::rollback();
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";
+            return false;
+        }
+    }
+
+    /**
+     * 开始挂单
+     * @author qinlh
+     * @since 2022-11-26
+     */
+    public static function startPendingOrder($transactionCurrency='') {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\okex5";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+            'password' => self::$password,
+        ));
+        // $order_symbol = str_replace("-",'/', $transactionCurrency);
+        $order_symbol = $transactionCurrency;
+        // $orderDetail = self::fetchTradeOrder('', "Zx22022112657545610", $order_symbol); //查询订单
+        // p($orderDetail);
+        // $orderDetail = self::fetchCancelOrder('', "Zx22022112657100495", $order_symbol); //撤销订单 status：已取消：CANCELED 未取消：NEW
+        // p($orderDetail);
+        
+        if($transactionCurrency) {
+            $symbol = str_replace("-",'', $transactionCurrency);
+            // $order_symbol = str_replace("-",'/', $transactionCurrency);
+            // $changeRatioNum = BinanceConfig::getChangeRatio(); //涨跌比例
+            $changeRatioNum = 1; //涨跌比例 2%
+            $balanceRatio = '1:1'; //平衡比例
+            $balanceRatioArr = explode(':', $balanceRatio);
+            $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+            $getLastRes = self::getLastRes(); //获取上次成交价格
+            // $price = (float)$getLastRes['price'];
+            $price = (float)$getLastRes['price'];
+            $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
+            $buyPropr = ($changeRatioNum / $changeRatioNum) - ($changeRatioNum / 100); //购买比例
+            // echo $buyPropr;die;
+            $sellingPrice = $price * $sellPropr; //出售价格
+            $buyingPrice = $price * $buyPropr; //购买价格
+            $btcBalance = $tradeValuation['btcBalance']; //GMX余额
+            $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
+            $btcValuation = $tradeValuation['btcValuation'];
+            $bifiSellValuation = $sellingPrice * $btcBalance; //GMX 出售估值
+            $bifiBuyValuation = $buyingPrice * $btcBalance; //GMX 购买估值
+            $busdValuation = $tradeValuation['busdValuation'];
+            
+            $clientBuyOrderId = 'Zx1'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
+            $clientSellOrderId = 'Zx2'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
+            echo "购买订单号：" . $clientBuyOrderId . "\r\n";
+            echo "出售订单号：" . $clientSellOrderId . "\r\n";
+            //挂单 购买
+            // echo "GMX估值:" . $bifiBuyValuation . "BUSD估值:" . $busdValuation . "\r\n";
+            // p($bifiBuyValuation);  
+            
+            $buyNum = $balanceRatioArr[1] * (($busdValuation - $bifiBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+            $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
+            // p($buyOrdersNumber);
+
+            //挂单 出售
+            $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $busdValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+            $sellOrdersNumber = $sellNum / $sellingPrice;
+            // p($sellOrdersNumber);
+            
+            if((float)$buyOrdersNumber < 0 || (float)$sellOrdersNumber < 0) {
+                echo "购买出售出现负数，开始吃单 \r\n";
+                $res = self::balancePositionOrder();
+                if($res) {
+                    Db::commit();
+                    exit();
+                }
+            }
+
+            $busdBuyClinchBalance = $busdBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
+            $bifiBuyClinchBalance = $btcBalance + $buyOrdersNumber; //挂买以后GMX数量 GMX余额 加上 购买数量
+            $busdSellClinchBalance = $busdBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
+            $bifiSellClinchBalance = $btcBalance - $sellOrdersNumber; //挂卖以后GMX数量 GMX余额 减去 出售数量
+
+            $buyOrderDetailsArr = [];
+            $sellOrderDetailsArr = [];
+            if($btcValuation > $busdValuation) { //GMX的估值超过BUSD时候，出售 GMX换成BUSDT
+                $sellOrderDetails = $exchange->create_trade_order($order_symbol, $clientOrderId, 'limit', 'sell', $sellOrdersNumber, $sellingPrice, []);
+                if($sellOrderDetails && count((array)$sellOrderDetails) > 0) { //如果挂单出售成功
+                    echo "挂单出售成功" . "\r\n";
+                    $sellOrderDetailsArr = $sellOrderDetails;
+                    $sellOrderDetailsArr['amount'] = $sellOrdersNumber;
+                    $sellOrderDetailsArr['price'] = $sellingPrice;
+                    $buyOrderDetails = $exchange->create_trade_order($order_symbol, $clientOrderId, 'limit', 'buy', $buyOrdersNumber, $buyingPrice, []);
+                    if($buyOrderDetails['info']) { //如果挂单购买成功
+                        echo "挂单购买成功" . "\r\n";
+                        $buyOrderDetailsArr = $buyOrderDetails;
+                        $buyOrderDetailsArr['amount'] = $buyOrdersNumber;
+                        $buyOrderDetailsArr['price'] = $buyingPrice;
+                    }
+                }
+            }
+            if($btcValuation < $busdValuation) { //GMX的估值低于BUSD时，买GMX，换成BUSD
+                $buyOrderDetails = $exchange->create_trade_order($order_symbol, 'limit', 'buy', $buyOrdersNumber, $buyingPrice, []);
+                if($buyOrderDetails && count((array)$buyOrderDetails) > 0) { //如果挂单购买成功
+                    echo "挂单购买成功" . "\r\n";
+                    $buyOrderDetailsArr = $buyOrderDetails;
+                    $buyOrderDetailsArr['amount'] = $buyOrdersNumber;
+                    $buyOrderDetailsArr['price'] = $buyingPrice;
+                    $sellOrderDetails = $exchange->create_trade_order($order_symbol, 'limit', 'sell', $sellOrdersNumber, $sellingPrice, []);
+                    if($sellOrderDetails['info']) { //如果挂单出售成功
+                        echo "挂单出售成功" . "\r\n";
+                        $sellOrderDetailsArr = $sellOrderDetails;
+                        $sellOrderDetailsArr['amount'] = $sellOrdersNumber;
+                        $sellOrderDetailsArr['price'] = $sellingPrice;
+                    }
+                }
+            }
+            if($buyOrderDetailsArr && $sellOrderDetailsArr && count((array)$buyOrderDetailsArr) > 0 && count((array)$sellOrderDetailsArr) > 0) {
+                $newBalanceDetailsInfo = self::getTradePairBalance($transactionCurrency); //获取最新余额
+                $isSetBuyRes = self::setPiggybankPendordData(
+                    $order_symbol, 
+                    $transactionCurrency, 
+                    $buyOrderDetailsArr['ordId'], 
+                    $buyOrderDetailsArr['clOrdId'], 
+                    1, 
+                    'LIMIT', 
+                    $buyOrderDetailsArr['amount'], 
+                    $buyOrderDetailsArr['price'], 
+                    $newBalanceDetailsInfo['btcBalance'],
+                    $newBalanceDetailsInfo['busdBalance'], 
+                    $bifiBuyClinchBalance,
+                    $busdBuyClinchBalance
+                ); //记录挂单购买订单数据
+                if($isSetBuyRes) {
+                    echo "挂单购买记录数据库成功" . "\r\n";
+                    // //挂单 出售
+                    $isSetSellRes = self::setPiggybankPendordData(
+                        $order_symbol, 
+                        $transactionCurrency, 
+                        $sellOrderDetailsArr['ordId'], 
+                        $sellOrderDetailsArr['clOrdId'], 
+                        2, 
+                        'LIMIT', 
+                        $sellOrderDetailsArr['amount'], 
+                        $sellOrderDetailsArr['price'], 
+                        $newBalanceDetailsInfo['btcBalance'],
+                        $newBalanceDetailsInfo['busdBalance'], 
+                        $bifiSellClinchBalance,
+                        $busdSellClinchBalance
+                    ); //记录挂单出售订单数据
+                    if($isSetSellRes) {
+                        echo "挂单出售记录数据库成功" . "\r\n";
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * 每日存钱罐数据统计
      * @author qinlh
      * @since 2022-08-17
@@ -400,12 +799,12 @@ class Okx extends Base
         }
     }
 
-    /**
-     * 获取订单数据
+     /**
+     * 撤销单一交易对全部挂单
      * @author qinlh
-     * @since 2022-08-19
+     * @since 2023-01-12
      */
-    public static function fetchTradeOrder($transactionCurrency="BTC-USDT", $clientOrderId='Zx2022082010055985') {
+    public static function fetchCancelOpenOrder($order_symbol='', $isEcho=true) {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
         $className = "\ccxt\\okex5";
@@ -415,8 +814,72 @@ class Okx extends Base
             'password' => self::$password,
         ));
         try {
-            $tradeOrder = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null);
-            return $tradeOrder;
+            $tradeOrder = $exchange->cancel_order($order_symbol);
+            if($tradeOrder && $tradeOrder['sCode'] == 0) {
+                if($isEcho) {
+                    echo "修改挂单表 撤销全部挂单商品\r\n";
+                }
+                self::setRevokePendingOrder();
+                // $peningOrderList = self::getOpenPeningOrder();
+                // if($peningOrderList && count((array)$peningOrderList) > 0) {
+                //     foreach ($peningOrderList as $key => $val) {
+                //         @Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+                //     }
+                // }
+                return true;
+            }
+            return false;
+        } catch (\Exception $e) {
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            if($e->getCode() == '-2011') {
+                if($isEcho) {
+                    echo "修改挂单表 撤销全部挂单商品\r\n";
+                }
+                self::setRevokePendingOrder();
+            }
+            // echo $error_msg . "\r\n";
+            return true;
+        }
+    }
+
+    /**
+     * 撤销全部挂单商品
+     * @author qinlh
+     * @since 2022-12-05
+     */
+    public static function setRevokePendingOrder() {
+        $res = self::name('okx_piggybank_pendord')->where('status', 1)->find();
+        if($res && count((array)$res) > 0) {
+            @Db::name('okx_piggybank_pendord')->where('status', 1)->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
+        }
+        return true;
+    }
+
+    /**
+     * 获取订单数据
+     * @author qinlh
+     * @since 2022-08-19
+     */
+    public static function fetchTradeOrder($order_id='', $transactionCurrency="", $clientOrderId='') {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\okex5";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => self::$apiKey,
+            'secret' => self::$secret,
+            'password' => self::$password,
+        ));
+        try {
+            if($transactionCurrency !== '') {
+                $tradeOrder = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, $order_id);
+                return $tradeOrder;
+            }
+            return false;
         } catch (\Exception $e) {
             return array(0, $e->getMessage());
         }
@@ -493,6 +956,42 @@ class Okx extends Base
     }
 
     /**
+     * 获取当前挂单数据
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function getOpenPeningOrder() {
+        $data = Db::name('okx_piggybank_pendord')->where('status', 1)->order('id desc, time desc')->limit(2)->select();
+        if($data && count((array)$data) > 0) {
+            return $data;
+        }
+        return [];
+    }
+
+     /**
+     * 获取当前挂单数据 分开获取
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function getOpenPeningOrders() {
+        $data = Db::name('okx_piggybank_pendord')->where('status', 1)->order('id desc, time desc')->limit(2)->select();
+        if($data && count((array)$data) > 0) {
+            $buyArray = [];
+            $sellArray = [];
+            foreach ($data as $key => $val) {
+                if($val['type'] == 1) {
+                    $buyArray = $val;
+                }
+                if($val['type'] == 2) {
+                    $sellArray = $val;
+                }
+            }
+            return ['buy' => $buyArray, 'sell' => $sellArray];
+        }
+        return [];
+    }
+
+    /**
      * 测试平衡仓位
      * @author qinlh
      * @since 2022-11-21
@@ -561,10 +1060,10 @@ class Okx extends Base
         $result['lastTimePrice'] = $lastPrice;
         $result['sellingPrice'] = $lastPrice * $sellPropr;
         $result['buyingPrice'] = $lastPrice * $buyPropr;
-        if($btcValuation > $usdtValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
+        if($btcValuation > $usdtValuation) { //GMX的估值超过BUSD时候，卖GMX换成BUSDT
             $result['sellOrdersNumberStr'] = $currency1 . '出售数量: ' . $btcSellOrdersNumber ;
         }
-        if($btcValuation < $usdtValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
+        if($btcValuation < $usdtValuation) { //GMX的估值低于BUSD时，买GMX，换成BUSD
             $result['sellOrdersNumberStr'] = $currency2 . '购买数量: ' . $usdtBuyOrdersNumber ;
         }
 
@@ -591,7 +1090,7 @@ class Okx extends Base
         $sellNum = $balanceRatioArr[0] * (($btcSellValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
         $sellOrdersNumber = $sellNum / $sellingPrice;
         $usdtSellClinchBalance = $usdtBalance + $sellNum; //挂卖以后USDT数量 USDT余额 加上 出售USDT数量
-        $btcSellClinchBalance = $btcBalance - $sellOrdersNumber; //挂卖以后BIFI数量 BTC余额 减去 出售数量
+        $btcSellClinchBalance = $btcBalance - $sellOrdersNumber; //挂卖以后GMX数量 BTC余额 减去 出售数量
         $result['pendingOrder']['sell']['price'] = $sellingPrice;
         $result['pendingOrder']['sell']['amount'] = $sellOrdersNumber;
         $result['pendingOrder']['sell']['btcValuation'] = $btcSellClinchBalance * $sellingPrice;
@@ -601,14 +1100,14 @@ class Okx extends Base
         // echo "最小下单量: " . $minSizeOrderNum . "<br>";
         // echo "交易货币币种: " . $base_ccy . "<br>";
         // echo "计价货币币种: " . $quote_ccy . "<br>";
-        // echo "BIFI价格: " . $tradingPrice . "<br>";
+        // echo "GMX价格: " . $tradingPrice . "<br>";
         // echo "BUSD余额: " . $busdBalance . "<br>BUSD估值: " . $usdtValuation . "<br>";
-        // echo "BIFI余额: " . $bifiBalance . "<br>BIFI估值: " . $bifiValuation . "<br>";
+        // echo "GMX余额: " . $btcBalance . "<br>GMX估值: " . $btcValuation . "<br>";
         // echo "涨跌比例: " . $changeRatio . "<br>";
-        // if($bifiValuation > $usdtValuation) { //BIFI的估值超过BUSD时候，卖BIFI换成BUSDT
-        //     echo "BIFI出售数量: " . $bifiSellOrdersNumber . "<br>";
+        // if($btcValuation > $usdtValuation) { //GMX的估值超过BUSD时候，卖GMX换成BUSDT
+        //     echo "GMX出售数量: " . $bifiSellOrdersNumber . "<br>";
         // }
-        // if($bifiValuation < $usdtValuation) { //BIFI的估值低于BUSD时，买BIFI，换成BUSD
+        // if($btcValuation < $usdtValuation) { //GMX的估值低于BUSD时，买GMX，换成BUSD
         //     echo "BUSD购买数量: " . $busdBuyOrdersNumber . "<br>";
         // }
     }

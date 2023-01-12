@@ -1403,7 +1403,7 @@ class okex extends Exchange {
      * @author qinlh
      * @since 2022-08-16
      */
-    public function create_trade_order($symbol, $clientOrderId, $type, $side, $amount, $params = array ()) {
+    public function create_trade_order($symbol, $clientOrderId, $type, $side, $amount, $price, $params = array ()) {
         $request = array(
             'instId' => $symbol,
             'clOrdId' => $clientOrderId,
@@ -1411,6 +1411,7 @@ class okex extends Exchange {
             'side' => $side,
             'ordType' => $type,
             'sz' => $amount,
+            'px' => $price
         );
         // p($request );
         $response = $this->privatePostTradeOrder (array_merge($request, $params));

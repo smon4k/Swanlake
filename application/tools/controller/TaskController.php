@@ -171,6 +171,30 @@ class TaskController extends ToolsBaseController
     }
 
     /**
+     * Okx 平衡仓位 
+     * 挂单
+     * @author qinlh
+     * @since 2023-01-12
+     */
+    public function okxPiggybankPendingOrder() {
+        $begin_time = time();
+
+        $key = "Okx:PendingOrder:Lock";
+
+        $isPendingOrderLock = Rediscache::getInstance()->get($key); 
+
+        if(!$isPendingOrderLock) {
+            Rediscache::getInstance()->set($key, 1); 
+    
+            Okx::balancePendingOrder();
+
+            Rediscache::getInstance()->del($key); 
+        }
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
      * Binance 平衡仓位 
      * 下单
      * @author qinlh
