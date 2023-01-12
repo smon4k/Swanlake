@@ -915,7 +915,7 @@ class Okx extends Base
      * @author qinlh
      * @since 2022-08-19
      */
-    public static function fetchTradeOrder($order_id='', $transactionCurrency="", $clientOrderId='') {
+    public static function fetchTradeOrder($order_id='', $clientOrderId='', $transactionCurrency="") {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
         $className = "\ccxt\\okex5";
