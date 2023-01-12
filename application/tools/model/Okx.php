@@ -594,13 +594,13 @@ class Okx extends Base
             $buyOrderDetailsArr = [];
             $sellOrderDetailsArr = [];
             if($btcValuation > $usdtValuation) { //GMX的估值超过BUSD时候，出售 GMX换成BUSDT
-                $sellOrderDetails = $exchange->create_trade_order($order_symbol, $clientOrderId, 'limit', 'sell', $sellOrdersNumber, $sellingPrice, []);
+                $sellOrderDetails = $exchange->create_trade_order($order_symbol, $clientSellOrderId, 'limit', 'sell', $sellOrdersNumber, $sellingPrice, []);
                 if($sellOrderDetails && count((array)$sellOrderDetails) > 0) { //如果挂单出售成功
                     echo "挂单出售成功" . "\r\n";
                     $sellOrderDetailsArr = $sellOrderDetails;
                     $sellOrderDetailsArr['amount'] = $sellOrdersNumber;
                     $sellOrderDetailsArr['price'] = $sellingPrice;
-                    $buyOrderDetails = $exchange->create_trade_order($order_symbol, $clientOrderId, 'limit', 'buy', $buyOrdersNumber, $buyingPrice, []);
+                    $buyOrderDetails = $exchange->create_trade_order($order_symbol, $clientBuyOrderId, 'limit', 'buy', $buyOrdersNumber, $buyingPrice, []);
                     if($buyOrderDetails['info']) { //如果挂单购买成功
                         echo "挂单购买成功" . "\r\n";
                         $buyOrderDetailsArr = $buyOrderDetails;
@@ -610,13 +610,13 @@ class Okx extends Base
                 }
             }
             if($btcValuation < $usdtValuation) { //GMX的估值低于BUSD时，买GMX，换成BUSD
-                $buyOrderDetails = $exchange->create_trade_order($order_symbol, 'limit', 'buy', $buyOrdersNumber, $buyingPrice, []);
+                $buyOrderDetails = $exchange->create_trade_order($order_symbol, $clientBuyOrderId, 'limit', 'buy', $buyOrdersNumber, $buyingPrice, []);
                 if($buyOrderDetails && count((array)$buyOrderDetails) > 0) { //如果挂单购买成功
                     echo "挂单购买成功" . "\r\n";
                     $buyOrderDetailsArr = $buyOrderDetails;
                     $buyOrderDetailsArr['amount'] = $buyOrdersNumber;
                     $buyOrderDetailsArr['price'] = $buyingPrice;
-                    $sellOrderDetails = $exchange->create_trade_order($order_symbol, 'limit', 'sell', $sellOrdersNumber, $sellingPrice, []);
+                    $sellOrderDetails = $exchange->create_trade_order($order_symbol, $clientSellOrderId, 'limit', 'sell', $sellOrdersNumber, $sellingPrice, []);
                     if($sellOrderDetails['info']) { //如果挂单出售成功
                         echo "挂单出售成功" . "\r\n";
                         $sellOrderDetailsArr = $sellOrderDetails;
