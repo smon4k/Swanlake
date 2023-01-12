@@ -87,7 +87,7 @@ class Okx extends Base
                     $btcSellOrdersNumber = $btcSellNum / $btcPrice;
                     if((float)$btcSellOrdersNumber > (float)$minSizeOrderNum) {
                         echo "下单出售 大于 最小下单量".$minSizeOrderNum." \r\n";
-                        $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'sell', $btcSellOrdersNumber, []);
+                        $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'sell', $btcSellOrdersNumber, null, []);
                         if($result['sCode'] == 0) {
                             echo "下单出售成功 \r\n";
                             $order_id = $result['ordId']; //返回的订单id
@@ -170,10 +170,10 @@ class Okx extends Base
                     echo "GMX的估值小于BUSD 开始下单购买 \r\n";
                     // $usdtBuyNum = ($usdtValuation - $btcValuation) / 2;
                     $usdtBuyNum = $balanceRatioArr[1] * (($usdtValuation - $btcValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
-                    $usdtSellOrdersNumber = $usdtBuyNum / $btcPrice;
+                    $usdtSellOrdersNumber = $usdtBuyNum;
                     if($usdtSellOrdersNumber > $minSizeOrderNum) {
                         echo "下单购买 大于 最小下单量".$minSizeOrderNum." \r\n";
-                        $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'buy', $usdtSellOrdersNumber, []);
+                        $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'buy', $usdtSellOrdersNumber, null, []);
                         if($result['sCode'] == 0) {
                             echo "下单购买成功 \r\n";
                             //获取上一次是否成对出现
