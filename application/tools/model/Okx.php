@@ -88,11 +88,17 @@ class Okx extends Base
                             $orderDetails = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null); //获取成交数量
                             $theDealPrice = $btcPrice; //成交均价
                             $clinch_number = 0; //累计成交数量
+                            $dealPrice = 0; //最新成交价格
                             if($orderDetails && $orderDetails['accFillSz']) {
                                 $clinch_number = $orderDetails['accFillSz']; //最新成交数量
                             }
                             if($orderDetails && $orderDetails['avgPx']) {
                                 $theDealPrice = $orderDetails['avgPx']; //成交均价
+                            }
+                            if($orderDetails && $orderDetails['fillPx']) {
+                                $dealPrice = $orderDetails['fillPx']; //最新成交价格
+                            } else {
+                                $dealPrice = $theDealPrice;
                             }
                             //获取上一次是否成对出现
                             $isPair = false;
@@ -120,12 +126,13 @@ class Okx extends Base
                                 'order_type' => 'market',
                                 'amount' => $btcSellOrdersNumber,
                                 'clinch_number' => $clinch_number,
-                                'price' => $theDealPrice,
+                                'price' => $dealPrice,
                                 'profit' => $profit,
                                 'pair' => $pairId,
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
                                 'balanced_valuation' => $usdtValuationPoise,
+                                'make_deal_price' => $theDealPrice,
                                 'time' => date('Y-m-d H:i:s'),
                             ];
                             Db::startTrans();
@@ -160,11 +167,17 @@ class Okx extends Base
                             $orderDetails = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null); //获取成交数量
                             $theDealPrice = $btcPrice; //成交均价
                             $clinch_number = 0; //累计成交数量
+                            $dealPrice = 0; //最新成交价格
                             if($orderDetails && $orderDetails['accFillSz']) {
                                 $clinch_number = $orderDetails['accFillSz']; //最新成交数量
                             }
                             if($orderDetails && $orderDetails['avgPx']) {
                                 $theDealPrice = $orderDetails['avgPx']; //成交均价
+                            }
+                            if($orderDetails && $orderDetails['fillPx']) {
+                                $dealPrice = $orderDetails['fillPx']; //最新成交价格
+                            } else {
+                                $dealPrice = $theDealPrice;
                             }
                             $isPair = false;
                             $profit = 0;
@@ -190,11 +203,12 @@ class Okx extends Base
                                 'order_type' => 'market',
                                 'amount' => $usdtSellOrdersNumber,
                                 'clinch_number' => $clinch_number,
-                                'price' => $theDealPrice,
+                                'price' => $dealPrice,
                                 'profit' => $profit,
                                 'currency1' => $btcBalance,
                                 'currency2' => $usdtBalance,
                                 'balanced_valuation' => $usdtValuationPoise,
+                                'make_deal_price' => $theDealPrice,
                                 'pair' => $pairId,
                                 'time' => date('Y-m-d H:i:s'),
                             ];
