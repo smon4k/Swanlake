@@ -859,18 +859,23 @@ class Okx extends Base
             'password' => self::$password,
         ));
         try {
-            $tradeOrder = $exchange->cancel_order($order_symbol);
-            if($tradeOrder && $tradeOrder['sCode'] == 0) {
+            $undoneOrders = $exchange->fetch_open_orders($order_symbol, null, 100, ['ordType' => 'limit']); // 获取未成交订单列表
+            // p($undoneOrders);
+            $cancelNum = 0;
+            if($undoneOrders && count((array)$undoneOrders) > 0) {
+                foreach ($undoneOrders as $key => $val) {
+                    $undoneOrderId = $val['info']['ordId'];
+                    $tradeOrder = $exchange->cancel_order($undoneOrderId, $order_symbol);
+                    if($tradeOrder && $tradeOrder['info'] && $tradeOrder['info']['sCode'] == 0) {
+                        $cancelNum ++;
+                    }
+                }
+            }
+            if($cancelNum == count((array)$undoneOrders)) {
                 if($isEcho) {
                     echo "修改挂单表 撤销全部挂单商品\r\n";
                 }
                 self::setRevokePendingOrder();
-                // $peningOrderList = self::getOpenPeningOrder();
-                // if($peningOrderList && count((array)$peningOrderList) > 0) {
-                //     foreach ($peningOrderList as $key => $val) {
-                //         @Db::name('binance_piggybank_pendord')->where('id', $val['id'])->update(['status' => 3, 'up_time' => date('Y-m-d H:i:s')]); //修改撤销状态
-                //     }
-                // }
                 return true;
             }
             return false;
@@ -887,7 +892,7 @@ class Okx extends Base
                 }
                 self::setRevokePendingOrder();
             }
-            // echo $error_msg . "\r\n";
+            echo $error_msg . "\r\n";
             return true;
         }
     }
