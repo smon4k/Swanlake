@@ -1138,16 +1138,16 @@ class Okx extends Base
                 $result['pendingOrder']['buy']['price'] = $val['price'];
                 $result['pendingOrder']['buy']['amount'] = $val['amount'];
                 // $result['pendingOrder']['buy']['bifiValuation'] = ($bifiBalance + (float)$val['amount']) * $val['price'];
-                $result['pendingOrder']['buy']['bifiValuation'] = $val['clinch_currency1'] * $val['price'];
+                $result['pendingOrder']['buy']['btcValuation'] = $val['clinch_currency1'] * $val['price'];
                 // $result['pendingOrder']['buy']['busdValuation'] = $busdValuation - ((float)$val['amount'] * $val['price']);
-                $result['pendingOrder']['buy']['busdValuation'] = $val['clinch_currency2'];
+                $result['pendingOrder']['buy']['usdtValuation'] = $val['clinch_currency2'];
             } else {
                 $result['pendingOrder']['sell']['price'] = $val['price'];
                 $result['pendingOrder']['sell']['amount'] = $val['amount'];
                 // $result['pendingOrder']['sell']['bifiValuation'] = ($bifiBalance - (float)$val['amount']) * $val['price'];
-                $result['pendingOrder']['sell']['bifiValuation'] = $val['clinch_currency1'] * $val['price'];
+                $result['pendingOrder']['sell']['btcValuation'] = $val['clinch_currency1'] * $val['price'];
                 // $result['pendingOrder']['sell']['busdValuation'] = $busdValuation + ((float)$val['amount'] * $val['price']);
-                $result['pendingOrder']['sell']['busdValuation'] = $val['clinch_currency2'];
+                $result['pendingOrder']['sell']['usdtValuation'] = $val['clinch_currency2'];
             }
         }
 
