@@ -669,6 +669,51 @@ class Okx extends Base
     }
 
     /**
+     * 记录挂单订单数据
+     * @author qinlh
+     * @since 2022-11-25
+     */
+    public static function setPiggybankPendordData(
+        $order_symbol='', 
+        $product_name='', 
+        $order_id='', 
+        $order_number='', 
+        $type=0, 
+        $order_type='', 
+        $amount='', 
+        $price='', 
+        $currency1=0, 
+        $currency2=0,
+        $currency1ClinchBalance=0,
+        $currency2ClinchBalance=0
+    ) {
+        if($order_id) {
+            $insertOrderData = [
+                'product_name' => $product_name,
+                'symbol' => $order_symbol,
+                'order_id' => $order_id,
+                'order_number' => $order_number,
+                'type' => $type,
+                'order_type' => $order_type,
+                'amount' => $amount,
+                'price' => $price,
+                'currency1' => $currency1,
+                'currency2' => $currency2,
+                'clinch_currency1' => $currency1ClinchBalance,
+                'clinch_currency2' => $currency2ClinchBalance,
+                'time' => date('Y-m-d H:i:s'),
+                'up_time' => date('Y-m-d H:i:s'),
+                'status' => 1
+            ];
+            $insertId = Db::name('okx_piggybank_pendord')->insertGetId($insertOrderData);
+            if($insertId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 每日存钱罐数据统计
      * @author qinlh
      * @since 2022-08-17
