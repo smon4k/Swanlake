@@ -78,6 +78,8 @@ class Okx extends Base
             $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
             if($changeRatio > $changeRatioNum) { //涨跌大于1%
                 // p($usdtValuation);
+                echo "已成交\r\n";
+                echo "GMX余额：" . $btcBalance . " -- GMX估值：" . $btcValuation . " -- USDT余额：" . $usdtValuation . "\r\n";
                 if($btcValuation > $usdtValuation) { //btc的估值超过usdt时候，卖btc换成u
                     // $btcSellNum = ($btcValuation - $usdtValuation) / 2;
                     $btcSellNum = $balanceRatioArr[0] * (($btcValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
