@@ -1117,34 +1117,54 @@ class Okx extends Base
             $result['sellOrdersNumberStr'] = $currency2 . '购买数量: ' . $usdtBuyOrdersNumber ;
         }
 
+        $peningOrderList = self::getOpenPeningOrder();
         //计算下一次下单购买出售数据
         $result['pendingOrder'] = [];
-        $sellingPrice = $lastPrice * $sellPropr; //出售价格
-        $btcSellValuation = $sellingPrice * $btcBalance; //BTC 出售估值
+        foreach ($peningOrderList as $key => $val) {
+            if($val['type'] == 1) {
+                $result['pendingOrder']['buy']['price'] = $val['price'];
+                $result['pendingOrder']['buy']['amount'] = $val['amount'];
+                // $result['pendingOrder']['buy']['bifiValuation'] = ($bifiBalance + (float)$val['amount']) * $val['price'];
+                $result['pendingOrder']['buy']['bifiValuation'] = $val['clinch_currency1'] * $val['price'];
+                // $result['pendingOrder']['buy']['busdValuation'] = $busdValuation - ((float)$val['amount'] * $val['price']);
+                $result['pendingOrder']['buy']['busdValuation'] = $val['clinch_currency2'];
+            } else {
+                $result['pendingOrder']['sell']['price'] = $val['price'];
+                $result['pendingOrder']['sell']['amount'] = $val['amount'];
+                // $result['pendingOrder']['sell']['bifiValuation'] = ($bifiBalance - (float)$val['amount']) * $val['price'];
+                $result['pendingOrder']['sell']['bifiValuation'] = $val['clinch_currency1'] * $val['price'];
+                // $result['pendingOrder']['sell']['busdValuation'] = $busdValuation + ((float)$val['amount'] * $val['price']);
+                $result['pendingOrder']['sell']['busdValuation'] = $val['clinch_currency2'];
+            }
+        }
 
-        $buyingPrice = $lastPrice * $buyPropr; //购买价格
-        $btcBuyValuation = $buyingPrice * $btcBalance; //BTC 购买估值
 
-        //计算购买数量
-        $buyNum = $balanceRatioArr[1] * (($usdtValuation - $btcBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-        $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
-        $usdtBuyClinchBalance = $usdtBalance - $buyNum; //挂买以后USDT数量 USDT余额 减去 购买busd数量
-        $btcBuyClinchBalance = $btcBalance + $buyOrdersNumber; //挂买以后BTC数量 BTC余额 加上 购买数量
+        // $sellingPrice = $lastPrice * $sellPropr; //出售价格
+        // $btcSellValuation = $sellingPrice * $btcBalance; //BTC 出售估值
 
-        $result['pendingOrder']['buy']['price'] = $buyingPrice;
-        $result['pendingOrder']['buy']['amount'] = $buyOrdersNumber;
-        $result['pendingOrder']['buy']['btcValuation'] = $btcBuyClinchBalance * $buyingPrice;
-        $result['pendingOrder']['buy']['usdtValuation'] = $usdtBuyClinchBalance;
+        // $buyingPrice = $lastPrice * $buyPropr; //购买价格
+        // $btcBuyValuation = $buyingPrice * $btcBalance; //BTC 购买估值
 
-        //计算 出售数量
-        $sellNum = $balanceRatioArr[0] * (($btcSellValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
-        $sellOrdersNumber = $sellNum / $sellingPrice;
-        $usdtSellClinchBalance = $usdtBalance + $sellNum; //挂卖以后USDT数量 USDT余额 加上 出售USDT数量
-        $btcSellClinchBalance = $btcBalance - $sellOrdersNumber; //挂卖以后GMX数量 BTC余额 减去 出售数量
-        $result['pendingOrder']['sell']['price'] = $sellingPrice;
-        $result['pendingOrder']['sell']['amount'] = $sellOrdersNumber;
-        $result['pendingOrder']['sell']['btcValuation'] = $btcSellClinchBalance * $sellingPrice;
-        $result['pendingOrder']['sell']['usdtValuation'] = $usdtSellClinchBalance;
+        // //计算购买数量
+        // $buyNum = $balanceRatioArr[1] * (($usdtValuation - $btcBuyValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+        // $buyOrdersNumber = $buyNum / $buyingPrice; //购买数量
+        // $usdtBuyClinchBalance = $usdtBalance - $buyNum; //挂买以后USDT数量 USDT余额 减去 购买busd数量
+        // $btcBuyClinchBalance = $btcBalance + $buyOrdersNumber; //挂买以后BTC数量 BTC余额 加上 购买数量
+
+        // $result['pendingOrder']['buy']['price'] = $buyingPrice;
+        // $result['pendingOrder']['buy']['amount'] = $buyOrdersNumber;
+        // $result['pendingOrder']['buy']['btcValuation'] = $btcBuyClinchBalance * $buyingPrice;
+        // $result['pendingOrder']['buy']['usdtValuation'] = $usdtBuyClinchBalance;
+
+        // //计算 出售数量
+        // $sellNum = $balanceRatioArr[0] * (($btcSellValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
+        // $sellOrdersNumber = $sellNum / $sellingPrice;
+        // $usdtSellClinchBalance = $usdtBalance + $sellNum; //挂卖以后USDT数量 USDT余额 加上 出售USDT数量
+        // $btcSellClinchBalance = $btcBalance - $sellOrdersNumber; //挂卖以后GMX数量 BTC余额 减去 出售数量
+        // $result['pendingOrder']['sell']['price'] = $sellingPrice;
+        // $result['pendingOrder']['sell']['amount'] = $sellOrdersNumber;
+        // $result['pendingOrder']['sell']['btcValuation'] = $btcSellClinchBalance * $sellingPrice;
+        // $result['pendingOrder']['sell']['usdtValuation'] = $usdtSellClinchBalance;
 
         return $result;
         // echo "最小下单量: " . $minSizeOrderNum . "<br>";
