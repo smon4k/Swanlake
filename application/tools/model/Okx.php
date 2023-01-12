@@ -601,7 +601,7 @@ class Okx extends Base
                     $sellOrderDetailsArr['amount'] = $sellOrdersNumber;
                     $sellOrderDetailsArr['price'] = $sellingPrice;
                     $buyOrderDetails = $exchange->create_trade_order($order_symbol, $clientBuyOrderId, 'limit', 'buy', $buyOrdersNumber, $buyingPrice, []);
-                    if($buyOrderDetails['info']) { //如果挂单购买成功
+                    if($buyOrderDetails && count((array)$buyOrderDetails) > 0) { //如果挂单购买成功
                         echo "挂单购买成功" . "\r\n";
                         $buyOrderDetailsArr = $buyOrderDetails;
                         $buyOrderDetailsArr['amount'] = $buyOrdersNumber;
@@ -617,7 +617,7 @@ class Okx extends Base
                     $buyOrderDetailsArr['amount'] = $buyOrdersNumber;
                     $buyOrderDetailsArr['price'] = $buyingPrice;
                     $sellOrderDetails = $exchange->create_trade_order($order_symbol, $clientSellOrderId, 'limit', 'sell', $sellOrdersNumber, $sellingPrice, []);
-                    if($sellOrderDetails['info']) { //如果挂单出售成功
+                    if($sellOrderDetails && count((array)$sellOrderDetails) > 0) { //如果挂单出售成功
                         echo "挂单出售成功" . "\r\n";
                         $sellOrderDetailsArr = $sellOrderDetails;
                         $sellOrderDetailsArr['amount'] = $sellOrdersNumber;
