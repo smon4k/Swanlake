@@ -52,11 +52,6 @@ class Okx extends Base
             // $usdtBalance = $balanceDetails['usdtBalance'];
 
             // p($btcBalance);
-            //获取最小下单数量
-            $rubikStatTakerValume = $exchange->fetch_markets_by_type('SPOT', ['instId'=>$transactionCurrency]);
-            $minSizeOrderNum = isset($rubikStatTakerValume[0]['info']['minSz']) ? $rubikStatTakerValume[0]['info']['minSz'] : 0; //最小下单数量
-            $base_ccy = isset($rubikStatTakerValume[0]['info']['baseCcy']) ? $rubikStatTakerValume[0]['info']['baseCcy'] : ''; //交易货币币种
-            $quote_ccy = isset($rubikStatTakerValume[0]['info']['quoteCcy']) ? $rubikStatTakerValume[0]['info']['quoteCcy'] : ''; //计价货币币种
 
             $changeRatioNum = 1; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
@@ -73,21 +68,29 @@ class Okx extends Base
             // $changeRatio = 0;
             // $changeRatio01 = abs($btcValuation / $usdtValuation);
             // $changeRatio02 = abs($usdtValuation / $btcValuation);
-            $balancedValuation = self::getLastBalancedValuation();
+            $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
             $changeRatio = $balancedValuation > 0 ? abs($btcValuation - $usdtValuation) / $balancedValuation * 100 : abs($btcValuation / $usdtValuation);
             $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
-            if($changeRatio > $changeRatioNum) { //涨跌大于1%
+            if((float)$changeRatio > $changeRatioNum) { //涨跌大于1%
                 // p($usdtValuation);
-                echo "已成交\r\n";
-                echo "价格：" . $btcPrice . " -- GMX余额：" . $btcBalance . " -- GMX估值：" . $btcValuation . " -- USDT余额：" . $usdtValuation . "\r\n";
+                echo "涨跌幅度大于".$changeRatioNum."% 开始下单\r\n";
+                //获取最小下单数量
+                $rubikStatTakerValume = $exchange->fetch_markets_by_type('SPOT', ['instId'=>$transactionCurrency]);
+                $minSizeOrderNum = isset($rubikStatTakerValume[0]['info']['minSz']) ? $rubikStatTakerValume[0]['info']['minSz'] : 0; //最小下单数量
+                $base_ccy = isset($rubikStatTakerValume[0]['info']['baseCcy']) ? $rubikStatTakerValume[0]['info']['baseCcy'] : ''; //交易货币币种
+                $quote_ccy = isset($rubikStatTakerValume[0]['info']['quoteCcy']) ? $rubikStatTakerValume[0]['info']['quoteCcy'] : ''; //计价货币币种
+
+                // echo "价格：" . $btcPrice . " -- GMX余额：" . $btcBalance . " -- GMX估值：" . $btcValuation . " -- USDT余额：" . $usdtValuation . "\r\n";
                 if($btcValuation > $usdtValuation) { //btc的估值超过usdt时候，卖btc换成u
                     // $btcSellNum = ($btcValuation - $usdtValuation) / 2;
                     $btcSellNum = $balanceRatioArr[0] * (($btcValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
                     $btcSellOrdersNumber = $btcSellNum / $btcPrice;
-                    if($btcSellOrdersNumber > $minSizeOrderNum) {
-                        echo "出售 \r\n";
+                    if((float)$btcSellOrdersNumber > (float)$minSizeOrderNum) {
+                        echo "下单出售 大于 最小下单量".$minSizeOrderNum." \r\n";
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'sell', $btcSellOrdersNumber, []);
                         if($result['sCode'] == 0) {
+                            echo "下单出售成功 \r\n";
+                            $order_id = $result['ordId']; //返回的订单id
                             $orderDetails = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null); //获取成交数量
                             $theDealPrice = $btcPrice; //成交均价
                             $clinch_number = 0; //累计成交数量
@@ -121,6 +124,7 @@ class Okx extends Base
                             $usdtValuationPoise = $tradeValuationPoise['usdtValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
+                                'order_id' => $order_id,
                                 'order_number' => $clientOrderId,
                                 'td_mode' => 'cross',
                                 'base_ccy' => $base_ccy,
@@ -141,7 +145,9 @@ class Okx extends Base
                             Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if ($insertId) {
+                                echo "写入出售下单数据成功 \r\n";
                                 if(isset($pairId) && $pairId > 0) {
+                                    echo "出售下单配对成功 \r\n";
                                     $isPair = Db::name('okx_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
                                     if ($isPair) {
                                         Db::commit();
@@ -156,18 +162,22 @@ class Okx extends Base
                         }
                         return false;
                     } else {
+                        echo "下单出售 小于 最小下单量".$minSizeOrderNum." 停止下单 \r\n";
                         return false;
                     }
                 }
                 if($btcValuation < $usdtValuation) { //btc的估值低于usdt时，买btc，u换成btc
-                    echo "购买 \r\n";
+                    echo "GMX的估值小于BUSD 开始下单购买 \r\n";
                     // $usdtBuyNum = ($usdtValuation - $btcValuation) / 2;
                     $usdtBuyNum = $balanceRatioArr[1] * (($usdtValuation - $btcValuation) / ($balanceRatioArr[0] + $balanceRatioArr[1]));
-                    $usdtSellOrdersNumber = $usdtBuyNum;
+                    $usdtSellOrdersNumber = $usdtBuyNum / $btcPrice;
                     if($usdtSellOrdersNumber > $minSizeOrderNum) {
+                        echo "下单购买 大于 最小下单量".$minSizeOrderNum." \r\n";
                         $result = $exchange->create_trade_order($transactionCurrency, $clientOrderId, 'market', 'buy', $usdtSellOrdersNumber, []);
                         if($result['sCode'] == 0) {
+                            echo "下单购买成功 \r\n";
                             //获取上一次是否成对出现
+                            $order_id = $result['ordId']; //返回的订单id
                             $orderDetails = $exchange->fetch_trade_order($transactionCurrency, $clientOrderId, null); //获取成交数量
                             $theDealPrice = $btcPrice; //成交均价
                             $clinch_number = 0; //累计成交数量
@@ -199,6 +209,7 @@ class Okx extends Base
                             $usdtValuationPoise = $tradeValuationPoise['usdtValuation'];
                             $insertOrderData = [
                                 'product_name' => $transactionCurrency,
+                                'order_id' => $order_id,
                                 'order_number' => $clientOrderId,
                                 'td_mode' => 'cross',
                                 'base_ccy' => $base_ccy,
@@ -219,9 +230,11 @@ class Okx extends Base
                             Db::startTrans();
                             $insertId = Db::name('okx_piggybank')->insertGetId($insertOrderData);
                             if($insertId) {
+                                echo "写入购买下单数据成功 \r\n";
                                 if (isset($pairId) && $pairId > 0) {
                                     $isPair = Db::name('okx_piggybank')->where('id', $pairId)->update(['pair' => $pairId, 'profit' => $profit]);
                                     if ($isPair) {
+                                        echo "出售下购买配对成功 \r\n";
                                         Db::commit();
                                         return true;
                                     }
@@ -234,16 +247,25 @@ class Okx extends Base
                         }
                         return false;
                     } else {
+                        echo "下单出售 小于 最小下单量".$minSizeOrderNum." 停止下单 \r\n";
                         return false;
                     }
                 }
             } else {
+                echo "涨跌幅度小于".$changeRatioNum."% 停止下单\r\n";
                 return false;
             }
             return false;
         } catch (\Exception $e) {
-            p($e);
-            return array(0, $e->getMessage());
+            Db::rollback();
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";
+            return false;
         }
     }
 
