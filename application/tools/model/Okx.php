@@ -750,9 +750,11 @@ class Okx extends Base
                 }
             }
             $totalAssets = 0;//总资产
-            $marketIndexTickers = $exchange->fetch_market_index_tickers($transactionCurrency); //获取交易BTC价格
-            if($marketIndexTickers && $marketIndexTickers['idxPx'] > 0) {
-                $btcValuation = $btcBalance * (float)$marketIndexTickers['idxPx'];
+            $marketIndexTickers = self::fetchMarketIndexTickers($transactionCurrency); //获取交易BTC价格
+            // $marketIndexTickers = $exchange->fetch_market_index_tickers($transactionCurrency); //获取交易BTC价格
+            // p($marketIndexTickers);
+            if($marketIndexTickers && isset($marketIndexTickers['last']) && $marketIndexTickers['last'] > 0) {
+                $btcValuation = $btcBalance * (float)$marketIndexTickers['last'];
                 $usdtValuation = $usdtBalance;
             }
             $totalAssets = $btcValuation + $usdtValuation;
