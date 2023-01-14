@@ -314,8 +314,14 @@ class Okx extends Base
                         Db::commit();
                         $toEatMeal = self::balancePositionOrder();
                         if($toEatMeal) { //如果吃单成功 重新挂单
+                            Db::startTrans();
                             echo "吃单成功 重新挂单 \r\n";
-                            self::balancePendingOrder();
+                            $isPendingOrder = self::startPendingOrder($transactionCurrency);
+                            if($isPendingOrder) {
+                                echo "已重新挂单 \r\n";
+                                Db::commit();
+                                return true;
+                            }
                         }
                     }
                 }
