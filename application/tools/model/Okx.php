@@ -22,9 +22,9 @@ use app\admin\model\Piggybank;
 class Okx extends Base
 {
 
-    public static $apiKey = '036e3cdd-7dbc-467b-aaa7-75618a3afb83';
-    public static $secret = '02AD3DEE63EA35889654616031797F22';
-    public static $password = 'Zx112211@';
+    public static $apiKey = '68ca4b58-f022-42e1-8055-8fd565bc4eff';
+    public static $secret = 'BD573AF9E7B806503C9AB25B255BD62D';
+    public static $password = 'gmxGrid';
 
     /**
      * 平衡仓位 - 下单
