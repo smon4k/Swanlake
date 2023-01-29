@@ -537,7 +537,7 @@ export default {
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return '$' + _this.toFixed(value, 2);
+                                return '$' + keepDecimalNotRounding(value, 18, true);
                             }
                         },
                         //轴线
@@ -906,7 +906,7 @@ export default {
         UnitConversion(value){ //数值转换
             let param = {}
             let k = 10000
-            let sizes = ['', '万', '亿', '万亿']
+            let sizes = ['', '万', '亿', '万亿', '百万亿', '千万亿', '兆', '十兆', '百兆', '千兆']
             let i
             if (value < k) {
                 param.value = value
