@@ -77,6 +77,7 @@ class Okx extends Base
             $balancedValuation = self::getLastBalancedValuation(); // 获取上一次平衡状态下估值
             $changeRatio = $balancedValuation > 0 ? abs($btcValuation - $usdtValuation) / $balancedValuation * 100 : abs($btcValuation / $usdtValuation);
             $clientOrderId = 'Zx'.date('Ymd').substr(implode(NULL, array_map('ord', str_split(substr(uniqid(), 7, 13), 1))), 0, 8);
+            echo "下单ID" . $clientOrderId . "\r\n";
             if((float)$changeRatio > $changeRatioNum) { //涨跌大于1%
                 // p($usdtValuation);
                 echo "涨跌幅度大于".$changeRatioNum."% 开始下单\r\n";
@@ -317,9 +318,9 @@ class Okx extends Base
                     $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
                     if($orderCancelRes) { //撤单成功 开始吃单
                         echo "撤单成功 开始吃单 \r\n";
-                        Db::commit();
                         $toEatMeal = self::balancePositionOrder();
                         if($toEatMeal) { //如果吃单成功 重新挂单
+                            Db::commit();
                             Db::startTrans();
                             echo "吃单成功 重新挂单 \r\n";
                             $isPendingOrder = self::startPendingOrder($transactionCurrency);
@@ -559,6 +560,7 @@ class Okx extends Base
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
             $getLastRes = self::getLastRes(); //获取上次成交价格
+            // p($getLastRes);
             // $price = (float)$getLastRes['price'];
             $price = (float)$getLastRes['price'];
             $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
@@ -589,16 +591,50 @@ class Okx extends Base
             $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $sellOrdersNumber = $sellNum / $sellingPrice;
             // p($sellOrdersNumber);
-            
+            echo $buyOrdersNumber . "&&&" . $sellOrdersNumber . "\r\n";
+            // exit;
             if((float)$buyOrdersNumber < 0 || (float)$sellOrdersNumber < 0) {
-                echo "购买出售出现负数，开始吃单 \r\n";
-                $res = self::balancePositionOrder();
-                if($res) {
+                echo "购买出售出现负数，撤单 开始吃单 \r\n";
+                $toEatMeal = self::balancePositionOrder();
+                if($toEatMeal) { //如果吃单成功 重新挂单
                     Db::commit();
-                    return true;
+                    Db::startTrans();
+                    echo "吃单成功 重新挂单 \r\n";
+                    $isPendingOrder = self::startPendingOrder($transactionCurrency);
+                    if($isPendingOrder) {
+                        echo "已重新挂单 \r\n";
+                        Db::commit();
+                        return true;
+                    }
                 }
+                return true;
             }
-
+            
+            $minMaxRes = bccomp($usdtValuation, $btcValuation);
+            if($minMaxRes == 1) { //busd大
+                $perDiffRes = ($usdtValuation - $btcValuation) / $btcValuation * 100;
+            } else {
+                $perDiffRes = ($btcValuation - $usdtValuation) / $usdtValuation * 100;
+            }
+            if($perDiffRes > 2) { //如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
+                echo "挂单 两个币种估值差大于2% 开始全部撤单 \r\n";
+                    $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
+                    if($orderCancelRes) { //撤单成功 开始吃单
+                        echo "撤单成功 开始吃单 \r\n";
+                        $toEatMeal = self::balancePositionOrder();
+                        if($toEatMeal) { //如果吃单成功 重新挂单
+                            Db::commit();
+                            Db::startTrans();
+                            echo "吃单成功 重新挂单 \r\n";
+                            $isPendingOrder = self::startPendingOrder($transactionCurrency);
+                            if($isPendingOrder) {
+                                echo "已重新挂单 \r\n";
+                                Db::commit();
+                                return true;
+                            }
+                        }
+                    }
+            }
             $busdBuyClinchBalance = $usdtBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量
             $bifiBuyClinchBalance = $btcBalance + $buyOrdersNumber; //挂买以后GMX数量 GMX余额 加上 购买数量
             $busdSellClinchBalance = $usdtBalance + $sellNum; //挂卖以后BUSD数量 BUSD余额 加上 出售busd数量
