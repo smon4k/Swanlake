@@ -656,7 +656,7 @@ export default {
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return parseInt(value)
+                                return _this.UnitConversion(value);
                             }
                         },
                         //轴线
