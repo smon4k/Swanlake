@@ -147,7 +147,7 @@ export default {
                 },
                 tooltip: {
                     trigger: 'axis',
-                    extraCssText: 'width:230px;height:auto;background-color:#fff;color:#333',
+                    extraCssText: 'width:300px;height:auto;background-color:#fff;color:#333',
                     axisPointer:{       //坐标轴指示器
                         type:'cross',   //十字准星指示器
                     },
@@ -158,7 +158,7 @@ export default {
                             if(item.seriesIndex == 0) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>"+item.value+"</span>" + "<br/>"
                             } else {
-                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 10, true) + "</span>" + "<br/>"
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 18, true) + "</span>" + "<br/>"
                             }
                         }
                         return str
@@ -291,7 +291,7 @@ export default {
                 },
                 tooltip: {
                     trigger: 'axis',
-                    extraCssText: 'width:230px;height:auto;background-color:#fff;color:#333',
+                    extraCssText: 'width:300px;height:auto;background-color:#fff;color:#333',
                     axisPointer:{       //坐标轴指示器
                         type:'cross',   //十字准星指示器
                     },
@@ -302,7 +302,7 @@ export default {
                             if(item.seriesIndex == 0) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + numberFormat(item.value) + "</span>" + "<br/>"
                             } else {
-                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 10, true) + "</span>" + "<br/>"
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 18, true) + "</span>" + "<br/>"
                             }
                         }
                         return str
@@ -450,7 +450,7 @@ export default {
                 },
                 tooltip: {
                     trigger: 'axis',
-                    extraCssText: 'width:230px;height:auto;background-color:#fff;color:#333',
+                    extraCssText: 'width:300px;height:auto;background-color:#fff;color:#333',
                     axisPointer:{       //坐标轴指示器
                         type:'cross',   //十字准星指示器
                     },
@@ -461,7 +461,7 @@ export default {
                             if(item.seriesIndex == 0) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + numberFormat(item.value) + "</span>" + "<br/>"
                             } else {
-                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 10, true) + "</span>" + "<br/>"
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 18, true) + "</span>" + "<br/>"
                             }
                         }
                         return str
@@ -594,7 +594,7 @@ export default {
                 },
                 tooltip: {
                     trigger: 'axis',
-                    extraCssText: 'width:230px;height:auto;background-color:#fff;color:#333',
+                    extraCssText: 'width:300px;height:auto;background-color:#fff;color:#333',
                     axisPointer:{       //坐标轴指示器
                         type:'cross',   //十字准星指示器
                     },
@@ -605,7 +605,7 @@ export default {
                             if(item.seriesIndex == 0) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>"+_this.toFixed(item.value, 4)+"</span>" + "<br/>"
                             } else {
-                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 10, true) + "</span>" + "<br/>"
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 18, true) + "</span>" + "<br/>"
                             }
                         }
                         return str
