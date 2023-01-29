@@ -232,7 +232,7 @@ export default {
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return '$' + _this.toFixed(Number(value), 2)
+                                return '$' + keepDecimalNotRounding(value, 18, true)
                             }
                         },
                         //轴线
@@ -392,7 +392,7 @@ export default {
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return '$' + _this.toFixed(value, 2)
+                                return '$' + keepDecimalNotRounding(value, 18, true)
                             }
                         },
                         //轴线
@@ -679,7 +679,7 @@ export default {
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
-                                return '$' + _this.toFixed(value, 2)
+                                return '$' + keepDecimalNotRounding(value, 18, true)
                             }
                         },
                         //轴线
