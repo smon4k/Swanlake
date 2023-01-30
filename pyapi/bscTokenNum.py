@@ -84,10 +84,11 @@ class JDSpider(object):
             self.browser.get(urls)
             time.sleep(10)
             # 获取地址数量
-            HoldersDom = self.browser.find_element_by_xpath('//*[@id="root"]/section/div/div/div[5]/div/div[2]/div/span') #获取持币地址数量
+            HoldersDom = self.browser.find_element_by_xpath('/html/body/div[1]/div/section/div/div/div[4]/div/div[2]/div/span') #获取持币地址数量
             HoldersList = HoldersDom.text.split('\n')
-            # print(BalanceValueList)
+            # print(HoldersList)
             holders = re.sub("[^0-9.]", "", HoldersList[0])
+            # exit()
         else:
             urls = f'https://{chain}.com/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
             # print(self.page, self.num, self.count, urls)
@@ -96,7 +97,7 @@ class JDSpider(object):
             # 获取地址数量
             HoldersDom = self.browser.find_element_by_class_name('card-body')
             HoldersList = HoldersDom.text.split('\n')
-            # print(HoldersList)
+            print(HoldersList)
             holders = re.sub("[^0-9.]", "", HoldersList[7])
 
         # 获取价格
@@ -134,10 +135,11 @@ class JDSpider(object):
             price = self.getToken2TokenPrice(self.cakeRouterContractAddress, token, self.USDT)
             # print(price)
         elif token == "0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1": # ETH
-            priceElement = self.browser.find_element_by_xpath('//*[@id="root"]/section/div/div/div[3]/div[2]/div[1]/div/div')
+            priceElement = self.browser.find_element_by_xpath('/html/body/div[1]/div/section/div/div/div[2]/div[2]/div[1]')
             priceStr = priceElement.text.split('\n')
-            price = re.sub("[^0-9.]", "", priceStr[0])
-            # print(price)
+            priceConnectStr = priceStr[0] + priceStr[1]
+            # print(priceConnectStr)
+            price = re.sub("[^0-9.]", "", priceConnectStr)
         else:
             priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
             priceStr = priceElement.get_attribute('data-title')

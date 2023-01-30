@@ -48,10 +48,11 @@ class BscAddressStatistics extends Base
             } else {
                 $date = $date_hour;
             }
-            // p($date);
             $lessRes = self::where(['name' => $name, 'date' => ['<=', $date]])->order('date desc')->find();
             if($lessRes && count((array)$lessRes) > 0) {
+                // p($lessRes);
                 $res = self::where(['name' => $name, 'date' => $date])->find();
+                // p($res);
                 if($res && count((array)$res) > 0) {
                     $saveRes = self::where(['name' => $name, 'date' => $date])->update([
                         'price' => $data['price'], 

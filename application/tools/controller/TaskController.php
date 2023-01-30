@@ -401,7 +401,7 @@ class TaskController extends ToolsBaseController
             // ['name' => 'HYPR', 'token' => '0x03D6BD3d48F956D783456695698C407A46ecD54d', 'chain' => 'bscscan'],
             // ['name' => 'AUDIO', 'token' => '0xb0B2d54802B018B393A0086a34DD4c1f26F3D073', 'chain' => 'bscscan'],
             // ['name' => 'GUT', 'token' => '0x36E714D63B676236B72a0a4405F726337b06b6e5', 'chain' => 'bscscan'],
-            // ['name' => 'ELON', 'token' => '0x761D38e5ddf6ccf6Cf7c55759d5210750B5D60F3', 'chain' => 'etherscan'],
+            // ['name' => 'TON(ETH)', 'token' => '0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1', 'chain' => 'etherscan'],
         //     // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
         //     // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
         // );
@@ -413,6 +413,7 @@ class TaskController extends ToolsBaseController
             $returnArray = [];
             $response_string = RequestService::doJsonCurlPost(Config::get('www_bscscan_contract').Config::get('reptile_service')['get_bsc_token_holders'], json_encode($params));
             if($response_string) {
+                // p($response_string);
                 echo "====== Success 爬取" . $name . "数据成功 ======" . "\n";
                 $returnArray = json_decode($response_string, true);
                 $setData = BscAddressStatistics::setBscAddressStatistics($name, $val['token'], $returnArray);
