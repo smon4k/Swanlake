@@ -79,4 +79,14 @@ class QuantifyaccountController extends BaseController
             return $this->as_json(70001, 'Error');
         }
     }
+
+    /**
+     * 获取账户列表
+     * @author qinlh
+     * @since 2023-01-31
+     */
+    public function getAccountList(Request $request) {
+        $result = QuantifyAccount::getAccountList();
+        return $this->as_json($result);
+    }
 }

@@ -4,7 +4,7 @@
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
         </div>
         <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
-            <el-tab-pane id="1" label="MartinObserve" name="MartinObserve">
+            <el-tab-pane :id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
                 <div v-if="!isMobel">
                     <el-table
                         :data="tableData"
@@ -151,6 +151,7 @@ export default {
             },
             activeName: 'MartinObserve',
             tabAccountId: 1,
+            accountList: [],
         }
     },
     computed: {
@@ -165,6 +166,7 @@ export default {
     },
     created() {
         this.getList();
+        this.getAccountList();
     },
     watch: {
 
@@ -217,6 +219,14 @@ export default {
                     this.$message.error("加载数据失败");
                 }
             });
+        },
+        getAccountList() {
+            get(this.apiUrl + "/Api/QuantifyAccount/getAccountList", {}, json => {
+                console.log(json.data);
+                if (json.code == 10000) {
+                    this.accountList = json.data;
+                }
+            })
         },
         limitPaging(limit) {
             //赋值当前条数
