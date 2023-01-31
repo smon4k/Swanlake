@@ -98,7 +98,7 @@ class QuantifyAccount extends Base
                         'price' => $tradingPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
-                    $saveUres = self::name('binance_piggybank_currency_date')->insertGetId($insertDataU);
+                    $saveUres = self::name('quantify_equity_monitoring')->insertGetId($insertDataU);
                 }
                 if ($saveUres !== false) {
                     if ($amount > 0) {
@@ -115,13 +115,6 @@ class QuantifyAccount extends Base
                 self::rollback();
                 return false;
             } catch (\Exception $e) {
-                $error_msg = json_encode([
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'code' => $e->getCode(),
-                ], JSON_UNESCAPED_UNICODE);
-                echo $error_msg . "\r\n";
                 self::rollback();
                 return false;
             }
