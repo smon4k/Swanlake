@@ -67,7 +67,7 @@ class QuantifyAccount extends Base
                 $averageDayRate = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取平均日利率
                 $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
                 $profit = $totalBalance - $countStandardPrincipal;//总利润 = 总结余 - 本金
-                $profitRate = $profit / $countStandardPrincipal;//总利润率 = 利润 / 本金
+                $profitRate = $countStandardPrincipal > 0 ? $profit / $countStandardPrincipal : 0;//总利润率 = 利润 / 本金
                 // p($daily);
                 if ($dayData && count((array)$dayData) > 0) {
                     $upData = [
@@ -115,6 +115,13 @@ class QuantifyAccount extends Base
                 self::rollback();
                 return false;
             } catch (\Exception $e) {
+                $error_msg = json_encode([
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                ], JSON_UNESCAPED_UNICODE);
+                echo $error_msg . "\r\n";
                 self::rollback();
                 return false;
             }
