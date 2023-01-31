@@ -87,7 +87,7 @@ class QuantifyAccount extends Base
                         $countStandardPrincipal = (float)$total_balance - (float)$amount;
                     }
                 }
-
+                
                 $dailyProfit = 0; //昨日利润
                 $dailyProfitRate = 0; //昨日利润率
                 $yestTotalBalance = isset($yestUTotalBalance['total_balance']) ? (float)$yestUTotalBalance['total_balance'] : 0;

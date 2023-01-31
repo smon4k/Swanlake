@@ -278,9 +278,14 @@ export default {
                     path: "/day/networth",
                     children: [],
                 },
+                {
+                    name: '量化账户监控',
+                    path: "/quantify/account",
+                    children: [],
+                },
             ];
             if(!this.isAdmin) {
-                arr.splice(arr.length - 2, 2);
+                arr.splice(arr.length - 3, 3);
             }
             return arr;
         }

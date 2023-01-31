@@ -148,6 +148,12 @@ export const constantRoutes = [
           component: () => import('@/views/power/userPower'),
           meta: { title: 'powerUser', keepAlive: false }
         },
+        {
+          path: 'quantify/account',
+          name: 'quantifyAccount',
+          component: () => import('@/views/quantifyAccount/index'),
+          meta: { title: 'quantifyAccount', keepAlive: false }
+        },
       ]
     },
 ]
