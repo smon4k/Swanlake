@@ -12,6 +12,7 @@ use app\api\model\User;
 use app\api\model\MyProduct;
 use app\api\model\DayNetworth;
 use app\api\model\BscAddressStatistics;
+use app\api\model\QuantifyAccount;
 use app\answer\model\DayNetworth as DayNetworthAnswer;
 use app\admin\model\Piggybank;
 use app\admin\model\BinancePiggybank;
@@ -321,7 +322,7 @@ class TaskController extends ToolsBaseController
         return (time() - $begin_time) . "s\n";
     }
 
-    
+
 
     //  /**
     //  * Okx 出入金 币种统计
@@ -444,6 +445,27 @@ class TaskController extends ToolsBaseController
         
         return (time() - $begin_time) . "s\n";
     }
+
+    /**
+     * 计算量化账户监控数据统计
+     * @author qinlh
+     * @since 2023-01-31
+     */
+    public function calcQuantifyAccountData() {
+        $begin_time = time();
+
+        QuantifyAccount::calcQuantifyAccountData();
+        
+        return (time() - $begin_time) . "s\n";
+    }
+
+
+
+
+
+
+
+
 
     public function AnalogData() {
         $begin_time = time();

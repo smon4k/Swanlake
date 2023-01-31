@@ -33,7 +33,7 @@ class QuantifyaccountController extends BaseController
      * @since 2022-07-08
      */
     public function setTradePairBalance(Request $request) {
-        $result = QuantifyAccount::getTradePairBalance();
+        $result = QuantifyAccount::calcQuantifyAccountData();
         return $this->as_json($result);
     }
 }
