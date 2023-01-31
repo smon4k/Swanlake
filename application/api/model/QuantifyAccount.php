@@ -22,74 +22,109 @@ class QuantifyAccount extends Base
 
     /**
      * 计算量化账户数据
+     * @params [account_id 账户id]
+     * @params [direction 出金 入金]
+     * @params [amount 数量]
+     * @params [remark 描述]
      * @author qinlh
      * @since 2023-01-31
      */
-    public static function calcQuantifyAccountData() {
-        try {
-            $accountList = self::getAccountList();
-            $account_id = 0;
-            foreach ($accountList as $key => $val) {
-                $account_id = $val['id'];
+    public static function calcQuantifyAccountData($account_id=0, $direction=0, $amount=0, $remark='') {
+        if($account_id) {
+            self::startTrans();
+            try {
                 $accountInfo = self::getAccountInfo($account_id);
+                $tradingPrice = 1;
                 $balanceList = self::getTradePairBalance();
-                $totalBalance = $balanceList['usdtBalance']; //总资产
-                $daily = 0; //日增
-                $daily_rate = 0; //日增率
-                $yestDetails = [];
-                $yestDetailsRes = self::name('quantify_equity_monitoring')->whereTime('date', 'yesterday')->find(); //获取昨天的数据
-                if($yestDetailsRes && count((array)$yestDetailsRes) > 0) {
-                    $yestDetails = $yestDetailsRes->toArray();
+                $totalBalance = $balanceList['usdtBalance']; //总结余
+                $yestData = self::getYestTotalPrincipal($account_id); //获取昨天的数据
+                $dayData = self::getDayTotalPrincipal($account_id); //获取今天的数据
+                $countStandardPrincipal = 0; //累计本金
+                if (!$amount || $amount == 0) { 
+                    if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
+                        $countStandardPrincipal = isset($dayData['principal']) ? (float)$dayData['principal'] : 0;
+                    } else {
+                        $countStandardPrincipal = $yestData['principal'];
+                    }
+                } else {
+                    //本金
+                    $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
+                    if ($direction == 1) { //入金
+                        $countStandardPrincipal = (float)$total_balance + (float)$amount;
+                    } else {
+                        $countStandardPrincipal = (float)$total_balance - (float)$amount;
+                    }
                 }
-                if ($yestDetails && count((array)$yestDetails) > 0) {
-                    $daily = (float)$usdtBalance - (float)$yestDetails['balance'];
-                    $daily_rate = (float)$yestDetails['balance'] > 0 ? ($daily / (float)$yestDetails['balance']) * 100 : 0;
-                }
+
+                $dailyProfit = 0; //昨日利润
+                $dailyProfitRate = 0; //昨日利润率
+                $yestTotalBalance = isset($yestUTotalBalance['total_balance']) ? (float)$yestUTotalBalance['total_balance'] : 0;
+                $depositToday = self::getInoutGoldDepositToday($account_id); //获取今日入金数量
+                $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
+                $dailyProfitRate = $yestTotalBalance > 0 ? $dailyProfit / $yestTotalBalance : 0; //日利润率 = 日利润 / 昨日的总结余
+                $averageDayRate = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取平均日利率
+                $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
+                $profit = $totalBalance - $countStandardPrincipal;//总利润 = 总结余 - 本金
+                $profitRate = $profit / $countStandardPrincipal;//总利润率 = 利润 / 本金
                 // p($daily);
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
-                $data = Db::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->find();
-                if($data && count((array)$data) > 0) {
+                if ($dayData && count((array)$dayData) > 0) {
                     $upData = [
-                        'count_market_value'=>$totalBalance, 
-                        // 'grid_spread' => $countProfit,
-                        // 'grid_spread_rate' => $countProfitRate,
-                        // 'grid_day_spread' => $dayProfit,
-                        // 'grid_day_spread_rate' => $dayProfitRate,
-                        // 'average_day_rate' => $averageDayRate,
-                        // 'average_year_rate' => $averageYearRate,
-                        // 'up_time' => date('Y-m-d H:i:s')
-                    ];
-                    $res = Db::name('quantify_equity_monitoring')->where(['product_name' => $transactionCurrency, 'date' => $date])->update($upData);
-                } else {
-                    $insertData = [
-                        'account_id' => $account_id, 
-                        'date'=>$date, 
-                        'count_market_value'=>$totalBalance, 
-                        // 'grid_spread' => $countProfit,
-                        // 'grid_spread_rate' => $countProfitRate,
-                        // 'grid_day_spread' => $dayProfit,
-                        // 'grid_day_spread_rate' => $dayProfitRate,
-                        // 'average_day_rate' => $averageDayRate,
-                        // 'average_year_rate' => $averageYearRate,
+                        'principal' => $countStandardPrincipal,
+                        'total_balance' => $totalBalance,
+                        'daily_profit' => $dailyProfit,
+                        'daily_profit_rate' => $dailyProfitRate,
+                        'average_day_rate' => $averageDayRate,
+                        'average_year_rate' => $averageYearRate,
+                        'profit' => $profit,
+                        'profit_rate' => $profitRate,
+                        'price' => $tradingPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
-                    $res = Db::name('quantify_equity_monitoring')->insertGetId($insertData);
+                    $saveUres = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->update($upData);
+                } else {
+                    $insertData = [
+                        'account_id' => $account_id,
+                        'date' => $date,
+                        'principal' => $countStandardPrincipal,
+                        'total_balance' => $totalBalance,
+                        'daily_profit' => $dailyProfit,
+                        'daily_profit_rate' => $dailyProfitRate,
+                        'average_day_rate' => $averageDayRate,
+                        'average_year_rate' => $averageYearRate,
+                        'profit' => $profit,
+                        'profit_rate' => $profitRate,
+                        'price' => $tradingPrice,
+                        'up_time' => date('Y-m-d H:i:s')
+                    ];
+                    $saveUres = self::name('binance_piggybank_currency_date')->insertGetId($insertDataU);
                 }
-                if($res !== false) {
-                    return true;
+                if ($saveUres !== false) {
+                    if ($amount > 0) {
+                        $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
+                        if ($isIntOut) {
+                            self::commit();
+                            return true;
+                        }
+                    } else {
+                        self::commit();
+                        return true;
+                    }
                 }
+                self::rollback();
+                return false;
+            } catch (\Exception $e) {
+                $error_msg = json_encode([
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                ], JSON_UNESCAPED_UNICODE);
+                echo $error_msg . "\r\n";
+                self::rollback();
+                return false;
             }
-            return false;
-        } catch (\Exception $e) {
-            $error_msg = json_encode([
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'code' => $e->getCode(),
-            ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";
-            return false;
         }
     }
 
@@ -177,5 +212,107 @@ class QuantifyAccount extends Base
             return $data->toArray();
         }
         return [];
+    }
+
+    /**
+     * 获取昨天数据
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function getYestTotalPrincipal($account_id=0)
+    {
+        if($account_id) {
+            $date = date("Y-m-d", strtotime("-1 day")); //获取昨天的时间
+            $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->find();
+            if ($res && count((array)$res) > 0) {
+                return $res;
+            } else {
+                $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id])->order('date desc')->find();
+                return $res;
+            }
+        }
+        return [];
+    }
+
+    /**
+     * 获取今天数据
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function getDayTotalPrincipal($account_id=0)
+    {
+        if($account_id) {
+            $date = date("Y-m-d"); //获取昨天的时间
+            $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->find();
+            if ($res && count((array)$res) > 0) {
+                return $res;
+            }
+        }
+        return [];
+    }
+
+    /**
+     * 获取出入金总结余
+     * @author qinlh
+     * @since 2023-01-31
+     */
+    public static function getInoutGoldTotalBalance($account_id=0)
+    {
+        if($account_id) {
+            $count = self::name('quantify_inout_gold')->where('account_id', $account_id)->sum('amount');
+            if ($count !== 0) {
+                return $count;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 获取今日入金总数量
+     * @author qinlh
+     * @since 2023-01-31
+     */
+    public static function getInoutGoldDepositToday($account_id=0)
+    {
+        if($account_id) {
+            $amount = self::name('quantify_inout_gold')->whereTime('time', 'today')->where('type', 1)->sum('amount');
+            if ($amount !== 0) {
+                return $amount;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 记录出入金记录
+     * @author qinlh
+     * @since 2023-01-31
+     */
+    public static function setInoutGoldRecord($account_id=0, $amount='', $price, $type=0, $remark='')
+    {
+        if ($account_id && $amount !== 0 && $type > 0) {
+            $total_balance = 0;
+            if($type == 1) {
+                $amount_num = $amount;
+                $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount;
+            } else {
+                $amount_num = $amount *= -1;
+                $total_balance = self::getInoutGoldTotalBalance($account_id) - (float)$amount;
+            }
+            $insertData = [
+                'account_id' => $account_id,
+                'amount' => $amount_num,
+                // 'price' => $price,
+                'type' => $type,
+                'total_balance' => $total_balance,
+                'remark' => $remark,
+                'time' => date('Y-m-d H:i:s'),
+            ];
+            $res = self::name('quantify_inout_gold')->insertGetId($insertData);
+            if ($res) {
+                return true;
+            }
+        }
+        return false;
     }
 }
