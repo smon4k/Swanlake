@@ -98,7 +98,7 @@ class QuantifyAccount extends Base
                         'price' => $tradingPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
-                    $saveUres = self::name('quantify_equity_monitoring')->insertGetId($insertDataU);
+                    $saveUres = self::name('quantify_equity_monitoring')->insertGetId($insertData);
                 }
                 if ($saveUres !== false) {
                     if ($amount > 0) {
