@@ -21,6 +21,36 @@ class QuantifyAccount extends Base
 
 
     /**
+    * 获取U币本位统计数据
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public static function getQuantifyAccountDateList($page, $where, $limits=0)
+    {
+        if ($limits == 0) {
+            $limits = config('paginate.list_rows');// 获取总条数
+        }
+        // p($where);
+        $count = self::name("quantify_equity_monitoring")
+                    ->alias("a")
+                    ->where($where)
+                    ->count();//计算总页面
+        // p($count);
+        $allpage = intval(ceil($count / $limits));
+        $lists = self::name("quantify_equity_monitoring")
+                    ->alias("a")
+                    ->where($where)
+                    ->page($page, $limits)
+                    ->field('a.*')
+                    ->order("id desc")
+                    ->select()
+                    ->toArray();
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
+
+    /**
      * 计算量化账户数据
      * @params [account_id 账户id]
      * @params [direction 出金 入金]

@@ -36,4 +36,47 @@ class QuantifyaccountController extends BaseController
         $result = QuantifyAccount::calcQuantifyAccountData();
         return $this->as_json($result);
     }
+
+    /**
+    * 获取每日统计数据
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public function getQuantifyAccountDateList(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 1, 'intval');
+        $account_id = $request->request('account_id', 0, 'intval');
+        $order_number = $request->request('order_number', '', 'trim');
+        // $standard = $request->request('standard', 0, 'intval');
+        $where = [];
+        $where['state'] = 1;
+        $where['account_id'] = $account_id;
+        $data = QuantifyAccount::getQuantifyAccountDateList($page, $where, $limits);
+        $count = $data['count'];
+        $allpage = $data['allpage'];
+        $lists = $data['lists'];
+        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+    }
+
+    /**
+     * 出入金计算
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public function calcDepositAndWithdrawal(Request $request) {
+        $account_id = $request->request('account_id', '', 'intval');
+        $direction = $request->request('direction', 0, 'intval');
+        $amount = $request->request('amount', '', 'trim');
+        $remark = $request->request('remark', '', '');
+        if($direction <= 0 || $amount == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = QuantifyAccount::calcQuantifyAccountData($account_id, $direction, $amount, $remark);
+        if($result) {
+            return $this->as_json('ok');
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
 }
