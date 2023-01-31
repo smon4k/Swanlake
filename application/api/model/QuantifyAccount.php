@@ -33,6 +33,8 @@ class QuantifyAccount extends Base
         if($account_id) {
             self::startTrans();
             try {
+                date_default_timezone_set("Etc/GMT-8");
+                $date = date('Y-m-d');
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
                 $balanceList = self::getTradePairBalance();
@@ -67,8 +69,6 @@ class QuantifyAccount extends Base
                 $profit = $totalBalance - $countStandardPrincipal;//总利润 = 总结余 - 本金
                 $profitRate = $profit / $countStandardPrincipal;//总利润率 = 利润 / 本金
                 // p($daily);
-                date_default_timezone_set("Etc/GMT-8");
-                $date = date('Y-m-d');
                 if ($dayData && count((array)$dayData) > 0) {
                     $upData = [
                         'principal' => $countStandardPrincipal,
