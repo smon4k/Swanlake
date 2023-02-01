@@ -60,6 +60,25 @@ class QuantifyaccountController extends BaseController
     }
 
     /**
+    * 获取出入金列表数据
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public function getInoutGoldList(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 20, 'intval');
+        $account_id = $request->request('account_id', 0, 'intval');
+        $where = [];
+        $where['account_id'] = $account_id;
+        $data = QuantifyAccount::getInoutGoldList($where, $page, $limits);
+        $count = $data['count'];
+        $allpage = $data['allpage'];
+        $lists = $data['lists'];
+        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+    }
+
+    /**
      * 出入金计算
      * @author qinlh
      * @since 2022-08-20

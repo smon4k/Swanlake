@@ -345,4 +345,32 @@ class QuantifyAccount extends Base
         }
         return false;
     }
+
+    /**
+    * 获取出入金记录
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public static function getInoutGoldList($where, $page, $limits=0)
+    {
+        if ($limits == 0) {
+            $limits = config('paginate.list_rows');// 获取总条数
+        }
+        // p($where);
+        $count = self::name("quantify_inout_gold")
+                    ->where($where)
+                    ->count();//计算总页面
+        // p($count);
+        $allpage = intval(ceil($count / $limits));
+        $lists = self::name("quantify_inout_gold")
+                    ->where($where)
+                    ->page($page, $limits)
+                    ->field('*')
+                    ->order("id desc")
+                    ->select()
+                    ->toArray();
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
 }

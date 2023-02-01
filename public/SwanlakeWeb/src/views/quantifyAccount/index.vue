@@ -2,6 +2,7 @@
     <div class="container">
         <div style="text-align:right;margin-bottom: 10px;">
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
+            <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
         </div>
         <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
             <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
@@ -93,7 +94,7 @@
         </el-tabs>
 
          <el-dialog
-            title="出/入金"
+            :title="activeName + ' 出/入金'"
             :visible.sync="dialogVisibleShow"
             width="50%">
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="80px">
@@ -114,6 +115,51 @@
                 <el-button @click="dialogVisibleShow = false">取 消</el-button>
                 <el-button type="primary" @click="submitForm('ruleForm')">确 定</el-button>
             </span>
+        </el-dialog>
+
+         <el-dialog
+            title="出/入金记录"
+            :visible.sync="dialogVisibleListShow"
+            width="50%"
+            height="500">
+            <el-table :data="InoutGoldList" style="width: 100%;">
+                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                <el-table-column prop="time" label="时间" align="center" width="180"></el-table-column>
+                <el-table-column prop="amount" label="出入金额" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="type" label="类型" align="center">
+                    <template slot-scope="scope">
+                    <span v-if="scope.row.type == 1">入金</span>
+                    <span v-else>出金</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="total_balance" label="账户余额" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="备注" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ scope.row.remark }}</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-row class="pages">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="InoutGoldTotal"
+                        :pageSize="InoutGoldPageSize"
+                        :currPage="InoutGoldCurrPage"
+                        @changeLimit="InoutGoldLimitPaging"
+                        @changeSkip="InoutGoldSkipPaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
         </el-dialog>
     </div>
 </template>
@@ -136,6 +182,7 @@ export default {
             finished: false,
             PageSearchWhere: [],
             dialogVisibleShow: false,
+            dialogVisibleListShow: false,
             ruleForm: {
                 direction: '',
                 amount: '',
@@ -152,6 +199,10 @@ export default {
             activeName: 'MartinObserve',
             tabAccountId: 1,
             accountList: [],
+            InoutGoldList: [],
+            InoutGoldCurrPage: 1, //当前页
+            InoutGoldPageSize: 20, //每页显示条数
+            InoutGoldTotal: 1, //总条数
         }
     },
     computed: {
@@ -232,26 +283,12 @@ export default {
         limitPaging(limit) {
             //赋值当前条数
             this.pageSize = limit;
-            if (
-                this.PageSearchWhere.limit &&
-                this.PageSearchWhere.limit !== undefined
-            ) {
-                this.PageSearchWhere.limit = limit;
-            }
-            this.PageSearchWhere.account_id = this.tabAccountId;
-            this.getList(this.PageSearchWhere); //刷新列表
+            this.getList(); //刷新列表
         },
         skipPaging(page) {
             //赋值当前页数
             this.currPage = page;
-            if (
-                this.PageSearchWhere.page &&
-                this.PageSearchWhere.page !== undefined
-            ) {
-                this.PageSearchWhere.page = page;
-            }
-            this.PageSearchWhere.account_id = this.tabAccountId;
-            this.getList(this.PageSearchWhere); //刷新列表
+            this.getList(); //刷新列表
         },
         copySuccess() {
             this.$message({
@@ -259,7 +296,7 @@ export default {
                 type: 'success'
             });
         },
-        submitForm(formName) {
+        submitForm(formName) { //出入金
             this.$refs[formName].validate((valid) => {
                 if (valid) {
                     const loading = this.$loading({
@@ -288,6 +325,39 @@ export default {
                     return false;
                 }
             });
+        },
+        dialogVisibleListClick() {
+            this.dialogVisibleListShow = true;
+            this.getInoutGoldList();
+        },
+        getInoutGoldList(ServerWhere) { //获取出入金记录数据
+            var that = this.$data;
+            if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+                ServerWhere = {
+                    limit: that.InoutGoldPageSize,
+                    page: that.InoutGoldCurrPage,
+                    account_id: that.tabAccountId,
+                };
+            }
+            get("/Api/QuantifyAccount/getInoutGoldList", ServerWhere, json => {
+                console.log(json);
+                if (json.code == 10000) {
+                    this.InoutGoldList = json.data.data;
+                    this.InoutGoldTotal = json.data.count;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
+        InoutGoldLimitPaging(limit) {
+            //赋值当前条数
+            this.InoutGoldPageSize = limit;
+            this.getInoutGoldList(); //刷新列表
+        },
+        InoutGoldSkipPaging(page) {
+            //赋值当前页数
+            this.InoutGoldCurrPage = page;
+            this.getInoutGoldList(); //刷新列表
         },
         resetForm(formName) {
             this.$refs[formName].resetFields();
