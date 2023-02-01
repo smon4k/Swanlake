@@ -300,11 +300,17 @@ class Binance extends Base
                     $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
                     if($orderCancelRes) { //撤单成功 开始吃单
                         echo "撤单成功 开始吃单 \r\n";
-                        Db::commit();
                         $toEatMeal = self::balancePositionOrder();
                         if($toEatMeal) { //如果吃单成功 重新挂单
+                            Db::commit();
+                            Db::startTrans();
                             echo "吃单成功 重新挂单 \r\n";
-                            self::balancePendingOrder();
+                            $isPendingOrder = self::startPendingOrder($transactionCurrency);
+                            if($isPendingOrder) {
+                                echo "已重新挂单 \r\n";
+                                Db::commit();
+                                return true;
+                            }
                         }
                     }
                 }
@@ -708,11 +714,19 @@ class Binance extends Base
             
             if((float)$buyOrdersNumber < 0 || (float)$sellOrdersNumber < 0) {
                 echo "购买出售出现负数，开始吃单 \r\n";
-                $res = self::balancePositionOrder();
-                if($res) {
+                $toEatMeal = self::balancePositionOrder();
+                if($toEatMeal) { //如果吃单成功 重新挂单
                     Db::commit();
-                    return true;
+                    Db::startTrans();
+                    echo "吃单成功 重新挂单 \r\n";
+                    $isPendingOrder = self::startPendingOrder($transactionCurrency);
+                    if($isPendingOrder) {
+                        echo "已重新挂单 \r\n";
+                        Db::commit();
+                        return true;
+                    }
                 }
+                return true;
             }
 
             $busdBuyClinchBalance = $busdBalance - $buyNum; //挂买以后BUSD数量 BUSD余额 减去 购买busd数量

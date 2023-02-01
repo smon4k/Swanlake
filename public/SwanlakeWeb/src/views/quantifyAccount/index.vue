@@ -4,7 +4,7 @@
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
         </div>
         <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
-            <el-tab-pane :id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
+            <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
                 <div v-if="!isMobel">
                     <el-table
                         :data="tableData"
@@ -183,6 +183,7 @@ export default {
                     account_id: this.tabAccountId,
                 };
             }
+            console.log(ServerWhere);
             this.loading = true;
             get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDateList", ServerWhere, json => {
                 // console.log(json.data);
@@ -295,8 +296,8 @@ export default {
             this.dialogVisibleShow = true;
         },
         tabsHandleClick(tab, event) { //tab切换
-            // console.log(tab, event);
-            this.tabAccountId = tab.id;
+            // console.log(tab.$attrs['data-id'], event);
+            this.tabAccountId = tab.$attrs['data-id'];
             this.getList();
         }
     },
