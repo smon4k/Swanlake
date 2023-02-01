@@ -27,9 +27,9 @@ import Address from '@/wallet/address.json'
     let result = [];
     if(address && address !== '') {
       let data = await $get(apiUrl + '/Api/User/getUserAddressInfo?address='+address+'&re_address='+re_address);
-        if (data && data.code == 10000) {
-            result = data.data;
-        }
+      if (data && data.code == 10000) {
+          result = data.data;
+      }
     }
     return result;
   }
