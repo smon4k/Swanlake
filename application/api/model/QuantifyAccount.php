@@ -90,7 +90,7 @@ class QuantifyAccount extends Base
                 
                 $dailyProfit = 0; //昨日利润
                 $dailyProfitRate = 0; //昨日利润率
-                $yestTotalBalance = isset($yestUTotalBalance['total_balance']) ? (float)$yestUTotalBalance['total_balance'] : 0;
+                $yestTotalBalance = isset($yestData['total_balance']) ? (float)$yestData['total_balance'] : 0;
                 $depositToday = self::getInoutGoldDepositToday($account_id); //获取今日入金数量
                 $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
                 $dailyProfitRate = $yestTotalBalance > 0 ? $dailyProfit / $yestTotalBalance : 0; //日利润率 = 日利润 / 昨日的总结余
