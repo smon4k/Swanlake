@@ -94,7 +94,13 @@ class QuantifyAccount extends Base
                 $depositToday = self::getInoutGoldDepositToday($account_id); //获取今日入金数量
                 $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
                 $dailyProfitRate = $yestTotalBalance > 0 ? $dailyProfit / $yestTotalBalance : 0; //日利润率 = 日利润 / 昨日的总结余
-                $averageDayRate = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->avg('daily_profit_rate'); //获取平均日利率
+                $averageDayCountNum = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->count(); //获取平均数总人数
+                $averageDayRateRes = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->avg('daily_profit_rate'); //获取平均日利率
+                if(!$dayData || empty($dayData)) { //今日第一次执行 加上今天的日利润率
+                    $averageDayRate = ($averageDayCountNum + 1) * $averageDayRateRes + $dailyProfitRate;
+                } else {
+                    $averageDayRate = $averageDayRateRes;
+                }
                 $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
                 $profit = $totalBalance - $countStandardPrincipal;//总利润 = 总结余 - 本金
                 $profitRate = $countStandardPrincipal > 0 ? $profit / $countStandardPrincipal : 0;//总利润率 = 利润 / 本金
