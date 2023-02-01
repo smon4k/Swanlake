@@ -76,7 +76,7 @@ class QuantifyAccount extends Base
                     if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
                         $countStandardPrincipal = isset($dayData['principal']) ? (float)$dayData['principal'] : 0;
                     } else {
-                        $countStandardPrincipal = $yestData['principal'];
+                        $countStandardPrincipal = isset($yestData['principal']) ? $yestData['principal'] : 0;
                     }
                 } else {
                     //本金
