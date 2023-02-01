@@ -272,6 +272,7 @@ class Okx extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("GMX-USDT 平衡仓位 - 下单 Error \r\n".$error_msg);
             return false;
         }
     }
@@ -526,6 +527,7 @@ class Okx extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("GMX-USDT 平衡仓位 - 挂单 Error \r\n".$error_msg);
             return false;
         }
     }
@@ -850,6 +852,7 @@ class Okx extends Base
             return false;
         } catch (\Exception $e) {
             // p($e);
+            logger("GMX-USDT 每日存钱罐数据统计 Error \r\n".$e);
             return array(0, $e->getMessage());
         }
     }
@@ -891,6 +894,7 @@ class Okx extends Base
             }
             return ['btcBalance' => $btcBalance, 'usdtBalance' => $usdtBalance];
         } catch (\Exception $e) {
+            logger("GMX-USDT 获取交易对余额 Error \r\n".$e);
             return array(0, $e->getMessage());
         }
     }
@@ -944,6 +948,7 @@ class Okx extends Base
                 self::setRevokePendingOrder();
             }
             echo $error_msg . "\r\n";
+            logger("GMX-USDT 撤销单一交易对全部挂单 Error \r\n".$error_msg);
             return true;
         }
     }
@@ -982,6 +987,7 @@ class Okx extends Base
             }
             return false;
         } catch (\Exception $e) {
+            logger("GMX-USDT 获取订单数据 Error \r\n".$e);
             return array(0, $e->getMessage());
         }
     }
@@ -1004,6 +1010,7 @@ class Okx extends Base
             $marketIndexTickers = $exchange->fetch_ticker($transactionCurrency); //获取交易BTC价格
             return $marketIndexTickers;
         } catch (\Exception $e) {
+            logger("GMX-USDT 获取单个产品行情信息 价格 Error \r\n".$e);
             return array(0, $e->getMessage());
         }
     }

@@ -254,6 +254,7 @@ class Binance extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("BIFI-USDT Error \r\n".$error_msg);
             return false;
         }
     }
@@ -649,6 +650,7 @@ class Binance extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("BIFI-USDT Error \r\n".$error_msg);
             return false;
         }
     }
@@ -973,6 +975,7 @@ class Binance extends Base
             return false;
         } catch (\Exception $e) {
             // p($e);
+            logger("每日存钱罐数据统计 Error \r\n".$e);
             return array(0, $e->getMessage());
         }
     }
@@ -1028,6 +1031,7 @@ class Binance extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("BIFI-USDT 获取交易对余额 Error \r\n".$error_msg);
             return false;
         }
     }
@@ -1057,6 +1061,7 @@ class Binance extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("BIFI-USDT 获取订单数据 Error \r\n".$error_msg);
             return false;
         }
     }
@@ -1088,6 +1093,7 @@ class Binance extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("BIFI-USDT 撤销订单数据 Error \r\n".$error_msg);
             return true;        
         }
     }
@@ -1134,6 +1140,7 @@ class Binance extends Base
                 }
                 self::setRevokePendingOrder();
             }
+            logger("BIFI-USDT 撤销单一交易对全部挂单 Error \r\n".$error_msg);
             // echo $error_msg . "\r\n";
             return true;
         }
@@ -1179,6 +1186,7 @@ class Binance extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("BIFI-USDT 查询单一交易对全部挂单 Error \r\n".$error_msg);
             return false;
         }
     }
@@ -1217,6 +1225,7 @@ class Binance extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
+            logger("BIFI-USDT 获取交易对价格 Error \r\n".$error_msg);
             return false;
         }
     }
