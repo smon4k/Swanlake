@@ -21,4 +21,5 @@ database.php
 /runtime/
 /runtime/cache
 database_hp*.php
+/log.xml
 
