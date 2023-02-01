@@ -124,8 +124,8 @@
             height="500">
             <el-table :data="InoutGoldList" style="width: 100%;">
                 <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
-                <el-table-column prop="time" label="时间" align="center" width="180"></el-table-column>
-                <el-table-column prop="amount" label="出入金额" align="center" width="120">
+                <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
+                <el-table-column prop="amount" label="出入金额" align="center" width="150">
                     <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} USDT</span>
                     </template>
