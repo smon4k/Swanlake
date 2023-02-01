@@ -94,7 +94,7 @@ class QuantifyAccount extends Base
                 $depositToday = self::getInoutGoldDepositToday($account_id); //获取今日入金数量
                 $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
                 $dailyProfitRate = $yestTotalBalance > 0 ? $dailyProfit / $yestTotalBalance : 0; //日利润率 = 日利润 / 昨日的总结余
-                $averageDayRate = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取平均日利率
+                $averageDayRate = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->avg('daily_profit_rate'); //获取平均日利率
                 $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
                 $profit = $totalBalance - $countStandardPrincipal;//总利润 = 总结余 - 本金
                 $profitRate = $countStandardPrincipal > 0 ? $profit / $countStandardPrincipal : 0;//总利润率 = 利润 / 本金
@@ -252,12 +252,13 @@ class QuantifyAccount extends Base
     public static function getYestTotalPrincipal($account_id=0)
     {
         if($account_id) {
+            $dayDate = date("Y-m-d");
             $date = date("Y-m-d", strtotime("-1 day")); //获取昨天的时间
             $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->find();
             if ($res && count((array)$res) > 0) {
                 return $res;
             } else {
-                $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id])->order('date desc')->find();
+                $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<', $dayDate]])->order('date desc')->find();
                 return $res;
             }
         }
