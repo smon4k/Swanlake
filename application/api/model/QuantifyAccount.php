@@ -305,7 +305,7 @@ class QuantifyAccount extends Base
     public static function getInoutGoldDepositToday($account_id=0)
     {
         if($account_id) {
-            $amount = self::name('quantify_inout_gold')->whereTime('time', 'today')->where('type', 1)->sum('amount');
+            $amount = self::name('quantify_inout_gold')->whereTime('time', 'today')->where('type', 2)->sum('amount');
             if ($amount !== 0) {
                 return $amount;
             }
