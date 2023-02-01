@@ -21,11 +21,11 @@
                             <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }} USDT</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="币价" align="center">
+                        <!-- <el-table-column prop="" label="币价" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>
                             </template>
-                        </el-table-column>
+                        </el-table-column> -->
                         <el-table-column prop="" label="日利润" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 2, true) }} USDT</span>
@@ -77,7 +77,7 @@
                             <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
                             <!-- <el-descriptions-item label="账户名称">{{ item.account }}</el-descriptions-item> -->
                             <el-descriptions-item label="总结余">{{ keepDecimalNotRounding(item.total_balance, 2, true) }} USDT</el-descriptions-item>
-                            <el-descriptions-item label="币价">{{ keepDecimalNotRounding(item.price, 2, true) }} USDT</el-descriptions-item>
+                            <!-- <el-descriptions-item label="币价">{{ keepDecimalNotRounding(item.price, 2, true) }} USDT</el-descriptions-item> -->
                             <el-descriptions-item label="日利润">{{ keepDecimalNotRounding(item.daily_profit, 2, true) }} USDT</el-descriptions-item>
                             <el-descriptions-item label="日利润率">{{ keepDecimalNotRounding(item.daily_profit_rate, 4, true) }}</el-descriptions-item>
                             <el-descriptions-item label="平均日利率">{{ keepDecimalNotRounding(item.average_day_rate, 4, true) }}%</el-descriptions-item>
