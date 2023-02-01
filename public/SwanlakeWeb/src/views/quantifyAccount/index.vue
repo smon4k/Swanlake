@@ -120,9 +120,8 @@
          <el-dialog
             title="出/入金记录"
             :visible.sync="dialogVisibleListShow"
-            width="50%"
-            height="500">
-            <el-table :data="InoutGoldList" style="width: 100%;">
+            width="50%">
+            <el-table :data="InoutGoldList" style="width: 100%;" height="500">
                 <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
                 <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
                 <el-table-column prop="amount" label="出入金额" align="center" width="150">
