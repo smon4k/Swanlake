@@ -59,7 +59,7 @@ class Okx extends Base
 
             // p($btcBalance);
 
-            $changeRatioNum = 1; //涨跌比例 2%
+            $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
 
@@ -562,7 +562,7 @@ class Okx extends Base
             $symbol = str_replace("-",'', $transactionCurrency);
             // $order_symbol = str_replace("-",'/', $transactionCurrency);
             // $changeRatioNum = BinanceConfig::getChangeRatio(); //涨跌比例
-            $changeRatioNum = 1; //涨跌比例 2%
+            $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
@@ -598,10 +598,11 @@ class Okx extends Base
             $sellNum = $balanceRatioArr[0] * (($bifiSellValuation - $usdtValuation) / ((float)$balanceRatioArr[0] + (float)$balanceRatioArr[1]));
             $sellOrdersNumber = $sellNum / $sellingPrice;
             // p($sellOrdersNumber);
+            echo "GMX 出售估值".$bifiSellValuation."usdt估值".$usdtValuation."出售数量" . $sellNum . "出售价格" . $sellingPrice . "\r\n";
             echo $buyOrdersNumber . "&&&" . $sellOrdersNumber . "\r\n";
             // exit;
-            if((float)$buyOrdersNumber < 0 || (float)$sellOrdersNumber < 0) {
-                echo "购买出售出现负数，撤单 开始吃单 \r\n";
+            if((float)$buyOrdersNumber < 0.1 || (float)$sellOrdersNumber < 0.1) {
+                echo "购买出售出现负数或者小于最小下单量，撤单 开始吃单 \r\n";
                 $toEatMeal = self::balancePositionOrder();
                 if($toEatMeal) { //如果吃单成功 重新挂单
                     Db::commit();
@@ -1128,7 +1129,7 @@ class Okx extends Base
         // $result = $exchange->fetch_markets(['symbol'=>$symbol]);
         // p($result);
 
-        $changeRatioNum = 1; //涨跌比例 2%
+        $changeRatioNum = 2; //涨跌比例 2%
         $balanceRatio = '1:1'; //平衡比例
         $balanceRatioArr = explode(':', $balanceRatio);
         $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
