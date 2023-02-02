@@ -59,7 +59,7 @@ class Okx extends Base
 
             // p($btcBalance);
 
-            $changeRatioNum = 1; //涨跌比例 2%
+            $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
 
@@ -562,7 +562,7 @@ class Okx extends Base
             $symbol = str_replace("-",'', $transactionCurrency);
             // $order_symbol = str_replace("-",'/', $transactionCurrency);
             // $changeRatioNum = BinanceConfig::getChangeRatio(); //涨跌比例
-            $changeRatioNum = 1; //涨跌比例 2%
+            $changeRatioNum = 2; //涨跌比例 2%
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
