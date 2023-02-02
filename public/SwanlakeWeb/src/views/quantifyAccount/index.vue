@@ -33,17 +33,17 @@
                         </el-table-column>
                         <el-table-column prop="" label="日利润率" align="center" width="100">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.daily_profit_rate, 4, true) }}%</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.daily_profit_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="平均日利率" align="center" width="100">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 4, true) }}%</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="平均年利率" align="center" width="100">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 4, true) }}%</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="利润" align="center">
@@ -53,7 +53,7 @@
                         </el-table-column>
                         <el-table-column prop="" label="利润率" align="center">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 4, true) }}%</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -80,10 +80,10 @@
                             <!-- <el-descriptions-item label="币价">{{ keepDecimalNotRounding(item.price, 2, true) }} USDT</el-descriptions-item> -->
                             <el-descriptions-item label="日利润">{{ keepDecimalNotRounding(item.daily_profit, 2, true) }} USDT</el-descriptions-item>
                             <el-descriptions-item label="日利润率">{{ keepDecimalNotRounding(item.daily_profit_rate, 4, true) }}</el-descriptions-item>
-                            <el-descriptions-item label="平均日利率">{{ keepDecimalNotRounding(item.average_day_rate, 4, true) }}%</el-descriptions-item>
-                            <el-descriptions-item label="平均年利率">{{ keepDecimalNotRounding(item.average_year_rate, 4, true) }}%</el-descriptions-item>
+                            <el-descriptions-item label="平均日利率">{{ keepDecimalNotRounding(item.average_day_rate, 2, true) }}%</el-descriptions-item>
+                            <el-descriptions-item label="平均年利率">{{ keepDecimalNotRounding(item.average_year_rate, 2, true) }}%</el-descriptions-item>
                             <el-descriptions-item label="利润">{{ keepDecimalNotRounding(item.profit, 2, true) }} USDT</el-descriptions-item>
-                            <el-descriptions-item label="利润率">{{ keepDecimalNotRounding(item.profit_rate * 100, 4, true) }}%</el-descriptions-item>
+                            <el-descriptions-item label="利润率">{{ keepDecimalNotRounding(item.profit_rate * 100, 2, true) }}%</el-descriptions-item>
                         </el-descriptions>
                     </div>
                     <div v-else>
