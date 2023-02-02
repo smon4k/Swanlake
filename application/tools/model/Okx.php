@@ -601,7 +601,10 @@ class Okx extends Base
             echo "GMX 出售估值".$bifiSellValuation."usdt估值".$usdtValuation."出售数量" . $sellNum . "出售价格" . $sellingPrice . "\r\n";
             echo $buyOrdersNumber . "&&&" . $sellOrdersNumber . "\r\n";
             // exit;
-            if((float)$buyOrdersNumber < 0.1 || (float)$sellOrdersNumber < 0.1) {
+            //获取最小下单数量
+            $rubikStatTakerValume = $exchange->fetch_markets_by_type('SPOT', ['instId'=>$transactionCurrency]);
+            $minSizeOrderNum = isset($rubikStatTakerValume[0]['info']['minSz']) ? $rubikStatTakerValume[0]['info']['minSz'] : 0; //最小下单数量
+            if((float)$buyOrdersNumber < (float)$minSizeOrderNum || (float)$sellOrdersNumber < (float)$minSizeOrderNum) {
                 echo "购买出售出现负数或者小于最小下单量，撤单 开始吃单 \r\n";
                 $toEatMeal = self::balancePositionOrder();
                 if($toEatMeal) { //如果吃单成功 重新挂单
