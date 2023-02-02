@@ -174,7 +174,7 @@ class Piggybank extends Base
                     $countUstandardPrincipal = $total_balance;
                 }
             } else {
-                $countUstandardPrincipal = $URes['principal'];
+                $countUstandardPrincipal = $URes['principal'] > 0 ? $URes['principal'] : $total_balance;
             }
             if(!$BRes || empty($BRes)) {
                 if(isset($bPrincipalRes['principal']) && $bPrincipalRes['principal'] > 0) {
@@ -183,7 +183,7 @@ class Piggybank extends Base
                     $countBstandardPrincipal = (float)$total_balance / $btcPrice;
                 }
             } else {
-                $countBstandardPrincipal = $BRes['principal'];
+                $countBstandardPrincipal = $BRes['principal'] > 0 ? $BRes['principal'] : (float)$total_balance / $btcPrice;
             }
         } else {
             //本金
