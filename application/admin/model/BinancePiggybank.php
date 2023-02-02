@@ -164,20 +164,28 @@ class BinancePiggybank extends Base
         $bPrincipalRes = self::getPiggybankCurrencyPrincipal(2); //获取昨天的B数据
         $URes = self::name('binance_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 1])->find();
         $BRes = self::name('binance_piggybank_currency_date')->where(['product_name' => $product_name, 'date' => $date, 'standard' => 2])->find();
+        $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
         if (!$amount || $amount == 0) { 
             if(!$URes || empty($URes)) { //今日第一次执行 获取昨日本金
-                $countUstandardPrincipal = isset($uPrincipalRes['principal']) ? (float)$uPrincipalRes['principal'] : 0;
+                if(isset($uPrincipalRes['principal']) && $uPrincipalRes['principal'] > 0) {
+                    $countUstandardPrincipal = isset($uPrincipalRes['principal']) ? (float)$uPrincipalRes['principal'] : 0;
+                } else {
+                    $countUstandardPrincipal = $total_balance;
+                }
             } else {
-                $countUstandardPrincipal = $URes['principal'];
+                $countUstandardPrincipal = $URes['principal'] > 0 ? $URes['principal'] : $total_balance;
             }
             if(!$BRes || empty($BRes)) {
-                $countBstandardPrincipal = isset($bPrincipalRes['principal']) ? (float)$bPrincipalRes['principal'] : 0;
+                if(isset($bPrincipalRes['principal']) && $bPrincipalRes['principal'] > 0) {
+                    $countBstandardPrincipal = isset($bPrincipalRes['principal']) ? (float)$bPrincipalRes['principal'] : 0;
+                } else {
+                    $countBstandardPrincipal = (float)$total_balance / $tradingPrice;
+                }
             } else {
-                $countBstandardPrincipal = $BRes['principal'];
+                $countBstandardPrincipal = $BRes['principal'] > 0 ? $BRes['principal'] : (float)$total_balance / $tradingPrice;
             }
         } else {
             //本金
-            $total_balance = self::getInoutGoldTotalBalance(); //出入金总结余
             if ($direction == 1) { //入金
                 $countUstandardPrincipal = (float)$total_balance + (float)$amount;
                 $countBstandardPrincipal = ((float)$total_balance / $tradingPrice) + ((float)$amount / $tradingPrice);

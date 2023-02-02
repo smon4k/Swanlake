@@ -72,15 +72,19 @@ class QuantifyAccount extends Base
                 $yestData = self::getYestTotalPrincipal($account_id); //获取昨天的数据
                 $dayData = self::getDayTotalPrincipal($account_id); //获取今天的数据
                 $countStandardPrincipal = 0; //累计本金
+                $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
                 if (!$amount || $amount == 0) { 
                     if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
-                        $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] : 0;
+                        if(isset($yestData['principal']) && $yestData['principal'] > 0) {
+                            $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] : 0;
+                        } else {
+                            $countStandardPrincipal = $total_balance;
+                        }
                     } else {
-                        $countStandardPrincipal = isset($dayData['principal']) ? $dayData['principal'] : 0;
+                        $countStandardPrincipal = isset($dayData['principal']) ? $dayData['principal'] : $total_balance;
                     }
                 } else {
                     //本金
-                    $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
                     if ($direction == 1) { //入金
                         $countStandardPrincipal = (float)$total_balance + (float)$amount;
                     } else {
