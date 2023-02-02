@@ -218,8 +218,8 @@ class Piggybank extends Base
         $depositToday = self::getInoutGoldDepositToday(); //获取今日入金数量
         $dailyUProfit = $UTotalBalance - $yestUTotalBalance - $depositToday; //U本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
         $dailyBProfit = $BTotalBalance - $yestBTotalBalance - ($depositToday / $btcPrice); //币本位日利润 = 今日的总结余-昨日的总结余-今日入金数量
-        $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance : 0; // 日利润率
-        $dailyBProfitRate = $yestBTotalBalance > 0 ? $dailyBProfit / $yestBTotalBalance : 0;
+        $dailyUProfitRate = $yestUTotalBalance > 0 ? $dailyUProfit / $yestUTotalBalance * 100 : 0; // 日利润率
+        $dailyBProfitRate = $yestBTotalBalance > 0 ? $dailyBProfit / $yestBTotalBalance * 100 : 0;
 
         $pig_name = Okx::gettTradingPairName('Okx');
         $UaverageDayRate = self::name('okx_piggybank_currency_date')->where(['standard' => 1, 'product_name' => $pig_name])->whereNotIn('date', $date)->avg('daily_profit_rate'); //获取U本位平均日利率
