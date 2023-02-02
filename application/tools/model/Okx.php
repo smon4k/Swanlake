@@ -528,6 +528,11 @@ class Okx extends Base
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
             logger("GMX-USDT 平衡仓位 - 挂单 Error \r\n".$error_msg);
+            $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
+            if($orderCancelRes) { //撤单成功
+                echo "报错 撤单成功 \r\n";
+                return true;
+            }
             return false;
         }
     }
