@@ -447,7 +447,7 @@ class BinancePiggybank extends Base
      */
     public static function getInoutGoldDepositToday()
     {
-        $amount = self::name('binance_inout_gold')->whereTime('time', 'today')->where('type', 1)->sum('amount');
+        $amount = self::name('binance_inout_gold')->whereTime('time', 'today')->sum('amount');
         if ($amount !== 0) {
             return $amount;
         }
