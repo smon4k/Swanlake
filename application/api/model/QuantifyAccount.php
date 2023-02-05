@@ -43,7 +43,7 @@ class QuantifyAccount extends Base
                     ->where($where)
                     ->page($page, $limits)
                     ->field('a.*')
-                    ->order("id desc")
+                    ->order("date desc")
                     ->select()
                     ->toArray();
         // p($lists);
