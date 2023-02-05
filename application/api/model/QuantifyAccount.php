@@ -68,7 +68,7 @@ class QuantifyAccount extends Base
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
-                // $balanceList = self::getTradePairBalance();
+                $balanceList = self::getTradePairBalance();
                 $totalBalance = $balanceList['usdtBalance']; //总结余
                 // $totalBalance = 42792.03; //总结余
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
@@ -97,11 +97,12 @@ class QuantifyAccount extends Base
                 $dailyProfit = 0; //昨日利润
                 $dailyProfitRate = 0; //昨日利润率
                 $yestTotalBalance = isset($yestData['total_balance']) ? (float)$yestData['total_balance'] : 0;
-                $depositToday = self::getInoutGoldDepositToday($account_id); //获取今日入金数量
+                $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
+                p($depositToday);
                 $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
                 $dailyProfitRate = $yestTotalBalance > 0 ? $dailyProfit / $yestTotalBalance * 100 : 0; //日利润率 = 日利润 / 昨日的总结余
-                $averageDayCountNum = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->count(); //获取平均数总人数
-                $averageDayRateRes = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->avg('daily_profit_rate'); //获取平均日利率
+                $averageDayCountNum = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<=', $date]])->count(); //获取平均数总人数
+                $averageDayRateRes = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<=', $date]])->avg('daily_profit_rate'); //获取平均日利率
                 if(!$dayData || empty($dayData)) { //今日第一次执行 加上今天的日利润率
                     $averageDayRate = ($averageDayCountNum + 1) * $averageDayRateRes + $dailyProfitRate;
                 } else {
@@ -324,10 +325,12 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-01-31
      */
-    public static function getInoutGoldDepositToday($account_id=0)
+    public static function getInoutGoldDepositToday($account_id=0, $date)
     {
         if($account_id) {
-            $amount = self::name('quantify_inout_gold')->whereTime('time', 'today')->sum('amount');
+            $start_time = $date . "00:00:00";
+            $end_time = $date . "23:59:59";
+            $amount = self::name('quantify_inout_gold')->whereTime('time', 'between', [$start_time, $end_time])->sum('amount');
             if ($amount !== 0) {
                 return $amount;
             }
