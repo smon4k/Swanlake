@@ -65,12 +65,14 @@ class QuantifyAccount extends Base
             try {
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
+                // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
-                $balanceList = self::getTradePairBalance();
+                // $balanceList = self::getTradePairBalance();
                 $totalBalance = $balanceList['usdtBalance']; //总结余
-                $yestData = self::getYestTotalPrincipal($account_id); //获取昨天的数据
-                $dayData = self::getDayTotalPrincipal($account_id); //获取今天的数据
+                // $totalBalance = 42792.03; //总结余
+                $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
+                $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $countStandardPrincipal = 0; //累计本金
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
                 if (!$amount || $amount == 0) { 
@@ -259,11 +261,16 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function getYestTotalPrincipal($account_id=0)
+    public static function getYestTotalPrincipal($account_id=0, $date='')
     {
         if($account_id) {
-            $dayDate = date("Y-m-d");
-            $date = date("Y-m-d", strtotime("-1 day")); //获取昨天的时间
+            if($date && $date !== '') {
+                $dayDate = $date;
+                $date = date("Y-m-d", strtotime("-1 day", strtotime($date))); //获取昨天的时间
+            } else {
+                $dayDate = date("Y-m-d");
+                $date = date("Y-m-d", strtotime("-1 day")); //获取昨天的时间
+            }
             $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->find();
             if ($res && count((array)$res) > 0) {
                 return $res;
@@ -280,10 +287,14 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function getDayTotalPrincipal($account_id=0)
+    public static function getDayTotalPrincipal($account_id=0, $dates='')
     {
         if($account_id) {
-            $date = date("Y-m-d"); //获取昨天的时间
+            if($dates && $dates !== '') {
+                $date = $dates;
+            } else {
+                $date = date("Y-m-d"); //获取昨天的时间
+            }
             $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->find();
             if ($res && count((array)$res) > 0) {
                 return $res;
