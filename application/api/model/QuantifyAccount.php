@@ -98,13 +98,14 @@ class QuantifyAccount extends Base
                 $dailyProfitRate = 0; //昨日利润率
                 $yestTotalBalance = isset($yestData['total_balance']) ? (float)$yestData['total_balance'] : 0;
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
-                p($depositToday);
+                // p($depositToday);
                 $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
-                $dailyProfitRate = $yestTotalBalance > 0 ? $dailyProfit / $yestTotalBalance * 100 : 0; //日利润率 = 日利润 / 昨日的总结余
+                // $dailyProfitRate = $yestTotalBalance > 0 ? $dailyProfit / $yestTotalBalance * 100 : 0; //日利润率 = 日利润 / 昨日的总结余
+                $dailyProfitRate = $countStandardPrincipal > 0 ? $dailyProfit / $countStandardPrincipal * 100 : 0; //日利润率 = 日利润 / 本金
                 $averageDayCountNum = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<=', $date]])->count(); //获取平均数总人数
                 $averageDayRateRes = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<=', $date]])->avg('daily_profit_rate'); //获取平均日利率
                 if(!$dayData || empty($dayData)) { //今日第一次执行 加上今天的日利润率
-                    $averageDayRate = ($averageDayCountNum + 1) * $averageDayRateRes + $dailyProfitRate;
+                    $averageDayRate = ($averageDayRateRes * $averageDayCountNum + $dailyProfitRate) / (1 + $averageDayCountNum);
                 } else {
                     $averageDayRate = $averageDayRateRes;
                 }
@@ -117,9 +118,9 @@ class QuantifyAccount extends Base
                         'principal' => $countStandardPrincipal,
                         'total_balance' => $totalBalance,
                         'daily_profit' => $dailyProfit,
-                        'daily_profit_rate' => $dailyProfitRate,
-                        'average_day_rate' => $averageDayRate,
-                        'average_year_rate' => $averageYearRate,
+                        'daily_profit_rate' => $dailyProfitRate, //日利润率
+                        'average_day_rate' => $averageDayRate, //平均日利率
+                        'average_year_rate' => $averageYearRate, //平均年利率
                         'profit' => $profit,
                         'profit_rate' => $profitRate,
                         'price' => $tradingPrice,
@@ -133,9 +134,9 @@ class QuantifyAccount extends Base
                         'principal' => $countStandardPrincipal,
                         'total_balance' => $totalBalance,
                         'daily_profit' => $dailyProfit,
-                        'daily_profit_rate' => $dailyProfitRate,
-                        'average_day_rate' => $averageDayRate,
-                        'average_year_rate' => $averageYearRate,
+                        'daily_profit_rate' => $dailyProfitRate, //日利润率
+                        'average_day_rate' => $averageDayRate, //平均日利率
+                        'average_year_rate' => $averageYearRate, //平均年利率
                         'profit' => $profit,
                         'profit_rate' => $profitRate,
                         'price' => $tradingPrice,
