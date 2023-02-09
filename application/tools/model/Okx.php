@@ -567,14 +567,22 @@ class Okx extends Base
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
             $getLastRes = self::getLastRes(); //获取上次成交价格
+            $tradingPrice = $tradeValuation['tradingPrice']; //现价
             // p($getLastRes);
             // $price = (float)$getLastRes['price'];
-            $price = (float)$getLastRes['price'];
+            $buyLastPrice = (float)$getLastRes['price']; //上次成交价格
+            $sellLastPrice = (float)$getLastRes['price']; //上次成交价格
+            if($buyLastPrice > $tradingPrice) { //上次成交价格如果大于现价 那就用现价
+                $buyLastPrice = $tradingPrice;
+            }
+            if($sellLastPrice < $tradingPrice) { //上次成交价格如果小于现价 那就用现价
+                $sellLastPrice = $tradingPrice;
+            }
             $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
             $buyPropr = ($changeRatioNum / $changeRatioNum) - ($changeRatioNum / 100); //购买比例
             // echo $buyPropr;die;
-            $sellingPrice = $price * $sellPropr; //出售价格
-            $buyingPrice = $price * $buyPropr; //购买价格
+            $sellingPrice = $sellLastPrice * $sellPropr; //出售价格
+            $buyingPrice = $buyLastPrice * $buyPropr; //购买价格
             $btcBalance = $tradeValuation['btcBalance']; //GMX余额
             $usdtBalance = $tradeValuation['usdtBalance']; //BUSD余额
             $btcValuation = $tradeValuation['btcValuation'];
