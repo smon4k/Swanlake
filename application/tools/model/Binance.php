@@ -32,7 +32,7 @@ class Binance extends Base
      * @author qinlh
      * @since 2022-06-29
      */
-    public static function balancePositionOrder() {
+    public static function balancePositionOrder($isPending=false) {
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
         $transactionCurrency = "BIFI-BUSD"; //交易币种
@@ -242,7 +242,11 @@ class Binance extends Base
                 }
             } else {
                 echo "涨跌幅度小于".$changeRatioNum."% 停止下单\r\n";
-                return true;
+                if($isPending) {
+                    return false;
+                } else {
+                    return true;
+                }
             }
             return false;
         } catch (\Exception $e) {
@@ -301,7 +305,7 @@ class Binance extends Base
                     $orderCancelRes = self::fetchCancelOpenOrder($order_symbol);
                     if($orderCancelRes) { //撤单成功 开始吃单
                         echo "撤单成功 开始吃单 \r\n";
-                        $toEatMeal = self::balancePositionOrder();
+                        $toEatMeal = self::balancePositionOrder(1);
                         if($toEatMeal) { //如果吃单成功 重新挂单
                             Db::commit();
                             Db::startTrans();
@@ -312,6 +316,8 @@ class Binance extends Base
                                 Db::commit();
                                 return true;
                             }
+                        } else {
+                            return true;
                         }
                     }
                 }
@@ -716,7 +722,7 @@ class Binance extends Base
             
             if((float)$buyOrdersNumber < 0 || (float)$sellOrdersNumber < 0) {
                 echo "购买出售出现负数，开始吃单 \r\n";
-                $toEatMeal = self::balancePositionOrder();
+                $toEatMeal = self::balancePositionOrder(1);
                 if($toEatMeal) { //如果吃单成功 重新挂单
                     Db::commit();
                     Db::startTrans();
