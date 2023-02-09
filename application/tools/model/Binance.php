@@ -23,8 +23,8 @@ use app\admin\model\BinanceConfig;
 class Binance extends Base
 {
 
-    public static $apiKey = 'e4ddCJS2dng12vuYOCl9X37PLXn59YMPvaZCOSvx9Ci8oHjXva9hIKXXKVlwqxc4';
-    public static $secret = 'ab663zxlTlldmqxMPL6Xv5Ws5hwBDFfVburcp4Z8BZ2lu11TOXDNDJcRUDawqApb';
+    public static $apiKey = 'xMPrGnl0shwpxVGAqzhpy3UQEWcUNl7eSMcnws0r7FPX0nYaRRxYsZQMgqaqc3Aa';
+    public static $secret = 'vTatOBTdm1jL9OGeI9YC7jOviD89nilUja2d8bMRkYF2p52DWzN0tT5RtXL6ZvsU';
     public static $password = 'Zx112211@';
 
     /**
