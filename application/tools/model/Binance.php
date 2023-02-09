@@ -688,6 +688,7 @@ class Binance extends Base
             $balanceRatio = '1:1'; //平衡比例
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
+            $tradingPrice = $tradeValuation['tradingPrice']; //现价
             $getLastRes = self::getLastRes(); //获取上次成交价格
             // $price = (float)$getLastRes['price'];
             $buyLastPrice = (float)$getLastRes['price']; //上次成交价格
@@ -706,7 +707,6 @@ class Binance extends Base
             $bifiBalance = $tradeValuation['bifiBalance']; //BIFI余额
             $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
             $bifiValuation = $tradeValuation['bifiValuation'];
-            $tradingPrice = $tradeValuation['tradingPrice']; //现价
             $bifiSellValuation = $sellingPrice * $bifiBalance; //BIFI 出售估值
             $bifiBuyValuation = $buyingPrice * $bifiBalance; //BIFI 购买估值
             $busdValuation = $tradeValuation['busdValuation'];
