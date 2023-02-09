@@ -690,22 +690,23 @@ class Binance extends Base
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
             $getLastRes = self::getLastRes(); //获取上次成交价格
             // $price = (float)$getLastRes['price'];
-            $price = (float)$getLastRes['price'];
+            $buyLastPrice = (float)$getLastRes['price']; //上次成交价格
+            $sellLastPrice = (float)$getLastRes['price']; //上次成交价格
+            if($buyLastPrice < $tradingPrice) { //上次成交价格如果大于现价 那就用现价
+                $buyLastPrice = $tradingPrice;
+            }
+            if($sellLastPrice > $tradingPrice) { //上次成交价格如果小于现价 那就用现价
+                $sellLastPrice = $tradingPrice;
+            }
             $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
             $buyPropr = ($changeRatioNum / $changeRatioNum) - ($changeRatioNum / 100); //购买比例
             // echo $buyPropr;die;
-            $sellingPrice = $price * $sellPropr; //出售价格
-            $buyingPrice = $price * $buyPropr; //购买价格
+            $sellingPrice = $sellLastPrice * $sellPropr; //出售价格
+            $buyingPrice = $buyLastPrice * $buyPropr; //购买价格
             $bifiBalance = $tradeValuation['bifiBalance']; //BIFI余额
             $busdBalance = $tradeValuation['busdBalance']; //BUSD余额
             $bifiValuation = $tradeValuation['bifiValuation'];
             $tradingPrice = $tradeValuation['tradingPrice']; //现价
-            if($sellingPrice < $tradingPrice) { //挂买价格如果大于现价 那就用现价
-                $sellingPrice = $tradingPrice;
-            }
-            if($buyingPrice > $tradingPrice) { //挂卖价格如果小于现价 那就用现价
-                $buyingPrice = $tradingPrice;
-            }
             $bifiSellValuation = $sellingPrice * $bifiBalance; //BIFI 出售估值
             $bifiBuyValuation = $buyingPrice * $bifiBalance; //BIFI 购买估值
             $busdValuation = $tradeValuation['busdValuation'];
