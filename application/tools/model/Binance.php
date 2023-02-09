@@ -693,10 +693,10 @@ class Binance extends Base
             // $price = (float)$getLastRes['price'];
             $buyLastPrice = (float)$getLastRes['price']; //上次成交价格
             $sellLastPrice = (float)$getLastRes['price']; //上次成交价格
-            if($buyLastPrice < $tradingPrice) { //上次成交价格如果大于现价 那就用现价
+            if($buyLastPrice > $tradingPrice) { //上次成交价格如果大于现价 那就用现价
                 $buyLastPrice = $tradingPrice;
             }
-            if($sellLastPrice > $tradingPrice) { //上次成交价格如果小于现价 那就用现价
+            if($sellLastPrice < $tradingPrice) { //上次成交价格如果小于现价 那就用现价
                 $sellLastPrice = $tradingPrice;
             }
             $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
