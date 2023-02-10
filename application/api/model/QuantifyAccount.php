@@ -69,7 +69,7 @@ class QuantifyAccount extends Base
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
                 $balanceList = self::getTradePairBalance();
-                $totalBalance = $balanceList['usdtBalance']; //总结余
+                $totalBalance = $balanceList['usdtBalance'] + 1200; //总结余
                 // $totalBalance = 42792.03; //总结余
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
