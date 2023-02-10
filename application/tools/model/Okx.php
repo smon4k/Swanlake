@@ -567,7 +567,7 @@ class Okx extends Base
             $balanceRatioArr = explode(':', $balanceRatio);
             $tradeValuation = self::getTradeValuation($transactionCurrency); //获取交易估值及价格
             $getLastRes = self::getLastRes(); //获取上次成交价格
-            $tradingPrice = $tradeValuation['tradingPrice']; //现价
+            $tradingPrice = $tradeValuation['btcPrice']; //现价
             // p($getLastRes);
             // $price = (float)$getLastRes['price'];
             $buyLastPrice = (float)$getLastRes['price']; //上次成交价格
