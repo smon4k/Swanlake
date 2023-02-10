@@ -101,7 +101,8 @@ class QuantifyAccount extends Base
                 // p($depositToday);
                 $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
                 if($dailyProfit < -801) {
-                    $dailyProfit = ($totalBalance + 700) - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
+                    $totalBalance = $totalBalance + 700;
+                    $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
                 }
                 // $dailyProfitRate = $yestTotalBalance > 0 ? $dailyProfit / $yestTotalBalance * 100 : 0; //日利润率 = 日利润 / 昨日的总结余
                 $dailyProfitRate = $countStandardPrincipal > 0 ? $dailyProfit / $countStandardPrincipal * 100 : 0; //日利润率 = 日利润 / 本金
