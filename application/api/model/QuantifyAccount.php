@@ -68,7 +68,7 @@ class QuantifyAccount extends Base
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
-                $balanceList = self::getTradePairBalance();
+                $balanceList = self::getTradePairBalance($accountInfo);
                 if($account_id == 1) {
                     $totalBalance = $balanceList['usdtBalance'] + 1200; //总结余
                 } else {
@@ -185,7 +185,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2022-08-19
      */
-    public static function getTradePairBalance() {
+    public static function getTradePairBalance($accountInfo) {
         // $assetArr = explode('-', $transactionCurrency);
         // $cache_params = ['class' => __CLASS__,'key' => md5(json_encode(func_get_args())),'func' => __FUNCTION__];
         // $dataJson = self::getCache($cache_params);
@@ -193,48 +193,50 @@ class QuantifyAccount extends Base
         // if($data && count((array)$data) > 0) {
         //     return $data;
         // }
-        $vendor_name = "ccxt.ccxt";
-        Vendor($vendor_name);
-        $className = "\ccxt\\binance";
-        $exchange  = new $className(array( //子账户
-            'apiKey' => self::$apiKey,
-            'secret' => self::$secret,
-        ));
-        try {
-            $balanceDetails = $exchange->fetch_balance([]);
-            // p($balanceDetails);
-            $usdtBalance = 0;
-            if(isset($balanceDetails['info']['balances'])) {
-                foreach ($balanceDetails['info']['balances'] as $k => $v) {
-                    if(isset($v['asset'])) {
-                        if($v['asset'] == 'USDT') {
-                            if((float)$v['free'] > 0) {
-                                $usdtBalance += (float)$v['free'];
+        if($accountInfo) {
+            $vendor_name = "ccxt.ccxt";
+            Vendor($vendor_name);
+            $className = "\ccxt\\binance";
+            $exchange  = new $className(array( //子账户
+                'apiKey' => $accountInfo['api_key'],
+                'secret' => $accountInfo['secret_key'],
+            ));
+            try {
+                $balanceDetails = $exchange->fetch_balance([]);
+                // p($balanceDetails);
+                $usdtBalance = 0;
+                if(isset($balanceDetails['info']['balances'])) {
+                    foreach ($balanceDetails['info']['balances'] as $k => $v) {
+                        if(isset($v['asset'])) {
+                            if($v['asset'] == 'USDT') {
+                                if((float)$v['free'] > 0) {
+                                    $usdtBalance += (float)$v['free'];
+                                }
                             }
-                        }
-                        if($v['asset'] == 'BIFI' || $v['asset'] == 'GMX') {
-                            if((float)$v['free'] > 0) {
-                                $prices = $exchange->fetch_ticker_price($v['asset'] . 'USDT');
-                                $usdtBalance += (float)$v['free'] * (float)$prices['price'];
+                            if($v['asset'] == 'BIFI' || $v['asset'] == 'GMX') {
+                                if((float)$v['free'] > 0) {
+                                    $prices = $exchange->fetch_ticker_price($v['asset'] . 'USDT');
+                                    $usdtBalance += (float)$v['free'] * (float)$prices['price'];
+                                }
                             }
                         }
                     }
                 }
+                //  p($usdtBalance);
+                $returnArray = ['usdtBalance' => $usdtBalance];
+                // $dataJson = json_encode($returnArray);
+                // self::setCache($cache_params, $dataJson);
+                return $returnArray;
+            } catch (\Exception $e) {
+                $error_msg = json_encode([
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                ], JSON_UNESCAPED_UNICODE);
+                echo $error_msg . "\r\n";
+                return false;
             }
-            //  p($usdtBalance);
-            $returnArray = ['usdtBalance' => $usdtBalance];
-            // $dataJson = json_encode($returnArray);
-            // self::setCache($cache_params, $dataJson);
-            return $returnArray;
-        } catch (\Exception $e) {
-            $error_msg = json_encode([
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'code' => $e->getCode(),
-            ], JSON_UNESCAPED_UNICODE);
-            echo $error_msg . "\r\n";
-            return false;
         }
     }
 
