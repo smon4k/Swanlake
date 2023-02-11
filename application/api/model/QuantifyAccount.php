@@ -70,7 +70,7 @@ class QuantifyAccount extends Base
                 $tradingPrice = 1;
                 $balanceList = self::getTradePairBalance($accountInfo);
                 if($account_id == 1) {
-                    $totalBalance = $balanceList['usdtBalance'] + 1200; //总结余
+                    $totalBalance = $balanceList['usdtBalance'] + 900; //总结余
                 } else {
                     $totalBalance = $balanceList['usdtBalance']; //总结余
                 }
