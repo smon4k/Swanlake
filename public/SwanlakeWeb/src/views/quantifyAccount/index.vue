@@ -16,9 +16,9 @@
                             <span>{{ keepDecimalNotRounding(scope.row.principal, 2, true) }} USDT</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="总结余" align="center">
+                        <el-table-column prop="" label="总结余(USDT)" align="center">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }} USDT</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <!-- <el-table-column prop="" label="币价" align="center">
