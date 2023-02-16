@@ -41,7 +41,7 @@
                             <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="平均年利率" align="center" width="100">
+                        <el-table-column prop="" label="平均年利率" align="center" width="130">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 2, true) }}%</span>
                             </template>
