@@ -168,8 +168,8 @@
             title="账户余额明细"
             :visible.sync="accountBalanceDetailsShow"
             width="50%">
-            <el-table :data="InoutGoldList" style="width: 100%;" height="500">
-                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+            <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="300">
+                <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                 <el-table-column prop="currency" label="币种" align="center" width=""></el-table-column>
                 <el-table-column prop="" label="余额" align="center" width="">
                     <template slot-scope="scope">
@@ -222,6 +222,7 @@ export default {
             InoutGoldPageSize: 20, //每页显示条数
             InoutGoldTotal: 1, //总条数
             accountBalanceDetailsShow: false,
+            accountBalanceDetailsList: [],
         }
     },
     computed: {
@@ -301,6 +302,15 @@ export default {
         },
         accountBalanceDetailsFun(account_id) {
             console.log(account_id);
+            get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDetails", {
+                account_id: account_id
+            }, json => {
+                console.log(json.data);
+                if (json.code == 10000) {
+                    this.accountBalanceDetailsList = json.data;
+                }
+            })
+            this.accountBalanceDetailsShow = true;
         },
         limitPaging(limit) {
             //赋值当前条数
