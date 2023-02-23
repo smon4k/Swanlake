@@ -212,13 +212,14 @@ class QuantifyAccount extends Base
                                 if((float)$v['free'] > 0) {
                                     $usdtBalance += (float)$v['free'];
                                 }
-                                @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free']);
+                                @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], (float)$v['free']);
                             }
                             if($v['asset'] == 'BIFI' || $v['asset'] == 'GMX') {
                                 if((float)$v['free'] > 0) {
                                     $prices = $exchange->fetch_ticker_price($v['asset'] . 'USDT');
-                                    $usdtBalance += (float)$v['free'] * (float)$prices['price'];
-                                    @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free']);
+                                    $valuation = (float)$v['free'] * (float)$prices['price'];
+                                    $usdtBalance += $valuation;
+                                    @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], $valuation);
                                 }
                             }
                         }
@@ -247,13 +248,14 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-02-23
      */
-    public static function updateQuantifyAccountDetails($account_id=0, $currency='', $balance=0) {
+    public static function updateQuantifyAccountDetails($account_id=0, $currency='', $balance=0, $valuation=0) {
         if($account_id && $currency) {
             $date = date('Y-m-d');
             $res = self::name('quantify_account_details')->where(['account_id' => $account_id, 'currency' => $currency])->find();
             if($res && count((array)$res) > 0) {
                 $saveRes = self::name('quantify_account_details')->where('id', $res['id'])->update([
                     'balance' => $balance,
+                    'valuation' => $valuation,
                     'time' => date('Y-m-d H:i:s')
                 ]);
                 if($saveRes) {
@@ -264,6 +266,7 @@ class QuantifyAccount extends Base
                     'account_id' => $account_id,
                     'currency' => $currency,
                     'balance' => $balance,
+                    'valuation' => $valuation,
                     'time' => date('Y-m-d H:i:s'),
                     'state' => 1,
                 ]);
