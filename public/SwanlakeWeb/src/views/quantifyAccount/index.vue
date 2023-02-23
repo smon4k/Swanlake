@@ -171,17 +171,17 @@
             <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="300">
                 <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                 <el-table-column prop="currency" label="币种" align="center" width=""></el-table-column>
-                <el-table-column prop="" label="余额" align="center" width="">
+                <el-table-column prop="" label="余额" align="center" width="150">
                     <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.balance, 10, true) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="USDT估值" align="center" width="">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.valuation, 10, true) }}</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.valuation, 2, true) }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="time" label="更新时间" align="center" width=""></el-table-column>
+                <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
             </el-table>
         </el-dialog>
     </div>
