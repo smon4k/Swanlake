@@ -212,11 +212,13 @@ class QuantifyAccount extends Base
                                 if((float)$v['free'] > 0) {
                                     $usdtBalance += (float)$v['free'];
                                 }
+                                @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free']);
                             }
                             if($v['asset'] == 'BIFI' || $v['asset'] == 'GMX') {
                                 if((float)$v['free'] > 0) {
                                     $prices = $exchange->fetch_ticker_price($v['asset'] . 'USDT');
                                     $usdtBalance += (float)$v['free'] * (float)$prices['price'];
+                                    @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free']);
                                 }
                             }
                         }
@@ -238,6 +240,38 @@ class QuantifyAccount extends Base
                 return false;
             }
         }
+    }
+
+    /**
+     * 更新账户币种余额明细
+     * @author qinlh
+     * @since 2023-02-23
+     */
+    public static function updateQuantifyAccountDetails($account_id=0, $currency='', $balance=0) {
+        if($account_id && $currency) {
+            $res = self::name('quantify_account_details')->where(['account_id' => $account_id, 'currency' => $currency])->find();
+            if($res && count((array)$res) > 0) {
+                $saveRes = self::name('quantify_account_details')->where('id', $res['id'])->update([
+                    'balance' => $balance,
+                    'time' => date('Y-m-d H:i:s')
+                ]);
+                if($saveRes) {
+                    return true;
+                }
+            } else {
+                $saveRes = self::name('quantify_account_details')->insertGetId([
+                    'account_id' => $account_id,
+                    'currency' => $currency,
+                    'balance' => $balance,
+                    'time' => date('Y-m-d H:i:s'),
+                    'state' => 1,
+                ]);
+                if($saveRes) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
