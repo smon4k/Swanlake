@@ -249,7 +249,8 @@ class QuantifyAccount extends Base
      */
     public static function updateQuantifyAccountDetails($account_id=0, $currency='', $balance=0) {
         if($account_id && $currency) {
-            $res = self::name('quantify_account_details')->where(['account_id' => $account_id, 'currency' => $currency])->find();
+            $date = date('Y-m-d');
+            $res = self::name('quantify_account_details')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
             if($res && count((array)$res) > 0) {
                 $saveRes = self::name('quantify_account_details')->where('id', $res['id'])->update([
                     'balance' => $balance,
@@ -263,6 +264,7 @@ class QuantifyAccount extends Base
                     'account_id' => $account_id,
                     'currency' => $currency,
                     'balance' => $balance,
+                    'date' => $date,
                     'time' => date('Y-m-d H:i:s'),
                     'state' => 1,
                 ]);
@@ -442,5 +444,20 @@ class QuantifyAccount extends Base
                     ->toArray();
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
+
+    /**
+     * 获取账户币种余额
+     * @author qinlh
+     * @since 2023-02-23
+     */
+    public static function getQuantifyAccountDetails($account_id=0) {
+        if($account_id) {
+            $data = self::name('quantify_account_details')->where('account_id', $account_id)->select();
+            if($data && count((array)$$data) > 0) {
+                return $data->toArray();
+            }
+        }
+        return [];
     }
 }

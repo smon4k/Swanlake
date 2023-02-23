@@ -18,7 +18,9 @@
                         </el-table-column>
                         <el-table-column prop="" label="总结余(USDT)" align="center">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
+                            <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)">
+                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
+                            </el-link>
                             </template>
                         </el-table-column>
                         <!-- <el-table-column prop="" label="币价" align="center">
@@ -160,6 +162,23 @@
                 </el-col>
             </el-row>
         </el-dialog>
+
+        <!-- 账户余额明细数据 -->
+        <el-dialog
+            title="账户余额明细"
+            :visible.sync="accountBalanceDetailsShow"
+            width="50%">
+            <el-table :data="InoutGoldList" style="width: 100%;" height="500">
+                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                <el-table-column prop="currency" label="币种" align="center" width=""></el-table-column>
+                <el-table-column prop="" label="余额" align="center" width="">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.balance, 10, true) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="time" label="更新时间" align="center" width=""></el-table-column>
+            </el-table>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -202,6 +221,7 @@ export default {
             InoutGoldCurrPage: 1, //当前页
             InoutGoldPageSize: 20, //每页显示条数
             InoutGoldTotal: 1, //总条数
+            accountBalanceDetailsShow: false,
         }
     },
     computed: {
@@ -278,6 +298,9 @@ export default {
                     this.accountList = json.data;
                 }
             })
+        },
+        accountBalanceDetailsFun(account_id) {
+            console.log(account_id);
         },
         limitPaging(limit) {
             //赋值当前条数
