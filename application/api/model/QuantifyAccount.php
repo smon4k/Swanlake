@@ -214,7 +214,7 @@ class QuantifyAccount extends Base
                                 }
                                 @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], (float)$v['free']);
                             }
-                            if($v['asset'] == 'BIFI' || $v['asset'] == 'GMX') {
+                            if($v['asset'] == 'BIFI' || $v['asset'] == 'GMX' || $v['asset'] == 'BTC') {
                                 if((float)$v['free'] > 0) {
                                     $prices = $exchange->fetch_ticker_price($v['asset'] . 'USDT');
                                     $valuation = (float)$v['free'] * (float)$prices['price'];
