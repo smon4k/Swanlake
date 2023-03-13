@@ -460,7 +460,7 @@ class QuantifyAccount extends Base
                 $resultArray = [];
                 foreach($data as $key => $val) {
                     if($val['balance'] > 0) {
-                        $resultArray = $val;
+                        $resultArray[$key] = $val;
                     }
                 }
                 return $resultArray;
