@@ -457,7 +457,13 @@ class QuantifyAccount extends Base
         if($account_id) {
             $data = self::name('quantify_account_details')->where('account_id', $account_id)->select();
             if($data && count((array)$data) > 0) {
-                return $data->toArray();
+                $resultArray = [];
+                foreach($data as $key => $val) {
+                    if($val['balance'] > 0) {
+                        $resultArray = $val;
+                    }
+                }
+                return $resultArray;
             }
         }
         return [];
