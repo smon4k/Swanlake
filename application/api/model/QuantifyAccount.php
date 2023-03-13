@@ -209,13 +209,13 @@ class QuantifyAccount extends Base
                     foreach ($balanceDetails['info']['balances'] as $k => $v) {
                         if(isset($v['asset'])) {
                             if($v['asset'] == 'USDT') {
-                                if((float)$v['free'] > 0) {
+                                if((float)$v['free'] >= 0) {
                                     $usdtBalance += (float)$v['free'];
                                 }
                                 @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], (float)$v['free']);
                             }
                             if($v['asset'] == 'BIFI' || $v['asset'] == 'GMX' || $v['asset'] == 'BTC') {
-                                if((float)$v['free'] > 0) {
+                                if((float)$v['free'] >= 0) {
                                     $prices = $exchange->fetch_ticker_price($v['asset'] . 'USDT');
                                     $valuation = (float)$v['free'] * (float)$prices['price'];
                                     $usdtBalance += $valuation;
