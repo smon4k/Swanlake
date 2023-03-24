@@ -68,7 +68,11 @@ class QuantifyAccount extends Base
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
-                $balanceList = self::getTradePairBalance($accountInfo);
+                if($accountInfo['type'] == 1) { //Binance
+                    $balanceList = self::getTradePairBalance($accountInfo);
+                } else { //OKX
+                    $balanceList = self::getOkxTradePairBalance($accountInfo);
+                }
                 if($account_id == 1) {
                     $totalBalance = $balanceList['usdtBalance'] + 900; //总结余
                 } else {
@@ -181,7 +185,7 @@ class QuantifyAccount extends Base
     }
 
      /**
-     * 获取余额
+     * 获取Binance余额
      * @author qinlh
      * @since 2022-08-19
      */
@@ -240,6 +244,51 @@ class QuantifyAccount extends Base
                 echo $error_msg . "\r\n";
                 return false;
             }
+        }
+    }
+
+    /**
+     * 获取Okx交易对余额
+     * @author qinlh
+     * @since 2022-08-19
+     */
+    public static function getOkxTradePairBalance($accountInfo) {
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\okex5";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => $accountInfo['api_key'],
+            'secret' => $accountInfo['secret_key'],
+            'password' => $accountInfo['pass_phrase'],
+        ));
+        try {
+            $balanceDetails = $exchange->fetch_account_balance();
+            // p($balance);
+            $btcBalance = 0;
+            $usdtBalance = 0;
+            foreach ($balanceDetails['details'] as $k => $v) {
+                if(isset($v['eq'])) {
+                    if($v['ccy'] == 'USDT') {
+                        if((float)$v['eq'] >= 0) {
+                            $usdtBalance += (float)$v['eq'];
+                        }
+                        @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eq']);
+                    }
+                    if($v['ccy'] == 'BIFI') {
+                        if((float)$v['eq'] >= 0) {
+                            $price = $exchange->fetch_ticker($v['ccy'].'USDT'); //获取交易BTC价格
+                            $valuation = (float)$v['eq'] * (float)$prices['price'];
+                            $usdtBalance += $valuation;
+                            @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], $valuation);
+                        }
+                    }
+                }
+            }
+            $returnArray = ['usdtBalance' => $usdtBalance];
+            return $returnArray;
+        } catch (\Exception $e) {
+            logger("获取交易对余额 Error \r\n".$e);
+            return array(0, $e->getMessage());
         }
     }
 
