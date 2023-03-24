@@ -418,10 +418,13 @@ export default {
         /deep/ {
             .el-breadcrumb {
                 height: 25px;
-                font-size: 16px;
+                font-size: 10px;
             }
             .el-table {
-                font-size: 16px;
+                font-size: 10px;
+            }
+            .el-tabs__item {
+                font-size: 10px;
             }
             .el-descriptions {
                 margin-bottom: 20px;

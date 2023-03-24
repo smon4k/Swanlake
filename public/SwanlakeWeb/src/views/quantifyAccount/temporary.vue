@@ -178,7 +178,7 @@
                 </el-table-column>
                 <el-table-column prop="" label="USDT估值" align="center" width="">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.valuation, 2, true) }}</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.valuation, 4, true) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
@@ -423,10 +423,13 @@ export default {
         /deep/ {
             .el-breadcrumb {
                 height: 25px;
-                font-size: 16px;
+                font-size: 10px;
             }
             .el-table {
-                font-size: 16px;
+                font-size: 10px;
+            }
+            .el-tabs__item {
+                font-size: 10px;
             }
             .el-descriptions {
                 margin-bottom: 20px;
