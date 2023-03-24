@@ -267,19 +267,13 @@ class QuantifyAccount extends Base
             $btcBalance = 0;
             $usdtBalance = 0;
             foreach ($balanceDetails['details'] as $k => $v) {
-                if(isset($v['eq'])) {
-                    if($v['ccy'] == 'USDT') {
+                if(isset($v['ccy'])) {
+                    if($v['ccy'] == 'USDT' || $v['ccy'] == 'BIFI' || $v['ccy'] == 'GMX' || $v['ccy'] == 'BTC' || $v['ccy'] == 'ETH' || $v['ccy'] == 'SAND') {
                         if((float)$v['eq'] >= 0) {
-                            $usdtBalance += (float)$v['eq'];
-                        }
-                        @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eq']);
-                    }
-                    if($v['ccy'] == 'BIFI') {
-                        if((float)$v['eq'] >= 0) {
-                            $price = $exchange->fetch_ticker($v['ccy'].'USDT'); //获取交易BTC价格
-                            $valuation = (float)$v['eq'] * (float)$prices['price'];
-                            $usdtBalance += $valuation;
-                            @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], $valuation);
+                            // $prices = $exchange->fetch_ticker($v['ccy'].'USDT'); //获取交易BTC价格
+                            // $valuation = (float)$v['eq'] * (float)$prices['price'];
+                            $usdtBalance += (float)$v['eqUsd'];
+                            @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eqUsd']);
                         }
                     }
                 }

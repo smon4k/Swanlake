@@ -178,7 +178,7 @@
                 </el-table-column>
                 <el-table-column prop="" label="USDT估值" align="center" width="">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.valuation, 2, true) }}</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.valuation, 4, true) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
