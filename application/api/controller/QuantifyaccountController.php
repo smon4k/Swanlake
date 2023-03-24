@@ -105,7 +105,13 @@ class QuantifyaccountController extends BaseController
      * @since 2023-01-31
      */
     public function getAccountList(Request $request) {
-        $result = QuantifyAccount::getAccountList();
+        $external = $request->request('external', 0, 'intval');
+        $where = [];
+        $where['state'] = 1;
+        if($external) {
+            $where['external'] = 1;
+        }
+        $result = QuantifyAccount::getAccountList($where);
         return $this->as_json($result);
     }
 

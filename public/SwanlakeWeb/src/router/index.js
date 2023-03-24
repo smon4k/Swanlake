@@ -154,6 +154,12 @@ export const constantRoutes = [
           component: () => import('@/views/quantifyAccount/index'),
           meta: { title: 'quantifyAccount', keepAlive: false }
         },
+        {
+          path: 'quantify/temporary',
+          name: 'quantifyTemporary',
+          component: () => import('@/views/quantifyAccount/temporary'),
+          meta: { title: 'quantifyTemporary', keepAlive: false }
+        },
       ]
     },
 ]

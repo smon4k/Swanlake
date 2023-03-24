@@ -298,8 +298,8 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-01-31
      */
-    public static function getAccountList() {
-        $data = self::name('quantify_account')->where('state', 1)->select();
+    public static function getAccountList($where=[]) {
+        $data = self::name('quantify_account')->where($where)->select();
         if($data && count((array)$data) > 0) {
             return $data->toArray();
         }
