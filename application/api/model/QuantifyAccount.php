@@ -531,6 +531,7 @@ class QuantifyAccount extends Base
     public static function setAccountTradeDetails($account_id=0, $currency='', $list=[], $maxTradeId=0) {
         if($account_id && $currency && count((array)$list) > 0) {
             $insertDataAll = [];
+            $infoArr = [];
             foreach ($list as $key => $val) {
                 if($maxTradeId > 0 && $key == 0) {
                     continue;
@@ -563,7 +564,7 @@ class QuantifyAccount extends Base
      */
     public static function getAccountTradeDetailsMaxTradeId($account_id=0, $currency='') {
         if($account_id && $currency !== '') {
-            $sql = 'SELECT MAX(trade_id) AS max_trade_id FROM s_quantify_account_trade_details';
+            $sql = "SELECT MAX(trade_id) AS max_trade_id FROM s_quantify_account_trade_details WHERE account_id = '$account_id' AND currency = '$currency'";
             $res = self::query($sql);
             if($res && count((array)$res) > 0) {
                 return $res[0]['max_trade_id'];
