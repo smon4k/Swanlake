@@ -226,13 +226,13 @@ class QuantifyAccount extends Base
                                     @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], $valuation);
 
                                     //开始写入每个交易对交易明细数据
-                                    $maxTradeId = self::getAccountTradeDetailsMaxTradeId($accountInfo['id'], $v['asset'].'USDT');
+                                    $maxTradeId = self::getBinanceAccountTradeDetailsMaxTradeId($accountInfo['id'], $v['asset'].'USDT');
                                     if($maxTradeId) {
                                         $tradesList = $exchange->fetch_my_trades($v['asset'].'USDT', null, null, ['fromId' => $maxTradeId]);
                                     } else {
                                         $tradesList = $exchange->fetch_my_trades($v['asset'].'USDT');
                                     }
-                                    $setAccountTradeDetailsRes = self::setAccountTradeDetails($accountInfo['id'], $v['asset'], $tradesList, $maxTradeId);
+                                    $setAccountTradeDetailsRes = self::setBinanceAccountTradeDetails($accountInfo['id'], $v['asset'], $tradesList, $maxTradeId);
                                 }
                             }
                         }
@@ -285,6 +285,12 @@ class QuantifyAccount extends Base
                             // $valuation = (float)$v['eq'] * (float)$prices['price'];
                             $usdtBalance += (float)$v['eqUsd'];
                             @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eqUsd']);
+
+                            //开始写入每个交易对交易明细数据
+                            if($v['ccy'] !== 'USDT') {
+                                $tradesList = $exchange->fetch_my_trades($v['ccy'].'USDT');
+                                p($tradesList);
+                            }
                         }
                     }
                 }
@@ -528,7 +534,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-04-04
      */
-    public static function setAccountTradeDetails($account_id=0, $currency='', $list=[], $maxTradeId=0) {
+    public static function setBinanceAccountTradeDetails($account_id=0, $currency='', $list=[], $maxTradeId=0) {
         if($account_id && $currency && count((array)$list) > 0) {
             $insertDataAll = [];
             $infoArr = [];
@@ -550,7 +556,7 @@ class QuantifyAccount extends Base
                     'time' => date('Y-m-d H:i:s')
                 ];
             }
-            $res = self::name('quantify_account_trade_details')->insertAll($insertDataAll);
+            $res = self::name('quantify_account_trade_binance_details')->insertAll($insertDataAll);
             if($res) {
                 return true;
             }
@@ -558,16 +564,34 @@ class QuantifyAccount extends Base
     }
 
     /**
+     * BINANCE
      * 获取账户币种交易明细最大Trade ID
      * @author qinlh
      * @since 2023-04-04
      */
-    public static function getAccountTradeDetailsMaxTradeId($account_id=0, $currency='') {
+    public static function getBinanceAccountTradeDetailsMaxTradeId($account_id=0, $currency='') {
         if($account_id && $currency !== '') {
-            $sql = "SELECT MAX(trade_id) AS max_trade_id FROM s_quantify_account_trade_details WHERE account_id = '$account_id' AND currency = '$currency'";
+            $sql = "SELECT MAX(trade_id) AS max_trade_id FROM s_quantify_account_trade_binance_details WHERE account_id = '$account_id' AND currency = '$currency'";
             $res = self::query($sql);
             if($res && count((array)$res) > 0) {
                 return $res[0]['max_trade_id'];
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * OKX
+     * 获取账户币种交易明细最大Trade ID
+     * @author qinlh
+     * @since 2023-04-04
+     */
+    public static function getOkxAccountTradeDetailsMaxTradeId($account_id=0, $currency='') {
+        if($account_id && $currency !== '') {
+            $sql = "SELECT MAX(bill_id) AS max_bill_id FROM s_quantify_account_trade_okx_details WHERE account_id = '$account_id' AND currency = '$currency'";
+            $res = self::query($sql);
+            if($res && count((array)$res) > 0) {
+                return $res[0]['max_bill_id'];
             }
         }
         return 0;
