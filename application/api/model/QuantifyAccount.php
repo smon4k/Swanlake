@@ -224,11 +224,21 @@ class QuantifyAccount extends Base
                                     $valuation = (float)$v['free'] * (float)$prices['price'];
                                     $usdtBalance += $valuation;
                                     @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], $valuation);
+
+                                    //开始写入每个交易对交易明细数据
+                                    $maxTradeId = self::getAccountTradeDetailsMaxTradeId($accountInfo['id'], $v['asset'].'USDT');
+                                    if($maxTradeId) {
+                                        $tradesList = $exchange->fetch_my_trades($v['asset'].'USDT', null, null, ['fromId' => $maxTradeId]);
+                                    } else {
+                                        $tradesList = $exchange->fetch_my_trades($v['asset'].'USDT');
+                                    }
+                                    $setAccountTradeDetailsRes = self::setAccountTradeDetails($accountInfo['id'], $v['asset'], $tradesList, $maxTradeId);
                                 }
                             }
                         }
                     }
                 }
+                self::commit();
                 //  p($usdtBalance);
                 $returnArray = ['usdtBalance' => $usdtBalance];
                 // $dataJson = json_encode($returnArray);
@@ -241,6 +251,7 @@ class QuantifyAccount extends Base
                     'line' => $e->getLine(),
                     'code' => $e->getCode(),
                 ], JSON_UNESCAPED_UNICODE);
+                self::rollback();
                 echo $error_msg . "\r\n";
                 return false;
             }
@@ -510,5 +521,54 @@ class QuantifyAccount extends Base
             }
         }
         return [];
+    }
+
+    /**
+     * 获取账户币种交易明细
+     * @author qinlh
+     * @since 2023-04-04
+     */
+    public static function setAccountTradeDetails($account_id=0, $currency='', $list=[], $maxTradeId=0) {
+        if($account_id && $currency && count((array)$list) > 0) {
+            $insertDataAll = [];
+            foreach ($list as $key => $val) {
+                if($maxTradeId > 0 && $key == 0) {
+                    continue;
+                }
+                $infoArr = $val['info'];
+                $insertDataAll[] = [
+                    'account_id' => $account_id,
+                    'currency' => $currency,
+                    'symbol' => $infoArr['symbol'],
+                    'trade_id' => $infoArr['id'],
+                    'order_id' => $infoArr['orderId'],
+                    'price' => $infoArr['price'],
+                    'qty' => $infoArr['qty'],
+                    'quote_qty' => $infoArr['quoteQty'],
+                    'trade_time' => date('Y-m-d H:i:s', $infoArr['time']/1000),
+                    'time' => date('Y-m-d H:i:s')
+                ];
+            }
+            $res = self::name('quantify_account_trade_details')->insertAll($insertDataAll);
+            if($res) {
+                return true;
+            }
+        }
+    }
+
+    /**
+     * 获取账户币种交易明细最大Trade ID
+     * @author qinlh
+     * @since 2023-04-04
+     */
+    public static function getAccountTradeDetailsMaxTradeId($account_id=0, $currency='') {
+        if($account_id && $currency !== '') {
+            $sql = 'SELECT MAX(trade_id) AS max_trade_id FROM s_quantify_account_trade_details';
+            $res = self::query($sql);
+            if($res && count((array)$res) > 0) {
+                return $res[0]['max_trade_id'];
+            }
+        }
+        return 0;
     }
 }
