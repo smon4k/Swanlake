@@ -232,6 +232,7 @@ class QuantifyAccount extends Base
                                     } else {
                                         $tradesList = $exchange->fetch_my_trades($v['asset'].'USDT');
                                     }
+                                    // p($tradesList);
                                     $setAccountTradeDetailsRes = self::setBinanceAccountTradeDetails($accountInfo['id'], $v['asset'], $tradesList, $maxTradeId);
                                 }
                             }
@@ -273,6 +274,8 @@ class QuantifyAccount extends Base
             'password' => $accountInfo['pass_phrase'],
         ));
         try {
+            // $tradesList = $exchange->fetch_my_trades('GMX-USDT', null, null, ['before' => '563842929979478016']);
+            // p($tradesList);
             $balanceDetails = $exchange->fetch_account_balance();
             // p($balance);
             $btcBalance = 0;
@@ -287,10 +290,17 @@ class QuantifyAccount extends Base
                             @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eqUsd']);
 
                             //开始写入每个交易对交易明细数据
-                            // if($v['ccy'] !== 'USDT') {
-                            //     $tradesList = $exchange->fetch_my_trades($v['ccy'].'USDT');
-                            //     p($tradesList);
-                            // }
+                            if($v['ccy'] !== 'USDT') {
+                                $maxBillId = self::getOkxAccountTradeDetailsMaxTradeId($accountInfo['id'], $v['ccy'].'-USDT');
+                                // p($maxBillId);
+                                if($maxBillId) {
+                                    $tradesList = $exchange->fetch_my_trades($v['ccy'].'-USDT', null, null, ['before' => $maxBillId]);
+                                } else {
+                                    $tradesList = $exchange->fetch_my_trades($v['ccy'].'-USDT');
+                                }
+                                // p($tradesList);
+                                $setAccountTradeDetailsRes = self::setOkxAccountTradeDetails($accountInfo['id'], $v['ccy'], $tradesList, $maxBillId);
+                            }
                         }
                     }
                 }
@@ -298,8 +308,15 @@ class QuantifyAccount extends Base
             $returnArray = ['usdtBalance' => $usdtBalance];
             return $returnArray;
         } catch (\Exception $e) {
-            logger("获取交易对余额 Error \r\n".$e);
-            return array(0, $e->getMessage());
+            $error_msg = json_encode([
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                ], JSON_UNESCAPED_UNICODE);
+                // self::rollback();
+                echo $error_msg . "\r\n";
+                return false;
         }
     }
 
@@ -530,6 +547,7 @@ class QuantifyAccount extends Base
     }
 
     /**
+     * Binance
      * 获取账户币种交易明细
      * @author qinlh
      * @since 2023-04-04
@@ -561,6 +579,45 @@ class QuantifyAccount extends Base
                 return true;
             }
         }
+        return true;
+    }
+    
+    /**
+     * Okx
+     * 获取账户币种交易明细
+     * @author qinlh
+     * @since 2023-04-04
+     */
+    public static function setOkxAccountTradeDetails($account_id=0, $currency='', $list=[], $maxTradeId=0) {
+        if($account_id && $currency && count((array)$list) > 0) {
+            $insertDataAll = [];
+            $infoArr = [];
+            foreach ($list as $key => $val) {
+                if($maxTradeId > 0 && $key == 0) {
+                    continue;
+                }
+                $infoArr = $val['info'];
+                $insertDataAll[] = [
+                    'account_id' => $account_id,
+                    'currency' => $currency,
+                    'symbol' => $infoArr['instId'],
+                    'trade_id' => $infoArr['tradeId'],
+                    'order_id' => $infoArr['ordId'],
+                    'price' => $infoArr['fillPx'],
+                    'qty' => $infoArr['fillSz'],
+                    'quote_qty' => '',
+                    'side' => $infoArr['side'],
+                    'bill_id' => $infoArr['billId'],
+                    'trade_time' => date('Y-m-d H:i:s', $infoArr['fillTime']/1000),
+                    'time' => date('Y-m-d H:i:s')
+                ];
+            }
+            $res = self::name('quantify_account_trade_okx_details')->insertAll($insertDataAll);
+            if($res) {
+                return true;
+            }
+        }
+        return true;
     }
 
     /**
@@ -569,9 +626,9 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-04-04
      */
-    public static function getBinanceAccountTradeDetailsMaxTradeId($account_id=0, $currency='') {
-        if($account_id && $currency !== '') {
-            $sql = "SELECT MAX(trade_id) AS max_trade_id FROM s_quantify_account_trade_binance_details WHERE account_id = '$account_id' AND currency = '$currency'";
+    public static function getBinanceAccountTradeDetailsMaxTradeId($account_id=0, $symbol='') {
+        if($account_id && $symbol !== '') {
+            $sql = "SELECT MAX(trade_id) AS max_trade_id FROM s_quantify_account_trade_binance_details WHERE account_id = '$account_id' AND symbol = '$symbol'";
             $res = self::query($sql);
             if($res && count((array)$res) > 0) {
                 return $res[0]['max_trade_id'];
@@ -586,9 +643,9 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-04-04
      */
-    public static function getOkxAccountTradeDetailsMaxTradeId($account_id=0, $currency='') {
-        if($account_id && $currency !== '') {
-            $sql = "SELECT MAX(bill_id) AS max_bill_id FROM s_quantify_account_trade_okx_details WHERE account_id = '$account_id' AND currency = '$currency'";
+    public static function getOkxAccountTradeDetailsMaxTradeId($account_id=0, $symbol='') {
+        if($account_id && $symbol !== '') {
+            $sql = "SELECT MAX(bill_id) AS max_bill_id FROM s_quantify_account_trade_okx_details WHERE account_id = '$account_id' AND symbol = '$symbol'";
             $res = self::query($sql);
             if($res && count((array)$res) > 0) {
                 return $res[0]['max_bill_id'];
