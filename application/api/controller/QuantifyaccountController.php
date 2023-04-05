@@ -128,4 +128,29 @@ class QuantifyaccountController extends BaseController
         $result = QuantifyAccount::getQuantifyAccountDetails($account_id);
         return $this->as_json($result);
     }
+
+    /**
+    * 获取账户币种交易明细列表数据
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public function getAccountCurrencyDetailsList(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 1, 'intval');
+        $account_id = $request->request('account_id', 0, 'intval');
+        $currency = $request->request('currency', '', 'trim');
+        // $standard = $request->request('standard', 0, 'intval');
+        $where = [];
+        // $where['state'] = 1;
+        $where['account_id'] = $account_id;
+        if($currency && $currency !== '') {
+            $where['currency'] = $currency;
+        }
+        $data = QuantifyAccount::getAccountCurrencyDetailsList($account_id, $where, $page, $limits);
+        $count = $data['count'];
+        $allpage = $data['allpage'];
+        $lists = $data['lists'];
+        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+    }
 }

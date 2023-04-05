@@ -653,4 +653,36 @@ class QuantifyAccount extends Base
         }
         return 0;
     }
+
+    /**
+     * 获取币种交易明细列表数据
+     * @author qinlh
+     * @since 2023-04-05
+     */
+    public static function getAccountCurrencyDetailsList($account_id=0, $where, $page, $limit) {
+        if ($limit <= 0) {
+            $limit = config('paginate.list_rows');// 获取总条数
+        }
+        $accountInfo = self::getAccountInfo($account_id);
+        $table = '';
+        if($accountInfo['type'] == 1) {
+            $table = 'quantify_account_trade_binance_details';
+            $order = 'trade_id desc';
+        } else {
+            $table = 'quantify_account_trade_okx_details';
+            $order = 'bill_id desc';
+        }
+        $count = self::name($table)->where($where)->count();//计算总页面
+        $allpage = intval(ceil($count / $limit));
+        $lists = self::name($table)
+                    ->where($where)
+                    ->page($page, $limit)
+                    ->order($order)
+                    ->select()
+                    ->toArray();
+        if (!$lists) {
+            ['count'=>0,'allpage'=>0,'lists'=>[]];
+        }
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
 }
