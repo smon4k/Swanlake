@@ -238,7 +238,7 @@ class QuantifyAccount extends Base
                         }
                     }
                 }
-                self::commit();
+                // self::commit();
                 //  p($usdtBalance);
                 $returnArray = ['usdtBalance' => $usdtBalance];
                 // $dataJson = json_encode($returnArray);
@@ -251,7 +251,7 @@ class QuantifyAccount extends Base
                     'line' => $e->getLine(),
                     'code' => $e->getCode(),
                 ], JSON_UNESCAPED_UNICODE);
-                self::rollback();
+                // self::rollback();
                 echo $error_msg . "\r\n";
                 return false;
             }
