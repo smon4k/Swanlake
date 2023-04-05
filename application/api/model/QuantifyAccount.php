@@ -287,10 +287,10 @@ class QuantifyAccount extends Base
                             @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eqUsd']);
 
                             //开始写入每个交易对交易明细数据
-                            if($v['ccy'] !== 'USDT') {
-                                $tradesList = $exchange->fetch_my_trades($v['ccy'].'USDT');
-                                p($tradesList);
-                            }
+                            // if($v['ccy'] !== 'USDT') {
+                            //     $tradesList = $exchange->fetch_my_trades($v['ccy'].'USDT');
+                            //     p($tradesList);
+                            // }
                         }
                     }
                 }
