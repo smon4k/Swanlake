@@ -181,15 +181,22 @@ class TaskController extends ToolsBaseController
         $begin_time = time();
 
         $key = "Okx:PendingOrder:Lock";
+        $key_01 = "Okx:PendingOrderTimes:Lock";
 
         $isPendingOrderLock = Rediscache::getInstance()->get($key); 
+        $pendingOrderTimes = Rediscache::getInstance()->get($key_01); 
 
-        if(!$isPendingOrderLock) {
+        if(!$isPendingOrderLock || (float)$pendingOrderTimes > 5) {
             Rediscache::getInstance()->set($key, 1); 
+            Rediscache::getInstance()->del($key_01); 
     
             Okx::balancePendingOrder();
 
             Rediscache::getInstance()->del($key); 
+        } else {
+            echo "有任务没执行完... ".$pendingOrderTimes."次 \r\n";
+            $pendingOrderTimesNum = $pendingOrderTimes + 1;
+            Rediscache::getInstance()->set($key_01, $pendingOrderTimesNum); 
         }
 
         return (time() - $begin_time) . "s\n";
@@ -219,15 +226,22 @@ class TaskController extends ToolsBaseController
         $begin_time = time();
 
         $key = "Binance:PendingOrder:Lock";
+        $key_01 = "Binance:PendingOrderTimes:Lock";
 
         $isPendingOrderLock = Rediscache::getInstance()->get($key); 
+        $pendingOrderTimes = Rediscache::getInstance()->get($key_01); 
 
-        if(!$isPendingOrderLock) {
+        if(!$isPendingOrderLock || (float)$pendingOrderTimes > 5) {
             Rediscache::getInstance()->set($key, 1); 
+            Rediscache::getInstance()->del($key_01); 
     
             Binance::balancePendingOrder();
 
             Rediscache::getInstance()->del($key); 
+        } else {
+            echo "有任务没执行完... ".$pendingOrderTimes."次 \r\n";
+            $pendingOrderTimesNum = $pendingOrderTimes + 1;
+            Rediscache::getInstance()->set($key_01, $pendingOrderTimesNum); 
         }
 
         return (time() - $begin_time) . "s\n";
