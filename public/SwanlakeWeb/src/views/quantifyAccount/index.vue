@@ -170,10 +170,16 @@
             width="50%">
             <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="300">
                 <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
-                <el-table-column prop="currency" label="币种" align="center" width=""></el-table-column>
+                <el-table-column prop="currency" label="币种" align="center" width="">
+                    <template slot-scope="scope">
+                        <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
+                            <span>{{ scope.row.currency }}</span>
+                        </el-link>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="" label="余额" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.balance, 10, true) }}</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.balance, 10, true) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="USDT估值" align="center" width="">
@@ -183,6 +189,57 @@
                 </el-table-column>
                 <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
             </el-table>
+        </el-dialog>
+
+        <!-- 账户币种交易明细 -->
+        <el-dialog
+            title="账户币种交易明细"
+            :visible.sync="accountCurrencyDetailsShow"
+            width="80%"
+            v-loading="loading">
+            <el-table :data="accountCurrencyDetailsList" style="width: 100%;" height="300" >
+                <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
+                <!-- <el-table-column prop="currency" label="币种" align="center" width="">
+                    <template slot-scope="scope">
+                        <el-link type="primary" @click="getAccountCurrencyDetailsList(scope.row.currency)">
+                            <span>{{ scope.row.currency }}</span>
+                        </el-link>
+                    </template>
+                </el-table-column> -->
+                <el-table-column prop="" label="订单id" align="center" width="150">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.order_id }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交价格" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.price }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交量" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.qty }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交时间" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.trade_time }}</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-row class="pages">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="accountCurrencyDetailsTotal"
+                        :pageSize="accountCurrencyDetailsLimit"
+                        :currPage="accountCurrencyDetailsPage"
+                        @changeLimit="accountCurrencyDetailsLimitPaging"
+                        @changeSkip="accountCurrencyDetailsSkipPaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
         </el-dialog>
     </div>
 </template>
@@ -228,6 +285,12 @@ export default {
             InoutGoldTotal: 1, //总条数
             accountBalanceDetailsShow: false,
             accountBalanceDetailsList: [],
+            accountCurrencyDetailsShow: false,
+            accountCurrencyDetailsList: [],
+            accountCurrencyDetailsPage: 1,
+            accountCurrencyDetailsLimit: 20,
+            accountCurrencyDetailsTotal: 0, //总条数
+            selectCurrency: '',
         }
     },
     computed: {
@@ -317,6 +380,31 @@ export default {
             })
             this.accountBalanceDetailsShow = true;
         },
+        getAccountCurrencyDetailsShow(currency) { //获取账户币种交易明细数据
+            this.accountCurrencyDetailsList = [];
+            this.accountCurrencyDetailsShow = true;
+            this.selectCurrency = currency;
+            this.accountCurrencyDetailsPage = 1;
+            this.accountCurrencyDetailsTotal = 0;
+            this.getAccountCurrencyDetailsList();
+        },
+        getAccountCurrencyDetailsList() { //获取账户币种交易明细数据
+            this.loading = true;
+            get(this.apiUrl + "/Api/QuantifyAccount/getAccountCurrencyDetailsList", {
+                limit: this.accountCurrencyDetailsLimit,
+                page: this.accountCurrencyDetailsPage,
+                account_id: this.tabAccountId,
+                currency: this.selectCurrency,
+            }, json => {
+                console.log(json.data);
+                this.loading = false;
+                if (json.code == 10000) {
+                    this.accountCurrencyDetailsList = json.data.data;
+                    this.accountCurrencyDetailsTotal = json.data.count;
+                }
+            })
+        },
+
         limitPaging(limit) {
             //赋值当前条数
             this.pageSize = limit;
@@ -395,6 +483,16 @@ export default {
             //赋值当前页数
             this.InoutGoldCurrPage = page;
             this.getInoutGoldList(); //刷新列表
+        },
+        accountCurrencyDetailsLimitPaging(limit) {
+            //赋值当前条数
+            this.accountCurrencyDetailsLimit = limit;
+            this.getAccountCurrencyDetailsList(); //刷新列表
+        },
+        accountCurrencyDetailsSkipPaging(page) {
+            //赋值当前页数
+            this.accountCurrencyDetailsPage = page;
+            this.getAccountCurrencyDetailsList(); //刷新列表
         },
         resetForm(formName) {
             this.$refs[formName].resetFields();
