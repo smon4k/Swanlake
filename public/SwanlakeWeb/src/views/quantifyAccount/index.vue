@@ -221,6 +221,16 @@
                         <span>{{ scope.row.qty }}</span>
                     </template>
                 </el-table-column>
+                <el-table-column prop="" label="成交总价" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.quote_total_price }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交方向" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.side }}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="" label="成交时间" align="center" width="">
                     <template slot-scope="scope">
                         <span>{{ scope.row.trade_time }}</span>

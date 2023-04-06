@@ -570,6 +570,8 @@ class QuantifyAccount extends Base
                     'price' => $infoArr['price'],
                     'qty' => $infoArr['qty'],
                     'quote_qty' => $infoArr['quoteQty'],
+                    'quote_total_price' => (float)$infoArr['qty'] * (float)$infoArr['price'],
+                    'side' => $infoArr['isBuyer'] ? 'buy' : 'sell',
                     'trade_time' => date('Y-m-d H:i:s', $infoArr['time']/1000),
                     'time' => date('Y-m-d H:i:s')
                 ];
@@ -605,6 +607,7 @@ class QuantifyAccount extends Base
                     'order_id' => $infoArr['ordId'],
                     'price' => $infoArr['fillPx'],
                     'qty' => $infoArr['fillSz'],
+                    'quote_total_price' => (float)$infoArr['fillSz'] * (float)$infoArr['price'],
                     'quote_qty' => '',
                     'side' => $infoArr['side'],
                     'bill_id' => $infoArr['billId'],
