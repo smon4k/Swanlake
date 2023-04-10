@@ -607,7 +607,7 @@ class QuantifyAccount extends Base
                     'order_id' => $infoArr['ordId'],
                     'price' => $infoArr['fillPx'],
                     'qty' => $infoArr['fillSz'],
-                    'quote_total_price' => (float)$infoArr['fillSz'] * (float)$infoArr['price'],
+                    'quote_total_price' => (float)$infoArr['fillSz'] * (float)$infoArr['fillPx'],
                     'quote_qty' => '',
                     'side' => $infoArr['side'],
                     'bill_id' => $infoArr['billId'],
