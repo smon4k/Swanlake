@@ -216,14 +216,14 @@ class QuantifyAccount extends Base
                                 if((float)$v['free'] >= 0) {
                                     $usdtBalance += (float)$v['free'];
                                 }
-                                @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], (float)$v['free']);
+                                @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], (float)$v['free'], 1);
                             }
                             if($v['asset'] == 'BIFI' || $v['asset'] == 'GMX' || $v['asset'] == 'BTC' || $v['asset'] == 'ETH' || $v['asset'] == 'BNB' || $v['asset'] == 'TON' || $v['asset'] == 'SAND' || $v['asset'] == 'ARB' || $v['asset'] == 'OKB') {
                                 if((float)$v['free'] >= 0) {
                                     $prices = $exchange->fetch_ticker_price($v['asset'] . 'USDT');
                                     $valuation = (float)$v['free'] * (float)$prices['price'];
                                     $usdtBalance += $valuation;
-                                    @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], $valuation);
+                                    @self::updateQuantifyAccountDetails($accountInfo['id'], $v['asset'], (float)$v['free'], $valuation, (float)$prices['price']);
 
                                     //开始写入每个交易对交易明细数据
                                     $maxTradeId = self::getBinanceAccountTradeDetailsMaxTradeId($accountInfo['id'], $v['asset'].'USDT');
@@ -286,8 +286,13 @@ class QuantifyAccount extends Base
                         if((float)$v['eq'] >= 0) {
                             // $prices = $exchange->fetch_ticker($v['ccy'].'USDT'); //获取交易BTC价格
                             // $valuation = (float)$v['eq'] * (float)$prices['price'];
+                            $price = 1;
+                            if($v['ccy'] !== 'USDT') {
+                                $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
+                                $price = $prices['last'];
+                            }
                             $usdtBalance += (float)$v['eqUsd'];
-                            @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eqUsd']);
+                            @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eqUsd'], $price);
 
                             //开始写入每个交易对交易明细数据
                             if($v['ccy'] !== 'USDT') {
@@ -325,7 +330,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-02-23
      */
-    public static function updateQuantifyAccountDetails($account_id=0, $currency='', $balance=0, $valuation=0) {
+    public static function updateQuantifyAccountDetails($account_id=0, $currency='', $balance=0, $valuation=0, $price=0) {
         if($account_id && $currency) {
             $date = date('Y-m-d');
             $res = self::name('quantify_account_details')->where(['account_id' => $account_id, 'currency' => $currency])->find();
@@ -333,6 +338,7 @@ class QuantifyAccount extends Base
                 $saveRes = self::name('quantify_account_details')->where('id', $res['id'])->update([
                     'balance' => $balance,
                     'valuation' => $valuation,
+                    'price' => $price,
                     'time' => date('Y-m-d H:i:s')
                 ]);
                 if($saveRes) {
@@ -344,6 +350,7 @@ class QuantifyAccount extends Base
                     'currency' => $currency,
                     'balance' => $balance,
                     'valuation' => $valuation,
+                    'price' => $price,
                     'time' => date('Y-m-d H:i:s'),
                     'state' => 1,
                 ]);
