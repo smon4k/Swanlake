@@ -190,6 +190,67 @@
                 <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
             </el-table>
         </el-dialog>
+
+        <!-- 账户币种交易明细 -->
+        <el-dialog
+            title="账户币种交易明细"
+            :visible.sync="accountCurrencyDetailsShow"
+            width="80%"
+            v-loading="loading">
+            <el-table :data="accountCurrencyDetailsList" style="width: 100%;" height="300" >
+                <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
+                <!-- <el-table-column prop="currency" label="币种" align="center" width="">
+                    <template slot-scope="scope">
+                        <el-link type="primary" @click="getAccountCurrencyDetailsList(scope.row.currency)">
+                            <span>{{ scope.row.currency }}</span>
+                        </el-link>
+                    </template>
+                </el-table-column> -->
+                <el-table-column prop="" label="订单id" align="center" width="150">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.order_id }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交价格" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.price }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交量" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.qty }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交总价" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.quote_total_price }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交方向" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.side }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="成交时间" align="center" width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.trade_time }}</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-row class="pages">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="accountCurrencyDetailsTotal"
+                        :pageSize="accountCurrencyDetailsLimit"
+                        :currPage="accountCurrencyDetailsPage"
+                        @changeLimit="accountCurrencyDetailsLimitPaging"
+                        @changeSkip="accountCurrencyDetailsSkipPaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
+        </el-dialog>
     </div>
 </template>
 <script>

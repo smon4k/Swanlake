@@ -518,6 +518,9 @@ export default {
         tabsHandleClick(tab, event) { //tab切换
             // console.log(tab.$attrs['data-id'], event);
             this.tabAccountId = tab.$attrs['data-id'];
+            this.pageSize = 20;
+            this.currPage = 1;
+            this.tableData = [];
             this.getList();
         }
     },
