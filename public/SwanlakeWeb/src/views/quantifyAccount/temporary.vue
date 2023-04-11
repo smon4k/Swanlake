@@ -171,13 +171,11 @@
             <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="300">
                 <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                 <el-table-column prop="currency" label="币种" align="center" width="">
-                    <el-table-column prop="currency" label="币种" align="center" width="">
-                        <template slot-scope="scope">
-                            <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
-                                <span>{{ scope.row.currency }}</span>
-                            </el-link>
-                        </template>
-                    </el-table-column>
+                    <template slot-scope="scope">
+                        <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
+                            <span>{{ scope.row.currency }}</span>
+                        </el-link>
+                    </template>
                 </el-table-column>
                 <el-table-column prop="" label="余额" align="center" width="150">
                     <template slot-scope="scope">
