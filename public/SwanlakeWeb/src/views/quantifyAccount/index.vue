@@ -177,6 +177,11 @@
                         </el-link>
                     </template>
                 </el-table-column>
+                <el-table-column prop="" label="价格" align="center" width="150">
+                    <template slot-scope="scope">
+                        <span>{{ keepDecimalNotRounding(scope.row.price, 10, true) }}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="" label="余额" align="center" width="150">
                     <template slot-scope="scope">
                         <span>{{ keepDecimalNotRounding(scope.row.balance, 10, true) }}</span>
