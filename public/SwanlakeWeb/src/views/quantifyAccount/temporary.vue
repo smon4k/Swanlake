@@ -170,7 +170,15 @@
             width="50%">
             <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="300">
                 <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
-                <el-table-column prop="currency" label="币种" align="center" width=""></el-table-column>
+                <el-table-column prop="currency" label="币种" align="center" width="">
+                    <el-table-column prop="currency" label="币种" align="center" width="">
+                        <template slot-scope="scope">
+                            <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
+                                <span>{{ scope.row.currency }}</span>
+                            </el-link>
+                        </template>
+                    </el-table-column>
+                </el-table-column>
                 <el-table-column prop="" label="余额" align="center" width="150">
                     <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.balance, 10, true) }}</span>
@@ -228,6 +236,12 @@ export default {
             InoutGoldTotal: 1, //总条数
             accountBalanceDetailsShow: false,
             accountBalanceDetailsList: [],
+            accountCurrencyDetailsShow: false,
+            accountCurrencyDetailsList: [],
+            accountCurrencyDetailsPage: 1,
+            accountCurrencyDetailsLimit: 20,
+            accountCurrencyDetailsTotal: 0, //总条数
+            selectCurrency: '',
         }
     },
     computed: {
@@ -411,7 +425,31 @@ export default {
             // console.log(tab.$attrs['data-id'], event);
             this.tabAccountId = tab.$attrs['data-id'];
             this.getList();
-        }
+        },
+        getAccountCurrencyDetailsShow(currency) { //获取账户币种交易明细数据
+            this.accountCurrencyDetailsList = [];
+            this.accountCurrencyDetailsShow = true;
+            this.selectCurrency = currency;
+            this.accountCurrencyDetailsPage = 1;
+            this.accountCurrencyDetailsTotal = 0;
+            this.getAccountCurrencyDetailsList();
+        },
+        getAccountCurrencyDetailsList() { //获取账户币种交易明细数据
+            this.loading = true;
+            get(this.apiUrl + "/Api/QuantifyAccount/getAccountCurrencyDetailsList", {
+                limit: this.accountCurrencyDetailsLimit,
+                page: this.accountCurrencyDetailsPage,
+                account_id: this.tabAccountId,
+                currency: this.selectCurrency,
+            }, json => {
+                console.log(json.data);
+                this.loading = false;
+                if (json.code == 10000) {
+                    this.accountCurrencyDetailsList = json.data.data;
+                    this.accountCurrencyDetailsTotal = json.data.count;
+                }
+            })
+        },
     },
     mounted() {
 
