@@ -202,7 +202,7 @@
             :visible.sync="accountCurrencyDetailsShow"
             width="80%"
             v-loading="loading">
-            <el-table :data="accountCurrencyDetailsList" style="width: 100%;" height="300" >
+            <el-table :data="accountCurrencyDetailsList" style="width: 100%;" height="600" >
                 <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                 <!-- <el-table-column prop="currency" label="币种" align="center" width="">
                     <template slot-scope="scope">
