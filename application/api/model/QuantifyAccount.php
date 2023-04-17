@@ -59,7 +59,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-01-31
      */
-    public static function calcQuantifyAccountData($account_id=0, $direction=0, $amount=0, $remark='') {
+    public static function calcQuantifyAccountData($account_id=0, $direction=0, $amount=0, $remark='', $profit=0, $profit_remark='') {
         if($account_id) {
             self::startTrans();
             try {
@@ -122,8 +122,14 @@ class QuantifyAccount extends Base
                     $averageDayRate = $averageDayRateRes;
                 }
                 $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
-                $profit = $totalBalance - $countStandardPrincipal;//总利润 = 总结余 - 本金
-                $profitRate = $countStandardPrincipal > 0 ? $profit / $countStandardPrincipal : 0;//总利润率 = 利润 / 本金
+                $profit = $totalBalance - $countStandardPrincipal;//利润 = 总结余 - 本金
+                $profitRate = $countStandardPrincipal > 0 ? $profit / $countStandardPrincipal : 0;//利润率 = 利润 / 本金
+
+                $totalShareProfit = self::getTotalProfitBalance(); //总分润 = 所有分润累计
+                if($profit) {
+                    $totalShareProfit += $profit;
+                }
+                $totalProfit = $profit + $totalShareProfit; //总利润 = 当前利润 + 总分润；
                 // p($daily);
                 if ($dayData && count((array)$dayData) > 0) {
                     $upData = [
@@ -135,6 +141,8 @@ class QuantifyAccount extends Base
                         'average_year_rate' => $averageYearRate, //平均年利率
                         'profit' => $profit,
                         'profit_rate' => $profitRate,
+                        'total_share_profit' => $totalShareProfit,
+                        'total_profit' => $totalProfit,
                         'price' => $tradingPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
@@ -151,15 +159,32 @@ class QuantifyAccount extends Base
                         'average_year_rate' => $averageYearRate, //平均年利率
                         'profit' => $profit,
                         'profit_rate' => $profitRate,
+                        'total_share_profit' => $totalShareProfit,
+                        'total_profit' => $totalProfit,
                         'price' => $tradingPrice,
                         'up_time' => date('Y-m-d H:i:s')
                     ];
                     $saveUres = self::name('quantify_equity_monitoring')->insertGetId($insertData);
                 }
+                $isTrue = false;
                 if ($saveUres !== false) {
                     if ($amount > 0) {
                         $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
                         if ($isIntOut) {
+                            $isTrue = true;
+                            // self::commit();
+                            // return true;
+                        }
+                    } else {
+                        $isTrue = true;
+                        // self::commit();
+                        // return true;
+                    }
+                }
+                if($isTrue) {
+                    if($profit > 0) { //开始写入分润记录表
+                        $IsDividendRec = self::setDividendRecord($account_id, $amount, $remark);
+                        if($IsDividendRec) {
                             self::commit();
                             return true;
                         }
@@ -694,5 +719,46 @@ class QuantifyAccount extends Base
             ['count'=>0,'allpage'=>0,'lists'=>[]];
         }
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
+
+
+
+    /**
+     * 记录分润记录
+     * @author qinlh
+     * @since 2023-01-31
+     */
+    public static function setDividendRecord($account_id=0, $amount='', $remark='')
+    {
+        if ($account_id && $amount !== 0) {
+            $total_profit = self::getTotalProfitBalance($account_id) + (float)$amount;
+            $insertData = [
+                'account_id' => $account_id,
+                'amount' => $amount,
+                'total_profit' => $total_profit,
+                'remark' => $remark,
+                'time' => date('Y-m-d H:i:s'),
+            ];
+            $res = self::name('quantify_dividend_record')->insertGetId($insertData);
+            if ($res) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取总分润
+     * @author qinlh
+     * @since 2023-04-17
+     */
+    public static function getTotalProfitBalance($account_id) {
+        if($account_id) {
+            $count = self::name('quantify_dividend_record')->where('account_id', $account_id)->sum('amount');
+            if ($count !== 0) {
+                return $count;
+            }
+        }
+        return 0;
     }
 }
