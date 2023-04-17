@@ -125,7 +125,7 @@ class QuantifyAccount extends Base
                 $profit = $totalBalance - $countStandardPrincipal;//利润 = 总结余 - 本金
                 $profitRate = $countStandardPrincipal > 0 ? $profit / $countStandardPrincipal : 0;//利润率 = 利润 / 本金
 
-                $totalShareProfit = self::getTotalProfitBalance(); //总分润 = 所有分润累计
+                $totalShareProfit = self::getTotalProfitBalance($account_id); //总分润 = 所有分润累计
                 if($profit) {
                     $totalShareProfit += $profit;
                 }
