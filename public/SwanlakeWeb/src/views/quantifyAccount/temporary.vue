@@ -3,6 +3,9 @@
         <div style="text-align:right;margin-bottom: 10px;">
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
             <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
+            &nbsp;
+            <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
+            <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
         </div>
         <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
             <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
@@ -11,12 +14,12 @@
                         :data="tableData"
                         style="width: 100%">
                         <el-table-column prop="date" label="日期" align="center"></el-table-column>
-                        <el-table-column prop="principal" label="累计本金(USDT)" align="center" width="150">
+                        <el-table-column prop="principal" label="累计本金(U)" align="center" width="150">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.principal, 2, true) }}</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="总结余(USDT)" align="center">
+                        <el-table-column prop="" label="总结余(U)" align="center">
                             <template slot-scope="scope">
                             <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)">
                                 <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
@@ -28,7 +31,7 @@
                             <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>
                             </template>
                         </el-table-column> -->
-                        <el-table-column prop="" label="日利润(USDT)" align="center">
+                        <el-table-column prop="" label="日利润(U)" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 2, true) }}</span>
                             </template>
@@ -48,9 +51,19 @@
                             <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="利润(USDT)" align="center">
+                        <el-table-column prop="" label="利润(U)" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.profit, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="总分润" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.total_share_profit, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="总利润" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.total_profit, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="利润率" align="center">
@@ -256,6 +269,62 @@
                 </el-col>
             </el-row>
         </el-dialog>
+
+        <el-dialog
+            :title="activeName + ' 分润'"
+            :visible.sync="profitShow"
+            width="50%">
+            <el-form :model="ruleProfitForm" :rules="rules" ref="ruleProfitForm" label-width="80px" class="profit-loading"> 
+                <el-form-item label="金额" prop="amount">
+                    <el-input v-model="ruleProfitForm.amount"></el-input>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input v-model="ruleProfitForm.remark"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="profitShow = false" :disabled="loading">取 消</el-button>
+                <el-button type="primary" @click="submitProfitForm('ruleProfitForm')" :disabled="loading">确 定</el-button>
+            </span>
+        </el-dialog>
+
+        <el-dialog
+            title="分润记录"
+            :visible.sync="profitListShow"
+            width="50%">
+            <el-table :data="profitGoldList" style="width: 100%;" height="500">
+                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
+                <el-table-column prop="amount" label="出入金额" align="center" width="150">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="total_profit" label="总分润" align="center" width="150">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.total_profit, 4, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="" label="备注" align="center">
+                    <template slot-scope="scope">
+                    <span>{{ scope.row.remark }}</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-row class="pages">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="profitGoldTotal"
+                        :pageSize="profitGoldPageSize"
+                        :currPage="profitGoldCurrPage"
+                        @changeLimit="profitGoldLimitPaging"
+                        @changeSkip="profitGoldSkipPaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -278,8 +347,14 @@ export default {
             PageSearchWhere: [],
             dialogVisibleShow: false,
             dialogVisibleListShow: false,
+            profitShow: false,
+            profitListShow: false,
             ruleForm: {
                 direction: '',
+                amount: '',
+                remark: '',
+            },
+            ruleProfitForm: {
                 amount: '',
                 remark: '',
             },
@@ -306,6 +381,10 @@ export default {
             accountCurrencyDetailsLimit: 20,
             accountCurrencyDetailsTotal: 0, //总条数
             selectCurrency: '',
+            profitGoldCurrPage: 1, //当前页
+            profitGoldPageSize: 20, //每页显示条数
+            profitGoldTotal: 1, //总条数
+            profitGoldList: [],
         }
     },
     computed: {
@@ -479,6 +558,26 @@ export default {
             this.InoutGoldCurrPage = page;
             this.getInoutGoldList(); //刷新列表
         },
+        accountCurrencyDetailsLimitPaging(limit) {
+            //赋值当前条数
+            this.accountCurrencyDetailsLimit = limit;
+            this.getAccountCurrencyDetailsList(); //刷新列表
+        },
+        accountCurrencyDetailsSkipPaging(page) {
+            //赋值当前页数
+            this.accountCurrencyDetailsPage = page;
+            this.getAccountCurrencyDetailsList(); //刷新列表
+        },
+        profitGoldLimitPaging(limit) {
+            //赋值当前条数
+            this.profitGoldPageSize = limit;
+            this.getProfitGoldList(); //刷新列表
+        },
+        profitGoldSkipPaging(page) {
+            //赋值当前页数
+            this.profitGoldCurrPage = page;
+            this.getProfitGoldList(); //刷新列表
+        },
         resetForm(formName) {
             this.$refs[formName].resetFields();
         },
@@ -513,6 +612,44 @@ export default {
                     this.accountCurrencyDetailsTotal = json.data.count;
                 }
             })
+        },
+        shareProfitShow() { //分润 弹框
+            this.profitShow = true;
+        },
+        shareProfitRecordShow() { //分润记录
+            this.profitListShow = true;
+            this.getProfitGoldList();
+        },
+        submitProfitForm(formName) { //分润
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    const loading = this.$loading({
+                        target: '.profit-loading',
+                    });
+                    this.loading = true;
+                    get('/Api/QuantifyAccount/calcDividendRecord', {
+                        account_id: this.tabAccountId,
+                        amount: this.ruleProfitForm.amount,
+                        remark: this.ruleProfitForm.remark,
+                    }, (json) => {
+                        console.log(json);
+                        this.loading = false;
+                        this.profitShow = false;
+                        if (json && json.code == 10000) {
+                            this.$message.success('更新成功');
+                            this.$refs[formName].resetFields();
+                            loading.close();
+                            this.getList();
+                        } else {
+                            loading.close();
+                            this.$message.error(json.data.msg);
+                        }
+                    })
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
         },
     },
     mounted() {
