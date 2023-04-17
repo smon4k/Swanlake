@@ -153,4 +153,43 @@ class QuantifyaccountController extends BaseController
         $lists = $data['lists'];
         return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
     }
+
+     /**
+     * 分润记录-计算
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public function calcDividendRecord(Request $request) {
+        $account_id = $request->request('account_id', '', 'intval');
+        $amount = $request->request('amount', '', 'trim');
+        $remark = $request->request('remark', '', '');
+        if($amount == '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = QuantifyAccount::calcQuantifyAccountData($account_id, 0, 0, null, $amount, $remark);
+        if($result) {
+            return $this->as_json('ok');
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
+
+     /**
+    * 获取分润记录数据
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public function getDividendRecordList(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 20, 'intval');
+        $account_id = $request->request('account_id', 0, 'intval');
+        $where = [];
+        $where['account_id'] = $account_id;
+        $data = QuantifyAccount::getDividendRecordList($where, $page, $limits);
+        $count = $data['count'];
+        $allpage = $data['allpage'];
+        $lists = $data['lists'];
+        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+    }
 }

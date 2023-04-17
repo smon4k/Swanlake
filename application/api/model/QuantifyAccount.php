@@ -59,7 +59,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-01-31
      */
-    public static function calcQuantifyAccountData($account_id=0, $direction=0, $amount=0, $remark='', $profit=0, $profit_remark='') {
+    public static function calcQuantifyAccountData($account_id=0, $direction=0, $amount=0, $remark='', $profit_amount=0, $profit_remark='') {
         if($account_id) {
             self::startTrans();
             try {
@@ -126,8 +126,8 @@ class QuantifyAccount extends Base
                 $profitRate = $countStandardPrincipal > 0 ? $profit / $countStandardPrincipal : 0;//利润率 = 利润 / 本金
 
                 $totalShareProfit = self::getTotalProfitBalance($account_id); //总分润 = 所有分润累计
-                if($profit) {
-                    $totalShareProfit += $profit;
+                if($profit_amount) {
+                    $totalShareProfit += $profit_amount;
                 }
                 $totalProfit = $profit + $totalShareProfit; //总利润 = 当前利润 + 总分润；
                 // p($daily);
@@ -182,8 +182,8 @@ class QuantifyAccount extends Base
                     }
                 }
                 if($isTrue) {
-                    if($profit > 0) { //开始写入分润记录表
-                        $IsDividendRec = self::setDividendRecord($account_id, $amount, $remark);
+                    if($profit_amount > 0) { //开始写入分润记录表
+                        $IsDividendRec = self::setDividendRecord($account_id, $profit_amount, $profit_remark);
                         if($IsDividendRec) {
                             self::commit();
                             return true;
@@ -760,5 +760,33 @@ class QuantifyAccount extends Base
             }
         }
         return 0;
+    }
+
+    /**
+    * 获取分润记录
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public static function getDividendRecordList($where, $page, $limits=0)
+    {
+        if ($limits == 0) {
+            $limits = config('paginate.list_rows');// 获取总条数
+        }
+        // p($where);
+        $count = self::name("quantify_dividend_record")
+                    ->where($where)
+                    ->count();//计算总页面
+        // p($count);
+        $allpage = intval(ceil($count / $limits));
+        $lists = self::name("quantify_dividend_record")
+                    ->where($where)
+                    ->page($page, $limits)
+                    ->field('*')
+                    ->order("id desc")
+                    ->select()
+                    ->toArray();
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
 }
