@@ -1,8 +1,8 @@
 <template>
     <div class="container">
         <div style="text-align:right;margin-bottom: 10px;">
-            <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
-            <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
+            <el-button type="primary" @click="shareProfitShow()">分润</el-button>
+            <el-button type="primary" @click="shareProfitRecordShow()">分润记录</el-button>
             &nbsp;
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
             <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
