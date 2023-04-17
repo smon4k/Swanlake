@@ -107,7 +107,8 @@ class QuantifyAccount extends Base
                 $yestTotalBalance = isset($yestData['total_balance']) ? (float)$yestData['total_balance'] : 0;
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // p($depositToday);
-                $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
+                $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
+                $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
                 // if($dailyProfit < -801) {
                 //     $totalBalance = $totalBalance + 700;
                 //     $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
@@ -123,13 +124,13 @@ class QuantifyAccount extends Base
                 }
                 $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
                 $profit = $totalBalance - $countStandardPrincipal;//利润 = 总结余 - 本金
-                $profitRate = $countStandardPrincipal > 0 ? $profit / $countStandardPrincipal : 0;//利润率 = 利润 / 本金
-
+                
                 $totalShareProfit = self::getTotalProfitBalance($account_id); //总分润 = 所有分润累计
                 if($profit_amount) {
                     $totalShareProfit += $profit_amount;
                 }
                 $totalProfit = $profit + $totalShareProfit; //总利润 = 当前利润 + 总分润；
+                $profitRate = $countStandardPrincipal > 0 ? $totalProfit / $countStandardPrincipal : 0;//利润率 = 总利润 / 本金
                 // p($daily);
                 if ($dayData && count((array)$dayData) > 0) {
                     $upData = [
@@ -788,5 +789,22 @@ class QuantifyAccount extends Base
                     ->toArray();
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
+
+    /**
+     * 获取今天的分润
+     * @author qinlh
+     * @since 2023-04-17
+     */
+    public static function getDayProfit($account_id=0, $date='') {
+        if($account_id) {
+            $start_time = $date . "00:00:00";
+            $end_time = $date . "23:59:59";
+            $amount = self::name('quantify_dividend_record')->where('account_id', $account_id)->whereTime('time', 'between', [$start_time, $end_time])->sum('amount');
+            if ($amount !== 0) {
+                return $amount;
+            }
+        }
+        return 0;
     }
 }
