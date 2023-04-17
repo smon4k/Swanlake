@@ -56,11 +56,6 @@
                             <span>{{ keepDecimalNotRounding(scope.row.profit, 2, true) }}</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="利润率" align="center">
-                            <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 2, true) }}%</span>
-                            </template>
-                        </el-table-column>
                         <el-table-column prop="" label="总分润" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.total_share_profit, 2, true) }}</span>
@@ -69,6 +64,11 @@
                         <el-table-column prop="" label="总利润" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.total_profit, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="利润率" align="center">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                     </el-table>
