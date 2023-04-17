@@ -14,12 +14,12 @@
                         :data="tableData"
                         style="width: 100%">
                         <el-table-column prop="date" label="日期" align="center"></el-table-column>
-                        <el-table-column prop="principal" label="累计本金(USDT)" align="center" width="150">
+                        <el-table-column prop="principal" label="累计本金(U)" align="center" width="150">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.principal, 2, true) }}</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="总结余(USDT)" align="center">
+                        <el-table-column prop="" label="总结余(U)" align="center">
                             <template slot-scope="scope">
                             <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)">
                                 <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
@@ -31,7 +31,7 @@
                             <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>
                             </template>
                         </el-table-column> -->
-                        <el-table-column prop="" label="日利润(USDT)" align="center">
+                        <el-table-column prop="" label="日利润(U)" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 2, true) }}</span>
                             </template>
@@ -51,7 +51,7 @@
                             <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="利润(USDT)" align="center">
+                        <el-table-column prop="" label="利润(U)" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.profit, 2, true) }}</span>
                             </template>
