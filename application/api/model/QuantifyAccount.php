@@ -489,7 +489,7 @@ class QuantifyAccount extends Base
         if($account_id) {
             $start_time = $date . "00:00:00";
             $end_time = $date . "23:59:59";
-            $amount = self::name('quantify_inout_gold')->where('account_id', $account_id)->whereTime('time', 'between', [$start_time, $end_time])->sum('amount');
+            $amount = self::name('quantify_inout_gold')->where(['account_id' => $account_id, 'type' => 1])->whereTime('time', 'between', [$start_time, $end_time])->sum('amount');
             if ($amount !== 0) {
                 return $amount;
             }
