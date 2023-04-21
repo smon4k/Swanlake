@@ -12,6 +12,7 @@ import time
 from web3 import Web3
 from web3 import Web3, HTTPProvider
 from tools import toWei, fromWei
+from gevent import pywsgi
 
 app = Flask(__name__)
 
@@ -262,5 +263,6 @@ def hello_world():
     ]
     return make_response(jsonify(apis), 200)
 
-
-app.run(host='0.0.0.0', port=8013, debug=False)
+server = pywsgi.WSGIServer(('0.0.0.0', 8013), app)
+server.serve_forever()
+# app.run(host='0.0.0.0', port=8013, debug=False)

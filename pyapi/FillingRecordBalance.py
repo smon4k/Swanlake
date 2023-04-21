@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request, make_response
 from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract
 from tools import toWei, fromWei
+from gevent import pywsgi
 
 app = Flask(__name__)
 
@@ -197,4 +198,6 @@ def getSSTPrice():
     response.mimetype = 'application/json'
     return response
 
-app.run(host='0.0.0.0', port=8011, debug=False)
+server = pywsgi.WSGIServer(('0.0.0.0', 8011), app)
+server.serve_forever()
+# app.run(host='0.0.0.0', port=8011, debug=False)
