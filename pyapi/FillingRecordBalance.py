@@ -197,4 +197,4 @@ def getSSTPrice():
     response.mimetype = 'application/json'
     return response
 
-app.run(host='0.0.0.0', port=8011, debug=True)
+app.run(host='0.0.0.0', port=8011, debug=False)

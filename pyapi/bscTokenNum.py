@@ -263,4 +263,4 @@ def hello_world():
     return make_response(jsonify(apis), 200)
 
 
-app.run(host='0.0.0.0', port=8013, debug=True)
+app.run(host='0.0.0.0', port=8013, debug=False)
