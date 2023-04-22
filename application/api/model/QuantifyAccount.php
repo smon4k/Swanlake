@@ -309,7 +309,7 @@ class QuantifyAccount extends Base
             foreach ($balanceDetails['details'] as $k => $v) {
                 if(isset($v['ccy'])) {
                     if($v['ccy'] == 'USDT' || $v['ccy'] == 'BIFI' || $v['ccy'] == 'GMX' || $v['ccy'] == 'BTC' || $v['ccy'] == 'ETH' || $v['ccy'] == 'SAND') {
-                        if((float)$v['eq'] >= 0) {
+                        if((float)$v['cashBal'] >= 0) {
                             // $prices = $exchange->fetch_ticker($v['ccy'].'USDT'); //获取交易BTC价格
                             // $valuation = (float)$v['eq'] * (float)$prices['price'];
                             $price = 1;
@@ -317,8 +317,8 @@ class QuantifyAccount extends Base
                                 $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
                                 $price = $prices['last'];
                             }
-                            $usdtBalance += (float)$v['eq'];
-                            @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eqUsd'], $price);
+                            $usdtBalance += (float)$v['cashBal'];
+                            @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['cashBal'], (float)$v['eqUsd'], $price);
 
                             //开始写入每个交易对交易明细数据
                             if($v['ccy'] !== 'USDT') {
