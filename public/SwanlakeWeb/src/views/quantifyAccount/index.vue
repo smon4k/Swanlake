@@ -202,7 +202,8 @@
                 </el-table-column>
                 <el-table-column prop="" label="USDT估值" align="center" width="">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.valuation, 4, true) }}</span>
+                        <span v-if="scope.row.currency !== 'USDT'">{{ keepDecimalNotRounding(scope.row.valuation, 4, true) }}</span>
+                        <span v-else>————</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
