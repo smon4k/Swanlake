@@ -359,7 +359,7 @@ class QuantifyAccount extends Base
     public static function updateQuantifyAccountDetails($account_id=0, $currency='', $balance=0, $valuation=0, $price=0) {
         if($account_id && $currency) {
             $date = date('Y-m-d');
-            $res = self::name('quantify_account_details')->where(['account_id' => $account_id, 'currency' => $currency])->find();
+            $res = self::name('quantify_account_details')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
             if($res && count((array)$res) > 0) {
                 $saveRes = self::name('quantify_account_details')->where('id', $res['id'])->update([
                     'balance' => $balance,
@@ -377,6 +377,7 @@ class QuantifyAccount extends Base
                     'balance' => $balance,
                     'valuation' => $valuation,
                     'price' => $price,
+                    'date' => $date,
                     'time' => date('Y-m-d H:i:s'),
                     'state' => 1,
                 ]);
