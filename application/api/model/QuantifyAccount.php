@@ -317,7 +317,7 @@ class QuantifyAccount extends Base
                                 $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
                                 $price = $prices['last'];
                             }
-                            $usdtBalance += (float)$v['eqUsd'];
+                            $usdtBalance += (float)$v['eq'];
                             @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['eq'], (float)$v['eqUsd'], $price);
 
                             //开始写入每个交易对交易明细数据
