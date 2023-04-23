@@ -181,7 +181,15 @@
             title="账户余额明细"
             :visible.sync="accountBalanceDetailsShow"
             width="50%">
-            <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="300">
+            <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
+                <el-option
+                    v-for="item in currencyList"
+                    :key="item"
+                    :label="item"
+                    :value="item">
+                </el-option>
+            </el-select>
+            <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="500">
                 <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                 <el-table-column prop="currency" label="币种" align="center" width="">
                     <template slot-scope="scope">
@@ -375,6 +383,11 @@ export default {
             InoutGoldTotal: 1, //总条数
             accountBalanceDetailsShow: false,
             accountBalanceDetailsList: [],
+            accountBalanceDetailsPage: 1,
+            accountBalanceDetailsLimit: 20,
+            accountBalanceDetailsTotal: 0, //总条数
+            currencyList: [],
+            currency: '',
             accountCurrencyDetailsShow: false,
             accountCurrencyDetailsList: [],
             accountCurrencyDetailsPage: 1,
@@ -468,16 +481,36 @@ export default {
             })
         },
         accountBalanceDetailsFun(account_id) {
-            console.log(account_id);
+            // console.log(account_id);
             get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDetails", {
-                account_id: account_id
+                account_id: this.tabAccountId,
+                limit: this.accountBalanceDetailsLimit,
+                page: this.accountBalanceDetailsPage,
+                currency: this.currency,
             }, json => {
                 console.log(json.data);
                 if (json.code == 10000) {
-                    this.accountBalanceDetailsList = json.data;
+                    this.accountBalanceDetailsList = json.data.lists;
+                    this.accountBalanceDetailsTotal = json.data.count;
+                    if(account_id) {
+                        this.getCurrencyList();
+                    }
                 }
             })
             this.accountBalanceDetailsShow = true;
+        },
+        getCurrencyList() {
+            get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountCurrencyList", {
+                account_id: this.tabAccountId,
+            }, json => {
+                console.log(json.data);
+                if (json.code == 10000) {
+                    this.currencyList = json.data;
+                }
+            })
+        },
+        selectCurrencyChange() { //根据币种选择对应的账户余额明细数据
+            this.accountBalanceDetailsFun();
         },
         limitPaging(limit) {
             //赋值当前条数
@@ -567,6 +600,16 @@ export default {
             //赋值当前页数
             this.accountCurrencyDetailsPage = page;
             this.getAccountCurrencyDetailsList(); //刷新列表
+        },
+        accountBalanceLimitPaging(limit) {
+            //赋值当前条数
+            this.accountBalanceDetailsLimit = limit;
+            this.accountBalanceDetailsFun(); //刷新列表
+        },
+        accountBalanceSkipPaging(page) {
+            //赋值当前页数
+            this.accountBalanceDetailsPage = page;
+            this.accountBalanceDetailsFun(); //刷新列表
         },
         profitGoldLimitPaging(limit) {
             //赋值当前条数

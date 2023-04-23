@@ -401,6 +401,7 @@ export default {
             accountBalanceDetailsLimit: 20,
             accountBalanceDetailsTotal: 0, //总条数
             currencyList: [],
+            currency: '',
 
             accountCurrencyDetailsShow: false,
             accountCurrencyDetailsList: [],

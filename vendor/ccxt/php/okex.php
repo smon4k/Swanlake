@@ -2772,9 +2772,9 @@ class okex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $response = $this->privateGetPositionsHistory (array_merge($request, $params));
+        $response = $this->privateGetAccountPositionsHistory (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($data, $market, $since, $limit, $params);
+        return $data;
     }
 
     public function parse_position($position, $market = null) {
