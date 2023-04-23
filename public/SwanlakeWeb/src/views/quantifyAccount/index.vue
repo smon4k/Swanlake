@@ -561,6 +561,7 @@ export default {
         },
         accountBalanceDetailsFun(account_id) {
             // console.log(account_id);
+            this.accountBalanceTabValue = '1'
             get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDetails", {
                 account_id: this.tabAccountId,
                 limit: this.accountBalanceDetailsLimit,
