@@ -376,6 +376,8 @@ class QuantifyAccount extends Base
                     'avg_px' => $info['avgPx'],
                     'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
                     'margin_ratio' => $info['mgnRatio'],
+                    'upl' => $info['upl'],
+                    'upl_ratio' => $info['uplRatio'],
                     'time' => date('Y-m-d H:i:s')
                 ]);
                 if($saveRes) {
@@ -391,6 +393,8 @@ class QuantifyAccount extends Base
                     'avg_px' => $info['avgPx'],
                     'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
                     'margin_ratio' => $info['mgnRatio'],
+                    'upl' => $info['upl'],
+                    'upl_ratio' => $info['uplRatio'],
                     'date' => $date,
                     'time' => date('Y-m-d H:i:s'),
                     'state' => 1,
