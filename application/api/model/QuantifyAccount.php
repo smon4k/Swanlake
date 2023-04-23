@@ -332,15 +332,16 @@ class QuantifyAccount extends Base
                                 }
                                 // p($tradesList);
                                 $setAccountTradeDetailsRes = self::setOkxAccountTradeDetails($accountInfo['id'], $v['ccy'], $tradesList, $maxBillId);
-
-                                //获取持仓信息
-                                if($v['ccy'] === 'GMX') {
-                                    $tradesList = $exchange->fetch_positions_history($v['ccy'].'-USDT');
-                                    p($tradesList);
-                                }
                             }
                         }
                     }
+                }
+            }
+            //获取GMXUSDT持仓信息
+            if($accountInfo['id'] == 7) {
+                $positionsList = $exchange->fetch_positions('GMX-USDT', ['type' => 'SWAP']);
+                if($positionsList) {
+                    @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info']);
                 }
             }
             $returnArray = ['usdtBalance' => $usdtBalance];
@@ -356,6 +357,50 @@ class QuantifyAccount extends Base
                 echo $error_msg . "\r\n";
                 return false;
         }
+    }
+
+    /**
+     * 更新账户币种持仓信息
+     * @author qinlh
+     * @since 2023-04-23
+     */
+    public static function updateQuantifyAccountPositionsDetails($account_id=0, $currency='', $info = []) {
+        if($account_id && $currency) {
+            $date = date('Y-m-d');
+            $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
+            if($res && count((array)$res) > 0) {
+                $saveRes = self::name('quantify_account_positions')->where('id', $res['id'])->update([
+                    'mgn_mode' => $info['mgnMode'],
+                    'pos_side' => $info['posSide'],
+                    'pos' => $info['pos'],
+                    'avg_px' => $info['avgPx'],
+                    'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
+                    'margin_ratio' => $info['mgnRatio'],
+                    'time' => date('Y-m-d H:i:s')
+                ]);
+                if($saveRes) {
+                    return true;
+                }
+            } else {
+                $saveRes = self::name('quantify_account_positions')->insertGetId([
+                    'account_id' => $account_id,
+                    'currency' => $currency,
+                    'mgn_mode' => $info['mgnMode'],
+                    'pos_side' => $info['posSide'],
+                    'pos' => $info['pos'],
+                    'avg_px' => $info['avgPx'],
+                    'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
+                    'margin_ratio' => $info['mgnRatio'],
+                    'date' => $date,
+                    'time' => date('Y-m-d H:i:s'),
+                    'state' => 1,
+                ]);
+                if($saveRes) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
