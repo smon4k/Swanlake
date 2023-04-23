@@ -219,4 +219,28 @@ class QuantifyaccountController extends BaseController
             return $this->as_json(70001, 'Error');
         }
     }
+
+    /**
+     * 获取币种持仓信息
+     * @author qinlh
+     * @since 2023-04-23
+     */
+    public function getAccountCurrencyPositionsList(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 20, 'intval');
+        $account_id = $request->request('account_id', 0, 'intval');
+        $currency = $request->request('currency', '', 'trim');
+        if(!$account_id || $account_id <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $where = [];
+        $where['account_id'] = $account_id;
+        $where['currency'] = $currency;
+        $result = QuantifyAccount::getAccountCurrencyPositionsList($where, $page, $limits);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
 }

@@ -181,54 +181,116 @@
             title="账户余额明细"
             :visible.sync="accountBalanceDetailsShow"
             width="50%">
-            <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
-                <el-option
-                    v-for="item in currencyList"
-                    :key="item"
-                    :label="item"
-                    :value="item">
-                </el-option>
-            </el-select>
-            <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="500">
-                <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
-                <el-table-column prop="currency" label="币种" align="center" width="">
-                    <template slot-scope="scope">
-                        <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
-                            <span>{{ scope.row.currency }}</span>
-                        </el-link>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="" label="价格" align="center" width="150">
-                    <template slot-scope="scope">
-                        <span>{{ keepDecimalNotRounding(scope.row.price, 10, true) }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="" label="余额" align="center" width="150">
-                    <template slot-scope="scope">
-                        <span>{{ keepDecimalNotRounding(scope.row.balance, 10, true) }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="" label="USDT估值" align="center" width="">
-                    <template slot-scope="scope">
-                        <span v-if="scope.row.currency !== 'USDT'">{{ keepDecimalNotRounding(scope.row.valuation, 4, true) }}</span>
-                        <span v-else>————</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
-            </el-table>
-            <el-row class="pages">
-                <el-col :span="24">
-                    <div style="float:right;">
-                    <wbc-page
-                        :total="accountBalanceDetailsTotal"
-                        :pageSize="accountBalanceDetailsLimit"
-                        :currPage="accountBalanceDetailsPage"
-                        @changeLimit="accountBalanceLimitPaging"
-                        @changeSkip="accountBalanceSkipPaging"
-                    ></wbc-page>
-                    </div>
-                </el-col>
-            </el-row>
+            <el-tabs v-model="accountBalanceTabValue" @tab-click="accountBalanceTabClick">
+                <el-tab-pane label="余额明细" name="1">
+                    <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
+                        <el-option
+                            v-for="item in currencyList"
+                            :key="item"
+                            :label="item"
+                            :value="item">
+                        </el-option>
+                    </el-select>
+                    <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="500">
+                        <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
+                        <el-table-column prop="currency" label="币种" align="center" width="">
+                            <template slot-scope="scope">
+                                <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
+                                    <span>{{ scope.row.currency }}</span>
+                                </el-link>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="价格" align="center" width="150">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.price, 10, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="余额" align="center" width="150">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.balance, 10, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="USDT估值" align="center" width="">
+                            <template slot-scope="scope">
+                                <span v-if="scope.row.currency !== 'USDT'">{{ keepDecimalNotRounding(scope.row.valuation, 4, true) }}</span>
+                                <span v-else>————</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
+                    </el-table>
+                    <el-row class="pages">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                            <wbc-page
+                                :total="accountBalanceDetailsTotal"
+                                :pageSize="accountBalanceDetailsLimit"
+                                :currPage="accountBalanceDetailsPage"
+                                @changeLimit="accountBalanceLimitPaging"
+                                @changeSkip="accountBalanceSkipPaging"
+                            ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-tab-pane>
+                <el-tab-pane label="持仓信息" name="2">
+                    <el-table :data="currencyPositionsList" style="width: 100%;" height="500">
+                        <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
+                        <el-table-column prop="currency" label="币种" align="center" width="">
+                            <template slot-scope="scope">
+                                <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
+                                    <span>{{ scope.row.currency }}</span>
+                                </el-link>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="保证金模式" align="center" width="150">
+                            <template slot-scope="scope">
+                                <span v-if="scope.row.mgn_mode === 'cross'">全仓</span>
+                                <span v-if="scope.row.mgn_mode === 'nisolated'">逐仓</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="持仓方向" align="center" width="150">
+                            <template slot-scope="scope">
+                                <span v-if="scope.row.pos_side === 'long'">多头</span>
+                                <span v-if="scope.row.pos_side === 'short'">空头</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="持仓数量" align="center" width="">
+                            <template slot-scope="scope">
+                                <span>{{ scope.row.pos }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="开仓均价" align="center" width="">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.avg_px, 8, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="保证金余额" align="center" width="">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.margin_balance, 8, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="保证金率" align="center" width="">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.margin_ratio, 2, true) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
+                    </el-table>
+                    <el-row class="pages">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                            <wbc-page
+                                :total="currencyPositionsTotal"
+                                :pageSize="currencyPositionsLimit"
+                                :currPage="currencyPositionsPage"
+                                @changeLimit="currencyPositionsLimitPaging"
+                                @changeSkip="currencyPositionsSkipPaging"
+                            ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-tab-pane>
+            </el-tabs>
         </el-dialog>
 
         <!-- 账户币种交易明细 -->
@@ -402,6 +464,12 @@ export default {
             accountBalanceDetailsTotal: 0, //总条数
             currencyList: [],
             currency: '',
+            accountBalanceTabValue: '1',
+
+            currencyPositionsList: [],
+            currencyPositionsPage: 1,
+            currencyPositionsLimit: 20,
+            currencyPositionsTotal: 0, //总条数
 
             accountCurrencyDetailsShow: false,
             accountCurrencyDetailsList: [],
@@ -598,6 +666,25 @@ export default {
             this.dialogVisibleListShow = true;
             this.getInoutGoldList();
         },
+        accountBalanceTabClick(tab) {
+            this.getAccountCurrencyPositionsList();
+        },
+        getAccountCurrencyPositionsList() {
+            get("/Api/QuantifyAccount/getAccountCurrencyPositionsList", {
+                limit: this.currencyPositionsLimit,
+                page: this.currencyPositionsPage,
+                account_id: this.tabAccountId,
+                currency: 'GMX',
+            }, json => {
+                console.log(json);
+                if (json.code == 10000) {
+                    this.currencyPositionsList = json.data.lists;
+                    this.currencyPositionsTotal = json.data.count;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
         getInoutGoldList(ServerWhere) { //获取出入金记录数据
             var that = this.$data;
             if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
@@ -675,6 +762,14 @@ export default {
             //赋值当前页数
             this.accountBalanceDetailsPage = page;
             this.accountBalanceDetailsFun(); //刷新列表
+        },
+        currencyPositionsLimitPaging(limit) {
+            this.currencyPositionsLimit = limit;
+            this.getAccountCurrencyPositionsList();
+        },  
+        currencyPositionsSkipPaging(page) {
+            this.currencyPositionsPage = page;
+            this.getAccountCurrencyPositionsList();
         },
         resetForm(formName) {
             this.$refs[formName].resetFields();
