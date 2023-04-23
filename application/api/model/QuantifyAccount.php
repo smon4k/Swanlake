@@ -565,20 +565,25 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-02-23
      */
-    public static function getQuantifyAccountDetails($account_id=0) {
-        if($account_id) {
-            $data = self::name('quantify_account_details')->where('account_id', $account_id)->select();
-            if($data && count((array)$data) > 0) {
-                $resultArray = [];
-                foreach($data as $key => $val) {
-                    if($val['balance'] > 0) {
-                        $resultArray[] = $val;
-                    }
-                }
-                return $resultArray;
-            }
+    public static function getQuantifyAccountDetails($where, $page, $limits=0) {
+        if ($limits == 0) {
+            $limits = config('paginate.list_rows');// 获取总条数
         }
-        return [];
+        // p($where);
+        $count = self::name("quantify_account_details")
+                    ->where($where)
+                    ->count();//计算总页面
+        // p($count);
+        $allpage = intval(ceil($count / $limits));
+        $lists = self::name("quantify_account_details")
+                    ->where($where)
+                    ->page($page, $limits)
+                    ->field('*')
+                    ->order("id desc")
+                    ->select()
+                    ->toArray();
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
 
     /**

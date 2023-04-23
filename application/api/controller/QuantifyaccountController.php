@@ -121,11 +121,16 @@ class QuantifyaccountController extends BaseController
      * @since 2023-01-31
      */
     public function getQuantifyAccountDetails(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 1, 'intval');
         $account_id = $request->request('account_id', 0, 'intval');
         if(!$account_id || $account_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = QuantifyAccount::getQuantifyAccountDetails($account_id);
+        $where = [];
+        $where['account_id'] = $account_id;
+        $where['balance'] = ['>', 0];
+        $result = QuantifyAccount::getQuantifyAccountDetails($where, $page, $limits);
         return $this->as_json($result);
     }
 
