@@ -180,7 +180,7 @@
         <el-dialog
             title="账户余额明细"
             :visible.sync="accountBalanceDetailsShow"
-            width="50%">
+            width="80%">
             <el-tabs v-model="accountBalanceTabValue" @tab-click="accountBalanceTabClick">
                 <el-tab-pane label="余额明细" name="1">
                     <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
@@ -242,13 +242,13 @@
                                 </el-link>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="保证金模式" align="center" width="150">
+                        <el-table-column prop="" label="保证金模式" align="center">
                             <template slot-scope="scope">
                                 <span v-if="scope.row.mgn_mode === 'cross'">全仓</span>
                                 <span v-if="scope.row.mgn_mode === 'nisolated'">逐仓</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="持仓方向" align="center" width="150">
+                        <el-table-column prop="" label="持仓方向" align="center" width="">
                             <template slot-scope="scope">
                                 <span v-if="scope.row.pos_side === 'long'">多头</span>
                                 <span v-if="scope.row.pos_side === 'short'">空头</span>
