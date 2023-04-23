@@ -332,6 +332,12 @@ class QuantifyAccount extends Base
                                 }
                                 // p($tradesList);
                                 $setAccountTradeDetailsRes = self::setOkxAccountTradeDetails($accountInfo['id'], $v['ccy'], $tradesList, $maxBillId);
+
+                                //获取持仓信息
+                                if($v['ccy'] === 'GMX') {
+                                    $tradesList = $exchange->fetch_positions_history($v['ccy'].'-USDT');
+                                    p($tradesList);
+                                }
                             }
                         }
                     }

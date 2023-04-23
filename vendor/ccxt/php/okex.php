@@ -121,6 +121,7 @@ class okex extends Exchange {
                         'account/account-position-risk',
                         'account/balance',
                         'account/positions',
+                        'account/positions-history',
                         'account/bills',
                         'account/bills-archive',
                         'account/config',
@@ -2750,6 +2751,30 @@ class okex extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function fetch_positions_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'instType' => 'SWAP', // SWAP, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly' => currency['id'],
+            // 'instId' => $market['id'],
+            // 'ordId' => orderId,
+            // 'after' => billId,
+            // 'before' => billId,
+            // 'limit' => $limit, // default 100, max 100
+        );
+        $market = null;
+        $this->load_markets();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['instId'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 100
+        }
+        $response = $this->privateGetPositionsHistory (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit, $params);
     }
 
     public function parse_position($position, $market = null) {
