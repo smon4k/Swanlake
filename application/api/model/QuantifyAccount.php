@@ -814,4 +814,20 @@ class QuantifyAccount extends Base
         }
         return 0;
     }
+
+    /**
+     * 获取账户余额币种列表
+     * @author qinlh
+     * @since 2023-04-23
+     */
+    public static function getQuantifyAccountCurrencyList($account_id=0) {
+        if($account_id) {
+            $data = self::name('quantify_account_details')->where('account_id', $account_id)->group('currency')->field('currency')->select();
+            if($data && count((array)$data) > 0) {
+                $newArray = array_column($data->toArray(), 'currency');
+                return $newArray;
+            }
+        }
+        return [];
+    }
 }

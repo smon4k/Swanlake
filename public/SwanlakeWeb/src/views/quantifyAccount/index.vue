@@ -181,6 +181,14 @@
             title="账户余额明细"
             :visible.sync="accountBalanceDetailsShow"
             width="50%">
+            <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
+                <el-option
+                    v-for="item in currencyList"
+                    :key="item"
+                    :label="item"
+                    :value="item">
+                </el-option>
+            </el-select>
             <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="500">
                 <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                 <el-table-column prop="currency" label="币种" align="center" width="">
@@ -392,6 +400,7 @@ export default {
             accountBalanceDetailsPage: 1,
             accountBalanceDetailsLimit: 20,
             accountBalanceDetailsTotal: 0, //总条数
+            currencyList: [],
 
             accountCurrencyDetailsShow: false,
             accountCurrencyDetailsList: [],
@@ -481,20 +490,37 @@ export default {
                 }
             })
         },
-        accountBalanceDetailsFun() {
+        accountBalanceDetailsFun(account_id) {
             // console.log(account_id);
             get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDetails", {
                 account_id: this.tabAccountId,
                 limit: this.accountBalanceDetailsLimit,
                 page: this.accountBalanceDetailsPage,
+                currency: this.currency,
             }, json => {
                 console.log(json.data);
                 if (json.code == 10000) {
                     this.accountBalanceDetailsList = json.data.lists;
                     this.accountBalanceDetailsTotal = json.data.count;
+                    if(account_id) {
+                        this.getCurrencyList();
+                    }
                 }
             })
             this.accountBalanceDetailsShow = true;
+        },
+        getCurrencyList() {
+            get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountCurrencyList", {
+                account_id: this.tabAccountId,
+            }, json => {
+                console.log(json.data);
+                if (json.code == 10000) {
+                    this.currencyList = json.data;
+                }
+            })
+        },
+        selectCurrencyChange() { //根据币种选择对应的账户余额明细数据
+            this.accountBalanceDetailsFun();
         },
         getAccountCurrencyDetailsShow(currency) { //获取账户币种交易明细数据
             this.accountCurrencyDetailsList = [];

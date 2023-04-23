@@ -124,12 +124,16 @@ class QuantifyaccountController extends BaseController
         $page = $request->request('page', 1, 'intval');
         $limits = $request->request('limit', 1, 'intval');
         $account_id = $request->request('account_id', 0, 'intval');
+        $currency = $request->request('currency', '', 'trim');
         if(!$account_id || $account_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $where = [];
         $where['account_id'] = $account_id;
         $where['balance'] = ['>', 0];
+        if($currency && $currency !== '') {
+            $where['currency'] = $currency;
+        }
         $result = QuantifyAccount::getQuantifyAccountDetails($where, $page, $limits);
         return $this->as_json($result);
     }
@@ -196,5 +200,23 @@ class QuantifyaccountController extends BaseController
         $allpage = $data['allpage'];
         $lists = $data['lists'];
         return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+    }
+
+    /**
+     * 获取币种列表
+     * @author qinlh
+     * @since 2023-04-23
+     */
+    public function getQuantifyAccountCurrencyList(Request $request) {
+        $account_id = $request->request('account_id', 0, 'intval');
+        if(!$account_id || $account_id <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = QuantifyAccount::getQuantifyAccountCurrencyList($account_id);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
     }
 }
