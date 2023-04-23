@@ -276,12 +276,12 @@
                         </el-table-column>
                         <el-table-column prop="" label="收益" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.upl, 8, true) }}</span>
+                                <span>{{ scope.row.upl ? keepDecimalNotRounding(scope.row.upl, 8, true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.upl_ratio, 2, true) }}%</span>
+                                <span>{{ scope.row.upl_ratio ? keepDecimalNotRounding(scope.row.upl_ratio, 2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
