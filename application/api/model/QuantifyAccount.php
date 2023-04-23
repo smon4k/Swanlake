@@ -822,7 +822,7 @@ class QuantifyAccount extends Base
      */
     public static function getQuantifyAccountCurrencyList($account_id=0) {
         if($account_id) {
-            $data = self::name('quantify_account_details')->where(['account' => $account_id, 'balance' => ['>', 0]])->group('currency')->field('currency')->select();
+            $data = self::name('quantify_account_details')->where(['account_id' => $account_id, 'balance' => ['>', 0]])->group('currency')->field('currency')->select();
             if($data && count((array)$data) > 0) {
                 $newArray = array_column($data->toArray(), 'currency');
                 return $newArray;
