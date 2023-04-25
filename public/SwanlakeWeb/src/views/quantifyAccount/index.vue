@@ -271,7 +271,7 @@
                         </el-table-column>
                         <el-table-column prop="" label="保证金率" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ keepDecimalNotRounding(scope.row.margin_ratio, 2, true) }}%</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.margin_ratio * 100, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="收益" align="center" width="">
