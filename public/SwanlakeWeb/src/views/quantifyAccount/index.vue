@@ -256,7 +256,7 @@
                         </el-table-column>
                         <el-table-column prop="" label="持仓数量" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.pos }}</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.pos, 4, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="开仓均价" align="center" width="">
