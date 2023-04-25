@@ -313,9 +313,15 @@ class QuantifyAccount extends Base
                             // $prices = $exchange->fetch_ticker($v['ccy'].'USDT'); //获取交易BTC价格
                             // $valuation = (float)$v['eq'] * (float)$prices['price'];
                             $price = 1;
+                            $currencyUsd = 1;
                             if($v['ccy'] !== 'USDT') {
                                 $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
                                 $price = $prices['last'];
+                                $currencyUsd = (float)$v['cashBal'] * $price;
+                                $usdtBalance += (float)$currencyUsd;
+                            } else {
+                                $currencyUsd =  (float)$v['eqUsd'];
+                                $usdtBalance += (float)$currencyUsd;
                             }
                             $currencyUsd = (float)$v['cashBal'] * $price;
                             $usdtBalance += (float)$currencyUsd;
