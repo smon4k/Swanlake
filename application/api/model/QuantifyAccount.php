@@ -323,8 +323,6 @@ class QuantifyAccount extends Base
                                 $currencyUsd =  (float)$v['eqUsd'];
                                 $usdtBalance += (float)$currencyUsd;
                             }
-                            $currencyUsd = (float)$v['cashBal'] * $price;
-                            $usdtBalance += (float)$currencyUsd;
                             @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['cashBal'], $currencyUsd, $price);
 
                             //开始写入每个交易对交易明细数据
