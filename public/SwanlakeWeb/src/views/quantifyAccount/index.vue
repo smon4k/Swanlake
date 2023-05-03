@@ -445,6 +445,12 @@
             width="50%">
             <el-table :data="maxMinUplRateList" style="width: 100%;" height="500">
                 <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                <el-table-column prop="" label="持仓方向" align="center" width="">
+                    <template slot-scope="scope">
+                        <span v-if="scope.row.pos_side === 'long'">多头</span>
+                        <span v-if="scope.row.pos_side === 'short'">空头</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="amount" label="最大收益率" align="center" width="150">
                     <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.max_rate * 100, 2, true) }}%</span>
