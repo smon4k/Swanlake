@@ -375,9 +375,10 @@ class QuantifyAccount extends Base
             $last_pos_side = $res['pos_side'];
             $max_upl_rate = (float)$info['uplRatio'];
             $min_upl_rate = (float)$info['uplRatio'];
-            if((float)$info['uplRatio'] > $res['max_upl_rate']) {
+            if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
                 $max_upl_rate = (float)$info['uplRatio'];
-            } else if((float)$info['uplRatio'] < $res['min_upl_rate']) {
+            } 
+            if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
                 $min_upl_rate = (float)$info['uplRatio'];
             }
             if($res && count((array)$res) > 0) {
@@ -400,9 +401,10 @@ class QuantifyAccount extends Base
                 $last_pos_side = $res['pos_side'];
                 $max_upl_rate = (float)$info['uplRatio'];
                 $min_upl_rate = (float)$info['uplRatio'];
-                if((float)$info['uplRatio'] > $res['max_upl_rate']) {
+                if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
                     $max_upl_ratio = (float)$info['uplRatio'];
-                } else if((float)$info['uplRatio'] < $res['min_upl_rate']) {
+                } 
+                if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
                     $min_upl_rate = (float)$info['uplRatio'];
                 }
                 $saveRes = self::name('quantify_account_positions')->insertGetId([
