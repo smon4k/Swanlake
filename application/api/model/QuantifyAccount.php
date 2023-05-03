@@ -373,12 +373,12 @@ class QuantifyAccount extends Base
             $date = date('Y-m-d');
             $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
             $last_pos_side = $res['pos_side'];
-            $max_upl_rate = (float)$info['mgnRatio'];
-            $min_upl_rate = (float)$info['mgnRatio'];
-            if((float)$info['mgnRatio'] > $res['max_upl_rate']) {
-                $max_upl_rate = (float)$info['mgnRatio'];
-            } else if((float)$info['mgnRatio'] < $res['min_upl_rate']) {
-                $min_upl_rate = (float)$info['mgnRatio'];
+            $max_upl_rate = (float)$info['uplRatio'];
+            $min_upl_rate = (float)$info['uplRatio'];
+            if((float)$info['uplRatio'] > $res['max_upl_rate']) {
+                $max_upl_rate = (float)$info['uplRatio'];
+            } else if((float)$info['uplRatio'] < $res['min_upl_rate']) {
+                $min_upl_rate = (float)$info['uplRatio'];
             }
             if($res && count((array)$res) > 0) {
                 $saveRes = self::name('quantify_account_positions')->where('id', $res['id'])->update([
@@ -398,12 +398,12 @@ class QuantifyAccount extends Base
             } else {
                 $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->order('id desc')->find(); //获取昨天最新的数据
                 $last_pos_side = $res['pos_side'];
-                $max_upl_rate = (float)$info['mgnRatio'];
-                $min_upl_rate = (float)$info['mgnRatio'];
-                if((float)$info['mgnRatio'] > $res['max_upl_rate']) {
-                    $max_upl_ratio = (float)$info['mgnRatio'];
-                } else if((float)$info['mgnRatio'] < $res['min_upl_rate']) {
-                    $min_upl_rate = (float)$info['mgnRatio'];
+                $max_upl_rate = (float)$info['uplRatio'];
+                $min_upl_rate = (float)$info['uplRatio'];
+                if((float)$info['uplRatio'] > $res['max_upl_rate']) {
+                    $max_upl_ratio = (float)$info['uplRatio'];
+                } else if((float)$info['uplRatio'] < $res['min_upl_rate']) {
+                    $min_upl_rate = (float)$info['uplRatio'];
                 }
                 $saveRes = self::name('quantify_account_positions')->insertGetId([
                     'account_id' => $account_id,
