@@ -428,8 +428,8 @@ class QuantifyAccount extends Base
             }
             if($saveRes) {
                 //判断持仓方向是否更换 如果更换统计最大收益率和最小收益率
-                if($last_pos_side !== $info['mgnMode']) {
-                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $max_upl_rate, $min_upl_rate);
+                if($last_pos_side !== $info['posSide']) {
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posSide'], $max_upl_rate, $min_upl_rate);
                     if($setRateRes) {
                         return true;
                     }
@@ -445,13 +445,14 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-05-03
      */
-    public static function setYieldHistoryList($account_id=0, $currency='', $max_upl_rate=0, $min_upl_rate=0) {
+    public static function setYieldHistoryList($account_id=0, $currency='', $pos_side='', $max_upl_rate=0, $min_upl_rate=0) {
         if($account_id && $currency) {
             // $max_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
             // $min_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
             $insertId = self::name('quantify_account_positions_rate')->insertGetId([
                 'account_id' => $account_id,
                 'currency' => $currency,
+                'pos_side' => $pos_side,
                 'max_rate' => $max_upl_rate,
                 'min_rate' => $min_upl_rate,
                 'time' => date('Y-m-d H:i:s')
