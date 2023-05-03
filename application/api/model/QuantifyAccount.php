@@ -373,8 +373,8 @@ class QuantifyAccount extends Base
             $date = date('Y-m-d');
             $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
             $last_pos_side = $res['pos_side'];
-            $max_upl_rate = (float)$res['uplRatio'];
-            $min_upl_rate = (float)$res['uplRatio'];
+            $max_upl_rate = $res['max_upl_rate'];
+            $min_upl_rate = $res['min_upl_rate'];
             if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
                 $max_upl_rate = (float)$info['uplRatio'];
             } 
@@ -399,8 +399,8 @@ class QuantifyAccount extends Base
             } else {
                 $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->order('id desc')->find(); //获取昨天最新的数据
                 $last_pos_side = $res['pos_side'];
-                $max_upl_rate = (float)$res['uplRatio'];
-                $min_upl_rate = (float)$res['uplRatio'];
+                $max_upl_rate = $res['max_upl_rate'];
+                $min_upl_rate = $res['min_upl_rate'];
                 if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
                     $max_upl_ratio = (float)$info['uplRatio'];
                 } 
