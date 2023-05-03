@@ -402,7 +402,7 @@ class QuantifyAccount extends Base
                 $max_upl_rate = $res['max_upl_rate'];
                 $min_upl_rate = $res['min_upl_rate'];
                 if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
-                    $max_upl_ratio = (float)$info['uplRatio'];
+                    $max_upl_rate = (float)$info['uplRatio'];
                 } 
                 if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
                     $min_upl_rate = (float)$info['uplRatio'];
