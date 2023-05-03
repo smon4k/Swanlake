@@ -373,6 +373,13 @@ class QuantifyAccount extends Base
             $date = date('Y-m-d');
             $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
             $last_pos_side = $res['pos_side'];
+            $max_upl_rate = (float)$info['mgnRatio'];
+            $min_upl_rate = (float)$info['mgnRatio'];
+            if((float)$info['mgnRatio'] > $res['max_upl_rate']) {
+                $max_upl_rate = (float)$info['mgnRatio'];
+            } else if((float)$info['mgnRatio'] < $res['min_upl_rate']) {
+                $min_upl_rate = (float)$info['mgnRatio'];
+            }
             if($res && count((array)$res) > 0) {
                 $saveRes = self::name('quantify_account_positions')->where('id', $res['id'])->update([
                     'mgn_mode' => $info['mgnMode'],
@@ -384,11 +391,20 @@ class QuantifyAccount extends Base
                     'margin_ratio' => $info['mgnRatio'],
                     'upl' => $info['upl'],
                     'upl_ratio' => $info['uplRatio'],
+                    'max_upl_rate' => $max_upl_rate,
+                    'min_upl_rate' => $min_upl_rate,
                     'time' => date('Y-m-d H:i:s')
                 ]);
             } else {
                 $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->order('id desc')->find(); //获取昨天最新的数据
                 $last_pos_side = $res['pos_side'];
+                $max_upl_rate = (float)$info['mgnRatio'];
+                $min_upl_rate = (float)$info['mgnRatio'];
+                if((float)$info['mgnRatio'] > $res['max_upl_rate']) {
+                    $max_upl_ratio = (float)$info['mgnRatio'];
+                } else if((float)$info['mgnRatio'] < $res['min_upl_rate']) {
+                    $min_upl_rate = (float)$info['mgnRatio'];
+                }
                 $saveRes = self::name('quantify_account_positions')->insertGetId([
                     'account_id' => $account_id,
                     'currency' => $currency,
@@ -401,6 +417,8 @@ class QuantifyAccount extends Base
                     'margin_ratio' => $info['mgnRatio'],
                     'upl' => $info['upl'],
                     'upl_ratio' => $info['uplRatio'],
+                    'max_upl_rate' => $max_upl_rate,
+                    'min_upl_rate' => $min_upl_rate,
                     'date' => $date,
                     'time' => date('Y-m-d H:i:s'),
                     'state' => 1,
@@ -409,7 +427,7 @@ class QuantifyAccount extends Base
             if($saveRes) {
                 //判断持仓方向是否更换 如果更换统计最大收益率和最小收益率
                 if($last_pos_side !== $info['posSide']) {
-                    $setRateRes = self::setYieldHistoryList($account_id, $currency);
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $max_upl_rate, $min_upl_rate);
                     if($setRateRes) {
                         return true;
                     }
@@ -425,15 +443,15 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-05-03
      */
-    public static function setYieldHistoryList($account_id=0, $currency='') {
+    public static function setYieldHistoryList($account_id=0, $currency='', $max_upl_rate=0, $min_upl_rate=0) {
         if($account_id && $currency) {
-            $max_upl_ratio = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
-            $min_upl_ratio = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
+            // $max_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
+            // $min_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
             $insertId = self::name('quantify_account_positions_rate')->insertGetId([
                 'account_id' => $account_id,
                 'currency' => $currency,
-                'max_rate' => $max_upl_ratio,
-                'min_rate' => $min_upl_ratio,
+                'max_rate' => $max_upl_rate,
+                'min_rate' => $min_upl_rate,
                 'time' => date('Y-m-d H:i:s')
             ]);
             if($insertId) {
@@ -960,15 +978,15 @@ class QuantifyAccount extends Base
                     ->order("id desc")
                     ->select()
                     ->toArray();
-        foreach ($lists as $key => $val) {
-            $maxMinRateArr = self::getNewPositionsRate($val['account_id'], $val['currency']);
-            $lists[$key]['max_upl_rate'] = 0;
-            $lists[$key]['min_upl_rate'] = 0;
-            if($maxMinRateArr && count((array)$maxMinRateArr) > 0) {
-                $lists[$key]['max_upl_rate'] = $maxMinRateArr['max_rate'];
-                $lists[$key]['min_upl_rate'] = $maxMinRateArr['min_rate'];
-            }
-        }
+        // foreach ($lists as $key => $val) {
+        //     $maxMinRateArr = self::getNewPositionsRate($val['account_id'], $val['currency']);
+        //     $lists[$key]['max_upl_rate'] = 0;
+        //     $lists[$key]['min_upl_rate'] = 0;
+        //     if($maxMinRateArr && count((array)$maxMinRateArr) > 0) {
+        //         $lists[$key]['max_upl_rate'] = $maxMinRateArr['max_rate'];
+        //         $lists[$key]['min_upl_rate'] = $maxMinRateArr['min_rate'];
+        //     }
+        // }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
