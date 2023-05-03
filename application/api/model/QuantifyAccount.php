@@ -372,22 +372,23 @@ class QuantifyAccount extends Base
         if($account_id && $currency) {
             $date = date('Y-m-d');
             $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
+            $last_pos_side = $res['pos_side'];
             if($res && count((array)$res) > 0) {
                 $saveRes = self::name('quantify_account_positions')->where('id', $res['id'])->update([
                     'mgn_mode' => $info['mgnMode'],
                     'pos_side' => $info['posSide'],
                     'pos' => $info['pos'],
                     'avg_px' => $info['avgPx'],
+                    'mark_px' => $info['markPx'],
                     'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
                     'margin_ratio' => $info['mgnRatio'],
                     'upl' => $info['upl'],
                     'upl_ratio' => $info['uplRatio'],
                     'time' => date('Y-m-d H:i:s')
                 ]);
-                if($saveRes) {
-                    return true;
-                }
             } else {
+                $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->order('id desc')->find(); //获取昨天最新的数据
+                $last_pos_side = $res['pos_side'];
                 $saveRes = self::name('quantify_account_positions')->insertGetId([
                     'account_id' => $account_id,
                     'currency' => $currency,
@@ -395,6 +396,7 @@ class QuantifyAccount extends Base
                     'pos_side' => $info['posSide'],
                     'pos' => $info['pos'],
                     'avg_px' => $info['avgPx'],
+                    'mark_px' => $info['markPx'],
                     'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
                     'margin_ratio' => $info['mgnRatio'],
                     'upl' => $info['upl'],
@@ -403,12 +405,58 @@ class QuantifyAccount extends Base
                     'time' => date('Y-m-d H:i:s'),
                     'state' => 1,
                 ]);
-                if($saveRes) {
-                    return true;
+            }
+            if($saveRes) {
+                //判断持仓方向是否更换 如果更换统计最大收益率和最小收益率
+                if($last_pos_side !== $info['posSide']) {
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency);
+                    if($setRateRes) {
+                        return true;
+                    }
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * 持仓信息
+     * 记录最大最小收益率记录
+     * @author qinlh
+     * @since 2023-05-03
+     */
+    public static function setYieldHistoryList($account_id=0, $currency='') {
+        if($account_id && $currency) {
+            $max_upl_ratio = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
+            $min_upl_ratio = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
+            $insertId = self::name('quantify_account_positions_rate')->insertGetId([
+                'account_id' => $account_id,
+                'currency' => $currency,
+                'max_rate' => $max_upl_ratio,
+                'min_rate' => $min_upl_ratio,
+                'time' => date('Y-m-d H:i:s')
+            ]);
+            if($insertId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 持仓信息
+     * 获取最新的最大最小收益率
+     * @author qinlh
+     * @since 2023-05-03
+     */
+    public static function getNewPositionsRate($account_id=0, $currency='') {
+        if($account_id && $currency) {
+            $data = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency])->order('id desc')->find();
+            if($data) {
+                return $data->toArray();
+            }
+        }
+        return [];
     }
 
     /**
@@ -906,6 +954,37 @@ class QuantifyAccount extends Base
         // p($count);
         $allpage = intval(ceil($count / $limits));
         $lists = self::name("quantify_account_positions")
+                    ->where($where)
+                    ->page($page, $limits)
+                    ->field('*')
+                    ->order("id desc")
+                    ->select()
+                    ->toArray();
+        foreach ($lists as $key => $val) {
+            $maxMinRateArr = self::getNewPositionsRate($val['account_id'], $val['currency']);
+            $lists[$key]['max_upl_rate'] = $maxMinRateArr['max_rate'];
+            $lists[$key]['min_upl_rate'] = $maxMinRateArr['min_rate'];
+        }
+        // p($lists);
+        return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
+    }
+
+    /**
+     * 获取币种持仓信息
+     * @author qinlh
+     * @since 2023-04-23
+     */
+    public static function getMaxMinUplRateData($where, $page, $limits=0) {
+        if ($limits == 0) {
+            $limits = config('paginate.list_rows');// 获取总条数
+        }
+        // p($where);
+        $count = self::name("quantify_account_positions_rate")
+                    ->where($where)
+                    ->count();//计算总页面
+        // p($count);
+        $allpage = intval(ceil($count / $limits));
+        $lists = self::name("quantify_account_positions_rate")
                     ->where($where)
                     ->page($page, $limits)
                     ->field('*')

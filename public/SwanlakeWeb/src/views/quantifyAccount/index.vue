@@ -281,7 +281,21 @@
                         </el-table-column>
                         <el-table-column prop="" label="收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.upl_ratio ? keepDecimalNotRounding(scope.row.upl_ratio, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.upl_ratio ? keepDecimalNotRounding(scope.row.upl_ratio * 100, 2, true) : 0 }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="最大收益率" align="center" width="">
+                            <template slot-scope="scope">
+                                <el-link type="primary" @click="getMaxMinUplRate()">
+                                    <span>{{ scope.row.max_upl_rate ? keepDecimalNotRounding(scope.row.max_upl_rate * 100, 2, true) : 0 }}%</span>
+                                </el-link>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="" label="最小收益率" align="center" width="">
+                            <template slot-scope="scope">
+                                <el-link type="primary" @click="getMaxMinUplRate()">
+                                    <span>{{ scope.row.min_upl_rate ? keepDecimalNotRounding(scope.row.min_upl_rate * 100, 2, true) : 0 }}%</span>
+                                </el-link>
                             </template>
                         </el-table-column>
                         <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
@@ -419,6 +433,39 @@
                 </el-col>
             </el-row>
         </el-dialog>
+
+        <el-dialog
+            title="收益率列表"
+            :visible.sync="maxMinUplRateShow"
+            width="50%">
+            <el-table :data="maxMinUplRateList" style="width: 100%;" height="500">
+                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                <el-table-column prop="amount" label="最大收益率" align="center" width="150">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.max_rate, 8, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="total_profit" label="最小收益率" align="center" width="150">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.min_rate, 4, true) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
+            </el-table>
+            <el-row class="pages">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="maxMinUplRateTotal"
+                        :pageSize="maxMinUplRateLimit"
+                        :currPage="maxMinUplRatePage"
+                        @changeLimit="maxMinUplRateLimitPaging"
+                        @changeSkip="maxMinUplRatePaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -492,6 +539,12 @@ export default {
             profitGoldPageSize: 20, //每页显示条数
             profitGoldTotal: 1, //总条数
             profitGoldList: [],
+
+            maxMinUplRateShow: false,
+            maxMinUplRateLimit: 20,
+            maxMinUplRatePage: 1,
+            maxMinUplRateList: [],
+            maxMinUplRateTotal: 0,
         }
     },
     computed: {
@@ -833,6 +886,33 @@ export default {
                     return false;
                 }
             });
+        },
+        getMaxMinUplRate() { //获取收益率最大最小历史记录
+            get("/Api/QuantifyAccount/getMaxMinUplRateData", {
+                limit: this.maxMinUplRateLimit,
+                page: this.maxMinUplRatePage,
+                account_id: this.tabAccountId,
+                currency: 'GMX',
+            }, json => {
+                console.log(json);
+                this.maxMinUplRateShow = true;
+                if (json.code == 10000) {
+                    this.maxMinUplRateList = json.data.lists;
+                    this.maxMinUplRateTotal = json.data.count;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
+        maxMinUplRateLimitPaging(limit) {
+            //赋值当前条数
+            this.maxMinUplRateLimit = limit;
+            this.getMaxMinUplRate(); //刷新列表
+        },
+        maxMinUplRatePaging(page) {
+            //赋值当前页数
+            this.maxMinUplRatePage = page;
+            this.getMaxMinUplRate(); //刷新列表
         },
     },
     mounted() {
