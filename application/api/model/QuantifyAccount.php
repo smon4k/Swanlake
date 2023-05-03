@@ -428,7 +428,7 @@ class QuantifyAccount extends Base
             }
             if($saveRes) {
                 //判断持仓方向是否更换 如果更换统计最大收益率和最小收益率
-                if($last_pos_side !== $info['posSide']) {
+                if($last_pos_side !== $info['mgnMode']) {
                     $setRateRes = self::setYieldHistoryList($account_id, $currency, $max_upl_rate, $min_upl_rate);
                     if($setRateRes) {
                         return true;
