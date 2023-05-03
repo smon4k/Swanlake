@@ -375,6 +375,7 @@ class QuantifyAccount extends Base
             $last_pos_side = $res['pos_side'];
             $max_upl_rate = $res['max_upl_rate'];
             $min_upl_rate = $res['min_upl_rate'];
+            $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
             if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
                 $max_upl_rate = (float)$info['uplRatio'];
             } 
@@ -394,6 +395,7 @@ class QuantifyAccount extends Base
                     'upl_ratio' => $info['uplRatio'],
                     'max_upl_rate' => $max_upl_rate,
                     'min_upl_rate' => $min_upl_rate,
+                    'rate_average' => $rate_average,
                     'time' => date('Y-m-d H:i:s')
                 ]);
             } else {
@@ -401,6 +403,7 @@ class QuantifyAccount extends Base
                 $last_pos_side = $res['pos_side'];
                 $max_upl_rate = $res['max_upl_rate'];
                 $min_upl_rate = $res['min_upl_rate'];
+                $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
                 if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
                     $max_upl_rate = (float)$info['uplRatio'];
                 } 
@@ -421,6 +424,7 @@ class QuantifyAccount extends Base
                     'upl_ratio' => $info['uplRatio'],
                     'max_upl_rate' => $max_upl_rate,
                     'min_upl_rate' => $min_upl_rate,
+                    'rate_average' => $rate_average,
                     'date' => $date,
                     'time' => date('Y-m-d H:i:s'),
                     'state' => 1,
@@ -428,7 +432,12 @@ class QuantifyAccount extends Base
             }
             if($saveRes) {
                 //判断持仓方向是否更换 如果更换统计最大收益率和最小收益率
-                if($last_pos_side !== $info['posSide']) {
+                if($last_pos_side === $info['posSide']) {
+                    $setRateRes = self::saveYieldHistoryList($max_upl_rate, $min_upl_rate);
+                    if($setRateRes) {
+                        return true;
+                    }
+                } else {
                     $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posSide'], $max_upl_rate, $min_upl_rate);
                     if($setRateRes) {
                         return true;
@@ -449,15 +458,40 @@ class QuantifyAccount extends Base
         if($account_id && $currency) {
             // $max_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
             // $min_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
+            $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
             $insertId = self::name('quantify_account_positions_rate')->insertGetId([
                 'account_id' => $account_id,
                 'currency' => $currency,
                 'pos_side' => $pos_side,
                 'max_rate' => $max_upl_rate,
                 'min_rate' => $min_upl_rate,
+                'rate_average' => $rate_average,
                 'time' => date('Y-m-d H:i:s')
             ]);
             if($insertId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 持仓信息
+     * 更新最大最小收益率记录
+     * @author qinlh
+     * @since 2023-05-03
+     */
+    public static function saveYieldHistoryList($max_upl_rate=0, $min_upl_rate=0) {
+        if($max_upl_rate && $min_upl_rate) {
+            $res = self::name('quantify_account_positions_rate')->order('id desc')->find(); //获取昨天最新的数据
+            $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
+            $updateRes = self::name('quantify_account_positions_rate')->where('id', $res['id'])->update([
+                'max_rate' => $max_upl_rate,
+                'min_rate' => $min_upl_rate,
+                'rate_average' => $rate_average,
+                'time' => date('Y-m-d H:i:s')
+            ]);
+            if($updateRes !== false) {
                 return true;
             }
         }

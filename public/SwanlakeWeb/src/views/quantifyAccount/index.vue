@@ -303,6 +303,11 @@
                                 </el-link>
                             </template>
                         </el-table-column>
+                        <el-table-column prop="rate_average" label="平均值" align="center" width="150">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) }}%</span>
+                            </template>
+                        </el-table-column>
                         <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
                     </el-table>
                     <el-row class="pages">
@@ -459,6 +464,11 @@
                 <el-table-column prop="total_profit" label="最小收益率" align="center" width="150">
                     <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.min_rate * 100, 2, true) }}%</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="rate_average" label="平均值" align="center" width="150">
+                    <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
