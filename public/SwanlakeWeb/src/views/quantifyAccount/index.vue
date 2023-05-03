@@ -264,6 +264,11 @@
                                 <span>{{ keepDecimalNotRounding(scope.row.avg_px, 8, true) }}</span>
                             </template>
                         </el-table-column>
+                         <el-table-column prop="" label="标记价格" align="center" width="">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.mark_px, 8, true) }}</span>
+                            </template>
+                        </el-table-column>
                         <el-table-column prop="" label="保证金余额" align="center" width="">
                             <template slot-scope="scope">
                                 <span>{{ keepDecimalNotRounding(scope.row.margin_balance, 8, true) }}</span>
@@ -442,12 +447,12 @@
                 <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
                 <el-table-column prop="amount" label="最大收益率" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.max_rate, 8, true) }} USDT</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.max_rate * 100, 2, true) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="total_profit" label="最小收益率" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.min_rate, 4, true) }} USDT</span>
+                    <span>{{ keepDecimalNotRounding(scope.row.min_rate * 100, 2, true) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
