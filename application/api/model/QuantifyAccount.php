@@ -962,8 +962,12 @@ class QuantifyAccount extends Base
                     ->toArray();
         foreach ($lists as $key => $val) {
             $maxMinRateArr = self::getNewPositionsRate($val['account_id'], $val['currency']);
-            $lists[$key]['max_upl_rate'] = $maxMinRateArr['max_rate'];
-            $lists[$key]['min_upl_rate'] = $maxMinRateArr['min_rate'];
+            $lists[$key]['max_upl_rate'] = 0;
+            $lists[$key]['min_upl_rate'] = 0;
+            if($maxMinRateArr && count((array)$maxMinRateArr) > 0) {
+                $lists[$key]['max_upl_rate'] = $maxMinRateArr['max_rate'];
+                $lists[$key]['min_upl_rate'] = $maxMinRateArr['min_rate'];
+            }
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
