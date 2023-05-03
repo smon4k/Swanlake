@@ -303,7 +303,7 @@
                                 </el-link>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="rate_average" label="平均值" align="center" width="150">
+                        <el-table-column prop="rate_average" label="平均值" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) }}%</span>
                             </template>
@@ -466,7 +466,7 @@
                     <span>{{ keepDecimalNotRounding(scope.row.min_rate * 100, 2, true) }}%</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="rate_average" label="平均值" align="center" width="150">
+                <el-table-column prop="rate_average" label="平均值" align="center" width="">
                     <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) }}%</span>
                     </template>
