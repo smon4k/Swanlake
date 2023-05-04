@@ -556,7 +556,7 @@ class QuantifyAccount extends Base
      * @since 2023-05-04
      */
     public static function getPosIdYieldHistory($account_id=0, $currency='', $trade_id=0) {
-        if($pos_id) {
+        if($trade_id) {
             $max_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $trade_id])->max('rate_num');
             $min_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $trade_id])->min('rate_num');
             if($max_rate && $min_rate) {
