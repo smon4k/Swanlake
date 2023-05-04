@@ -380,7 +380,7 @@ class QuantifyAccount extends Base
             if($setRateRes) {
                 $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['posId']);
                 $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
-                $min_upl_rate = (float)$max_main_upl_arr['main_rate'];
+                $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
                 $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
             }
             // if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
@@ -467,7 +467,7 @@ class QuantifyAccount extends Base
         if($account_id && $currency) {
             // $max_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
             // $min_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
-            $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
+            // $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
             $insertId = self::name('quantify_account_positions_rate')->insertGetId([
                 'account_id' => $account_id,
                 'currency' => $currency,
