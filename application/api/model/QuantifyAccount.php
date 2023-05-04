@@ -1076,7 +1076,8 @@ class QuantifyAccount extends Base
         //             ->toArray();
         $begin = ($page - 1) * $limits;
         $count_sql = "SELECT `account_id`,`currency`,`pos_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `pos_id`";
-        $count = self::query($count_sql);
+        $countRes = self::query($count_sql);
+        $count = count((array)$countRes);
         $allpage = intval(ceil($count / $limits));
         $sql = "SELECT `account_id`,`currency`,`pos_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `pos_id` LIMIT {$begin},{$limits}";
         $lists = self::query($sql);
