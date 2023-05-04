@@ -375,13 +375,20 @@ class QuantifyAccount extends Base
             $last_pos_side = $res['pos_side'];
             $max_upl_rate = $res['max_upl_rate'];
             $min_upl_rate = $res['min_upl_rate'];
-            $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
-            if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
-                $max_upl_rate = (float)$info['uplRatio'];
-            } 
-            if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
-                $min_upl_rate = (float)$info['uplRatio'];
+            // $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
+            $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio']);
+            if($setRateRes) {
+                $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['posId']);
+                $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
+                $min_upl_rate = (float)$max_main_upl_arr['main_rate'];
+                $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
             }
+            // if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
+            //     $max_upl_rate = (float)$info['uplRatio'];
+            // } 
+            // if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
+            //     $min_upl_rate = (float)$info['uplRatio'];
+            // }
             if($res && count((array)$res) > 0) {
                 $saveRes = self::name('quantify_account_positions')->where('id', $res['id'])->update([
                     'pos_id' => $info['posId'],
@@ -404,13 +411,12 @@ class QuantifyAccount extends Base
                 $last_pos_side = $res['pos_side'];
                 $max_upl_rate = $res['max_upl_rate'];
                 $min_upl_rate = $res['min_upl_rate'];
-                $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
-                if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
-                    $max_upl_rate = (float)$info['uplRatio'];
-                } 
-                if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
-                    $min_upl_rate = (float)$info['uplRatio'];
-                }
+                // if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
+                //     $max_upl_rate = (float)$info['uplRatio'];
+                // } 
+                // if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
+                //     $min_upl_rate = (float)$info['uplRatio'];
+                // }
                 $saveRes = self::name('quantify_account_positions')->insertGetId([
                     'account_id' => $account_id,
                     'currency' => $currency,
@@ -433,18 +439,19 @@ class QuantifyAccount extends Base
                 ]);
             }
             if($saveRes) {
-                //判断持仓方向是否更换 如果更换统计最大收益率和最小收益率
-                if($last_pos_side === $info['posSide']) {
-                    $setRateRes = self::saveYieldHistoryList($max_upl_rate, $min_upl_rate);
-                    if($setRateRes) {
-                        return true;
-                    }
-                } else {
-                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posSide'], $max_upl_rate, $min_upl_rate);
-                    if($setRateRes) {
-                        return true;
-                    }
-                }
+                return true;
+                // //判断持仓方向是否更换 如果更换统计最大收益率和最小收益率
+                // if($last_pos_side === $info['posSide']) {
+                //     $setRateRes = self::saveYieldHistoryList($max_upl_rate, $min_upl_rate);
+                //     if($setRateRes) {
+                //         return true;
+                //     }
+                // } else {
+                //     $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $max_upl_rate, $min_upl_rate);
+                //     if($setRateRes) {
+                //         return true;
+                //     }
+                // }
             }
         }
         return false;
@@ -456,7 +463,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-05-03
      */
-    public static function setYieldHistoryList($account_id=0, $currency='', $pos_side='', $max_upl_rate=0, $min_upl_rate=0) {
+    public static function setYieldHistoryList($account_id=0, $currency='', $pos_id=0, $pos_side='', $uplRatio=0) {
         if($account_id && $currency) {
             // $max_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
             // $min_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
@@ -464,10 +471,9 @@ class QuantifyAccount extends Base
             $insertId = self::name('quantify_account_positions_rate')->insertGetId([
                 'account_id' => $account_id,
                 'currency' => $currency,
+                'pos_id' => $pos_id,
                 'pos_side' => $pos_side,
-                'max_rate' => $max_upl_rate,
-                'min_rate' => $min_upl_rate,
-                'rate_average' => $rate_average,
+                'rate_num' => $uplRatio,
                 'time' => date('Y-m-d H:i:s')
             ]);
             if($insertId) {
@@ -498,6 +504,21 @@ class QuantifyAccount extends Base
             }
         }
         return false;
+    }
+
+    /**
+     * 获取持仓id下最大最小收益率记录
+     * @author qinlh
+     * @since 2023-05-04
+     */
+    public static function getPosIdYieldHistory($account_id=0, $currency='', $pos_id=0) {
+        if($pos_id) {
+            $max_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'pos_id' => $pos_id])->max('rate_num');
+            $min_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'pos_id' => $pos_id])->min('rate_num');
+            if($max_rate && $min_rate) {
+                return ['max_rate' => $max_rate, 'min_rate' => $min_rate];
+            }
+        }
     }
 
     /**
