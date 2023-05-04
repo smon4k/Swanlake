@@ -2753,27 +2753,26 @@ class okex extends Exchange {
         return $result;
     }
 
-    public function fetch_positions_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'instType' => 'SWAP', // SWAP, MARGIN, SWAP, FUTURES, OPTION
-            // 'uly' => currency['id'],
-            // 'instId' => $market['id'],
-            // 'ordId' => orderId,
-            // 'after' => billId,
-            // 'before' => billId,
-            // 'limit' => $limit, // default 100, max 100
-        );
-        $market = null;
+    public function fetch_positions_history($symbol = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instId'] = $market['id'];
+        // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
+        // $type = $this->safe_string($params, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type');
+        $params = $this->omit($params, 'type');
+        $request = array(
+            // instType String No Instrument $type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
+            // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
+            // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
+            // 'posId' => '564606595825799176'
+        );
+        if ($type !== null) {
+            $request['instType'] = strtoupper($type);
         }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 100, max 100
-        }
+        $params = $this->omit($params, 'type');
+        // p($params);
         $response = $this->privateGetAccountPositionsHistory (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
+        // $data = $response['data'];
         return $data;
     }
 

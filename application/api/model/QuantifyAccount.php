@@ -372,24 +372,38 @@ class QuantifyAccount extends Base
         if($account_id && $currency) {
             $date = date('Y-m-d');
             $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
-            $last_pos_side = $res['pos_side'];
-            $max_upl_rate = $res['max_upl_rate'];
-            $min_upl_rate = $res['min_upl_rate'];
-            // $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
-            $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio']);
-            if($setRateRes) {
-                $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['posId']);
-                $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
-                $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
-                $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
-            }
             // if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
-            //     $max_upl_rate = (float)$info['uplRatio'];
-            // } 
-            // if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
-            //     $min_upl_rate = (float)$info['uplRatio'];
-            // }
+                //     $max_upl_rate = (float)$info['uplRatio'];
+                // } 
+                // if((float)$info['uplRatio'] < (float)$res['min_upl_rate']) {
+                    //     $min_upl_rate = (float)$info['uplRatio'];
+                    // }
             if($res && count((array)$res) > 0) {
+                $last_pos_side = $res['pos_side'];
+                $max_upl_rate = $res['max_upl_rate'];
+                $min_upl_rate = $res['min_upl_rate'];
+                if($last_pos_side === $info['posSide']) { //如果方向没有变的话
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio']);
+                } else { //方向改变的话
+                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'posId' => $res['pos_id'], 'before' => get_data_format($res['time'])]);
+                    $count = count((array)$positionsHistoryList);
+                    if($count > 0) {
+                        $insertData = $positionsHistoryList[$count - 1];
+                        $setRateRes01 = self::setYieldHistoryList($account_id, $currency, $insertData['posId'], $insertData['direction'], $insertData['pnlRatio']);
+                    } else {
+                        $setRateRes01 = true;
+                    }
+                    if($setRateRes01) {
+                        $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio']);
+                    }
+                }
+                // $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
+                if($setRateRes) {
+                    $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['posId']);
+                    $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
+                    $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
+                    $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
+                }
                 $saveRes = self::name('quantify_account_positions')->where('id', $res['id'])->update([
                     'pos_id' => $info['posId'],
                     'mgn_mode' => $info['mgnMode'],

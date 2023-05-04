@@ -387,3 +387,11 @@ function CurlRequest($url, $header, $content=array(), $backHeader=0, $cookie='')
         }
         return trim($data, ".");
     }
+
+    // 时间日期转时间戳格式，精确到毫秒，
+    function get_data_format($time) {
+        list($usec, $sec) = explode(".", $time);
+        $date = strtotime($usec);
+        $return_data = str_pad($date.$sec,13,"0",STR_PAD_RIGHT); //不足13位。右边补0
+        return $return_data;
+    }
