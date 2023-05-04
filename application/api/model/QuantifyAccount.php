@@ -345,7 +345,7 @@ class QuantifyAccount extends Base
             if($accountInfo['id'] == 7) {
                 $positionsList = $exchange->fetch_positions('GMX-USDT', ['type' => 'SWAP']);
                 if($positionsList) {
-                    @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info']);
+                    @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info'], $exchange);
                 }
             }
             $returnArray = ['usdtBalance' => $usdtBalance];
@@ -368,15 +368,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-04-23
      */
-    public static function updateQuantifyAccountPositionsDetails($account_id=0, $currency='', $info = []) {
-        $vendor_name = "ccxt.ccxt";
-        Vendor($vendor_name);
-        $className = "\ccxt\\okex5";
-        $exchange  = new $className(array( //子账户
-            'apiKey' => $accountInfo['api_key'],
-            'secret' => $accountInfo['secret_key'],
-            'password' => $accountInfo['pass_phrase'],
-        ));
+    public static function updateQuantifyAccountPositionsDetails($account_id=0, $currency='', $info = [], $exchange=null) {
         if($account_id && $currency) {
             $date = date('Y-m-d');
             $res = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'date' => $date])->find();
