@@ -291,16 +291,16 @@
                         </el-table-column>
                         <el-table-column prop="" label="最大收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <el-link type="primary" @click="getMaxMinUplRate()">
+                                <!-- <el-link type="primary" @click="getMaxMinUplRate()"> -->
                                     <span>{{ scope.row.max_upl_rate ? keepDecimalNotRounding(scope.row.max_upl_rate * 100, 2, true) : 0 }}%</span>
-                                </el-link>
+                                <!-- </el-link> -->
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="最小收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <el-link type="primary" @click="getMaxMinUplRate()">
+                                <!-- <el-link type="primary" @click="getMaxMinUplRate()"> -->
                                     <span>{{ scope.row.min_upl_rate ? keepDecimalNotRounding(scope.row.min_upl_rate * 100, 2, true) : 0 }}%</span>
-                                </el-link>
+                                <!-- </el-link> -->
                             </template>
                         </el-table-column>
                         <el-table-column prop="rate_average" label="平均值" align="center" width="">
@@ -324,6 +324,46 @@
                         </el-col>
                     </el-row>
                 </el-tab-pane>
+                 <el-tab-pane label="收益率列表" name="3">
+                    <el-table :data="maxMinUplRateList" style="width: 100%;" height="500">
+                        <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                        <el-table-column prop="" label="持仓方向" align="center" width="">
+                            <template slot-scope="scope">
+                                <span v-if="scope.row.pos_side === 'long'">多头</span>
+                                <span v-if="scope.row.pos_side === 'short'">空头</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="amount" label="最大收益率" align="center" width="150">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.max_rate * 100, 2, true) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_profit" label="最小收益率" align="center" width="150">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.min_rate * 100, 2, true) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="rate_average" label="平均值" align="center" width="">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
+                    </el-table>
+                    <el-row class="pages">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                            <wbc-page
+                                :total="maxMinUplRateTotal"
+                                :pageSize="maxMinUplRateLimit"
+                                :currPage="maxMinUplRatePage"
+                                @changeLimit="maxMinUplRateLimitPaging"
+                                @changeSkip="maxMinUplRatePaging"
+                            ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                 </el-tab-pane>
             </el-tabs>
         </el-dialog>
 
@@ -444,7 +484,7 @@
             </el-row>
         </el-dialog>
 
-        <el-dialog
+        <!-- <el-dialog
             title="收益率列表"
             :visible.sync="maxMinUplRateShow"
             width="50%">
@@ -486,7 +526,7 @@
                     </div>
                 </el-col>
             </el-row>
-        </el-dialog>
+        </el-dialog> -->
     </div>
 </template>
 <script>
@@ -752,7 +792,13 @@ export default {
             this.getInoutGoldList();
         },
         accountBalanceTabClick(tab) {
-            this.getAccountCurrencyPositionsList();
+            console.log(tab);
+            if(tab.name == 2) {
+                this.getAccountCurrencyPositionsList();
+            }
+            if(tab.name == 3) {
+                this.getMaxMinUplRate();
+            }
         },
         getAccountCurrencyPositionsList() {
             get("/Api/QuantifyAccount/getAccountCurrencyPositionsList", {
@@ -916,7 +962,7 @@ export default {
                 currency: 'GMX',
             }, json => {
                 console.log(json);
-                this.maxMinUplRateShow = true;
+                // this.maxMinUplRateShow = true;
                 if (json.code == 10000) {
                     this.maxMinUplRateList = json.data.lists;
                     this.maxMinUplRateTotal = json.data.count;
