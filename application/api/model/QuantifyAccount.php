@@ -489,22 +489,22 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-05-03
      */
-    public static function saveYieldHistoryList($max_upl_rate=0, $min_upl_rate=0) {
-        if($max_upl_rate && $min_upl_rate) {
-            $res = self::name('quantify_account_positions_rate')->order('id desc')->find(); //获取昨天最新的数据
-            $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
-            $updateRes = self::name('quantify_account_positions_rate')->where('id', $res['id'])->update([
-                'max_rate' => $max_upl_rate,
-                'min_rate' => $min_upl_rate,
-                'rate_average' => $rate_average,
-                'time' => date('Y-m-d H:i:s')
-            ]);
-            if($updateRes !== false) {
-                return true;
-            }
-        }
-        return false;
-    }
+    // public static function saveYieldHistoryList($max_upl_rate=0, $min_upl_rate=0) {
+    //     if($max_upl_rate && $min_upl_rate) {
+    //         $res = self::name('quantify_account_positions_rate')->order('id desc')->find(); //获取昨天最新的数据
+    //         $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
+    //         $updateRes = self::name('quantify_account_positions_rate')->where('id', $res['id'])->update([
+    //             'max_rate' => $max_upl_rate,
+    //             'min_rate' => $min_upl_rate,
+    //             'rate_average' => $rate_average,
+    //             'time' => date('Y-m-d H:i:s')
+    //         ]);
+    //         if($updateRes !== false) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
     /**
      * 获取持仓id下最大最小收益率记录
@@ -1053,6 +1053,7 @@ class QuantifyAccount extends Base
 
     /**
      * 获取币种持仓信息
+     * 获取仓位下最大最小收益率数据
      * @author qinlh
      * @since 2023-04-23
      */
@@ -1060,19 +1061,25 @@ class QuantifyAccount extends Base
         if ($limits == 0) {
             $limits = config('paginate.list_rows');// 获取总条数
         }
-        // p($where);
-        $count = self::name("quantify_account_positions_rate")
-                    ->where($where)
-                    ->count();//计算总页面
-        // p($count);
+        // // p($where);
+        // $count = self::name("quantify_account_positions_rate")
+        //             ->where($where)
+        //             ->count();//计算总页面
+        // // p($count);
+        // $allpage = intval(ceil($count / $limits));
+        // $lists = self::name("quantify_account_positions_rate")
+        //             ->where($where)
+        //             ->page($page, $limits)
+        //             ->field('*')
+        //             ->order("id desc")
+        //             ->select()
+        //             ->toArray();
+        $begin = ($page - 1) * $limits;
+        $count_sql = "SELECT `account_id`,`currency`,`pos_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `pos_id`";
+        $count = self::query($count_sql);
         $allpage = intval(ceil($count / $limits));
-        $lists = self::name("quantify_account_positions_rate")
-                    ->where($where)
-                    ->page($page, $limits)
-                    ->field('*')
-                    ->order("id desc")
-                    ->select()
-                    ->toArray();
+        $sql = "SELECT `account_id`,`currency`,`pos_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `pos_id` LIMIT {$begin},{$limits}";
+        $lists = self::query($sql);
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
