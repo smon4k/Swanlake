@@ -384,6 +384,7 @@ class QuantifyAccount extends Base
             }
             if($res && count((array)$res) > 0) {
                 $saveRes = self::name('quantify_account_positions')->where('id', $res['id'])->update([
+                    'pos_id' => $info['posId'],
                     'mgn_mode' => $info['mgnMode'],
                     'pos_side' => $info['posSide'],
                     'pos' => $info['pos'],
@@ -413,6 +414,7 @@ class QuantifyAccount extends Base
                 $saveRes = self::name('quantify_account_positions')->insertGetId([
                     'account_id' => $account_id,
                     'currency' => $currency,
+                    'pos_id' => $info['posId'],
                     'mgn_mode' => $info['mgnMode'],
                     'pos_side' => $info['posSide'],
                     'pos' => $info['pos'],
