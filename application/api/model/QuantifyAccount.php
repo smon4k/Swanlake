@@ -399,7 +399,7 @@ class QuantifyAccount extends Base
                 }
                 // $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
                 if($setRateRes) {
-                    $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['posId']);
+                    $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['tradeId']);
                     $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
                     $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
                     $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
@@ -444,7 +444,7 @@ class QuantifyAccount extends Base
                     }
                 }
                 if($setRateRes) {
-                    $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['posId']);
+                    $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['tradeId']);
                     $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
                     $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
                     $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
@@ -555,10 +555,10 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-05-04
      */
-    public static function getPosIdYieldHistory($account_id=0, $currency='', $pos_id=0) {
+    public static function getPosIdYieldHistory($account_id=0, $currency='', $trade_id=0) {
         if($pos_id) {
-            $max_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'pos_id' => $pos_id])->max('rate_num');
-            $min_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'pos_id' => $pos_id])->min('rate_num');
+            $max_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $trade_id])->max('rate_num');
+            $min_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $trade_id])->min('rate_num');
             if($max_rate && $min_rate) {
                 return ['max_rate' => $max_rate, 'min_rate' => $min_rate];
             }
