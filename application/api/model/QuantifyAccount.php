@@ -425,6 +425,27 @@ class QuantifyAccount extends Base
                 $last_pos_side = $res['pos_side'];
                 $max_upl_rate = $res['max_upl_rate'];
                 $min_upl_rate = $res['min_upl_rate'];
+                if($last_pos_side === $info['posSide']) { //如果方向没有变的话
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio']);
+                } else { //方向改变的话
+                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'posId' => $res['pos_id'], 'before' => get_data_format($res['time'])]);
+                    $count = count((array)$positionsHistoryList);
+                    if($count > 0) {
+                        $insertData = $positionsHistoryList[$count - 1];
+                        $setRateRes01 = self::setYieldHistoryList($account_id, $currency, $insertData['posId'], $insertData['direction'], $insertData['pnlRatio']);
+                    } else {
+                        $setRateRes01 = true;
+                    }
+                    if($setRateRes01) {
+                        $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio']);
+                    }
+                }
+                if($setRateRes) {
+                    $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['posId']);
+                    $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
+                    $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
+                    $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
+                }
                 // if((float)$info['uplRatio'] > (float)$res['max_upl_rate']) {
                 //     $max_upl_rate = (float)$info['uplRatio'];
                 // } 
