@@ -348,7 +348,7 @@
                             <span>{{ keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) }}%</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
+                        <!-- <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column> -->
                     </el-table>
                     <el-row class="pages">
                         <el-col :span="24">
