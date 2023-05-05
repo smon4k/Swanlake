@@ -1129,6 +1129,7 @@ class QuantifyAccount extends Base
             $closingYieldRes = self::name('quantify_account_positions_rate')->where('trade_id', $val['trade_id'])->order('time desc')->find();
             $lists[$key]['closing_yield'] = $closingYieldRes['rate_num'];
             $lists[$key]['avg_price'] = $closingYieldRes['avg_price'];
+            $lists[$key]['opening_price'] = $closingYieldRes['opening_price'];
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
