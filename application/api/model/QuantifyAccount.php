@@ -581,7 +581,7 @@ class QuantifyAccount extends Base
             $data = self::name('quantify_account_positions')->where('type', 1)->select();
             if($data && count((array)$data) > 0) {
                 foreach ($data as $key => $val) {
-                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'posId' => $val['pos_id'], 'before' => $val['u_time']]);
+                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'before' => $val['u_time']]);
                     foreach ($positionsHistoryList as $k => $v) {
                         if($val['c_time'] == $v['cTime']) { //已平仓
                             $saveTypeRes = self::name('quantify_account_positions')->where('id', $val['id'])->setField('type', 2);
