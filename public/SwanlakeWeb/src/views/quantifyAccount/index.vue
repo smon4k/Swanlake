@@ -348,6 +348,11 @@
                             <span>{{ keepDecimalNotRounding(scope.row.avg_price, 2, true) }}</span>
                             </template>
                         </el-table-column>
+                        <el-table-column prop="opening_price" label="开仓价格" align="center" width="">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.opening_price, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
                         <el-table-column prop="rate_average" label="平均值" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) }}%</span>
