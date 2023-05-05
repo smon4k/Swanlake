@@ -22,7 +22,7 @@
                         <el-table-column prop="" label="总结余(U)" align="center">
                             <template slot-scope="scope">
                             <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
-                            <el-link type="primary" @click="getAccountCurrencyPositionsList()">
+                            <el-link type="primary" @click="getTotalBalanceClick()">
                                 <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
                             </el-link>
                             </template>
@@ -183,7 +183,7 @@
             :visible.sync="accountBalanceDetailsShow"
             width="80%">
             <el-tabs v-model="accountBalanceTabValue" @tab-click="accountBalanceTabClick">
-                <!-- <el-tab-pane label="余额明细" name="1">
+                <el-tab-pane label="余额明细" name="1" v-if="tabAccountId !== 7">
                     <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
                         <el-option
                             v-for="item in currencyList"
@@ -231,7 +231,7 @@
                             </div>
                         </el-col>
                     </el-row>
-                </el-tab-pane> -->
+                </el-tab-pane>
                 <el-tab-pane label="持仓信息" name="2">
                     <el-table :data="currencyPositionsList" style="width: 100%;" height="500">
                         <el-table-column prop="currency" label="币种" align="center" width="">
@@ -587,7 +587,7 @@ export default {
             accountBalanceDetailsTotal: 0, //总条数
             currencyList: [],
             currency: '',
-            accountBalanceTabValue: '2',
+            accountBalanceTabValue: '',
 
             currencyPositionsList: [],
             currencyPositionsPage: 1,
@@ -624,7 +624,7 @@ export default {
 
     },
     created() {
-        this.getList();
+        // this.getList();
         this.getAccountList();
     },
     watch: {
@@ -690,7 +690,7 @@ export default {
         },
         accountBalanceDetailsFun(account_id) { //余额明细数据
             // console.log(account_id);
-            this.accountBalanceTabValue = '1'
+            // this.accountBalanceTabValue = '1'
             get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDetails", {
                 account_id: this.tabAccountId,
                 limit: this.accountBalanceDetailsLimit,
@@ -798,15 +798,29 @@ export default {
         },
         accountBalanceTabClick(tab) {
             console.log(tab);
+            if(tab.name == 1) {
+                // this.accountBalanceTabValue = '1'
+                this.accountBalanceDetailsFun();
+            }
             if(tab.name == 2) {
+                // this.accountBalanceTabValue = '2'
                 this.getAccountCurrencyPositionsList();
             }
             if(tab.name == 3) {
                 this.getMaxMinUplRate();
             }
         },
+        getTotalBalanceClick(name) { //获取总结余弹框
+            if(name == 1) {
+                this.accountBalanceTabValue = '1'
+                this.accountBalanceDetailsFun();
+            }
+            if(name == 2) {
+                this.accountBalanceTabValue = '2'
+                this.getAccountCurrencyPositionsList();
+            }
+        },
         getAccountCurrencyPositionsList() {
-            this.accountBalanceTabValue = '2'
             get("/Api/QuantifyAccount/getAccountCurrencyPositionsList", {
                 limit: this.currencyPositionsLimit,
                 page: this.currencyPositionsPage,
