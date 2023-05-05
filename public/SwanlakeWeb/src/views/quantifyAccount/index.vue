@@ -182,7 +182,7 @@
             :visible.sync="accountBalanceDetailsShow"
             width="80%">
             <el-tabs v-model="accountBalanceTabValue" @tab-click="accountBalanceTabClick">
-                <el-tab-pane label="余额明细" name="1">
+                <!-- <el-tab-pane label="余额明细" name="1">
                     <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
                         <el-option
                             v-for="item in currencyList"
@@ -192,7 +192,6 @@
                         </el-option>
                     </el-select>
                     <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="500">
-                        <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                         <el-table-column prop="currency" label="币种" align="center" width="">
                             <template slot-scope="scope">
                                 <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
@@ -231,10 +230,9 @@
                             </div>
                         </el-col>
                     </el-row>
-                </el-tab-pane>
+                </el-tab-pane> -->
                 <el-tab-pane label="持仓信息" name="2">
                     <el-table :data="currencyPositionsList" style="width: 100%;" height="500">
-                        <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                         <el-table-column prop="currency" label="币种" align="center" width="">
                             <template slot-scope="scope">
                                 <el-link type="primary" @click="getAccountCurrencyDetailsShow(scope.row.currency)">
@@ -291,16 +289,12 @@
                         </el-table-column>
                         <el-table-column prop="" label="最大收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <!-- <el-link type="primary" @click="getMaxMinUplRate()"> -->
-                                    <span>{{ scope.row.max_upl_rate ? keepDecimalNotRounding(scope.row.max_upl_rate * 100, 2, true) : 0 }}%</span>
-                                <!-- </el-link> -->
+                                <span>{{ scope.row.max_upl_rate ? keepDecimalNotRounding(scope.row.max_upl_rate * 100, 2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="最小收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <!-- <el-link type="primary" @click="getMaxMinUplRate()"> -->
-                                    <span>{{ scope.row.min_upl_rate ? keepDecimalNotRounding(scope.row.min_upl_rate * 100, 2, true) : 0 }}%</span>
-                                <!-- </el-link> -->
+                                <span>{{ scope.row.min_upl_rate ? keepDecimalNotRounding(scope.row.min_upl_rate * 100, 2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="rate_average" label="平均值" align="center" width="">
@@ -346,6 +340,11 @@
                         <el-table-column prop="total_profit" label="平仓收益率" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.closing_yield * 100, 2, true) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_profit" label="平仓价格" align="center" width="">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.avg_price, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="rate_average" label="平均值" align="center" width="">
@@ -587,7 +586,7 @@ export default {
             accountBalanceDetailsTotal: 0, //总条数
             currencyList: [],
             currency: '',
-            accountBalanceTabValue: '1',
+            accountBalanceTabValue: '2',
 
             currencyPositionsList: [],
             currencyPositionsPage: 1,

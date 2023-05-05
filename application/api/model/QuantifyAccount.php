@@ -383,18 +383,18 @@ class QuantifyAccount extends Base
                 $max_upl_rate = $res['max_upl_rate'];
                 $min_upl_rate = $res['min_upl_rate'];
                 if($last_pos_side === $info['posSide']) { //如果方向没有变的话
-                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio'], $info['tradeId'], $info['uTime'], $info['cTime']);
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio'], $info['tradeId'], $info['uTime'], $info['cTime'], $info['markPx']);
                 } else { //方向改变的话
                     $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'posId' => $res['pos_id'], 'before' => $res['u_time']]);
                     $count = count((array)$positionsHistoryList);
                     if($count > 0) {
                         $insertData = $positionsHistoryList[$count - 1];
-                        $setRateRes01 = self::setYieldHistoryList($account_id, $currency, $insertData['posId'], $insertData['direction'], $insertData['pnlRatio'], $res['trade_id'], $insertData['uTime'], $insertData['cTime']);
+                        $setRateRes01 = self::setYieldHistoryList($account_id, $currency, $insertData['posId'], $insertData['direction'], $insertData['pnlRatio'], $res['trade_id'], $insertData['uTime'], $insertData['cTime'], $info['closeAvgPx']);
                     } else {
                         $setRateRes01 = true;
                     }
                     if($setRateRes01) {
-                        $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio'],  $info['tradeId'], $info['uTime'], $info['cTime']);
+                        $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio'],  $info['tradeId'], $info['uTime'], $info['cTime'], $info['markPx']);
                     }
                 }
                 // $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
@@ -429,18 +429,18 @@ class QuantifyAccount extends Base
                 $max_upl_rate = $res['max_upl_rate'];
                 $min_upl_rate = $res['min_upl_rate'];
                 if($last_pos_side === $info['posSide']) { //如果方向没有变的话
-                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio'], $info['tradeId'], $info['uTime'], $info['cTime']);
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio'], $info['tradeId'], $info['uTime'], $info['cTime'], $info['markPx']);
                 } else { //方向改变的话
                     $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'posId' => $res['pos_id'], 'before' => $res['u_time']]);
                     $count = count((array)$positionsHistoryList);
                     if($count > 0) {
                         $insertData = $positionsHistoryList[$count - 1];
-                        $setRateRes01 = self::setYieldHistoryList($account_id, $currency, $insertData['posId'], $insertData['direction'], $insertData['pnlRatio'], $res['trade_id'], $insertData['uTime'], $insertData['cTime']);
+                        $setRateRes01 = self::setYieldHistoryList($account_id, $currency, $insertData['posId'], $insertData['direction'], $insertData['pnlRatio'], $res['trade_id'], $insertData['uTime'], $insertData['cTime'], $info['closeAvgPx']);
                     } else {
                         $setRateRes01 = true;
                     }
                     if($setRateRes01) {
-                        $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio'], $info['tradeId'], $info['uTime'], $info['cTime']);
+                        $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posId'], $info['posSide'], $info['uplRatio'], $info['tradeId'], $info['uTime'], $info['cTime'], $info['markPx']);
                     }
                 }
                 if($setRateRes) {
@@ -504,7 +504,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-05-03
      */
-    public static function setYieldHistoryList($account_id=0, $currency='', $pos_id=0, $pos_side='', $uplRatio=0, $trade_id='', $u_time='', $c_time='') {
+    public static function setYieldHistoryList($account_id=0, $currency='', $pos_id=0, $pos_side='', $uplRatio=0, $trade_id='', $u_time='', $c_time='', $avg_price=0) {
         if($account_id && $currency) {
             // $max_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
             // $min_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
@@ -515,6 +515,7 @@ class QuantifyAccount extends Base
                 'pos_id' => $pos_id,
                 'pos_side' => $pos_side,
                 'rate_num' => $uplRatio,
+                'avg_price' => $avg_price,
                 'trade_id' => $trade_id,
                 'u_time' => $u_time,
                 'c_time' => $c_time,
@@ -1129,6 +1130,7 @@ class QuantifyAccount extends Base
             $lists[$key]['rate_average'] = ($val['max_rate'] + $val['min_rate']) / 2;
             $closingYieldRes = self::name('quantify_account_positions_rate')->where('trade_id', $val['trade_id'])->order('time desc')->find();
             $lists[$key]['closing_yield'] = $closingYieldRes['rate_num'];
+            $lists[$key]['avg_price'] = $closingYieldRes['avg_price'];
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
