@@ -1127,7 +1127,7 @@ class QuantifyAccount extends Base
         $lists = self::query($sql);
         foreach ($lists as $key => $val) {
             $lists[$key]['rate_average'] = ($val['max_rate'] + $val['min_rate']) / 2;
-            $closingYieldRes = self::where('trade_id', $val['trade_id'])->order('time desc')->find();
+            $closingYieldRes = self::name('quantify_account_positions_rate')->where('trade_id', $val['trade_id'])->order('time desc')->find();
             $lists[$key]['closing_yield'] = $closingYieldRes['rate_num'];
         }
         // p($lists);
