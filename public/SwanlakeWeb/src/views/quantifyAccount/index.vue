@@ -319,7 +319,7 @@
                         </el-col>
                     </el-row>
                 </el-tab-pane>
-                 <el-tab-pane label="收益率列表" name="3">
+                 <el-tab-pane label="收益率列表" name="3" v-if="tabAccountId == 7">
                     <el-table :data="maxMinUplRateList" style="width: 100%;" height="">
                         <el-table-column sortable prop="id" label="ID" width="" align="center" fixed="left" type="index"></el-table-column>
                         <el-table-column prop="" label="持仓方向" align="center" width="">
@@ -350,7 +350,7 @@
                         </el-table-column>
                         <el-table-column prop="opening_price" label="开仓价格" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.opening_price, 2, true) }}</span>
+                            <span>{{ scope.row.opening_price ? keepDecimalNotRounding(scope.row.opening_price, 2, true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="rate_average" label="平均值" align="center" width="">
