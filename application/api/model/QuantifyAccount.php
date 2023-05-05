@@ -345,7 +345,8 @@ class QuantifyAccount extends Base
             if($accountInfo['id'] == 7) {
                 $positionsList = $exchange->fetch_positions('GMX-USDT', ['type' => 'SWAP']);
                 if($positionsList) {
-                    @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info'], $exchange);
+                    // @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info'], $exchange);
+                    @self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'GMX', $positionsList, $exchange);
                 }
             }
             $returnArray = ['usdtBalance' => $usdtBalance];
@@ -494,6 +495,105 @@ class QuantifyAccount extends Base
             }
         }
         return false;
+    }
+
+    /**
+     * 更新账户币种持仓信息 - 支持多条仓位
+     * @author qinlh
+     * @since 2023-05-05
+     */
+    public static function updateQuantifyAccountPositionsDetailsAll($account_id=0, $currency='', $infos = [], $exchange=null) {
+        if($account_id && $currency) {
+            $date = date('Y-m-d');
+            if($infos && count((array)$infos) > 0) {
+                //监听是否有平仓
+                self::getPositionsClosedPosition($account_id, $currency, $exchange);
+                foreach ($infos as $key => $val) {
+                    $element = $val['info'];
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $element['posSide'], $element['uplRatio'], $element['tradeId'], $element['uTime'], $element['cTime'], $element['markPx'], $element['avgPx'], $element['posId']);
+                    if($setRateRes) {
+                        $positionsRes = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $element['tradeId']])->find();
+                        if($positionsRes && count((array)$positionsRes) > 0) {
+                            // $last_pos_side = $positionsRes['pos_side'];
+                            $max_upl_rate = $positionsRes['max_upl_rate'];
+                            $min_upl_rate = $positionsRes['min_upl_rate'];
+                            $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['tradeId']);
+                            $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
+                            $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
+                            $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
+                            $savePositionsRes = self::name('quantify_account_positions')->where('id', $positionsRes['id'])->update([
+                                'mgn_mode' => $info['mgnMode'],
+                                'pos_side' => $info['posSide'],
+                                'pos' => $info['pos'],
+                                'avg_px' => $info['avgPx'],
+                                'mark_px' => $info['markPx'],
+                                'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
+                                'margin_ratio' => $info['mgnRatio'],
+                                'upl' => $info['upl'],
+                                'upl_ratio' => $info['uplRatio'],
+                                'max_upl_rate' => $max_upl_rate,
+                                'min_upl_rate' => $min_upl_rate,
+                                'rate_average' => $rate_average,
+                                'u_time' => $info['uTime'],
+                                'c_time' => $info['cTime'],
+                                'time' => date('Y-m-d H:i:s')
+                            ]);
+                        } else {
+                            $savePositionsRes = self::name('quantify_account_positions')->insertGetId([
+                                'account_id' => $account_id,
+                                'currency' => $currency,
+                                'trade_id' => $info['tradeId'],
+                                'mgn_mode' => $info['mgnMode'],
+                                'pos_side' => $info['posSide'],
+                                'pos' => $info['pos'],
+                                'avg_px' => $info['avgPx'],
+                                'mark_px' => $info['markPx'],
+                                'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
+                                'margin_ratio' => $info['mgnRatio'],
+                                'upl' => $info['upl'],
+                                'upl_ratio' => $info['uplRatio'],
+                                'max_upl_rate' => $info['uplRatio'],
+                                'min_upl_rate' => $info['uplRatio'],
+                                'rate_average' => $info['uplRatio'],
+                                'date' => $date,
+                                'u_time' => $info['uTime'],
+                                'c_time' => $info['cTime'],
+                                'time' => date('Y-m-d H:i:s'),
+                                'state' => 1,
+                                'type' => 1,
+                            ]);
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取仓位未平仓数据 检测历史持仓是否平仓
+     * @author qinlh
+     * @since 2023-05-05
+     */
+    public static function getPositionsClosedPosition($account_id=0, $currency='', $exchange=null) {
+        if($account_id && $currency) {
+            $data = self::name('quantify_account_positions')->where('type', 1)->select();
+            if($data && count((array)$data) > 0) {
+                foreach ($data as $key => $val) {
+                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'posId' => $val['pos_id'], 'before' => $val['u_time']]);
+                    foreach ($positionsHistoryList as $k => $v) {
+                        if($val['c_time'] == $v['cTime']) { //已平仓
+                            $saveTypeRes = self::name('quantify_account_positions')->where('id', $val['id'])->setField('type', 2);
+                            if($saveTypeRes) {
+                                self::setYieldHistoryList($account_id, $currency, $v['direction'], $v['pnlRatio'], $val['trade_id'], $v['uTime'], $v['cTime'], $v['closeAvgPx'], $v['openAvgPx'], $v['posId']);
+                            }
+                        }
+                    }
+                }
+            }
+            return;
+        }
     }
 
     /**
