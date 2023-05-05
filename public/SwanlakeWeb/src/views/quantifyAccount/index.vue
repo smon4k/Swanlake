@@ -21,7 +21,8 @@
                         </el-table-column>
                         <el-table-column prop="" label="总结余(U)" align="center">
                             <template slot-scope="scope">
-                            <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)">
+                            <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
+                            <el-link type="primary" @click="getAccountCurrencyPositionsList()">
                                 <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
                             </el-link>
                             </template>
@@ -687,7 +688,7 @@ export default {
                 }
             })
         },
-        accountBalanceDetailsFun(account_id) {
+        accountBalanceDetailsFun(account_id) { //余额明细数据
             // console.log(account_id);
             this.accountBalanceTabValue = '1'
             get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDetails", {
@@ -805,6 +806,7 @@ export default {
             }
         },
         getAccountCurrencyPositionsList() {
+            this.accountBalanceTabValue = '2'
             get("/Api/QuantifyAccount/getAccountCurrencyPositionsList", {
                 limit: this.currencyPositionsLimit,
                 page: this.currencyPositionsPage,
@@ -818,6 +820,7 @@ export default {
                 } else {
                     this.$message.error("加载数据失败");
                 }
+                this.accountBalanceDetailsShow = true;
             });
         },
         getInoutGoldList(ServerWhere) { //获取出入金记录数据
