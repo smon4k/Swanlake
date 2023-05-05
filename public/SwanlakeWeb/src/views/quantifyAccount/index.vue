@@ -325,22 +325,27 @@
                     </el-row>
                 </el-tab-pane>
                  <el-tab-pane label="收益率列表" name="3">
-                    <el-table :data="maxMinUplRateList" style="width: 100%;" height="500">
-                        <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                    <el-table :data="maxMinUplRateList" style="width: 100%;" height="">
+                        <el-table-column sortable prop="id" label="ID" width="" align="center" fixed="left" type="index"></el-table-column>
                         <el-table-column prop="" label="持仓方向" align="center" width="">
                             <template slot-scope="scope">
                                 <span v-if="scope.row.pos_side === 'long'">多头</span>
                                 <span v-if="scope.row.pos_side === 'short'">空头</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="amount" label="最大收益率" align="center" width="150">
+                        <el-table-column prop="amount" label="最大收益率" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.max_rate * 100, 2, true) }}%</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="total_profit" label="最小收益率" align="center" width="150">
+                        <el-table-column prop="total_profit" label="最小收益率" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.min_rate * 100, 2, true) }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_profit" label="平仓收益率" align="center" width="">
+                            <template slot-scope="scope">
+                            <span>{{ keepDecimalNotRounding(scope.row.closing_yield * 100, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="rate_average" label="平均值" align="center" width="">
