@@ -517,47 +517,47 @@ class QuantifyAccount extends Base
                             // $last_pos_side = $positionsRes['pos_side'];
                             $max_upl_rate = $positionsRes['max_upl_rate'];
                             $min_upl_rate = $positionsRes['min_upl_rate'];
-                            $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $info['tradeId']);
+                            $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $element['tradeId']);
                             $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
                             $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
                             $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
                             $savePositionsRes = self::name('quantify_account_positions')->where('id', $positionsRes['id'])->update([
-                                'mgn_mode' => $info['mgnMode'],
-                                'pos_side' => $info['posSide'],
-                                'pos' => $info['pos'],
-                                'avg_px' => $info['avgPx'],
-                                'mark_px' => $info['markPx'],
-                                'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
-                                'margin_ratio' => $info['mgnRatio'],
-                                'upl' => $info['upl'],
-                                'upl_ratio' => $info['uplRatio'],
+                                'mgn_mode' => $element['mgnMode'],
+                                'pos_side' => $element['posSide'],
+                                'pos' => $element['pos'],
+                                'avg_px' => $element['avgPx'],
+                                'mark_px' => $element['markPx'],
+                                'margin_balance' => $element['mgnMode'] === 'cross' ? $element['imr'] : $element['margin'],
+                                'margin_ratio' => $element['mgnRatio'],
+                                'upl' => $element['upl'],
+                                'upl_ratio' => $element['uplRatio'],
                                 'max_upl_rate' => $max_upl_rate,
                                 'min_upl_rate' => $min_upl_rate,
                                 'rate_average' => $rate_average,
-                                'u_time' => $info['uTime'],
-                                'c_time' => $info['cTime'],
+                                'u_time' => $element['uTime'],
+                                'c_time' => $element['cTime'],
                                 'time' => date('Y-m-d H:i:s')
                             ]);
                         } else {
                             $savePositionsRes = self::name('quantify_account_positions')->insertGetId([
                                 'account_id' => $account_id,
                                 'currency' => $currency,
-                                'trade_id' => $info['tradeId'],
-                                'mgn_mode' => $info['mgnMode'],
-                                'pos_side' => $info['posSide'],
-                                'pos' => $info['pos'],
-                                'avg_px' => $info['avgPx'],
-                                'mark_px' => $info['markPx'],
-                                'margin_balance' => $info['mgnMode'] === 'cross' ? $info['imr'] : $info['margin'],
+                                'trade_id' => $element['tradeId'],
+                                'mgn_mode' => $element['mgnMode'],
+                                'pos_side' => $element['posSide'],
+                                'pos' => $element['pos'],
+                                'avg_px' => $element['avgPx'],
+                                'mark_px' => $element['markPx'],
+                                'margin_balance' => $element['mgnMode'] === 'cross' ? $element['imr'] : $element['margin'],
                                 'margin_ratio' => $info['mgnRatio'],
-                                'upl' => $info['upl'],
-                                'upl_ratio' => $info['uplRatio'],
-                                'max_upl_rate' => $info['uplRatio'],
-                                'min_upl_rate' => $info['uplRatio'],
-                                'rate_average' => $info['uplRatio'],
+                                'upl' => $element['upl'],
+                                'upl_ratio' => $element['uplRatio'],
+                                'max_upl_rate' => $element['uplRatio'],
+                                'min_upl_rate' => $element['uplRatio'],
+                                'rate_average' => $element['uplRatio'],
                                 'date' => $date,
-                                'u_time' => $info['uTime'],
-                                'c_time' => $info['cTime'],
+                                'u_time' => $element['uTime'],
+                                'c_time' => $element['cTime'],
                                 'time' => date('Y-m-d H:i:s'),
                                 'state' => 1,
                                 'type' => 1,
