@@ -385,7 +385,7 @@ class QuantifyAccount extends Base
                 if($last_pos_side === $info['posSide']) { //如果方向没有变的话
                     $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posSide'], $info['uplRatio'], $info['tradeId'], $info['uTime'], $info['cTime'], $info['markPx']);
                 } else { //方向改变的话
-                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'posId' => $res['pos_id'], 'before' => $res['u_time']]);
+                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'before' => $res['u_time']]);
                     $count = count((array)$positionsHistoryList);
                     if($count > 0) {
                         $insertData = $positionsHistoryList[$count - 1];
@@ -430,7 +430,7 @@ class QuantifyAccount extends Base
                 if($last_pos_side === $info['posSide']) { //如果方向没有变的话
                     $setRateRes = self::setYieldHistoryList($account_id, $currency, $info['posSide'], $info['uplRatio'], $info['tradeId'], $info['uTime'], $info['cTime'], $info['markPx']);
                 } else { //方向改变的话
-                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'posId' => $res['pos_id'], 'before' => $res['u_time']]);
+                    $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'before' => $res['u_time']]);
                     $count = count((array)$positionsHistoryList);
                     if($count > 0) {
                         $insertData = $positionsHistoryList[$count - 1];
