@@ -706,7 +706,6 @@ export default {
                     }
                 }
             })
-            this.accountBalanceDetailsShow = true;
         },
         getCurrencyList() {
             get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountCurrencyList", {
@@ -810,15 +809,15 @@ export default {
                 this.getMaxMinUplRate();
             }
         },
-        getTotalBalanceClick(name) { //获取总结余弹框
-            if(name == 1) {
+        getTotalBalanceClick() { //获取总结余弹框
+            if(this.tabAccountId == 7) {
+                this.accountBalanceTabValue = '2'
+                this.getAccountCurrencyPositionsList();
+            } else {
                 this.accountBalanceTabValue = '1'
                 this.accountBalanceDetailsFun();
             }
-            if(name == 2) {
-                this.accountBalanceTabValue = '2'
-                this.getAccountCurrencyPositionsList();
-            }
+            this.accountBalanceDetailsShow = true;
         },
         getAccountCurrencyPositionsList() {
             get("/Api/QuantifyAccount/getAccountCurrencyPositionsList", {
@@ -834,7 +833,6 @@ export default {
                 } else {
                     this.$message.error("加载数据失败");
                 }
-                this.accountBalanceDetailsShow = true;
             });
         },
         getInoutGoldList(ServerWhere) { //获取出入金记录数据
