@@ -815,6 +815,8 @@ export default {
             }
         },
         getTotalBalanceClick() { //获取总结余弹框
+            this.currencyPositionsList = [];
+            this.accountBalanceDetailsList = [];
             if(this.tabAccountId == 7) {
                 this.accountBalanceTabValue = '2'
                 this.getAccountCurrencyPositionsList();
