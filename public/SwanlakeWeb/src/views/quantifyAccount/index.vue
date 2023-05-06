@@ -321,7 +321,7 @@
                 </el-tab-pane>
                  <el-tab-pane label="收益率列表" name="3" v-if="tabAccountId == 7">
                     <el-table :data="maxMinUplRateList" style="width: 100%;" height="">
-                        <!-- <el-table-column sortable prop="id" label="ID" width="" align="center" fixed="left" type="index"></el-table-column> -->
+                        <el-table-column sortable label="ID" width="" align="center" fixed="left" type="index"></el-table-column>
                         <el-table-column prop="" label="持仓方向" align="center" width="">
                             <template slot-scope="scope">
                                 <span v-if="scope.row.pos_side === 'long'">多头</span>
