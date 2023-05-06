@@ -802,6 +802,8 @@ export default {
         },
         accountBalanceTabClick(tab) {
             console.log(tab);
+            this.currencyPositionsList = [];
+            this.accountBalanceDetailsList = [];
             if(tab.name == 1) {
                 // this.accountBalanceTabValue = '1'
                 this.accountBalanceDetailsFun();
