@@ -580,10 +580,11 @@ class QuantifyAccount extends Base
         $accountInfo = self::getAccountInfo($account_id);
         $vendor_name = "ccxt.ccxt";
         Vendor($vendor_name);
-        $className = "\ccxt\\binance";
+        $className = "\ccxt\\okex5";
         $exchange  = new $className(array( //子账户
             'apiKey' => $accountInfo['api_key'],
             'secret' => $accountInfo['secret_key'],
+            'password' => $accountInfo['pass_phrase'],
         ));
         if($account_id && $currency) {
             $data = self::name('quantify_account_positions')->where('type', 1)->select();
