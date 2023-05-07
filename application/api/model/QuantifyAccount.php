@@ -507,7 +507,7 @@ class QuantifyAccount extends Base
             $date = date('Y-m-d');
             if($infos && count((array)$infos) > 0) {
                 //监听是否有平仓
-                self::getPositionsClosedPosition($account_id, $currency, $exchange);
+                // self::getPositionsClosedPosition($account_id, $currency, $exchange);
                 foreach ($infos as $key => $val) {
                     $element = $val['info'];
                     $setRateRes = self::setYieldHistoryList($account_id, $currency, $element['posSide'], $element['uplRatio'], $element['tradeId'], $element['uTime'], $element['cTime'], $element['markPx'], $element['avgPx'], $element['posId']);
@@ -576,7 +576,15 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-05-05
      */
-    public static function getPositionsClosedPosition($account_id=0, $currency='', $exchange=null) {
+    public static function getPositionsClosedPosition($account_id=7, $currency='GMX') {
+        $accountInfo = self::getAccountInfo($account_id);
+        $vendor_name = "ccxt.ccxt";
+        Vendor($vendor_name);
+        $className = "\ccxt\\binance";
+        $exchange  = new $className(array( //子账户
+            'apiKey' => $accountInfo['api_key'],
+            'secret' => $accountInfo['secret_key'],
+        ));
         if($account_id && $currency) {
             $data = self::name('quantify_account_positions')->where('type', 1)->select();
             if($data && count((array)$data) > 0) {
@@ -590,6 +598,7 @@ class QuantifyAccount extends Base
                             }
                         }
                     }
+                    sleep(15);
                 }
             }
             return;

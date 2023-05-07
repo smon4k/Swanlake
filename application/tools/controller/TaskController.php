@@ -336,6 +336,19 @@ class TaskController extends ToolsBaseController
         return (time() - $begin_time) . "s\n";
     }
 
+    /**
+     * 获取持仓列表未平仓数据检测是否已平仓
+     * @author qinlh
+     * @since 2023-05-07
+     */
+    public function getPositionsClosedPosition() {
+        $begin_time = time();
+
+        QuantifyAccount::getPositionsClosedPosition();
+
+        return (time() - $begin_time) . "s\n";
+    }
+
 
 
     //  /**
