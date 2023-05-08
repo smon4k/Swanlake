@@ -1243,8 +1243,8 @@ class QuantifyAccount extends Base
             $lists[$key]['avg_price'] = $closingYieldRes['avg_price'];
             $lists[$key]['opening_price'] = $closingYieldRes['opening_price'];
             $lists[$key]['upl'] = $closingYieldRes['upl'];
-            $lists[$key]['u_time'] = $closingYieldRes['u_time'];
-            $lists[$key]['c_time'] = $closingYieldRes['c_time'];
+            $lists[$key]['u_time'] = date('Y-m-d H:i:s', $closingYieldRes['u_time']);
+            $lists[$key]['c_time'] = date('Y-m-d H:i:s', $closingYieldRes['c_time']);
         }
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];

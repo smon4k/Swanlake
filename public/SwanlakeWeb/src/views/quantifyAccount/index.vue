@@ -332,27 +332,27 @@
                                 <span v-if="scope.row.pos_side === 'short'">空头</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="amount" label="最大收益率" align="center" width="">
+                        <el-table-column prop="max_rate" label="最大收益率" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ scope.row.max_rate ? keepDecimalNotRounding(scope.row.max_rate * 100, 2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="total_profit" label="最小收益率" align="center" width="">
+                        <el-table-column prop="min_rate" label="最小收益率" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ scope.row.min_rate ? keepDecimalNotRounding(scope.row.min_rate * 100, 2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="total_profit" label="平仓收益率" align="center" width="">
+                        <el-table-column prop="closing_yield" label="平仓收益率" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ scope.row.closing_yield ? keepDecimalNotRounding(scope.row.closing_yield * 100, 2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="total_profit" label="平仓价格" align="center" width="">
+                        <el-table-column prop="avg_price" label="平仓价格" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ scope.row.avg_price ? keepDecimalNotRounding(scope.row.avg_price, 2, true) : 0 }}</span>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="total_profit" label="收益" align="center" width="">
+                        <el-table-column prop="upl" label="收益" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ scope.row.upl ? keepDecimalNotRounding(scope.row.upl, 2, true) : 0 }}</span>
                             </template>
