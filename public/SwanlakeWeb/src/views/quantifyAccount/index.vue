@@ -352,6 +352,11 @@
                             <span>{{ scope.row.avg_price ? keepDecimalNotRounding(scope.row.avg_price, 2, true) : 0 }}</span>
                             </template>
                         </el-table-column>
+                        <el-table-column prop="total_profit" label="收益" align="center" width="">
+                            <template slot-scope="scope">
+                            <span>{{ scope.row.avg_price ? keepDecimalNotRounding(scope.row.upl, 2, true) : 0 }}</span>
+                            </template>
+                        </el-table-column>
                         <el-table-column prop="opening_price" label="开仓价格" align="center" width="">
                             <template slot-scope="scope">
                             <span>{{ scope.row.opening_price ? keepDecimalNotRounding(scope.row.opening_price, 2, true) : 0 }}</span>
@@ -362,7 +367,8 @@
                             <span>{{ scope.row.rate_average ? keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
-                        <!-- <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column> -->
+                        <el-table-column prop="c_time" label="开仓时间" align="center" width="200"></el-table-column>
+                        <el-table-column prop="u_time" label="平仓时间" align="center" width="200"></el-table-column>
                     </el-table>
                     <el-row class="pages">
                         <el-col :span="24">
