@@ -354,7 +354,7 @@
                         </el-table-column>
                         <el-table-column prop="total_profit" label="收益" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.avg_price ? keepDecimalNotRounding(scope.row.upl, 2, true) : 0 }}</span>
+                            <span>{{ scope.row.upl ? keepDecimalNotRounding(scope.row.upl, 2, true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="opening_price" label="开仓价格" align="center" width="">
