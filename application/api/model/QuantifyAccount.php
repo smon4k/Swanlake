@@ -510,7 +510,7 @@ class QuantifyAccount extends Base
                 // self::getPositionsClosedPosition($account_id, $currency, $exchange);
                 foreach ($infos as $key => $val) {
                     $element = $val['info'];
-                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $element['posSide'], $element['uplRatio'], $element['tradeId'], $element['uTime'], $element['cTime'], $element['markPx'], $element['avgPx'], $element['posId'], $element['upl']);
+                    $setRateRes = self::setYieldHistoryList($account_id, $currency, $element['posSide'], $element['uplRatio'], $element['tradeId'], $element['uTime'], $element['cTime'], '', $element['avgPx'], $element['markPx'], $element['posId'], $element['upl']);
                     if($setRateRes) {
                         $positionsRes = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $element['tradeId']])->find();
                         if($positionsRes && count((array)$positionsRes) > 0) {
@@ -595,7 +595,7 @@ class QuantifyAccount extends Base
                         if($val['c_time'] == $v['cTime']) { //已平仓
                             $saveTypeRes = self::name('quantify_account_positions')->where('id', $val['id'])->setField('type', 2);
                             if($saveTypeRes) {
-                                self::setYieldHistoryList($account_id, $currency, $v['direction'], $v['pnlRatio'], $val['trade_id'], $v['uTime'], $v['cTime'], $v['closeAvgPx'], $v['openAvgPx'], $v['posId'], $v['pnl']);
+                                self::setYieldHistoryList($account_id, $currency, $v['direction'], $v['pnlRatio'], $val['trade_id'], $v['uTime'], $v['cTime'], $v['closeAvgPx'], $v['openAvgPx'], $v['triggerPx'], $v['posId'], $v['pnl']);
                             }
                         }
                     }
@@ -612,7 +612,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-05-03
      */
-    public static function setYieldHistoryList($account_id=0, $currency='', $pos_side='', $uplRatio=0, $trade_id='', $u_time='', $c_time='', $avg_price=0, $opening_price=0, $pos_id=0, $upl=0) {
+    public static function setYieldHistoryList($account_id=0, $currency='', $pos_side='', $uplRatio=0, $trade_id='', $u_time='', $c_time='', $avg_price=0, $opening_price=0, $mark_price=0, $pos_id=0, $upl=0) {
         if($account_id && $currency) {
             // $max_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
             // $min_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
@@ -625,6 +625,7 @@ class QuantifyAccount extends Base
                 'rate_num' => $uplRatio,
                 'avg_price' => $avg_price,
                 'opening_price' => $opening_price,
+                'mark_price' => $mark_price,
                 'trade_id' => $trade_id,
                 'pos_id' => $pos_id,
                 'u_time' => $u_time,
@@ -1230,11 +1231,11 @@ class QuantifyAccount extends Base
         //             ->select()
         //             ->toArray();
         $begin = ($page - 1) * $limits;
-        $count_sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `trade_id`";
+        $count_sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(`mark_price`) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `trade_id`";
         $countRes = self::query($count_sql);
         $count = count((array)$countRes);
         $allpage = intval(ceil($count / $limits));
-        $sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `trade_id` ORDER BY `time` DESC LIMIT {$begin},{$limits}";
+        $sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(`mark_price`) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `trade_id` ORDER BY `time` DESC LIMIT {$begin},{$limits}";
         $lists = self::query($sql);
         foreach ($lists as $key => $val) {
             $lists[$key]['rate_average'] = ($val['max_rate'] + $val['min_rate']) / 2;
