@@ -595,7 +595,7 @@ class QuantifyAccount extends Base
                         if($val['c_time'] == $v['cTime']) { //已平仓
                             $saveTypeRes = self::name('quantify_account_positions')->where('id', $val['id'])->setField('type', 2);
                             if($saveTypeRes) {
-                                self::setYieldHistoryList($account_id, $currency, $v['direction'], $v['pnlRatio'], $val['trade_id'], $v['uTime'], $v['cTime'], $v['closeAvgPx'], $v['openAvgPx'], $v['posId'], $v['upl']);
+                                self::setYieldHistoryList($account_id, $currency, $v['direction'], $v['pnlRatio'], $val['trade_id'], $v['uTime'], $v['cTime'], $v['closeAvgPx'], $v['openAvgPx'], $v['posId'], $v['pnl']);
                             }
                         }
                     }
