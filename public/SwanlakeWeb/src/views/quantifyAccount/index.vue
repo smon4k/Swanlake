@@ -369,12 +369,12 @@
                         </el-table-column>
                         <el-table-column prop="min_make_price" label="最低价" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.rate_average ? keepDecimalNotRounding(scope.row.min_make_price, 2, true) : 0 }}</span>
+                            <span>{{ scope.row.min_make_price ? keepDecimalNotRounding(scope.row.min_make_price, 2, true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="max_make_price" label="最高价" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.rate_average ? keepDecimalNotRounding(scope.row.max_make_price, 2, true) : 0 }}</span>
+                            <span>{{ scope.row.max_make_price ? keepDecimalNotRounding(scope.row.max_make_price, 2, true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="c_time" label="开仓时间" align="center" width="200"></el-table-column>
