@@ -183,7 +183,7 @@
             :visible.sync="accountBalanceDetailsShow"
             width="80%">
             <el-tabs v-model="accountBalanceTabValue" @tab-click="accountBalanceTabClick">
-                <el-tab-pane label="余额明细" name="1" v-if="tabAccountId !== 7">
+                <el-tab-pane label="余额明细" name="1" v-if="tabAccountId !== 7 || tabAccountId !== 9">
                     <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
                         <el-option
                             v-for="item in currencyList"
@@ -319,7 +319,7 @@
                         </el-col>
                     </el-row>
                 </el-tab-pane>
-                 <el-tab-pane label="收益率列表" name="3" v-if="tabAccountId == 7">
+                 <el-tab-pane label="收益率列表" name="3" v-if="tabAccountId == 7 || tabAccountId == 9">
                     <el-table :data="maxMinUplRateList" style="width: 100%;" height="">
                         <!-- <el-table-column label="序号" align="center">
                             <template slot-scope="scope">
@@ -840,7 +840,7 @@ export default {
         getTotalBalanceClick() { //获取总结余弹框
             this.currencyPositionsList = [];
             this.accountBalanceDetailsList = [];
-            if(this.tabAccountId == 7) {
+            if(this.tabAccountId == 7 || this.tabAccountId == 9) {
                 this.accountBalanceTabValue = '2'
                 this.getAccountCurrencyPositionsList();
             } else {

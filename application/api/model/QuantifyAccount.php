@@ -342,7 +342,7 @@ class QuantifyAccount extends Base
                 }
             }
             //获取GMXUSDT持仓信息
-            if($accountInfo['id'] == 7) {
+            if($accountInfo['id'] == 7 || $accountInfo['id'] == 9) {
                 $positionsList = $exchange->fetch_positions('GMX-USDT', ['type' => 'SWAP']);
                 if($positionsList) {
                     // @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info'], $exchange);
