@@ -261,7 +261,7 @@ class QuantifyaccountController extends BaseController
         $where = [];
         $where['account_id'] = $account_id;
         $where['currency'] = $currency;
-        $result = QuantifyAccount::getMaxMinUplRateData($where, $page, $limits);
+        $result = QuantifyAccount::getMaxMinUplRateData($account_id, $currency, $page, $limits);
         if($result) {
             return $this->as_json($result);
         } else {

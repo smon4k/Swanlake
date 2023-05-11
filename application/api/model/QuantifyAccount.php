@@ -1213,7 +1213,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-04-23
      */
-    public static function getMaxMinUplRateData($where, $page, $limits=0) {
+    public static function getMaxMinUplRateData($account_id=0, $currency='', $page, $limits=0) {
         if ($limits == 0) {
             $limits = config('paginate.list_rows');// 获取总条数
         }
@@ -1231,11 +1231,11 @@ class QuantifyAccount extends Base
         //             ->select()
         //             ->toArray();
         $begin = ($page - 1) * $limits;
-        $count_sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(`mark_price`) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `trade_id`";
+        $count_sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(`mark_price`) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id`";
         $countRes = self::query($count_sql);
         $count = count((array)$countRes);
         $allpage = intval(ceil($count / $limits));
-        $sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(`mark_price`) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate GROUP BY `trade_id` ORDER BY `time` DESC LIMIT {$begin},{$limits}";
+        $sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(`mark_price`) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id` ORDER BY `time` DESC LIMIT {$begin},{$limits}";
         $lists = self::query($sql);
         foreach ($lists as $key => $val) {
             $lists[$key]['rate_average'] = ($val['max_rate'] + $val['min_rate']) / 2;

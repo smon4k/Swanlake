@@ -183,7 +183,7 @@
             :visible.sync="accountBalanceDetailsShow"
             width="80%">
             <el-tabs v-model="accountBalanceTabValue" @tab-click="accountBalanceTabClick">
-                <el-tab-pane label="余额明细" name="1" v-if="tabAccountId !== 7 || tabAccountId !== 9">
+                <el-tab-pane label="余额明细" name="1" v-if="tabAccountId !== 7 && tabAccountId !== 9">
                     <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
                         <el-option
                             v-for="item in currencyList"
