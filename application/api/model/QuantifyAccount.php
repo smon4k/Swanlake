@@ -587,7 +587,7 @@ class QuantifyAccount extends Base
             'password' => $accountInfo['pass_phrase'],
         ));
         if($account_id && $currency) {
-            $data = self::name('quantify_account_positions')->where('type', 1)->select();
+            $data = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'type' => 1])->select();
             if($data && count((array)$data) > 0) {
                 foreach ($data as $key => $val) {
                     $positionsHistoryList = $exchange->fetch_positions_history('GMX-USDT', ['type' => 'SWAP', 'before' => $val['u_time']]);
