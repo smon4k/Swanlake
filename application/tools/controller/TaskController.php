@@ -343,9 +343,12 @@ class TaskController extends ToolsBaseController
      */
     public function getPositionsClosedPosition() {
         $begin_time = time();
-
-        QuantifyAccount::getPositionsClosedPosition();
-
+        $accountList = QuantifyAccount::getAccountList(['is_position' => 1]);
+        $account_id = 0;
+        foreach ($accountList as $key => $val) {
+            $account_id = $val['id'];
+            QuantifyAccount::getPositionsClosedPosition($account_id, 'GMX');
+        }
         return (time() - $begin_time) . "s\n";
     }
 
