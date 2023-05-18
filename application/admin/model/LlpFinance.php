@@ -75,6 +75,7 @@ class LlpFinance extends Base {
         $page = 1;
         $size = 1000;
         $date = date('Y-m-d');
+        $time = date('Y-m-d H:i:s');
         $from = strtotime($date . "00:00:00");
         $to = strtotime($date . "08:00:00");
         $sort = 'desc';
@@ -117,7 +118,7 @@ class LlpFinance extends Base {
                 'netProfit' => (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee'] - (float)$dataArray['valueMovement']['valueChange'], //净利润
                 'totalProfit' => (float)$totalProfit - (float)$totalValueChange, //总近利
             ];
-            $res = self::setTimeFramesDetails($saveData);
+            $res = self::setTimeFramesDetails($saveData, $date, $time);
             if($res) {
                 return true;
             }
@@ -137,10 +138,9 @@ class LlpFinance extends Base {
      * @author qinlh
      * @since 2022-07-10
      */
-    public static function setTimeFramesDetails($data=[]) {
+    public static function setTimeFramesDetails($data=[], $date='', $time='') {
         if($data) {
             try {
-                $date = date('Y-m-d');
                 $IsResData = self::where(['date' => $date])->find();
                 if($IsResData && count((array)$IsResData) > 0) {
                     $updateData = [
@@ -159,7 +159,7 @@ class LlpFinance extends Base {
                         'llp_price' => $data['llp_price'],
                         'netProfit' => (float)$data['valueChange'] + (float)$data['fee'],
                         'totalProfit' => $data['totalProfit'],
-                        'time' => date('Y-m-d H:i:s'),
+                        'time' => $time,
                     ];
                     $res = self::where('id', $IsResData['id'])->update($updateData);
                     if($res) {
@@ -181,7 +181,7 @@ class LlpFinance extends Base {
                         'llp_price' => $data['llp_price'],
                         'netProfit' => (float)$data['valueChange'] + (float)$data['fee'],
                         'totalProfit' => $data['totalProfit'],
-                        'time' => date('Y-m-d H:i:s'),
+                        'time' => $time,
                     ];
                     self::insert($insertData);
                     $insertId = self::getLastInsID();
