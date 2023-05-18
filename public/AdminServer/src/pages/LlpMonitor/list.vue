@@ -23,73 +23,73 @@
             <span v-else>{{ scope.row.date }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="amount" label="Liquidity" align="center" width="120">
+      <el-table-column prop="amount" label="流动性" align="center" width="">
         <template slot-scope="scope">
             <span>${{ numberFormat(scope.row.amount, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="value" label="LLP Value" align="center" width="120">
+      <el-table-column prop="value" label="估值" align="center" width="">
         <template slot-scope="scope">
             <span>${{ numberFormat(scope.row.value, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="valueChange" label="Add or Remove" align="center" width="130">
+      <el-table-column prop="valueChange" label="出入金" align="center" width="">
         <template slot-scope="scope">
             <span>${{ numberFormat(scope.row.valueChange, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="fee" label="Fee Received" align="center" width="120">
+      <el-table-column prop="fee" label="手续费" align="center" width="">
         <template slot-scope="scope">
             <span v-if="scope.row.fee < 0" style="color:red;">-${{ numberFormat(Math.abs(scope.row.fee), 2) }}</span>
             <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.fee, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="pnl" label="PnL vs Trader" align="center" width="120">
+      <el-table-column prop="pnl" label="输赢" align="center" width="">
         <template slot-scope="scope">
             <span v-if="scope.row.pnl < 0" style="color:red;">-${{ numberFormat(Math.abs(scope.row.pnl), 2) }}</span>
             <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.pnl, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="price" label="Underlying Assets" align="center" width="150">
+      <el-table-column prop="price" label="资产估值变动" align="center" width="">
         <template slot-scope="scope">
             <span v-if="scope.row.price < 0" style="color:red;">-${{ numberFormat(Math.abs(scope.row.price), 2) }}</span>
             <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.price, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="totalChange" label="Total Changes" align="center" width="120">
+      <el-table-column prop="totalChange" label="总变化" align="center" width="">
         <template slot-scope="scope">
             <span v-if="scope.row.totalChange < 0" style="color:red;">-${{ numberFormat(Math.abs(scope.row.totalChange), 2) }}</span>
             <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.totalChange, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="nominalApr" label="Nominal Return" align="center" width="130">
+      <el-table-column prop="nominalApr" label="名义利润率" align="center" width="">
         <template slot-scope="scope">
-            <span v-if="scope.row.nominalApr < 0" style="color:red;">-${{ numberFormat(Math.abs(scope.row.nominalApr), 2) }}%</span>
-            <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.nominalApr, 2) }}%</span>
+            <span v-if="scope.row.nominalApr < 0" style="color:red;">-{{ numberFormat(Math.abs(scope.row.nominalApr), 2) }}%</span>
+            <span v-else style="color:#0ecb81;">+{{ numberFormat(scope.row.nominalApr, 2) }}%</span>
         </template>
       </el-table-column>
-      <el-table-column prop="netApr" label="Net Return" align="center" width="120">
+      <el-table-column prop="netApr" label="净利润率" align="center" width="">
         <template slot-scope="scope">
-            <span v-if="scope.row.netApr < 0" style="color:red;">-${{ numberFormat(Math.abs(scope.row.netApr), 2) }}%</span>
-            <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.netApr, 2) }}%</span>
+            <span v-if="scope.row.netApr < 0" style="color:red;">-{{ numberFormat(Math.abs(scope.row.netApr), 2) }}%</span>
+            <span v-else style="color:#0ecb81;">+{{ numberFormat(scope.row.netApr, 2) }}%</span>
         </template>
       </el-table-column>
-       <el-table-column prop="btc_price" label="BTC Price" align="center" width="120">
+       <el-table-column prop="btc_price" label="比特币价" align="center" width="">
         <template slot-scope="scope">
             <span>{{ numberFormat(scope.row.btc_price, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="llp_price" label="LLP Price" align="center" width="120">
+      <el-table-column prop="llp_price" label="LLP价格" align="center" width="">
         <template slot-scope="scope">
             <span>{{ numberFormat(scope.row.llp_price, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="netProfit" label="Net Profit" align="center" width="120">
+      <el-table-column prop="netProfit" label="净利润" align="center" width="">
         <template slot-scope="scope">
             <span>{{ numberFormat(scope.row.netProfit, 2) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="totalProfit" label="Count Profit" align="center" width="120">
+      <el-table-column prop="totalProfit" label="总净利" align="center" width="">
         <template slot-scope="scope">
             <span>{{ numberFormat(scope.row.totalProfit, 2) }}</span>
         </template>
@@ -309,58 +309,18 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-  .avatar-uploader .el-upload {
-    border: 1px dashed #d9d9d9;
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .avatar-uploader .el-upload:hover {
-    border-color: #409EFF;
-  }
-  .avatar-uploader-icon {
-    font-size: 28px;
-    color: #8c939d;
-    width: 178px;
-    height: 178px;
-    line-height: 178px;
-    text-align: center;
-  }
-  .avatar {
-    /* width: 178px; */
-    width: 100%;
-    height: 230px;
-    display: block;
-  }
-  .el-radio-group .el-radio + .el-radio {
-    margin-left: 0 !important;
-  }
-  .pages {
-    margin-top: 0!important;
-    margin-bottom: 80px !important;
-  }
-  .el-breadcrumb {
-    z-index: 10 !important;
-  }
+/deep/ {
+    .pages {
+        margin-top: 0!important;
+        margin-bottom: 80px !important;
+    }
+    .el-breadcrumb {
+        z-index: 10 !important;
+    }
+    .el-table {
+        font-size: 10px;
+    }
 
-  .el-carousel__item h3 {
-    color: #475669;
-    font-size: 18px;
-    opacity: 0.75;
-    line-height: 300px;
-    margin: 0;
-  }
-  
-  .el-carousel__item:nth-child(2n) {
-    background-color: #99a9bf;
-  }
-  
-  .el-carousel__item:nth-child(2n+1) {
-    background-color: #d3dce6;
-  }
-
-  /deep/ {
     .preview-class {
       img {
         width: 100%;
