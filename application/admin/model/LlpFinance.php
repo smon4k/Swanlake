@@ -92,7 +92,7 @@ class LlpFinance extends Base {
         // $data = RequestService::doCurlGetRequest($url, $params);
         $dataJson = file_get_contents($url);
         $data = json_decode($dataJson, true);
-        if($data && count((array)$data) > 0) {
+        if($data && count((array)$data['data']) > 0) {
             $dataArray = $data['data'][0];
             $btc_price = self::getBtcPrice();
             $timeFrames = self::getTimeFrames();
