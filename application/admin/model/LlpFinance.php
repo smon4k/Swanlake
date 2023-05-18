@@ -74,8 +74,9 @@ class LlpFinance extends Base {
         $tranche = "0xcC5368f152453D497061CB1fB578D2d3C54bD0A0";
         $page = 1;
         $size = 1000;
-        $from = strtotime(date('Y-m-d') . "00:00:00");
-        $to = strtotime(date('Y-m-d') . "08:00:00");
+        $date = date('Y-m-d');
+        $from = strtotime($date . "00:00:00");
+        $to = strtotime($date . "08:00:00");
         $sort = 'desc';
         // p($to);
         $params = [
