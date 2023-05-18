@@ -65,13 +65,13 @@
       <el-table-column prop="nominalApr" label="Nominal Return" align="center" width="130">
         <template slot-scope="scope">
             <span v-if="scope.row.nominalApr < 0" style="color:red;">-${{ numberFormat(Math.abs(scope.row.nominalApr), 2) }}</span>
-            <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.nominalApr, 2) }}</span>
+            <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.nominalApr, 2) }}%</span>
         </template>
       </el-table-column>
       <el-table-column prop="netApr" label="Net Return" align="center" width="120">
         <template slot-scope="scope">
             <span v-if="scope.row.netApr < 0" style="color:red;">-${{ numberFormat(Math.abs(scope.row.netApr), 2) }}</span>
-            <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.netApr, 2) }}</span>
+            <span v-else style="color:#0ecb81;">+${{ numberFormat(scope.row.netApr, 2) }}%</span>
         </template>
       </el-table-column>
        <el-table-column prop="btc_price" label="BTC Price" align="center" width="120">
