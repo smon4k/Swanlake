@@ -51,7 +51,7 @@ class LlpFinance extends Base {
                 'netApr' => $timeFrames['netApr'],
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
-                'netProfit' => ((float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee']) - (float)$dataArray['valueMovement']['valueChange'], //净利润
+                'netProfit' => ((float)$timeFrames['valueMovement']['pnl'] + (float)$timeFrames['valueMovement']['fee']) - (float)$timeFrames['valueMovement']['valueChange'], //净利润
                 'totalProfit' => (float)$totalProfit - (float)$totalValueChange,
             ];
             foreach ($lists as $key => $val) {
