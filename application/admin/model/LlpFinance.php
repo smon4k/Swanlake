@@ -36,6 +36,7 @@ class LlpFinance extends Base {
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
             $totalProfit = self::sum('netProfit');
+            $totalValueChange = self::sum('valueChange');
             $returnArray[0] = [
                 'from_time' => date('Y-m-d H:i:s', $timeFrames['from']),
                 'to_time' => date('Y-m-d H:i:s', $timeFrames['to']),
@@ -51,7 +52,7 @@ class LlpFinance extends Base {
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
                 'netProfit' => (float)$timeFrames['valueMovement']['valueChange'] + (float)$timeFrames['valueMovement']['fee'],
-                'totalProfit' => (float)$totalProfit - (float)$timeFrames['valueMovement']['valueChange'],
+                'totalProfit' => (float)$totalProfit - (float)$totalValueChange,
             ];
             foreach ($lists as $key => $val) {
                 $returnArray[$key + 1] = $val;
@@ -97,6 +98,7 @@ class LlpFinance extends Base {
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
             $totalProfit = self::sum('netProfit');
+            $totalValueChange = self::sum('valueChange');
             $saveData = [
                 'from_time' => date('Y-m-d H:i:s', $dataArray['from']),
                 'to_time' => date('Y-m-d H:i:s', $dataArray['to']),
@@ -112,7 +114,7 @@ class LlpFinance extends Base {
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
                 'netProfit' => (float)$dataArray['valueMovement']['valueChange'] + (float)$dataArray['valueMovement']['fee'],
-                'totalProfit' => (float)$totalProfit - (float)$dataArray['valueMovement']['valueChange'],
+                'totalProfit' => (float)$totalProfit - (float)$totalValueChange,
             ];
             $res = self::setTimeFramesDetails($saveData);
             if($res) {
