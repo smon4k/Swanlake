@@ -102,19 +102,19 @@ class LlpFinance extends Base {
             $saveData = [
                 'from_time' => date('Y-m-d H:i:s', $dataArray['from']),
                 'to_time' => date('Y-m-d H:i:s', $dataArray['to']),
-                'amount' => $dataArray['amount'],
-                'value' => $dataArray['value'],
-                'valueChange' => $dataArray['valueMovement']['valueChange'],
-                'fee' => $dataArray['valueMovement']['fee'],
-                'pnl' => $dataArray['valueMovement']['pnl'],
-                'price' => $dataArray['valueMovement']['price'],
-                'totalChange' => $dataArray['totalChange'],
-                'nominalApr' => $dataArray['nominalApr'],
-                'netApr' => $dataArray['netApr'],
-                'btc_price' => $btc_price,
-                'llp_price' => $llp_price,
-                'netProfit' => (float)$dataArray['valueMovement']['valueChange'] + (float)$dataArray['valueMovement']['fee'],
-                'totalProfit' => (float)$totalProfit - (float)$totalValueChange,
+                'amount' => $dataArray['amount'], //流动性
+                'value' => $dataArray['value'], //估值
+                'valueChange' => $dataArray['valueMovement']['valueChange'], //出入金
+                'fee' => $dataArray['valueMovement']['fee'], //手续费
+                'pnl' => $dataArray['valueMovement']['pnl'], //输赢
+                'price' => $dataArray['valueMovement']['price'], //资产估值变动
+                'totalChange' => $dataArray['totalChange'], //总变化
+                'nominalApr' => $dataArray['nominalApr'],//名义利润率
+                'netApr' => $dataArray['netApr'], //净利润率
+                'btc_price' => $btc_price,//比特币价
+                'llp_price' => $llp_price,//LLP价
+                'netProfit' => (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee'] - (float)$dataArray['valueMovement']['valueChange'], //净利润
+                'totalProfit' => (float)$totalProfit - (float)$totalValueChange, //总近利
             ];
             $res = self::setTimeFramesDetails($saveData);
             if($res) {
