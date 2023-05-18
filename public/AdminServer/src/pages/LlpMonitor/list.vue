@@ -81,7 +81,7 @@
       </el-table-column>
       <el-table-column prop="llp_price" label="LLP价格" align="center" width="">
         <template slot-scope="scope">
-            <span>{{ numberFormat(scope.row.llp_price, 2) }}</span>
+            <span>{{ numberFormat(scope.row.llp_price, 3) }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="netProfit" label="净利润" align="center" width="">
