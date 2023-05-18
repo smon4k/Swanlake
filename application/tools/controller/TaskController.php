@@ -13,6 +13,7 @@ use app\api\model\MyProduct;
 use app\api\model\DayNetworth;
 use app\api\model\BscAddressStatistics;
 use app\api\model\QuantifyAccount;
+use app\admin\model\LlpFinance;
 use app\answer\model\DayNetworth as DayNetworthAnswer;
 use app\admin\model\Piggybank;
 use app\admin\model\BinancePiggybank;
@@ -472,6 +473,19 @@ class TaskController extends ToolsBaseController
         $begin_time = time();
 
         PowerUser::startSendingIncome();
+        
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * 异步获取追踪数据
+     * @author qinlh
+     * @since 2022-12-18
+     */
+    public function asyncUpdateFramesDetails() {
+        $begin_time = time();
+
+        LlpFinance::asyncUpdateFramesDetails();
         
         return (time() - $begin_time) . "s\n";
     }

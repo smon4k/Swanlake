@@ -26,6 +26,11 @@ const PiggybankBifiOrder = () => import('@/pages/PiggybankBifi/list.vue')
 const PiggybankBifiDate = () => import('@/pages/PiggybankBifi/date.vue')
 const GoldBifis = () => import('@/pages/Gold/bifis.vue')
 
+
+const LlpMonitor = () => import('@/pages/LlpMonitor/list.vue')
+
+
+
 Vue.use(Router)
 
 const router = new Router({
@@ -172,6 +177,15 @@ const router = new Router({
           component: GoldBifis,
           meta: {
             name: '出入金',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'LlpMonitor',
+          name: 'LlpMonitor',
+          component: LlpMonitor,
+          meta: {
+            name: 'LLP监控',
             notKeepAlive: true
           }
         },

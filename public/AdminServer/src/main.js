@@ -21,7 +21,8 @@ import '../static/ueditor/lang/zh-cn/zh-cn.js'
 import {
   toFixed,
   toolNumber,
-  keepDecimalNotRounding
+  keepDecimalNotRounding,
+  numberFormat
 } from '@/utils/tools'
 
 
@@ -29,6 +30,7 @@ Object.assign(Vue.prototype, {
   toFixed,
   keepDecimalNotRounding,
   toolNumber,
+  numberFormat
 })
 
 Vue.config.productionTip = false
