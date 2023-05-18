@@ -51,7 +51,7 @@ class LlpFinance extends Base {
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
                 'netProfit' => (float)$timeFrames['valueMovement']['valueChange'] + (float)$timeFrames['valueMovement']['fee'],
-                'totalProfit' => $totalProfit,
+                'totalProfit' => (float)$totalProfit - (float)$timeFrames['valueMovement']['valueChange'],
             ];
             foreach ($lists as $key => $val) {
                 $returnArray[$key + 1] = $val;
@@ -112,7 +112,7 @@ class LlpFinance extends Base {
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
                 'netProfit' => (float)$dataArray['valueMovement']['valueChange'] + (float)$dataArray['valueMovement']['fee'],
-                'totalProfit' => $totalProfit,
+                'totalProfit' => (float)$totalProfit - (float)$dataArray['valueMovement']['valueChange'],
             ];
             $res = self::setTimeFramesDetails($saveData);
             if($res) {
