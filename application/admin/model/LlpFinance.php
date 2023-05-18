@@ -51,7 +51,7 @@ class LlpFinance extends Base {
                 'netApr' => $timeFrames['netApr'],
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
-                'netProfit' => (float)$timeFrames['valueMovement']['valueChange'] + (float)$timeFrames['valueMovement']['fee'],
+                'netProfit' => ((float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee']) - (float)$dataArray['valueMovement']['valueChange'], //净利润
                 'totalProfit' => (float)$totalProfit - (float)$totalValueChange,
             ];
             foreach ($lists as $key => $val) {
@@ -115,7 +115,7 @@ class LlpFinance extends Base {
                 'netApr' => $dataArray['netApr'], //净利润率
                 'btc_price' => $btc_price,//比特币价
                 'llp_price' => $llp_price,//LLP价
-                'netProfit' => (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee'] - (float)$dataArray['valueMovement']['valueChange'], //净利润
+                'netProfit' => ((float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee']) - (float)$dataArray['valueMovement']['valueChange'], //净利润
                 'totalProfit' => (float)$totalProfit - (float)$totalValueChange, //总近利
             ];
             $res = self::setTimeFramesDetails($saveData, $date, $time);
