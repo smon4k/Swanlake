@@ -35,7 +35,7 @@ class LlpFinance extends Base {
             $btc_price = self::getBtcPrice();
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
-            $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
+            $totalProfit = self::sum('netProfit');
             $netProfit = (float)$timeFrames['valueMovement']['pnl'] + (float)$timeFrames['valueMovement']['fee']; //净利润
             // $totalValueChange = self::whereTime('date', '<=', $date)->sum('valueChange');
             $returnArray[0] = [
