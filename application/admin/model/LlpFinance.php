@@ -99,8 +99,8 @@ class LlpFinance extends Base {
             $btc_price = self::getBtcPrice();
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
-            $totalProfit = self::sum('netProfit');
-            $totalValueChange = self::sum('valueChange');
+            $totalProfit = self::where(['date', ['<=', $date]])->sum('netProfit');
+            $totalValueChange = self::where(['date', ['<=', $date]])->sum('valueChange');
             $saveData = [
                 'from_time' => date('Y-m-d H:i:s', $dataArray['from']),
                 'to_time' => date('Y-m-d H:i:s', $dataArray['to']),
@@ -157,7 +157,7 @@ class LlpFinance extends Base {
                         'netApr' => $data['netApr'],
                         'btc_price' => $data['btc_price'],
                         'llp_price' => $data['llp_price'],
-                        'netProfit' => (float)$data['valueChange'] + (float)$data['fee'],
+                        'netProfit' => $data['netProfit'],
                         'totalProfit' => $data['totalProfit'],
                         'time' => $time,
                     ];
@@ -179,7 +179,7 @@ class LlpFinance extends Base {
                         'netApr' => $data['netApr'],
                         'btc_price' => $data['btc_price'],
                         'llp_price' => $data['llp_price'],
-                        'netProfit' => (float)$data['valueChange'] + (float)$data['fee'],
+                        'netProfit' => $data['netProfit'],
                         'totalProfit' => $data['totalProfit'],
                         'time' => $time,
                     ];
