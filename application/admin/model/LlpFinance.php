@@ -35,8 +35,9 @@ class LlpFinance extends Base {
             $btc_price = self::getBtcPrice();
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
-            $totalProfit = self::sum('netProfit');
-            $totalValueChange = self::sum('valueChange');
+            $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
+            $netProfit = (float)$timeFrames['valueMovement']['pnl'] + (float)$timeFrames['valueMovement']['fee']; //净利润
+            // $totalValueChange = self::whereTime('date', '<=', $date)->sum('valueChange');
             $returnArray[0] = [
                 'from_time' => date('Y-m-d H:i:s', $timeFrames['from']),
                 'to_time' => date('Y-m-d H:i:s', $timeFrames['to']),
@@ -51,8 +52,8 @@ class LlpFinance extends Base {
                 'netApr' => $timeFrames['netApr'],
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
-                'netProfit' => (float)$timeFrames['valueMovement']['pnl'] + (float)$timeFrames['valueMovement']['fee'], //净利润
-                'totalProfit' => (float)$totalProfit,
+                'netProfit' => $netProfit,
+                'totalProfit' => (float)$totalProfit + $netProfit,
             ];
             foreach ($lists as $key => $val) {
                 $returnArray[$key + 1] = $val;
