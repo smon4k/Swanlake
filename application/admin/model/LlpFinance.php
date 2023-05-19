@@ -115,7 +115,7 @@ class LlpFinance extends Base {
                 'netApr' => $dataArray['netApr'], //净利润率
                 'btc_price' => $btc_price,//比特币价
                 'llp_price' => $llp_price,//LLP价
-                'netProfit' => ((float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee']) - (float)$dataArray['valueMovement']['valueChange'], //净利润
+                'netProfit' => (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee'], //净利润 = 手续费+输赢
                 'totalProfit' => (float)$totalProfit - (float)$totalValueChange, //总近利
             ];
             $res = self::setTimeFramesDetails($saveData, $date, $time);
