@@ -170,6 +170,8 @@ class LlpFinance extends Base {
                     $insertData = [
                         'date' => $date,
                         'from_time' => $data['from_time'],
+                        'to_time' => $data['to_time'],
+                        'amount' => $data['amount'],
                         'value' => $data['value'],
                         'valueChange' => $data['valueChange'],
                         'fee' => $data['fee'],
