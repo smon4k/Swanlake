@@ -206,13 +206,14 @@ class LlpFinance extends Base {
      * @since 2023-05-18
      */
     public static function getBtcPrice() {
-        $url = "https://www.h2ofinance.pro/getPoolBtc";
+        $url = "https://apiy.h2ofinance.pro/api/apy/getBetNewPrice";
         $poolBtc =
         $params = [];
-        $response_string = RequestService::doCurlGetRequest($url, $params);
+        $response_string = file_get_contents($url);
+        $response_string_arr = json_decode($response_string, true);
         $btc_currency_price = 0;
-        if($response_string && $response_string[0]) {
-            $btc_currency_price = $response_string[0]['currency_price'] ? (float)$response_string[0]['currency_price'] : 1;
+        if($response_string_arr && $response_string_arr['data']) {
+            $btc_currency_price = $response_string_arr['data'];
         }
         return $btc_currency_price;
     }
