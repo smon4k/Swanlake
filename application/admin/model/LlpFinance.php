@@ -18,6 +18,7 @@ class LlpFinance extends Base {
         if ($limit <= 0) {
             $limit = config('paginate.list_rows');// 获取总条数
         }
+        $date = date('Y-m-d');
         $count = self::alias('a')->where($where)->count();//计算总页面
         $allpage = intval(ceil($count / $limit));
         $lists = self::alias('a')
