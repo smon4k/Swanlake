@@ -53,8 +53,8 @@ class LlpFinance extends Base {
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
                 'netProfit' => $netProfit,
-                // 'totalProfit' => (float)$totalProfit + $netProfit,
-                'totalProfit' => (float)$totalProfit,
+                'totalProfit' => (float)$totalProfit + (float)$netProfit,
+                // 'totalProfit' => (float)$totalProfit,
             ];
             foreach ($lists as $key => $val) {
                 $returnArray[$key + 1] = $val;
@@ -118,7 +118,7 @@ class LlpFinance extends Base {
                 'btc_price' => $btc_price,//比特币价
                 'llp_price' => $llp_price,//LLP价
                 'netProfit' => (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee'], //净利润 = 手续费+输赢
-                'totalProfit' => (float)$totalProfit, //总近利
+                'totalProfit' => (float)$totalProfit + (float)$netProfit, //总近利
             ];
             $res = self::setTimeFramesDetails($saveData, $date, $time);
             if($res) {
