@@ -33,7 +33,9 @@ class LlpFinance extends Base {
         }
         if($page == 1) {
             $returnArray = [];
-            $btc_price = self::getBtcPrice($date);
+            $timestamp = strtotime($date);
+            $formattedDate = date("Y/m/d", $timestamp);
+            $btc_price = self::getBtcPrice($formattedDate);
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
             $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
@@ -99,7 +101,9 @@ class LlpFinance extends Base {
         $data = json_decode($dataJson, true);
         if($data && count((array)$data['data']) > 0) {
             $dataArray = $data['data'][0];
-            $btc_price = self::getBtcPrice($date);
+            $timestamp = strtotime($date);
+            $formattedDate = date("Y/m/d", $timestamp);
+            $btc_price = self::getBtcPrice($formattedDate);
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
             $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
