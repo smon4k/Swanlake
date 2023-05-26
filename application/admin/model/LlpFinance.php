@@ -53,7 +53,8 @@ class LlpFinance extends Base {
                 'btc_price' => $btc_price,
                 'llp_price' => $llp_price,
                 'netProfit' => $netProfit,
-                'totalProfit' => (float)$totalProfit + $netProfit,
+                // 'totalProfit' => (float)$totalProfit + $netProfit,
+                'totalProfit' => (float)$totalProfit,
             ];
             foreach ($lists as $key => $val) {
                 $returnArray[$key + 1] = $val;
