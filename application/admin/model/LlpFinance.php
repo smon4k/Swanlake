@@ -35,7 +35,7 @@ class LlpFinance extends Base {
             $btc_price = self::getBtcPrice();
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
-            $totalProfit = self::sum('netProfit');
+            $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
             $netProfit = (float)$timeFrames['valueMovement']['pnl'] + (float)$timeFrames['valueMovement']['fee']; //净利润
             // $totalValueChange = self::whereTime('date', '<=', $date)->sum('valueChange');
             $returnArray[0] = [
@@ -102,6 +102,7 @@ class LlpFinance extends Base {
             $timeFrames = self::getTimeFrames();
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
             $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
+            $netProfit = (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee']; //净利润
             // $totalValueChange = self::whereTime('date', '<=', $date)->sum('valueChange');
             $saveData = [
                 'from_time' => date('Y-m-d H:i:s', $dataArray['from']),
@@ -117,8 +118,8 @@ class LlpFinance extends Base {
                 'netApr' => $dataArray['netApr'], //净利润率
                 'btc_price' => $btc_price,//比特币价
                 'llp_price' => $llp_price,//LLP价
-                'netProfit' => (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee'], //净利润 = 手续费+输赢
-                'totalProfit' => (float)$totalProfit + (float)$netProfit, //总近利
+                'netProfit' => $netProfit, //净利润 = 手续费+输赢
+                'totalProfit' => (float)$totalProfit, //总近利
             ];
             $res = self::setTimeFramesDetails($saveData, $date, $time);
             if($res) {
