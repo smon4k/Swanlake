@@ -106,20 +106,21 @@ class LlpFinance extends Base {
         // $data = RequestService::doCurlGetRequest($url, $params);
         $dataJson = file_get_contents($url);
         $data = json_decode($dataJson, true);
+        // p($data);
         $count = count((array)$data['data']);
         $num = 0;
         if($data && count((array)$data['data']) > 0) {
             foreach ($data['data'] as $key => $val) {
+                $dates = date('Y-m-d', $dataArray['to']);
                 $dataArray = $val;
                 // $timestamp = strtotime($date);
                 // $formattedDate = date("Y/m/d", $timestamp);
-                $btc_price = self::getBtcPrice($date);
+                $btc_price = self::getBtcPrice($dates);
                 $timeFrames = self::getTimeFrames();
                 $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
-                $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
+                $totalProfit = self::whereTime('date', '<=', $dates)->sum('netProfit');
                 $netProfit = (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee']; //净利润
                 // $totalValueChange = self::whereTime('date', '<=', $date)->sum('valueChange');‘
-                $dates = date('Y-m-d', $dataArray['to']);
                 $saveData = [
                     'from_time' => date('Y-m-d H:i:s', $dataArray['from']),
                     'to_time' => date('Y-m-d H:i:s', $dataArray['to']),
