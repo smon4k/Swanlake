@@ -80,9 +80,16 @@ class LlpFinance extends Base {
         $page = 1;
         $size = 1000;
         $date = date('Y-m-d');
+        $yestDate = date("Y-m-d", strtotime("-1 day"));
         $time = date('Y-m-d H:i:s');
+        $yestRes = self::where('date', $yestDate)->find();
         $from = strtotime($date . "00:00:00");
-        $to = strtotime($date . "08:00:00");
+        if(!$yestRes || count((array)$yestRes) < 0) {
+            $from = strtotime($yestDate . "00:00:00");
+        } else {
+            $from = strtotime($date . "00:00:00");
+        }
+        $to = strtotime($date . "23:59:59");
         $sort = 'desc';
         // p($to);
         $params = [
@@ -99,35 +106,43 @@ class LlpFinance extends Base {
         // $data = RequestService::doCurlGetRequest($url, $params);
         $dataJson = file_get_contents($url);
         $data = json_decode($dataJson, true);
+        $count = count((array)$data['data']);
+        $num = 0;
         if($data && count((array)$data['data']) > 0) {
-            $dataArray = $data['data'][0];
-            // $timestamp = strtotime($date);
-            // $formattedDate = date("Y/m/d", $timestamp);
-            $btc_price = self::getBtcPrice($date);
-            $timeFrames = self::getTimeFrames();
-            $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
-            $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
-            $netProfit = (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee']; //净利润
-            // $totalValueChange = self::whereTime('date', '<=', $date)->sum('valueChange');
-            $saveData = [
-                'from_time' => date('Y-m-d H:i:s', $dataArray['from']),
-                'to_time' => date('Y-m-d H:i:s', $dataArray['to']),
-                'amount' => $dataArray['amount'], //流动性
-                'value' => $dataArray['value'], //估值
-                'valueChange' => $dataArray['valueMovement']['valueChange'], //出入金
-                'fee' => $dataArray['valueMovement']['fee'], //手续费
-                'pnl' => $dataArray['valueMovement']['pnl'], //输赢
-                'price' => $dataArray['valueMovement']['price'], //资产估值变动
-                'totalChange' => $dataArray['totalChange'], //总变化
-                'nominalApr' => $dataArray['nominalApr'],//名义利润率
-                'netApr' => $dataArray['netApr'], //净利润率
-                'btc_price' => $btc_price,//比特币价
-                'llp_price' => $llp_price,//LLP价
-                'netProfit' => $netProfit, //净利润 = 手续费+输赢
-                'totalProfit' => (float)$totalProfit, //总近利
-            ];
-            $res = self::setTimeFramesDetails($saveData, $date, $time);
-            if($res) {
+            foreach ($data['data'] as $key => $val) {
+                $dataArray = $val;
+                // $timestamp = strtotime($date);
+                // $formattedDate = date("Y/m/d", $timestamp);
+                $btc_price = self::getBtcPrice($date);
+                $timeFrames = self::getTimeFrames();
+                $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
+                $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
+                $netProfit = (float)$dataArray['valueMovement']['pnl'] + (float)$dataArray['valueMovement']['fee']; //净利润
+                // $totalValueChange = self::whereTime('date', '<=', $date)->sum('valueChange');‘
+                $dates = date('Y-m-d', $dataArray['to']);
+                $saveData = [
+                    'from_time' => date('Y-m-d H:i:s', $dataArray['from']),
+                    'to_time' => date('Y-m-d H:i:s', $dataArray['to']),
+                    'amount' => $dataArray['amount'], //流动性
+                    'value' => $dataArray['value'], //估值
+                    'valueChange' => $dataArray['valueMovement']['valueChange'], //出入金
+                    'fee' => $dataArray['valueMovement']['fee'], //手续费
+                    'pnl' => $dataArray['valueMovement']['pnl'], //输赢
+                    'price' => $dataArray['valueMovement']['price'], //资产估值变动
+                    'totalChange' => $dataArray['totalChange'], //总变化
+                    'nominalApr' => $dataArray['nominalApr'],//名义利润率
+                    'netApr' => $dataArray['netApr'], //净利润率
+                    'btc_price' => $btc_price,//比特币价
+                    'llp_price' => $llp_price,//LLP价
+                    'netProfit' => $netProfit, //净利润 = 手续费+输赢
+                    'totalProfit' => (float)$totalProfit, //总近利
+                ];
+                $res = self::setTimeFramesDetails($saveData, $dates, $time);
+                if($res) {
+                    $num ++;
+                }
+            }
+            if($num == $count) {
                 return true;
             }
         }
