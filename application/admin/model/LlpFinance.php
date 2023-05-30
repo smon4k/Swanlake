@@ -111,8 +111,8 @@ class LlpFinance extends Base {
         $num = 0;
         if($data && count((array)$data['data']) > 0) {
             foreach ($data['data'] as $key => $val) {
-                $dates = date('Y-m-d', $dataArray['to']);
                 $dataArray = $val;
+                $dates = date('Y-m-d', $dataArray['to']);
                 // $timestamp = strtotime($date);
                 // $formattedDate = date("Y/m/d", $timestamp);
                 $btc_price = self::getBtcPrice($dates);
