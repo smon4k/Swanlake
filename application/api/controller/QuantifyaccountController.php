@@ -91,8 +91,11 @@ class QuantifyaccountController extends BaseController
         if($direction <= 0 || $amount == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
+        $key = "Swanlake:calcDepositAndWithdrawal:".$account_id.":Lock";
+        Rediscache::getInstance()->set($key, 1); 
         $result = QuantifyAccount::calcQuantifyAccountData($account_id, $direction, $amount, $remark);
         if($result) {
+            Rediscache::getInstance()->del($key); 
             return $this->as_json('ok');
         } else {
             return $this->as_json(70001, 'Error');
