@@ -248,17 +248,21 @@ class LlpFinance extends Base {
      * @since 2023-05-18
      */
     public static function getTimeFrames() {
-        $url = "https://llp-api.level.finance/56/time-frames/live";
-        $poolBtc =
         $params = [
-           'wallet' => "0x3e0d064e079f93b3ed7a023557fc9716bcbb20ae", 
-           'tranche' => "0xcC5368f152453D497061CB1fB578D2d3C54bD0A0", 
+            'wallet' => "0x3e0d064e079f93b3ed7a023557fc9716bcbb20ae", 
+            'tranche' => "0xcC5368f152453D497061CB1fB578D2d3C54bD0A0", 
         ];
-        $url = $url . '?' . http_build_query($params);
-        // 解码 URL 中的特殊字符实体
-        $url = html_entity_decode($url);
-        // $data = RequestService::doCurlGetRequest($url, $params);
-        $dataJson = file_get_contents($url);
+        
+        $queryString = http_build_query($params);
+        $queryString = str_replace('&amp;', '&', $queryString);
+        $url = "https://llp-api.level.finance/56/time-frames/live?" . $queryString;
+        // p($url);
+        $headers = [
+            'Content-Type' => 'application/json; charset=utf-8',
+            'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+        ];
+        $dataJson = CurlGetRequest($url, $headers);
+        // p($dataJson);
         $dataArr = json_decode($dataJson, true);
         $btc_currency_price = 0;
         if($dataArr && $dataArr['data']) {
