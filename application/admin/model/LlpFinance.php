@@ -255,6 +255,8 @@ class LlpFinance extends Base {
            'tranche' => "0xcC5368f152453D497061CB1fB578D2d3C54bD0A0", 
         ];
         $url = $url . '?' . http_build_query($params);
+        // 解码 URL 中的特殊字符实体
+        $url = html_entity_decode($url);
         // $data = RequestService::doCurlGetRequest($url, $params);
         $dataJson = file_get_contents($url);
         $dataArr = json_decode($dataJson, true);
