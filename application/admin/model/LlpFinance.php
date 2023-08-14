@@ -248,12 +248,11 @@ class LlpFinance extends Base {
      * @since 2023-05-18
      */
     public static function getTimeFrames() {
-        $url = "https://llp-api.level.finance/time-frames/live";
+        $url = "https://llp-api.level.finance/56/time-frames/live";
         $poolBtc =
         $params = [
            'wallet' => "0x3e0d064e079f93b3ed7a023557fc9716bcbb20ae", 
-        //    'tranche' => "0xcC5368f152453D497061CB1fB578D2d3C54bD0A0", 
-           'tranche' => "56", 
+           'tranche' => "0xcC5368f152453D497061CB1fB578D2d3C54bD0A0", 
         ];
         $url = $url . '?' . http_build_query($params);
         // $data = RequestService::doCurlGetRequest($url, $params);
