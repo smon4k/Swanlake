@@ -13,6 +13,7 @@
 namespace app\api\model;
 
 use think\Model;
+use cache\Rediscache;
 
 class QuantifyAccount extends Base
 {

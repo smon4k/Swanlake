@@ -21,6 +21,7 @@ use ClassLibrary\ClFile;
 use ClassLibrary\CLUpload;
 use ClassLibrary\CLFfmpeg;
 use lib\Filterstring;
+use cache\Rediscache;
 
 error_reporting(E_ALL);
 set_time_limit(0);
