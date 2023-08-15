@@ -37,6 +37,7 @@ class LlpFinance extends Base {
             // $formattedDate = date("Y/m/d", $timestamp);
             $btc_price = self::getBtcPrice($date);
             $timeFrames = self::getTimeFrames();
+            // p($timeFrames);
             $llp_price = $timeFrames['price'] ? $timeFrames['price'] : 1;
             $totalProfit = self::whereTime('date', '<=', $date)->sum('netProfit');
             $netProfit = (float)$timeFrames['valueMovement']['pnl'] + (float)$timeFrames['valueMovement']['fee']; //净利润
@@ -101,10 +102,18 @@ class LlpFinance extends Base {
             'to' => $to,
             'sort' => $sort,
         ];
-        $url = "https://llp-api.level.finance/time-frames";
-        $url = $url . '?' . http_build_query($params);
+        // $url = "https://llp-api.level.finance/time-frames";
+        // $url = $url . '?' . http_build_query($params);
+        $queryString = http_build_query($params);
+        $queryString = str_replace('&amp;', '&', $queryString);
+        $url = "https://llp-api.level.finance/56/time-frames?" . $queryString;
         // $data = RequestService::doCurlGetRequest($url, $params);
-        $dataJson = file_get_contents($url);
+        // $dataJson = file_get_contents($url);
+        $headers = [
+            'Content-Type' => 'application/json; charset=utf-8',
+            'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
+        ];
+        $dataJson = CurlGetRequest($url, $headers);
         $data = json_decode($dataJson, true);
         // p($data);
         $count = count((array)$data['data']);
@@ -259,11 +268,12 @@ class LlpFinance extends Base {
         // p($url);
         $headers = [
             'Content-Type' => 'application/json; charset=utf-8',
-            'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+            'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
         ];
         $dataJson = CurlGetRequest($url, $headers);
         // p($dataJson);
         $dataArr = json_decode($dataJson, true);
+        // p($dataArr);
         $btc_currency_price = 0;
         if($dataArr && $dataArr['data']) {
             return $dataArr['data'];
