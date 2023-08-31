@@ -14,7 +14,7 @@
             </el-col>
             <br>
             <el-col :span="24" align="left" style="margin-top:10px;">
-                <div class="search">
+                <div class="search times">
                     <!-- <span>时间范围：</span> -->
                     <div :class="['button', {'button-active': timesIndex == 1}]" tabindex="1" @click="searchClick('1 day', 1)">1天</div>
                     <div :class="['button', {'button-active': timesIndex == 2}]" tabindex="2" @click="searchClick('1 week', 2)">1周</div>
@@ -40,7 +40,7 @@
         </el-row>
         <el-tabs v-model="activeName" @tab-click="tabHandleClick">
             <el-tab-pane label="总地址量" name="1">
-                <div style="text-align:right;">   
+                <div style="text-align:right;" v-if="name !== 'BTC(稳定币)'">   
                     Address:  
                     <el-link v-if="name === 'TON(ETH)'" :underline="false" style="text-decoration:underline;" :href="'https://www.oklink.com/zh-cn/eth/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
                     <el-link v-else :underline="false" style="text-decoration:underline;" :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
@@ -51,7 +51,7 @@
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
             <el-tab-pane label="新增地址量" name="2">
-                <div style="text-align:right;">  
+                <div style="text-align:right;" v-if="name !== 'BTC(稳定币)'">  
                     Address:  
                     <el-link v-if="name === 'TON(ETH)'" :underline="false" style="text-decoration:underline;" :href="'https://www.oklink.com/zh-cn/eth/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
                     <el-link v-else :underline="false" style="text-decoration:underline;" :href="'https://bscscan.com/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
@@ -60,7 +60,8 @@
                 <div v-if="activeName == 2 && Object.keys(dataList).length" class="threeBarChart" id="addAddress"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
-            <el-tab-pane label="总销毁量" name="3">
+
+            <el-tab-pane label="总销毁量" name="3" v-if="name !== 'BTC(稳定币)'">
                 <div style="text-align:right;">  
                     Address:  
                     <el-link v-if="name === 'TON(ETH)'" :underline="false" style="text-decoration:underline;" :href="'https://www.oklink.com/zh-cn/eth/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
@@ -72,7 +73,7 @@
                 <div v-if="activeName == 3 && Object.keys(destructionDataList).length" class="threeBarChart" id="countDestruction"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
-            <el-tab-pane label="新增销毁量" name="4">
+            <el-tab-pane label="新增销毁量" name="4" v-if="name !== 'BTC(稳定币)'">
                 <div style="text-align:right;">  
                     Address:  
                     <el-link v-if="name === 'TON(ETH)'" :underline="false" style="text-decoration:underline;" :href="'https://www.oklink.com/zh-cn/eth/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
@@ -282,9 +283,32 @@ export default {
             // console.log(this.dataList);
             // 获取节点
             const myChart = echarts.init(document.getElementById('countAddress'));
+
+            // 构建 ECharts 的 legend 数据
             let option;
             let _this = this;
+            let legendData = ["总地址量", _this.name + ' 价格'];
+            let combinedData = [];
+            let seriesData = [];
+            if( _this.name == "BTC(稳定币)") {
+                const keys = Object.keys(this.dataList.other_data);
+                combinedData = legendData.concat(keys);
+                Object.keys(this.dataList.other_data).forEach((key, index) => {
+                    // console.log(key, index);
+                    seriesData.push({
+                        name: key,
+                        type: 'line',
+                        symbolSize: 5, // 设置折线上圆点大小
+                        symbol: 'circle', // 设置拐点为实心圆
+                        yAxisIndex: 0,
+                        data: this.dataList.other_data[key],
+                    });
+                });
 
+            }
+
+            // console.log(seriesData);
+            // console.log(dataIndex, this.dataList.other_data[dataIndex]);
             option = {
                 title: {
                     // text: '折线图堆叠'
@@ -302,14 +326,14 @@ export default {
                             if(item.seriesIndex == 0) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + numberFormat(item.value) + "</span>" + "<br/>"
                             } else {
-                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + keepDecimalNotRounding(Number(item.value), 18, true) + "</span>" + "<br/>"
+                                str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + numberFormat(keepDecimalNotRounding(Number(item.value), 18, true)) + "</span>" + "<br/>"
                             }
                         }
                         return str
                     }
                 },
                 legend: {
-                    data: ['总地址量', _this.name + ' 价格'],
+                    data: combinedData,
                     right: '0'
                 },
                 grid: {
@@ -432,7 +456,8 @@ export default {
                         itemStyle: {
                             color: '#7C7C7C',
                         },
-                    }
+                    }, 
+                    ...seriesData
                 ]
             };
             option && myChart.setOption(option);
@@ -924,7 +949,10 @@ export default {
             return numberFormat(num);
         },
         strAddress() {
-            return this.selectAddress.substring(0, 4) + "***" + this.selectAddress.substring(this.selectAddress.length - 3)
+            // console.log(this.selectAddress);
+            if(this.selectAddress && this.selectAddress !== null) {
+                return this.selectAddress.substring(0, 4) + "***" + this.selectAddress.substring(this.selectAddress.length - 3)
+            }
         },
         copySuccess(){
             this.$message({
@@ -960,6 +988,7 @@ export default {
                     // background-color: #f1f1f1;
                     background-color: #e6e6e6;
                     height: 22px;
+                    width: 70px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -994,6 +1023,11 @@ export default {
                 }
                 .el-date-editor .el-range__icon {
                     line-height: 28px;
+                }
+            }
+            .times {
+                .button {
+                    width: 30px;
                 }
             }
         }

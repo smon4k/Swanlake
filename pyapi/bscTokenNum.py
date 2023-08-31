@@ -38,6 +38,11 @@ class JDSpider(object):
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--headless')
+        options.add_argument('--enable-javascript')  # 启用 JavaScript
+        options.add_argument('--disable-web-security')  # 禁用 Web 安全性，通常用于处理跨域问题
+        options.add_argument('--disable-features=IsolateOrigins,site-per-process')  # 禁用隔离源和单独进程模式
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
+        options.add_argument(f'user-agent={user_agent}')
         options.add_argument('blink-settings=imagesEnabled=false') #不加载图片, 提升速度
         options.add_argument('--window-size=1920,1080')
         options.add_argument('--disable-gpu') #谷歌文档提到需要加上这个属性来规避bug
@@ -65,6 +70,7 @@ class JDSpider(object):
         # self.address = "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"
         self.bscscan_url = f'https://bscscan.com/token/'
         self.bscscan_bnb_url = f'https://bscscan.com/blocks?p=1'
+        self.defillama_btc_url = f'https://defillama.com/stablecoins'
         self.returnList = {}
 
     # 加载所有数据 屏幕滚动
@@ -78,7 +84,7 @@ class JDSpider(object):
         return
 
     # 爬取数据币种供应量和价格
-    def getListData(self, token, chain):
+    def getListData(self, token, chain, name):
         # urls = self.bscscan_url + str(token)
         if chain == 'etherscan':
             urls = f'https://www.oklink.com/zh-cn/eth/token/{token}'
@@ -93,13 +99,21 @@ class JDSpider(object):
         else:
             urls = f'https://{chain}.com/token/' + str(token) + '?a=0x000000000000000000000000000000000000dead'
             # print(self.page, self.num, self.count, urls)
+            # 调整窗口大小
             self.browser.get(urls)
             time.sleep(5)
             # 获取地址数量
             HoldersDom = self.browser.find_element_by_class_name('card-body')
+            # HoldersDom = self.browser.find_element_by_xpath('/html/body/main/section[3]/div[2]/div[1]/div/div/div[2]/div/div')
             HoldersList = HoldersDom.text.split('\n')
-            print(HoldersList)
-            holders = re.sub("[^0-9.]", "", HoldersList[7])
+            # print(HoldersList)
+            HoldersText = ""
+            if 0 <= 8 < len(HoldersList):
+                HoldersText = HoldersList[8]
+            else:
+                HoldersText = HoldersList[5]
+            # print(HoldersList)
+            holders = re.sub("[^0-9.]", "", HoldersText)
 
         # 获取价格
         if token == "0xF1932eC9784B695520258F968b9575724af6eFa8": # Guru
@@ -142,30 +156,30 @@ class JDSpider(object):
             # print(priceConnectStr)
             price = re.sub("[^0-9.]", "", priceConnectStr)
         else:
-            priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
-            priceStr = priceElement.get_attribute('data-title')
-            price = re.sub("[^0-9.]", "", priceStr)
+            # priceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_tr_valuepertoken"]/div/div[1]/span/span[1]')
+            priceElement = self.browser.find_element_by_xpath('/html/body/main/section[3]/div[2]/div[2]/div/div/div[2]/div/span[1]')
+            priceStr = priceElement.text.split('\n')
+            price = re.sub("[^0-9.]", "", priceStr[0])
 
+        print("价格：" + price)
+        # exit()
         # 获取余额及价值
-        if token == "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c":
-            self.browser.get(self.bscscan_bnb_url)
-            balanceValueElement = self.browser.find_element_by_xpath('//*[@id="content"]/div[1]/div/div[2]/span/span[2]')
-            balanceStr = balanceValueElement.text.split('\n')
-            balance = re.sub("[^0-9.]", "", balanceStr[0])
-            valueStr = balanceValueElement.get_attribute('data-original-title')
-            value = re.sub("[^0-9.]", "", valueStr)
-            # print(balance, value)
-        elif token == "0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1": # ETH
+        if token == "0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1": # ETH
             balance = 0
             value = 0
         else:
-            balanceValueElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_filteredByAddress"]')
-            balanceValueList = balanceValueElement.text.split('\n')
-            # print(balanceValueList)
-            balance = re.sub("[^0-9.]", "", balanceValueList[3])
-            valueArr = balanceValueList[5].split(' ')
-            value = re.sub("[^0-9.]", "", valueArr[0])
-            # print(balance, value)
+            # balanceValueElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_filteredByAddress"]')
+            balanceElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_divFilteredHolderBalance"]')
+            balanceText = balanceElement.text.split('\n')
+            # print(balanceText)
+            balance = re.sub("[^0-9.]", "", balanceText[1])
+            valueElement = self.browser.find_element_by_xpath('//*[@id="ContentPlaceHolder1_divFilteredHolderValue"]')
+            valueText = valueElement.text.split('\n')
+            # print(valueText)
+            # 提取金额字符串
+            amount_string = re.search(r'\$([\d,.]+)', valueText[1]).group(1)
+            value = re.sub("[^0-9.]", "", amount_string)
+            print("balance:" + balance, "value:" + value)
         self.returnList = {'price': price, 'holders': holders, 'balance': balance, 'value': value}
         return self.returnList
 
@@ -219,11 +233,12 @@ class JDSpider(object):
             print('functions getToken2TokenPrice->getAmountsOut error %s' %re)
 
     # 入口
-    def main(self, token, chain):
+    def main(self, token, chain, name):
         try:
-            list = self.getListData(token, chain)
+            list = self.getListData(token, chain, name)
             os.system("killall -9 chrome")
             os.system("killall -9 chromedriver")
+            self.browser.quit()
             return list
             # return
         except IndexError:
@@ -232,6 +247,8 @@ class JDSpider(object):
             os.system("killall -9 chromedriver")
         # print(apr)
 
+# 在 app 实例外部实例化 JDSpider
+spider_instance = JDSpider()
 
 # if __name__ == "__main__":
 #     # searchName = sys.argv[1] # 接受参数
@@ -246,8 +263,8 @@ class JDSpider(object):
 def get_apy_mars_data():
     # if request.content_type == 'application/json':
     pageJson = request.json
-    spider = JDSpider()
-    data = spider.main(pageJson['token'], pageJson['chain'])
+    # spider = JDSpider()
+    data = spider_instance.main(pageJson['token'], pageJson['chain'], pageJson['name'])
     # json_str = json.dumps(data)
     response = make_response(jsonify(data))
     response.mimetype = 'application/json'
@@ -263,6 +280,6 @@ def hello_world():
     ]
     return make_response(jsonify(apis), 200)
 
-server = pywsgi.WSGIServer(('0.0.0.0', 8013), app)
-server.serve_forever()
-# app.run(host='0.0.0.0', port=8013, debug=False)
+# server = pywsgi.WSGIServer(('0.0.0.0', 8013), app)
+# server.serve_forever()
+app.run(host='0.0.0.0', port=8013, debug=True) 

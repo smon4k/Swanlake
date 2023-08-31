@@ -408,9 +408,9 @@ class TaskController extends ToolsBaseController
      */
     public function getBscscanTokenHolders() {
         $begin_time = time();
-        $tokens = BscAddressStatistics::getTokensList();
-        // $tokens = array(
-        //     ['name' => 'Cake', 'token' => '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', 'chain' => 'bscscan'],
+        // $tokens = BscAddressStatistics::getTokensList();
+        $tokens = array(
+            // ['name' => 'Cake', 'token' => '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', 'chain' => 'bscscan'],
         //     ['name' => 'BNB', 'token' => '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 'chain' => 'bscscan'],
         //     ['name' => 'BSW', 'token' => '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1', 'chain' => 'bscscan'],
         //     ['name' => 'BABY', 'token' => '0x53E562b9B7E5E94b81f10e96Ee70Ad06df3D2657', 'chain' => 'bscscan'],
@@ -419,7 +419,7 @@ class TaskController extends ToolsBaseController
         //     ['name' => 'QUICK', 'token' => '0xb5c064f955d8e7f38fe0460c556a72987494ee17', 'chain' => 'polygonscan'],
         //     ['name' => 'SNS', 'token' => '0xD5CBaE3F69B0640724A6532cC81BE9C798A755A7', 'chain' => 'bscscan'],
         //     ['name' => 'XVS', 'token' => '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63', 'chain' => 'bscscan'],
-        //     ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8', 'chain' => 'bscscan'],
+            // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8', 'chain' => 'bscscan'],
         //     ['name' => 'GMT', 'token' => '0x3019BF2a2eF8040C242C9a4c5c4BD4C81678b2A1', 'chain' => 'bscscan'],
         //     ['name' => 'CHESS', 'token' => '0x20de22029ab63cf9A7Cf5fEB2b737Ca1eE4c82A6', 'chain' => 'bscscan'],
             // ['name' => 'BabyDoge', 'token' => '0xc748673057861a797275CD8A068AbB95A902e8de', 'chain' => 'bscscan'],
@@ -438,26 +438,80 @@ class TaskController extends ToolsBaseController
             // ['name' => 'TON(ETH)', 'token' => '0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1', 'chain' => 'etherscan'],
         //     // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
         //     // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
-        // );
+            ['name' => 'BTC(稳定币)', 'token' => '', 'chain' => 'defillama'],
+        );
         // p($tokens);
         // p(Config::get('www_bscscan_contract'));
         foreach ($tokens as $key => $val) {
             $name = $val['name'];
-            $params = ['token' => $val['token'], 'chain' => $val['chain']];
+            $params = ['name' => $name, 'token' => $val['token'], 'chain' => $val['chain']];
             $returnArray = [];
-            $response_string = RequestService::doJsonCurlPost(Config::get('www_bscscan_contract').Config::get('reptile_service')['get_bsc_token_holders'], json_encode($params));
-            if($response_string) {
-                // p($response_string);
-                echo "====== Success 爬取" . $name . "数据成功 ======" . "\n";
+            if($name == "BTC(稳定币)") {
+                $api_url = "https://stablecoins.llama.fi/stablecoins?includePrices=true";
+                $response_string = CurlGetRequest($api_url, []);
                 $returnArray = json_decode($response_string, true);
-                $setData = BscAddressStatistics::setBscAddressStatistics($name, $val['token'], $returnArray);
+                $TotalStablecoins = 0;
+                $TotalStablecoinsArr = [];
+                foreach ($returnArray['peggedAssets'] as $key => $vv) {
+                    // p($val);
+                    if(isset($vv['circulating'][$vv['pegType']]) || isset($vv['circulating'][$vv['pegType']])) {
+                        if($vv['pegMechanism'] === 'fiat-backed' || $vv['pegMechanism'] === 'crypto-backed') {
+                            if($vv['pegType'] == "peggedEUR") {
+                                $TotalStablecoins += (float)$vv['circulating'][$vv['pegType']] * 1.09;
+                            } else {
+                                $TotalStablecoins += (float)$vv['circulating'][$vv['pegType']];
+                            }
+                            if($vv['symbol'] == 'USDT' || $vv['symbol'] == 'USDC' || $vv['symbol'] == 'DAI' || $vv['symbol'] == 'TUSD' || $vv['symbol'] == 'BUSD' || $vv['symbol'] == 'FRAX' || $vv['symbol'] == 'USDD' || $vv['symbol'] == 'USDP' || $vv['symbol'] == 'FDUSD' || $vv['symbol'] == 'GUSD') {
+                                // $TotalStablecoins += isset($vv['circulating'][$vv['pegType']]) ? (float)$vv['circulating'][$vv['pegType']] : 0;
+                                if(isset($TotalStablecoinsArr[$vv['symbol']])) {
+                                    if($vv['pegType'] == "peggedEUR") {
+                                        $TotalStablecoinsArr[$vv['symbol']] += (float)$vv['circulating'][$vv['pegType']] * 1.09;
+                                    } else {
+                                        $TotalStablecoinsArr[$vv['symbol']] += (float)$vv['circulating'][$vv['pegType']];
+                                    }
+                                } else {
+                                    if($vv['pegType'] == "peggedEUR") {
+                                        $TotalStablecoinsArr[$vv['symbol']] = (float)$vv['circulating'][$vv['pegType']] * 1.09;
+                                    } else {
+                                        $TotalStablecoinsArr[$vv['symbol']] = (float)$vv['circulating'][$vv['pegType']];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // p($TotalStablecoins);
+                $date = date('Y-m-d');
+                $btcPrice = LlpFinance::getBtcPrice($date);
+                $params = [
+                    'price' => $btcPrice,
+                    'holders' => $TotalStablecoins,
+                    'balance' => 0,
+                    'value' => 0,
+                    'other_data' => json_encode($TotalStablecoinsArr)
+                ];
+                // p($TotalStablecoinsArr);
+                $setData = BscAddressStatistics::setBscAddressStatistics($name, $val['token'], $params);
                 if($setData) {
                     echo "====== Success 写入" . $name . "数据成功 ======" . "\n\n";
                 } else {
                     echo "====== Error 写入" . $name . "数据失败 ======" . "\n\n";
                 }
             } else {
-                echo "====== Error 爬取" . $name . "数据失败 ======" . "\n";
+                $response_string = RequestService::doJsonCurlPost(Config::get('www_bscscan_contract').Config::get('reptile_service')['get_bsc_token_holders'], json_encode($params));
+                if($response_string) {
+                    // p($response_string);
+                    echo "====== Success 爬取" . $name . "数据成功 ======" . "\n";
+                    $returnArray = json_decode($response_string, true);
+                    $setData = BscAddressStatistics::setBscAddressStatistics($name, $val['token'], $returnArray);
+                    if($setData) {
+                        echo "====== Success 写入" . $name . "数据成功 ======" . "\n\n";
+                    } else {
+                        echo "====== Error 写入" . $name . "数据失败 ======" . "\n\n";
+                    }
+                } else {
+                    echo "====== Error 爬取" . $name . "数据失败 ======" . "\n";
+                }
             }
         }
 

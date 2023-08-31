@@ -61,6 +61,7 @@ class BscAddressStatistics extends Base
                         'balance' => $data['balance'],
                         'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
                         'value' => $data['value'],
+                        'other_data' => $data['other_data'],
                         'time' => date('Y-m-d H:i:s')
                     ]);
                     if($saveRes !== false) {
@@ -76,6 +77,7 @@ class BscAddressStatistics extends Base
                         'balance' => $data['balance'],
                         'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
                         'value' => $data['value'],
+                        'other_data' => $data['other_data'],
                         'date' => $date,
                         'time' => date('Y-m-d H:i:s'),
                     ];
@@ -95,10 +97,11 @@ class BscAddressStatistics extends Base
                     'balance' => $data['balance'],
                     'add_balance' => 0,
                     'value' => $data['value'],
+                    'other_data' => $data['other_data'],
                     'date' => $date,
                     'time' => date('Y-m-d H:i:s'),
                  ];
-                 // p($insertData);
+                //  p($insertData);
                  $saveRes = self::insertGetId($insertData);
                  if($saveRes) {
                     $setDateDataRes = self::setBscAddressDateStatistics($name, $token, $data);
@@ -132,6 +135,7 @@ class BscAddressStatistics extends Base
                         'balance' => $data['balance'],
                         'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
                         'value' => $data['value'],
+                        'other_data' => $data['other_data'],
                         'time' => date('Y-m-d H:i:s')
                     ]);
                     if($saveRes !== false) {
@@ -147,6 +151,7 @@ class BscAddressStatistics extends Base
                         'balance' => $data['balance'],
                         'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
                         'value' => $data['value'],
+                        'other_data' => $data['other_data'],
                         'date' => $date,
                         'time' => date('Y-m-d H:i:s'),
                     ];
@@ -166,7 +171,8 @@ class BscAddressStatistics extends Base
                     'balance' => $data['balance'],
                     'add_balance' => 0,
                     'value' => $data['value'],
-                    'date' => $date,
+                    'other_data' => $data['other_data'],
+                    'date' => $yerstDate,
                     'time' => date('Y-m-d H:i:s'),
                  ];
                  // p($insertData);
@@ -259,6 +265,7 @@ class BscAddressStatistics extends Base
         $prices = [];
         $holders = [];
         $addAddress = [];
+        $otherData = [];
         $min_price = $lists[0]['price'];
         $max_price = $lists[0]['price'];
         $min_holders = $lists[0]['holders'];
@@ -295,8 +302,15 @@ class BscAddressStatistics extends Base
             if($val['add_holders'] > $max_addArddress) {
                 $max_addArddress = $val['add_holders'];
             }
+            $other_data_arr = json_decode($val['other_data'], true);
+            if($other_data_arr && count((array)$other_data_arr) > 0) {
+                foreach ($other_data_arr as $k => $v) {
+                    $otherData[$k][] = $v;
+                }
+            }
+            // $otherData[] = json_decode($val['other_data'], true);
         }
-        // p($addHolders);
+        // p($otherData);
         // $formerlyHolders = (float)$lists[0]['holders'] - (float)$lists[0]['add_holders']; //计算原来的地址数量
         $formerlyHolders = (float)$lists[$count - 1]['holders'] - (float)$lists[0]['holders']; //计算原来的地址数量
         // $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
@@ -321,6 +335,7 @@ class BscAddressStatistics extends Base
                 'min' => $min_addArddress,
                 'max' => $max_addArddress,
             ],
+            'other_data' => $otherData,
         ];
         // p($dataList);
         return $dataList;
