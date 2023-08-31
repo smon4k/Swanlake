@@ -99,7 +99,7 @@ export default {
             currencyIndex: 1,
             timesIndex: 1,
             activeName: '1',
-            name: 'Cake',
+            name: 'BTC(稳定币)',
             selectAddress: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82',
             dataList: [],
             destructionDataList: [],
