@@ -39,7 +39,7 @@
             </el-col>
         </el-row>
         <el-tabs v-model="activeName" @tab-click="tabHandleClick">
-            <el-tab-pane label="总地址量" name="1">
+            <el-tab-pane :label="name == 'BTC(稳定币)' ? '总量' : '总地址量'" name="1">
                 <div style="text-align:right;" v-if="name !== 'BTC(稳定币)'">   
                     Address:  
                     <el-link v-if="name === 'TON(ETH)'" :underline="false" style="text-decoration:underline;" :href="'https://www.oklink.com/zh-cn/eth/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
@@ -50,7 +50,7 @@
                 <div v-if="activeName == 1 && Object.keys(dataList).length" class="threeBarChart" id="countAddress"></div>
                 <el-empty v-else description="没有数据"></el-empty>
             </el-tab-pane>
-            <el-tab-pane label="新增地址量" name="2">
+            <el-tab-pane :label="name == 'BTC(稳定币)' ? '新增量' : '新增地址量'" name="2">
                 <div style="text-align:right;" v-if="name !== 'BTC(稳定币)'">  
                     Address:  
                     <el-link v-if="name === 'TON(ETH)'" :underline="false" style="text-decoration:underline;" :href="'https://www.oklink.com/zh-cn/eth/token/' + selectAddress" target="_blank">{{ strAddress() }}</el-link>
@@ -166,7 +166,7 @@ export default {
                     }
                 },
                 legend: {
-                    data: ['新增地址量', _this.name + ' 价格'],
+                    data: [_this.name == "BTC(稳定币)" ? '新增量' : '新增地址量', _this.name + ' 价格'],
                     right: '0'
                 },
                 grid: {
@@ -252,7 +252,7 @@ export default {
                 ],
                 series: [
                     {
-                        name: '新增地址量',
+                        name: this.name == "BTC(稳定币)" ? '新增量' : '新增地址量',
                         type: 'line',
                         symbolSize: 5, // 设置折线上圆点大小
                         symbol: 'circle', // 设置拐点为实心圆
@@ -287,10 +287,11 @@ export default {
             // 构建 ECharts 的 legend 数据
             let option;
             let _this = this;
-            let legendData = ["总地址量", _this.name + ' 价格'];
+            let legendData = [];
             let combinedData = [];
             let seriesData = [];
             if( _this.name == "BTC(稳定币)") {
+                legendData = ["总量", _this.name + ' 价格']
                 const keys = Object.keys(this.dataList.other_data);
                 combinedData = legendData.concat(keys);
                 Object.keys(this.dataList.other_data).forEach((key, index) => {
@@ -304,7 +305,8 @@ export default {
                         data: this.dataList.other_data[key],
                     });
                 });
-
+            } else {
+                legendData = ["总地址量", _this.name + ' 价格'];
             }
 
             // console.log(seriesData);
@@ -435,7 +437,7 @@ export default {
                 ],
                 series: [
                     {
-                        name: '总地址量',
+                        name: _this.name == "BTC(稳定币)" ? '总量' : '总地址量',
                         type: 'line',
                         symbolSize: 5, // 设置折线上圆点大小
                         symbol: 'circle', // 设置拐点为实心圆
