@@ -408,8 +408,8 @@ class TaskController extends ToolsBaseController
      */
     public function getBscscanTokenHolders() {
         $begin_time = time();
-        // $tokens = BscAddressStatistics::getTokensList();
-        $tokens = array(
+        $tokens = BscAddressStatistics::getTokensList();
+        // $tokens = array(
             // ['name' => 'Cake', 'token' => '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', 'chain' => 'bscscan'],
         //     ['name' => 'BNB', 'token' => '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 'chain' => 'bscscan'],
         //     ['name' => 'BSW', 'token' => '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1', 'chain' => 'bscscan'],
@@ -438,8 +438,8 @@ class TaskController extends ToolsBaseController
             // ['name' => 'TON(ETH)', 'token' => '0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1', 'chain' => 'etherscan'],
         //     // ['name' => 'H2O', 'token' => '0xC446c2B48328e5D2178092707F8287289ED7e8D6'],
         //     // ['name' => 'Guru', 'token' => '0xF1932eC9784B695520258F968b9575724af6eFa8'],
-            ['name' => 'BTC(稳定币)', 'token' => '', 'chain' => 'defillama'],
-        );
+            // ['name' => 'BTC(稳定币)', 'token' => '', 'chain' => 'defillama'],
+        // );
         // p($tokens);
         // p(Config::get('www_bscscan_contract'));
         foreach ($tokens as $key => $val) {
