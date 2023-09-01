@@ -325,7 +325,7 @@ export default {
                         // console.log(params);
                         let str = params[0].name + '<br/>'
                         for (let item of params) {
-                            if(item.seriesIndex == 0) {
+                            if(item.seriesIndex == 0 || item.seriesIndex == 1) {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + numberFormat(item.value) + "</span>" + "<br/>"
                             } else {
                                 str += "<span style='display:inline-block;width:10px;height:10px;border-radius:10px;background-color:" + item.color + ";'></span>&nbsp;" + item.seriesName + ": " + "<span style='float:right;'>" + '$' + numberFormat(keepDecimalNotRounding(Number(item.value), 18, true)) + "</span>" + "<br/>"
