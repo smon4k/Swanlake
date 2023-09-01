@@ -451,13 +451,14 @@ class TaskController extends ToolsBaseController
                 $response_string = CurlGetRequest($api_url, []);
                 $returnArray = json_decode($response_string, true);
                 $TotalStablecoins = 0;
+                $TotalStablecoinsTwo = 0;
                 $TotalStablecoinsArr = [];
                 foreach ($returnArray['peggedAssets'] as $key => $vv) {
                     // p($val);
                     if(isset($vv['circulating'][$vv['pegType']]) || isset($vv['circulating'][$vv['pegType']])) {
                         if($vv['pegMechanism'] === 'fiat-backed' || $vv['pegMechanism'] === 'crypto-backed') {
                             if($vv['pegType'] == "peggedEUR") {
-                                $TotalStablecoins += (float)$vv['circulating'][$vv['pegType']] * 1.09;
+                                $TotalStablecoins += (float)$vv['circulating'][$vv['pegType']];
                             } else {
                                 $TotalStablecoins += (float)$vv['circulating'][$vv['pegType']];
                             }
@@ -465,17 +466,25 @@ class TaskController extends ToolsBaseController
                                 // $TotalStablecoins += isset($vv['circulating'][$vv['pegType']]) ? (float)$vv['circulating'][$vv['pegType']] : 0;
                                 if(isset($TotalStablecoinsArr[$vv['symbol']])) {
                                     if($vv['pegType'] == "peggedEUR") {
-                                        $TotalStablecoinsArr[$vv['symbol']] += (float)$vv['circulating'][$vv['pegType']] * 1.09;
+                                        $TotalStablecoinsArr[$vv['symbol']] += (float)$vv['circulating'][$vv['pegType']];
                                     } else {
                                         $TotalStablecoinsArr[$vv['symbol']] += (float)$vv['circulating'][$vv['pegType']];
                                     }
                                 } else {
                                     if($vv['pegType'] == "peggedEUR") {
-                                        $TotalStablecoinsArr[$vv['symbol']] = (float)$vv['circulating'][$vv['pegType']] * 1.09;
+                                        $TotalStablecoinsArr[$vv['symbol']] = (float)$vv['circulating'][$vv['pegType']];
                                     } else {
                                         $TotalStablecoinsArr[$vv['symbol']] = (float)$vv['circulating'][$vv['pegType']];
                                     }
                                 }
+                            }
+                        }
+
+                        if($vv['pegMechanism'] === 'fiat-backed' || $vv['pegMechanism'] === 'crypto-backed' || $vv['pegMechanism'] === 'algorithmic') {
+                            if($vv['pegType'] == "peggedEUR") {
+                                $TotalStablecoinsTwo += (float)$vv['circulating'][$vv['pegType']];
+                            } else {
+                                $TotalStablecoinsTwo += (float)$vv['circulating'][$vv['pegType']];
                             }
                         }
                     }
@@ -486,6 +495,7 @@ class TaskController extends ToolsBaseController
                 $params = [
                     'price' => $btcPrice,
                     'holders' => $TotalStablecoins,
+                    'holders_two' => $TotalStablecoinsTwo,
                     'balance' => 0,
                     'value' => 0,
                     'other_data' => json_encode($TotalStablecoinsArr)

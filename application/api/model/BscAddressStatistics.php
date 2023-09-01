@@ -57,6 +57,7 @@ class BscAddressStatistics extends Base
                     $saveRes = self::where(['name' => $name, 'date' => $date])->update([
                         'price' => $data['price'], 
                         'holders' => $data['holders'], 
+                        'holders_two' => $data['holders_two'], 
                         'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
                         'balance' => $data['balance'],
                         'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
@@ -73,6 +74,7 @@ class BscAddressStatistics extends Base
                         'token' => $token,
                         'price' => $data['price'],
                         'holders' => $data['holders'],
+                        'holders_two' => $data['holders_two'],
                         'add_holders' => (float)$data['holders'] - (float)$lessRes['holders'], 
                         'balance' => $data['balance'],
                         'add_balance' => $lessRes['balance'] == 0 ? 0 : (float)$data['balance'] - (float)$lessRes['balance'],
@@ -93,6 +95,7 @@ class BscAddressStatistics extends Base
                     'token' => $token,
                     'price' => $data['price'],
                     'holders' => $data['holders'],
+                    'holders_two' => $data['holders_two'],
                     'add_holders' => 0, 
                     'balance' => $data['balance'],
                     'add_balance' => 0,
