@@ -290,6 +290,8 @@ export default {
             let legendData = [];
             let combinedData = [];
             let seriesData = [];
+            let y_min_num = parseInt(this.dataList.holders.min - 100);
+            let y_max_num = parseInt(this.dataList.holders.max + 100);
             if( _this.name == "BTC(稳定币)") {
                 legendData = ["总量", "总量02", _this.name + ' 价格']
                 const keys = Object.keys(this.dataList.other_data);
@@ -305,6 +307,12 @@ export default {
                         data: this.dataList.other_data[key],
                     });
                 });
+                if(this.dataList.holders_two.min < y_min_num) {
+                    y_min_num = parseInt(this.dataList.holders_two.min - 100);
+                }
+                if(this.dataList.holders_two.max > y_max_num) {
+                    y_max_num = parseInt(this.dataList.holders_two.max + 100);
+                }
             } else {
                 legendData = ["总地址量", _this.name + ' 价格'];
             }
@@ -388,8 +396,8 @@ export default {
                         // name: 'k',
                     //坐标轴最大值、最小值、强制设置数据的步长间隔
                         // interval: 1000,
-                        min: parseInt(this.dataList.holders.min - 100),
-                        max: parseInt(this.dataList.holders.max + 100),
+                        min: y_min_num,
+                        max: y_max_num,
                         axisLabel: {
                             //y轴上带的单位
                             formatter: function(value) { // y轴自定义数据
