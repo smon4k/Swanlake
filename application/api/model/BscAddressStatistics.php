@@ -267,6 +267,9 @@ class BscAddressStatistics extends Base
         $times = [];
         $prices = [];
         $holders = [];
+        $holdersTwo = [];
+        $min_holders_two = $lists[0]['holders_two'];
+        $max_holders_two = $lists[0]['holders_two'];
         $addAddress = [];
         $otherData = [];
         $min_price = $lists[0]['price'];
@@ -294,6 +297,13 @@ class BscAddressStatistics extends Base
             if($val['holders'] < $min_holders) {
                 $min_holders = $val['holders'];
             }
+            $holdersTwo[] = $val['holders_two'];
+            if($val['holders_two'] < $min_holders_two) {
+                $min_holders_two = $val['holders_two'];
+            }
+            if($val['holders_two'] > $max_holders_two) {
+                $max_holders_two = $val['holders_two'];
+            }
             if($val['holders'] > $max_holders) {
                 $max_holders = $val['holders'];
             }
@@ -318,6 +328,7 @@ class BscAddressStatistics extends Base
         $formerlyHolders = (float)$lists[$count - 1]['holders'] - (float)$lists[0]['holders']; //计算原来的地址数量
         // $addPercentage = $addHolders / $formerlyHolders * 100; //计算新增百分比
         $addPercentage = $formerlyHolders / (float)$lists[0]['holders'] * 100; //计算新增百分比
+        
         // p($addPercentage);
         $dataList = [
             'times' => $times, 
@@ -332,6 +343,13 @@ class BscAddressStatistics extends Base
                 'max' => $max_holders,
                 'add_holders' => $formerlyHolders,
                 'add_percentage' => $addPercentage,
+            ], 
+            'holders_two' => [
+                'data' => $holdersTwo,
+                'min' => $min_holders_two,
+                'max' => $max_holders_two,
+                'add_holders' => 0,
+                'add_percentage' => 0,
             ], 
             'addAddress' => [
                 'data' => $addAddress,

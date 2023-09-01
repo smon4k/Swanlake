@@ -291,7 +291,7 @@ export default {
             let combinedData = [];
             let seriesData = [];
             if( _this.name == "BTC(稳定币)") {
-                legendData = ["总量", _this.name + ' 价格']
+                legendData = ["总量", "总量02", _this.name + ' 价格']
                 const keys = Object.keys(this.dataList.other_data);
                 combinedData = legendData.concat(keys);
                 Object.keys(this.dataList.other_data).forEach((key, index) => {
@@ -444,10 +444,23 @@ export default {
                         yAxisIndex: 0,
                         // data: [1158820, 1128820, 1168820, 1258820, 1358820, 1458820, 1459820, 1468820, 1478820, 1488820 ],
                         data: this.dataList.holders.data,
-                        itemStyle: {
-                            color: '#F79729',
-                        },
-                    }, {
+                        // itemStyle: {
+                        //     color: '#F79729',
+                        // },
+                    }, 
+                    {
+                        name: _this.name == "BTC(稳定币)" ? '总量02' : '总地址量',
+                        type: 'line',
+                        symbolSize: 5, // 设置折线上圆点大小
+                        symbol: 'circle', // 设置拐点为实心圆
+                        yAxisIndex: 0,
+                        // data: [1158820, 1128820, 1168820, 1258820, 1358820, 1458820, 1459820, 1468820, 1478820, 1488820 ],
+                        data: this.dataList.holders_two.data,
+                        // itemStyle: {
+                        //     color: '#F79729',
+                        // },
+                    }, 
+                    {
                         name: _this.name + ' 价格',
                         type: 'line',
                         symbolSize: 5, // 设置折线上圆点大小
@@ -455,9 +468,9 @@ export default {
                         yAxisIndex: 1,
                         // data: [0.32372331,0.11752043,0.97107555,0.62991315,0.16098689,0.59809298,0.28456582,0.14334360,0.78546394,0.00756064 ],
                         data: this.dataList.prices.data,
-                        itemStyle: {
-                            color: '#7C7C7C',
-                        },
+                        // itemStyle: {
+                        //     color: '#7C7C7C',
+                        // },
                     }, 
                     ...seriesData
                 ]
