@@ -322,6 +322,9 @@ class BscAddressStatistics extends Base
             if($other_data_arr && count((array)$other_data_arr) > 0) {
                 foreach ($other_data_arr as $k => $v) {
                     $otherData[$k][] = $v;
+                    if($v < $min_holders_two) {
+                        $min_holders_two = $v;
+                    }
                 }
             }
             // $otherData[] = json_decode($val['other_data'], true);
