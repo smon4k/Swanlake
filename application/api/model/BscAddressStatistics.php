@@ -579,4 +579,17 @@ class BscAddressStatistics extends Base
         }
         self::commit();
     }
+
+    /**
+     * 获取数据统计最新一条数据
+     * @author qinlh
+     * @since 2023-09-04
+     */
+    public static function getAddressStatisticsOne() {
+        $res = self::name('bsc_address_statistics')->order('id desc')->find();
+        if($res && count($res) > 0) {
+            return $res->toArray();
+        }
+        return [];
+    }
 }
