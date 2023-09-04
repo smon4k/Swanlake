@@ -494,7 +494,6 @@ class TaskController extends ToolsBaseController
                 $btcPrice = LlpFinance::getBtcPrice($date);
                 // $btcPrice = 0;
                 if($btcPrice <= 0) { //重新获取一次
-                    sleep(2); 
                     $btcPriceArr = BscAddressStatistics::getAddressStatisticsOne();
                     $btcPrice = $btcPriceArr['price'];
                 }
