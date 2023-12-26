@@ -179,13 +179,15 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let power_consumption_ratio = 0
   let chain_address = ''
   if(id) {
-    h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
     btcbReward = await getBTCBPendingBonus(goblinAddress, 8); //获取BTCB奖励
+    if(id == 2) {
+      h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
+      console.log(pId, h2oReward, btcbReward)
+    }
     if(address && address !== undefined && address !== '') {
       userBalance = await getH2OUserInfo(goblinAddress);
     }
     // console.log(pId, totalTvl, tokenPrice, userBalance)
-    console.log(pId, h2oReward, btcbReward)
     // let bonusPerShare = await getH2OAccBonusPerShare(goblinAddress); //累计收益
     // let lastAccBonusPerShare = await getH2OLastAccBonusPerShare(goblinAddress); //上次累计收益
     // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
@@ -303,9 +305,6 @@ export async function getH2OPendingBonus(goblinAddress, number=6) {
   }
   await contract.methods.pendingBonus2(address).call((error, result) => {
     if (!error) {
-      // console.log(result);
-      // console.log(fromWei(result, 18));
-      // num = keepDecimalNotRounding(fromWei(result, 18), number, true)
       num = fromWei(result, 18);
     }else{
       console.log('pendingBonus2' ,error);
