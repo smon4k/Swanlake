@@ -66,7 +66,7 @@ import {
   isApproved,
   getH2OUserInfo,
   setStatiscData,
-  getH2OPendingBonus
+  getBTCBPendingBonus
 } from "@/wallet/serve";
 import { get, post } from "@/common/axios.js";
 import { keepDecimalNotRounding } from "@/utils/tools";
@@ -244,7 +244,7 @@ export default {
       //   }
       // })
       // console.log(this.hashId);
-      let btcbReward = await getH2OPendingBonus(this.goblin); //获取BTCB奖励
+      let btcbReward = await getBTCBPendingBonus(this.goblin); //获取BTCB奖励
       tradeFunc(
         this.goblin,
         this.decimals,

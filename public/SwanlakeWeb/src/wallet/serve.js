@@ -179,15 +179,13 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let power_consumption_ratio = 0
   let chain_address = ''
   if(id) {
-    const transaction = await new web3.eth.getTransaction("0x8247f33547a65ae8e774442a5091c8ce613b6614fd1b5fe815d4ae9126fb0de7");
-    console.log(transaction);
-    // h2oReward = await getPositionRewardBalance(pId, decimals); //获取H2O奖励
-    btcbReward = await getH2OPendingBonus(goblinAddress, 8); //获取BTCB奖励
+    h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
+    btcbReward = await getBTCBPendingBonus(goblinAddress, 8); //获取BTCB奖励
     if(address && address !== undefined && address !== '') {
       userBalance = await getH2OUserInfo(goblinAddress);
     }
     // console.log(pId, totalTvl, tokenPrice, userBalance)
-    // console.log(pId, h2oReward, btcbReward)
+    console.log(pId, h2oReward, btcbReward)
     // let bonusPerShare = await getH2OAccBonusPerShare(goblinAddress); //累计收益
     // let lastAccBonusPerShare = await getH2OLastAccBonusPerShare(goblinAddress); //上次累计收益
     // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
@@ -272,8 +270,8 @@ export async function getPositionRewardBalance(pid, decimals ) {
   return balance;
 }
 
-// 获取H2O池子奖励
-export async function getH2OPendingBonus(goblinAddress, number=6) {
+// 获取BTCB奖励
+export async function getBTCBPendingBonus(goblinAddress, number=6) {
   const address = __ownInstance__.$store.state.base.address;
   const contractAddress = goblinAddress || __ownInstance__.$store.state.base.h2oPoolAddress
   const contract = new web3.eth.Contract(H2OPoolsABI, contractAddress);
@@ -289,6 +287,28 @@ export async function getH2OPendingBonus(goblinAddress, number=6) {
       num = fromWei(result, 18);
     }else{
       console.log('pendingBonus' ,error);
+    }
+  });
+  return num;
+}
+
+// 获取H2O奖励
+export async function getH2OPendingBonus(goblinAddress, number=6) {
+  const address = __ownInstance__.$store.state.base.address;
+  const contractAddress = goblinAddress || __ownInstance__.$store.state.base.h2oPoolAddress
+  const contract = new web3.eth.Contract(H2OPoolsABI, contractAddress);
+  let num = 0;
+  if(!address || address == undefined || address == '') {
+    return num;
+  }
+  await contract.methods.pendingBonus2(address).call((error, result) => {
+    if (!error) {
+      // console.log(result);
+      // console.log(fromWei(result, 18));
+      // num = keepDecimalNotRounding(fromWei(result, 18), number, true)
+      num = fromWei(result, 18);
+    }else{
+      console.log('pendingBonus2' ,error);
     }
   });
   return num;
