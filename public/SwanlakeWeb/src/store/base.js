@@ -40,7 +40,7 @@ export default {
         domainHostAddress:'https://bscscan.com/tx/',
         apiUrl: window.location.host === 'localhost:8007' ? 'http://www.swan.com' : 'https://www.swanlake.club',
         // apiUrl: 'https://www.swanlake.club',
-        nftUrl: window.location.host === 'localhost:8007' || window.location.host === '192.168.1.3:8007' ? 'http://www.api.com' : 'https://api.bitguru.finance',
+        nftUrl: window.location.host === 'localhost:8008' || window.location.host === '192.168.1.3:8007' ? 'http://www.api.com' : 'https://api.bitguru.finance',
         // nftUrl: 'https://api.h2o.live',
         // Env: window.location.host === 'localhost:8001' || window.location.host === '192.168.1.6:8001' ? 'dev' : 'prod',
         Env: 'dev',
@@ -164,7 +164,13 @@ export default {
                         currency: 0,
                         loading:false,
                         btcbPrice: 0,
+                        h2oPrice: 0,
                         chain_address: '',
+                        yest_income_h2o: 0,
+                        yest_income_h2ousdt: 0,
+                        yest_total_income: 0,
+                        yest_total_incomerate: 0,
+                        annualized_rate: 0,
                         claimLoading:false
                     })
                 })
@@ -180,6 +186,7 @@ export default {
             if(index !== -1 ){
                 state.hashPowerPoolsList[index].tokenPrice = info.tokenPrice
                 state.hashPowerPoolsList[index].btcbPrice = info.btcbPrice
+                state.hashPowerPoolsList[index].h2oPrice = info.h2oPrice
                 state.hashPowerPoolsList[index].balance = info.userBalance
                 state.hashPowerPoolsList[index].total = info.totalTvl
                 state.hashPowerPoolsList[index].btcbReward = info.btcbReward
@@ -204,6 +211,11 @@ export default {
                 state.hashPowerPoolsList[index].daily_income_btc = info.daily_income_btc
                 state.hashPowerPoolsList[index].power_consumption_ratio = info.power_consumption_ratio
                 state.hashPowerPoolsList[index].chain_address = info.chain_address
+                state.hashPowerPoolsList[index].yest_income_h2o = info.yest_income_h2o;
+                state.hashPowerPoolsList[index].yest_income_h2ousdt = info.yest_income_h2ousdt;
+                state.hashPowerPoolsList[index].yest_total_income = info.yest_total_income;
+                state.hashPowerPoolsList[index].yest_total_incomerate = info.yest_total_incomerate;
+                state.hashPowerPoolsList[index].annualized_rate = info.annualized_rate;
                 state.hashPowerPoolsList[index].loading = false
             }
         },
@@ -282,24 +294,36 @@ export default {
             // console.log(fixed);
             if(fixed.length) {
                 let poolBtcData = await getPoolBtcData();
-                console.log(poolBtcData);
+                // console.log(poolBtcData);
                 let fixedList = [...fixed]
                 fixedList.forEach(async item => {
                     // console.log(item);
                     let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId, item.id);
-                    console.log(info);
+                    // console.log(info);
                     if(info) {
                         if(info.is_give_income && info.is_give_income > 0) { //大于第一次购买 第二天 给收益
                             let yest_income_usdt = Number(info.userBalance) * Number(info.daily_income); //昨日收益 usdt
                             let yest_income_btcb = keepDecimalNotRounding(Number(info.userBalance) * (Number(info.daily_income) / Number(poolBtcData[0].currency_price))); //昨日收益 btcb
-                            info.yest_income_usdt = yest_income_usdt;
-                            info.yest_income_btcb = yest_income_btcb;
+                            info.yest_income_usdt = yest_income_usdt; //昨日BTCB收益转USDT
+                            info.yest_income_btcb = yest_income_btcb; //昨日BTCB收益
+                            if(item.id == 2) {
+                                let yest_income_h2o =  keepDecimalNotRounding(Number(info.h2o_income_number) * Number(info.userBalance) / Number(info.totalTvl)); //昨日H2O收益
+                                let yest_income_h2ousdt =  keepDecimalNotRounding(yest_income_h2o * Number(info.h2oPrice));//昨日H2O收益usdt
+                                let yest_total_income = keepDecimalNotRounding(Number(yest_income_usdt) + Number(yest_income_h2ousdt));//昨日总收益
+                                let yest_total_incomerate = keepDecimalNotRounding(Number(yest_total_income) / Number(info.userBalance) * Number(info.hashpower_price));// 昨日总收益率=昨日总收益/我的质押*算力币价格；  
+                                let annualized_rate = yest_total_incomerate * 365;//年化收益率 = 365*昨日总收益率 
+                                info.yest_income_h2o = yest_income_h2o;
+                                info.yest_income_h2ousdt = yest_income_h2ousdt;
+                                info.yest_total_income = yest_total_income;
+                                info.yest_total_incomerate = yest_total_incomerate;
+                                info.annualized_rate = annualized_rate;
+                                // console.log(info);
+                            }
                         }
                         let countIncome = keepDecimalNotRounding(Number(info.btcbReward) + Number(info.harvest_btcb_amount)); // 总的收益 = 奖励收益数量 + 已收割奖励数量
                         info.total_income_btcb = countIncome; //btcb总收益
                         let total_income_usdt = countIncome * Number(poolBtcData[0].currency_price); //usdt总收益
                         info.total_income_usdt = total_income_usdt;
-                        // console.log(info);
                         info.t = item.goblin
                         commit('setHashPowerPoolsBalance', info)
                     }

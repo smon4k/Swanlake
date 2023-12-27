@@ -152,7 +152,7 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="昨日收益"
+                    label="昨日BTC收益"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -164,9 +164,19 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="总收益"
+                    label="昨日H2O收益"
                     align="center"
-                    width="">
+                    width="100">
+                    <template slot-scope="scope">
+                        {{ toFixed(scope.row.yest_income_h2ousdt || 0, 6) }} USDT <br>
+                        {{ toFixed(scope.row.yest_income_h2o, 6) }} H2O
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="BTC总收益"
+                    align="center"
+                    width="110">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
                             {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
@@ -176,12 +186,40 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="可领取收益"
+                    label="昨日总收益"
+                    align="center"
+                    width="100">
+                    <template slot-scope="scope">
+                        {{ toFixed(scope.row.yest_total_income || 0, 6) }} USDT
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="昨日总收益率"
                     align="center"
                     width="">
                     <template slot-scope="scope">
+                        {{ toFixed(scope.row.yest_total_incomerate || 0, 2) }}%
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="年化收益率"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        {{ toFixed(scope.row.annualized_rate || 0, 2) }}%
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="可领取收益"
+                    align="center"
+                    width="110">
+                    <template slot-scope="scope">
                         <span>
-                            {{ fromSATBTCNum(scope.row.btcbReward, 2) }}
+                            {{ fromSATBTCNum(scope.row.btcbReward, 2) }} <br>
+                            {{ toFixed(scope.row.h2oReward, 2) }} H2O
                         </span>
                     </template>
                 </el-table-column>
@@ -211,21 +249,35 @@
                     <!-- <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item> -->
                     <el-descriptions-item label="总质押算力">{{ toFixed(item.total || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
-                    <el-descriptions-item label="昨日收益">
+                    <el-descriptions-item label="昨日BTC收益">
                         <el-link type="primary" @click="getHashpowerDetail(item.id)">
                             {{ toFixed(item.yest_income_usdt || 0, 4) }} USDT <br>
                             {{ fromSATBTCNum(item.yest_income_btcb, 2) }}
                         </el-link>
                     </el-descriptions-item>
-                    <el-descriptions-item label="总收益">
+                    <el-descriptions-item label="昨日H2O收益">
+                        {{ toFixed(item.yest_income_h2ousdt || 0, 4) }} USDT <br>
+                        {{ fromSATBTCNum(item.yest_income_h2o, 2) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="BTC总收益">
                         <!-- <el-link type="primary" @click="showHashpowerIncomeList(item.id)"> -->
                             {{ toFixed(item.total_income_usdt || 0, 4) }} USDT <br>
                             {{ fromSATBTCNum(item.total_income_btcb, 2) }}
                         <!-- </el-link> -->
                     </el-descriptions-item>
+                    <el-descriptions-item label="昨日总收益">
+                            {{ toFixed(item.yest_total_income || 0, 4) }} USDT
+                    </el-descriptions-item>
+                    <el-descriptions-item label="昨日总收益率">
+                            {{ toFixed(item.yest_total_incomerate || 0, 2) }} %
+                    </el-descriptions-item>
+                    <el-descriptions-item label="年化收益率">
+                            {{ toFixed(item.annualized_rate || 0, 2) }} %
+                    </el-descriptions-item>
                     <el-descriptions-item label="可领取收益">
                         <span>
-                            {{ fromSATBTCNum(item.btcbReward, 2) }}SAT BTC
+                            {{ fromSATBTCNum(item.btcbReward, 2) }}
+                            {{ toFixed(item.h2oReward, 2) }} H2O
                         </span>
                     </el-descriptions-item>
                     <el-descriptions-item>

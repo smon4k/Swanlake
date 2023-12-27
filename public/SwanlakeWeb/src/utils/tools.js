@@ -80,7 +80,7 @@ export function fromSATBTCNum(amount, decimal) {
   let pow = Math.pow(10, 8);
   let num = 0;
   let number = Number(amount) * pow;
-  console.log(number);
+  // console.log(number);
   if(number > 1000) {
     num = toFixed(amount, 10) + ' BTC';
   } else {
