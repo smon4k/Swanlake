@@ -203,39 +203,39 @@ export default {
         },
         navList () { //导航菜单
             let arr = [
-                {
-                    name: '首页',
-                    path: "/home",
-                    // img: require("@/assets/images/hashpower.png"),
-                    // img2: require("@/assets/images/hashpower_light.png"),
-                    children: [],
-                    isHref: false,
-                },
-                {
-                    name: '我的理财',
-                    path: "/my/finances",
-                    children: [],
-                },
-                {
-                    name: '理财产品',
-                    path: "/financial/product",
-                    children: [],
-                },
-                {
-                    name: '资金监控',
-                    path: "/fund/monitoring",
-                    children: [],
-                },
-                {
-                    name: '充提',
-                    path: "/depositWithdrawal",
-                    children: [],
-                },
-                {
-                    name: '币种统计',
-                    path: "/bscTokenStatistics",
-                    children: [],
-                },
+                // {
+                //     name: '首页',
+                //     path: "/home",
+                //     // img: require("@/assets/images/hashpower.png"),
+                //     // img2: require("@/assets/images/hashpower_light.png"),
+                //     children: [],
+                //     isHref: false,
+                // },
+                // {
+                //     name: '我的理财',
+                //     path: "/my/finances",
+                //     children: [],
+                // },
+                // {
+                //     name: '理财产品',
+                //     path: "/financial/product",
+                //     children: [],
+                // },
+                // {
+                //     name: '资金监控',
+                //     path: "/fund/monitoring",
+                //     children: [],
+                // },
+                // {
+                //     name: '充提',
+                //     path: "/depositWithdrawal",
+                //     children: [],
+                // },
+                // {
+                //     name: '币种统计',
+                //     path: "/bscTokenStatistics",
+                //     children: [],
+                // },
                 {
                     name: '算力币',
                     path: "/hashpower/list",
@@ -254,35 +254,35 @@ export default {
                         },
                     ]
                 },
-                {
-                    name: '算力租赁',
-                    path: "/power/list",
-                    children: [
-                        {
-                            name: '我的租赁',
-                            path: "/power/user",
-                        },
-                        {
-                            name: 'BTCB 充提',
-                            path: "/deposit/withdraw/btcb",
-                        },
-                    ]
-                },
-                {
-                    name: '资金账户监控',
-                    path: "/fund/monitoring/account",
-                    children: [],
-                },
-                {
-                    name: '净值配置',
-                    path: "/day/networth",
-                    children: [],
-                },
-                {
-                    name: '量化账户监控',
-                    path: "/quantify/account",
-                    children: [],
-                },
+                // {
+                //     name: '算力租赁',
+                //     path: "/power/list",
+                //     children: [
+                //         {
+                //             name: '我的租赁',
+                //             path: "/power/user",
+                //         },
+                //         {
+                //             name: 'BTCB 充提',
+                //             path: "/deposit/withdraw/btcb",
+                //         },
+                //     ]
+                // },
+                // {
+                //     name: '资金账户监控',
+                //     path: "/fund/monitoring/account",
+                //     children: [],
+                // },
+                // {
+                //     name: '净值配置',
+                //     path: "/day/networth",
+                //     children: [],
+                // },
+                // {
+                //     name: '量化账户监控',
+                //     path: "/quantify/account",
+                //     children: [],
+                // },
             ];
             if(!this.isAdmin) {
                 arr.splice(arr.length - 3, 3);
