@@ -129,7 +129,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 4) }} USDT</span><br>
+                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 2) }} USDT</span><br>
                         <span>{{ fromSATBTCNum(scope.row.daily_expenditure_btc, 2) }}</span>
                     </template>
                 </el-table-column>
@@ -138,7 +138,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, 4) }} USDT</span><br>
+                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, 2) }} USDT</span><br>
                         <span>{{ fromSATBTCNum(scope.row.daily_income_btc, 2) }}</span>
                     </template>
                 </el-table-column>
@@ -157,7 +157,7 @@
                     width="">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
-                            {{ toFixed(scope.row.yest_income_usdt || 0, 4) }} USDT <br>
+                            {{ toFixed(scope.row.yest_income_usdt || 0, 2) }} USDT <br>
                             {{ fromSATBTCNum(scope.row.yest_income_btcb, 2) }}
                         </el-link>
                     </template>
@@ -168,8 +168,8 @@
                     align="center"
                     width="100">
                     <template slot-scope="scope">
-                        {{ toFixed(scope.row.yest_income_h2ousdt || 0, 4) }} USDT <br>
-                        {{ toFixed(scope.row.yest_income_h2o, 6) }} H2O
+                        {{ toFixed(scope.row.yest_income_h2ousdt || 0, 2) }} USDT <br>
+                        {{ toFixed(scope.row.yest_income_h2o, 4) }} H2O
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -179,7 +179,7 @@
                     width="110">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
-                            {{ toFixed(scope.row.total_income_usdt || 0, 4) }} USDT <br>
+                            {{ toFixed(scope.row.total_income_usdt || 0, 2) }} USDT <br>
                             {{ fromSATBTCNum(scope.row.total_income_btcb, 2) }}
                         </el-link>
                     </template>
@@ -190,10 +190,10 @@
                     align="center"
                     width="100">
                     <template slot-scope="scope">
-                        {{ toFixed(scope.row.yest_total_income || 0, 4) }} USDT
+                        {{ toFixed(scope.row.yest_total_income || 0, 2) }} USDT
                     </template>
                 </el-table-column>
-                <el-table-column
+                <!-- <el-table-column
                     prop=""
                     label="昨日总收益率"
                     align="center"
@@ -201,7 +201,7 @@
                     <template slot-scope="scope">
                         {{ toFixed(scope.row.yest_total_incomerate || 0, 2) }}%
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
                     prop=""
                     label="年化收益率"
