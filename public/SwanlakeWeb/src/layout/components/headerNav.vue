@@ -284,9 +284,9 @@ export default {
                 //     children: [],
                 // },
             ];
-            if(!this.isAdmin) {
-                arr.splice(arr.length - 3, 3);
-            }
+            // if(!this.isAdmin) {
+            //     arr.splice(arr.length - 3, 3);
+            // }
             return arr;
         }
     },
