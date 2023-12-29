@@ -295,7 +295,7 @@ export default {
                     children: [],
                 },
                 {
-                    name: '$ ' + this.toFixed(this.h2oPrice, 4),
+                    name: 'Price: $ ' + this.toFixed(this.h2oPrice, 4),
                     path: "",
                     link: "",
                     isText: true,
