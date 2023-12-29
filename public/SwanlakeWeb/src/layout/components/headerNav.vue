@@ -78,7 +78,10 @@
                     :unique-opened="true"
                 >
                     <template v-for="(item, index) in navList">
-                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
+                        <el-menu-item :index="index" v-if="!item.children.length" :key="index">
+                            <a :href="item.link" target="_blank" v-if="item.link">{{ item.name }}</a>
+                            <span v-else>{{ item.name }}</span>
+                        </el-menu-item>
                         <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
                             <template slot="title">{{item.name}}</template>
                             <div v-for="(childe, keye) in item.children" :key="keye">
@@ -120,7 +123,10 @@
                     :default-openeds="defaultOpenedsArray"
                     >
                     <template v-for="(item, index) in navList">
-                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
+                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">
+                            <a :href="item.link" target="_blank" v-if="item.link">{{ item.name }}</a>
+                            <span v-else>{{ item.name }}</span>
+                        </el-menu-item>
                         <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
                             <template slot="title">{{item.name}}</template>
                             <div v-for="(childe, keye) in item.children" :key="keye">
@@ -253,6 +259,24 @@ export default {
                             path: "/hashpower/history",
                         },
                     ]
+                },
+                {
+                    name: '推特',
+                    path: "",
+                    link: "https://twitter.com/FinanceH2O",
+                    children: [],
+                },
+                {
+                    name: '电报',
+                    path: "",
+                    link: "https://t.me/h2ofinanceofficial",
+                    children: [],
+                },
+                {
+                    name: '白皮书',
+                    path: "",
+                    link: "https://h2ofinance.gitbook.io/h2o-finance-en/",
+                    children: [],
                 },
                 // {
                 //     name: '算力租赁',
