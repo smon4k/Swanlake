@@ -302,24 +302,22 @@ export default {
                     // console.log(info);
                     if(info) {
                         if(info.is_give_income && info.is_give_income > 0) { //大于第一次购买 第二天 给收益
-                            let yest_income_usdt = Number(info.userBalance) * Number(info.daily_income); //昨日收益 usdt
-                            let yest_income_btcb = keepDecimalNotRounding(Number(info.userBalance) * (Number(info.daily_income) / Number(poolBtcData[0].currency_price))); //昨日收益 btcb
+                            let yest_income_usdt = Number(info.totalTvl) * Number(info.daily_income); //昨日收益 usdt
+                            let yest_income_btcb = keepDecimalNotRounding(Number(info.totalTvl) * (Number(info.daily_income) / Number(poolBtcData[0].currency_price))); //昨日收益 btcb
                             info.yest_income_usdt = yest_income_usdt; //昨日BTCB收益转USDT
                             info.yest_income_btcb = yest_income_btcb; //昨日BTCB收益
-                            if(item.id == 2) {
-                                let yest_income_h2o =  keepDecimalNotRounding(Number(info.h2o_income_number) * Number(info.userBalance) / Number(info.totalTvl)); //昨日H2O收益
-                                let yest_income_h2ousdt =  keepDecimalNotRounding(yest_income_h2o * Number(info.h2oPrice));//昨日H2O收益usdt
-                                let yest_total_income = keepDecimalNotRounding(Number(yest_income_usdt) + Number(yest_income_h2ousdt));//昨日总收益
-                                let yest_total_incomerate = keepDecimalNotRounding(Number(yest_total_income) / (Number(info.userBalance) * (Number(info.hashpower_price) / Number(info.hash_rate))));// 昨日总收益率=昨日总收益/我的质押*算力币价格；  
-                                let annualized_rate = yest_total_incomerate * 365 * 100;//年化收益率 = 365*昨日总收益率 
-                                info.yest_income_h2o = yest_income_h2o;
-                                info.yest_income_h2ousdt = yest_income_h2ousdt;
-                                info.yest_total_income = yest_total_income;
-                                info.yest_total_incomerate = yest_total_incomerate;
-                                info.annualized_rate = annualized_rate;
-                                // console.log(info);
-                            }
+                            let yest_income_h2o =  keepDecimalNotRounding(Number(info.h2o_income_number) * Number(info.totalTvl) / Number(info.totalTvl)); //昨日H2O收益
+                            let yest_income_h2ousdt =  keepDecimalNotRounding(yest_income_h2o * Number(info.h2oPrice));//昨日H2O收益usdt
+                            let yest_total_income = keepDecimalNotRounding(Number(yest_income_usdt) + Number(yest_income_h2ousdt));//昨日总收益
+                            let yest_total_incomerate = keepDecimalNotRounding(Number(yest_total_income) / (Number(info.totalTvl) * (Number(info.hashpower_price) / Number(info.hash_rate))));// 昨日总收益率=昨日总收益/(总质押算力*算力币价格)；  
+                            let annualized_rate = yest_total_incomerate * 365 * 100;//年化收益率 = 365*昨日总收益率 
+                            info.yest_income_h2o = yest_income_h2o;
+                            info.yest_income_h2ousdt = yest_income_h2ousdt;
+                            info.yest_total_income = yest_total_income;
+                            info.yest_total_incomerate = yest_total_incomerate;
+                            info.annualized_rate = annualized_rate;
                         }
+                        // console.log(info);
                         let countIncome = keepDecimalNotRounding(Number(info.btcbReward) + Number(info.harvest_btcb_amount)); // 总的收益 = 奖励收益数量 + 已收割奖励数量
                         info.total_income_btcb = countIncome; //btcb总收益
                         let total_income_usdt = countIncome * Number(poolBtcData[0].currency_price); //usdt总收益
