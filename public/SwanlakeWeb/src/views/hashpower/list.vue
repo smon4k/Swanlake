@@ -174,7 +174,7 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="BTC总收益"
+                    label="BTC累计收益"
                     align="center"
                     width="110">
                     <template slot-scope="scope">
