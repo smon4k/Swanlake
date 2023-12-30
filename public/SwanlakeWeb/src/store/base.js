@@ -311,7 +311,7 @@ export default {
                                 let yest_income_h2ousdt =  keepDecimalNotRounding(yest_income_h2o * Number(info.h2oPrice));//昨日H2O收益usdt
                                 let yest_total_income = keepDecimalNotRounding(Number(yest_income_usdt) + Number(yest_income_h2ousdt));//昨日总收益
                                 let yest_total_incomerate = keepDecimalNotRounding(Number(yest_total_income) / (Number(info.userBalance) * (Number(info.hashpower_price) / Number(info.hash_rate))));// 昨日总收益率=昨日总收益/我的质押*算力币价格；  
-                                let annualized_rate = yest_total_incomerate * 365;//年化收益率 = 365*昨日总收益率 
+                                let annualized_rate = yest_total_incomerate * 365 * 100;//年化收益率 = 365*昨日总收益率 
                                 info.yest_income_h2o = yest_income_h2o;
                                 info.yest_income_h2ousdt = yest_income_h2ousdt;
                                 info.yest_total_income = yest_total_income;
