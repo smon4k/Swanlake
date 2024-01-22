@@ -126,7 +126,7 @@ export const getToken2TokenPrice = async function (token0 , token1 ,type , amoun
   // if(token0 === Address.BUSDT || token1 === Address.BUSDT) return 1
   let contractAddress;
   if(token0 === Address.H2O || token1 === Address.H2O) {
-    contractAddress = Address.routerContractAddress;
+    contractAddress = Address.cakeRouter;
   } else {
     contractAddress = Address.cakeRouter
   }
