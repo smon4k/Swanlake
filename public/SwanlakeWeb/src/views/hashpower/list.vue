@@ -50,14 +50,14 @@
                 <el-row style="line-height:30px;">
                     <!-- 平台昨日产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
-                        <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
-                        <br>
+                        <!-- <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
+                        <br> -->
                         <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.currency_price), 2) }}</span>
                     </el-col>
                     <!-- 平台累计产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
-                        <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
-                        <br>
+                        <!-- <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
+                        <br> -->
                         <!-- <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.currency_price), 2) || "--" }}</span> -->
                         <span>{{ fromSATBTCNum(Number(count_btc_output), 2) || "--" }}</span>
                     </el-col>
