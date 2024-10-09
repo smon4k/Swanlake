@@ -50,14 +50,14 @@
                 <el-row style="line-height:30px;">
                     <!-- 平台昨日产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
-                        <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
-                        <br>
+                        <!-- <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
+                        <br> -->
                         <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.currency_price), 2) }}</span>
                     </el-col>
                     <!-- 平台累计产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
-                        <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
-                        <br>
+                        <!-- <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
+                        <br> -->
                         <!-- <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.currency_price), 2) || "--" }}</span> -->
                         <span>{{ fromSATBTCNum(Number(count_btc_output), 2) || "--" }}</span>
                     </el-col>
@@ -129,7 +129,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 4) }} USDT</span><br>
+                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 2) }} USDT</span><br>
                         <span>{{ fromSATBTCNum(scope.row.daily_expenditure_btc, 2) }}</span>
                     </template>
                 </el-table-column>
@@ -138,7 +138,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, 4) }} USDT</span><br>
+                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, 2) }} USDT</span><br>
                         <span>{{ fromSATBTCNum(scope.row.daily_income_btc, 2) }}</span>
                     </template>
                 </el-table-column>
@@ -157,7 +157,7 @@
                     width="">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
-                            {{ toFixed(scope.row.yest_income_usdt || 0, 4) }} USDT <br>
+                            {{ toFixed(scope.row.yest_income_usdt || 0, 2) }} USDT <br>
                             {{ fromSATBTCNum(scope.row.yest_income_btcb, 2) }}
                         </el-link>
                     </template>
@@ -168,18 +168,18 @@
                     align="center"
                     width="100">
                     <template slot-scope="scope">
-                        {{ toFixed(scope.row.yest_income_h2ousdt || 0, 6) }} USDT <br>
-                        {{ toFixed(scope.row.yest_income_h2o, 6) }} H2O
+                        {{ toFixed(scope.row.yest_income_h2ousdt || 0, 2) }} USDT <br>
+                        {{ toFixed(scope.row.yest_income_h2o, 4) }} H2O
                     </template>
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="BTC总收益"
+                    label="BTC累计收益"
                     align="center"
                     width="110">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
-                            {{ toFixed(scope.row.total_income_usdt || 0, 6) }} USDT <br>
+                            {{ toFixed(scope.row.total_income_usdt || 0, 2) }} USDT <br>
                             {{ fromSATBTCNum(scope.row.total_income_btcb, 2) }}
                         </el-link>
                     </template>
@@ -190,10 +190,10 @@
                     align="center"
                     width="100">
                     <template slot-scope="scope">
-                        {{ toFixed(scope.row.yest_total_income || 0, 6) }} USDT
+                        {{ toFixed(scope.row.yest_total_income || 0, 2) }} USDT
                     </template>
                 </el-table-column>
-                <el-table-column
+                <!-- <el-table-column
                     prop=""
                     label="昨日总收益率"
                     align="center"
@@ -201,7 +201,7 @@
                     <template slot-scope="scope">
                         {{ toFixed(scope.row.yest_total_incomerate || 0, 2) }}%
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
                     prop=""
                     label="年化收益率"
@@ -245,7 +245,7 @@
             <div v-if="hashPowerPoolsList.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="年化利率">{{ toFixed(item.annualized_income || 0, 2) }}%</el-descriptions-item>
+                    <!-- <el-descriptions-item label="年化利率">{{ toFixed(item.annualized_income || 0, 2) }}%</el-descriptions-item> -->
                     <!-- <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item> -->
                     <el-descriptions-item label="总质押算力">{{ toFixed(item.total || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
@@ -268,9 +268,9 @@
                     <el-descriptions-item label="昨日总收益">
                             {{ toFixed(item.yest_total_income || 0, 4) }} USDT
                     </el-descriptions-item>
-                    <el-descriptions-item label="昨日总收益率">
+                    <!-- <el-descriptions-item label="昨日总收益率">
                             {{ toFixed(item.yest_total_incomerate || 0, 2) }} %
-                    </el-descriptions-item>
+                    </el-descriptions-item> -->
                     <el-descriptions-item label="年化收益率">
                             {{ toFixed(item.annualized_rate || 0, 2) }} %
                     </el-descriptions-item>
@@ -810,6 +810,9 @@ export default {
                 border-radius: 20px;
                 .el-card__body {
                     padding: 0;
+                    div {
+                        font-size: 13px;
+                    }
                 }
                 .public-info {
                     padding: 10px;

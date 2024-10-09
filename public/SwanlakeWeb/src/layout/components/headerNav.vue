@@ -13,11 +13,16 @@
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
+                            <img
+                                src="@/assets/h2o.png"
+                                alt=""
+                                v-if="mainTheme === 'light'"
+                            />
                             <img src="@/assets/log.jpeg" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title" v-show="screenWidth > 600"> Swan Lake Quant </div>
+                    <div class="title" v-show="screenWidth > 600"> Swan Lake Quant<br>H2O Finance </div>
                 </div>
                 <!-- 安全审计 -->
                 <!-- <div class="security-audit" v-if="$route.path !== '/deposit'" @click="SecurityAudit()">
@@ -78,7 +83,11 @@
                     :unique-opened="true"
                 >
                     <template v-for="(item, index) in navList">
-                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
+                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">
+                            <a :href="item.link" target="_blank" v-if="item.link">{{ item.name }}</a>
+                            <font v-else-if="item.isText" color="#0096FF">{{ item.name }}</font>
+                            <span v-else>{{ item.name }}</span>
+                        </el-menu-item>
                         <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
                             <template slot="title">{{item.name}}</template>
                             <div v-for="(childe, keye) in item.children" :key="keye">
@@ -120,7 +129,11 @@
                     :default-openeds="defaultOpenedsArray"
                     >
                     <template v-for="(item, index) in navList">
-                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">{{ item.name }}</el-menu-item>
+                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">
+                            <a :href="item.link" target="_blank" v-if="item.link">{{ item.name }}</a>
+                            <font v-else-if="item.isText" color="#0096FF">{{ item.name }}</font>
+                            <span v-else>{{ item.name }}</span>
+                        </el-menu-item>
                         <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
                             <template slot="title">{{item.name}}</template>
                             <div v-for="(childe, keye) in item.children" :key="keye">
@@ -149,6 +162,8 @@
 import axios from 'axios'
 import { connectInfo , connect } from '@/wallet/connect/metaMask'
 import { mapGetters, mapState } from "vuex";
+import { getToken2TokenPrice } from "@/wallet/serve";
+import Address from "@/wallet/address.json";
 export default {
     name:'headerNav',
     data(){
@@ -166,6 +181,7 @@ export default {
             menuDrawerShow: false,
             defaultOpenedsArray:[],
             isHashpowerMenu: false,
+            h2oPrice: 0,
         }
     },
     mounted() {
@@ -203,39 +219,39 @@ export default {
         },
         navList () { //导航菜单
             let arr = [
-                {
-                    name: '首页',
-                    path: "/home",
-                    // img: require("@/assets/images/hashpower.png"),
-                    // img2: require("@/assets/images/hashpower_light.png"),
-                    children: [],
-                    isHref: false,
-                },
-                {
-                    name: '我的理财',
-                    path: "/my/finances",
-                    children: [],
-                },
-                {
-                    name: '理财产品',
-                    path: "/financial/product",
-                    children: [],
-                },
-                {
-                    name: '资金监控',
-                    path: "/fund/monitoring",
-                    children: [],
-                },
-                {
-                    name: '充提',
-                    path: "/depositWithdrawal",
-                    children: [],
-                },
-                {
-                    name: '币种统计',
-                    path: "/bscTokenStatistics",
-                    children: [],
-                },
+                // {
+                //     name: '首页',
+                //     path: "/home",
+                //     // img: require("@/assets/images/hashpower.png"),
+                //     // img2: require("@/assets/images/hashpower_light.png"),
+                //     children: [],
+                //     isHref: false,
+                // },
+                // {
+                //     name: '我的理财',
+                //     path: "/my/finances",
+                //     children: [],
+                // },
+                // {
+                //     name: '理财产品',
+                //     path: "/financial/product",
+                //     children: [],
+                // },
+                // {
+                //     name: '资金监控',
+                //     path: "/fund/monitoring",
+                //     children: [],
+                // },
+                // {
+                //     name: '充提',
+                //     path: "/depositWithdrawal",
+                //     children: [],
+                // },
+                // {
+                //     name: '币种统计',
+                //     path: "/bscTokenStatistics",
+                //     children: [],
+                // },
                 {
                     name: '算力币',
                     path: "/hashpower/list",
@@ -255,38 +271,70 @@ export default {
                     ]
                 },
                 {
-                    name: '算力租赁',
-                    path: "/power/list",
-                    children: [
-                        {
-                            name: '我的租赁',
-                            path: "/power/user",
-                        },
-                        {
-                            name: 'BTCB 充提',
-                            path: "/deposit/withdraw/btcb",
-                        },
-                    ]
-                },
-                {
-                    name: '资金账户监控',
-                    path: "/fund/monitoring/account",
+                    name: '推特',
+                    path: "",
+                    link: "https://twitter.com/FinanceH2O",
                     children: [],
                 },
                 {
-                    name: '净值配置',
-                    path: "/day/networth",
+                    name: '电报',
+                    path: "",
+                    link: "https://t.me/h2ofinanceofficial",
                     children: [],
                 },
                 {
-                    name: '量化账户监控',
-                    path: "/quantify/account",
+                    name: '白皮书',
+                    path: "",
+                    link: "https://h2ofinance.gitbook.io/h2o-finance-en/",
                     children: [],
                 },
+                {
+                    name: '购买H2O',
+                    path: "",
+                    // link: "https://h2o.h2ohash.live/#/Swap?inputCurrency=0x55d398326f99059fF775485246999027B3197955&outputCurrency=H2O",
+                    link: "https://pancakeswap.finance/swap?outputCurrency=BNB&inputCurrency=0x80ce4734F7C46De0b7f97527Cbc7EC189f668984",
+                    children: [],
+                },
+                {
+                    name: 'Price: $ ' + this.toFixed(this.h2oPrice, 5),
+                    path: "",
+                    link: "",
+                    isText: true,
+                    children: [],
+                },
+                // {
+                //     name: '算力租赁',
+                //     path: "/power/list",
+                //     children: [
+                //         {
+                //             name: '我的租赁',
+                //             path: "/power/user",
+                //         },
+                //         {
+                //             name: 'BTCB 充提',
+                //             path: "/deposit/withdraw/btcb",
+                //         },
+                //     ]
+                // },
+                // {
+                //     name: '资金账户监控',
+                //     path: "/fund/monitoring/account",
+                //     children: [],
+                // },
+                // {
+                //     name: '净值配置',
+                //     path: "/day/networth",
+                //     children: [],
+                // },
+                // {
+                //     name: '量化账户监控',
+                //     path: "/quantify/account",
+                //     children: [],
+                // },
             ];
-            if(!this.isAdmin) {
-                arr.splice(arr.length - 3, 3);
-            }
+            // if(!this.isAdmin) {
+            //     arr.splice(arr.length - 3, 3);
+            // }
             return arr;
         }
     },
@@ -305,6 +353,9 @@ export default {
 
         let language = "zh";
         localStorage.setItem('i18nextLng', language);
+        setTimeout(async () => {
+            this.h2oPrice = await getToken2TokenPrice(Address.H2O, Address.BUSDT);
+        }, 400);
         // language = localStorage.getItem('i18nextLng');
         // if(language && language !== undefined) {
         //     this.language = language;

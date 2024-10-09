@@ -126,7 +126,7 @@ export const getToken2TokenPrice = async function (token0 , token1 ,type , amoun
   // if(token0 === Address.BUSDT || token1 === Address.BUSDT) return 1
   let contractAddress;
   if(token0 === Address.H2O || token1 === Address.H2O) {
-    contractAddress = Address.routerContractAddress;
+    contractAddress = Address.cakeRouter;
   } else {
     contractAddress = Address.cakeRouter
   }
@@ -181,6 +181,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let h2oPrice = 0;
   let h2o_income_number = 0;
   let hashpower_price = 0;
+  let hash_rate = 0;
   if(id) {
     if(address && address !== undefined && address !== '') {
       userBalance = await getH2OUserInfo(goblinAddress);
@@ -197,7 +198,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
     // let btcbPrice = await getSwapPoolsAmountsOut(publicAddress.routerContractAddress, Address.BTCB , Address.BUSDT ); //获取水价格
     btcbPrice = await getToken2TokenPrice(Address.BTCB, Address.BUSDT) //获取btcb价格
-    // console.log(btcbPrice);
+    console.log(btcbPrice);
     // console.log(reptileBtcData);
     btcb19ProBalance = await getBalance(currencyToken, 18); //获取购买算力币余额
     cost_revenue = HashpowerDetail.cost_revenue; //估值
@@ -214,6 +215,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     chain_address = HashpowerDetail.chain_address //合约地址
     h2o_income_number = HashpowerDetail.h2o_income_number; //总的自定义收益数量
     hashpower_price = HashpowerDetail.price;
+    hash_rate = HashpowerDetail.hash_rate;
   } 
   let reObj = {
     totalTvl: totalTvl,
@@ -242,6 +244,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     chain_address: chain_address,
     h2o_income_number: h2o_income_number,
     hashpower_price: hashpower_price,
+    hash_rate: hash_rate,
   };
   return reObj;
 }
@@ -459,7 +462,7 @@ export const getFillingIncreasingId = async function(){
   const apiUrl = __ownInstance__.$store.state.base.apiUrl
   const address = __ownInstance__.$store.state.base.address;
   let result = [];
-  let data = await $get('https://h2ohash.live/getPoolBtc')
+  let data = await $get('https://h2o.h2ohash.live/getPoolBtc')
   if(data) {
     result = data;
   }
