@@ -238,7 +238,7 @@ class LlpFinance extends Base {
      * @since 2023-05-18
      */
     public static function getBtcPrice($date='') {
-        $url = "https://apiy.h2ofinance.pro/api/apy/getBetNewPrice?date=" . $date;
+        $url = "https://apiy.h2ohash.live/api/apy/getBetNewPrice?date=" . $date;
         $poolBtc =
         $params = [
         ];

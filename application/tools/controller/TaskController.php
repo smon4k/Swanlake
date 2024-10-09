@@ -566,7 +566,9 @@ class TaskController extends ToolsBaseController
      */
     public function calcQuantifyAccountData() {
         $begin_time = time();
-        $accountList = QuantifyAccount::getAccountList();
+        $where = [];
+        $where['state'] = 1;
+        $accountList = QuantifyAccount::getAccountList($where);
         $account_id = 0;
         // $balance = QuantifyAccount::getTradePairBalance([
         //     'api_key' => 'ix047O4nUsrMjl7RNNfkEsB1BlACOq6JceXwDbkUusHWgrJTLjuLPWP7kQc8F3gI',
