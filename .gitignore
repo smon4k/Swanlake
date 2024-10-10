@@ -22,4 +22,4 @@ database.php
 /runtime/cache
 database_hp*.php
 /log.xml
-
+/pyapi/okex/venv
