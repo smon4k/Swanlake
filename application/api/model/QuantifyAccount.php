@@ -14,6 +14,8 @@ namespace app\api\model;
 
 use think\Model;
 use cache\Rediscache;
+use RequestService\RequestService;
+use think\Config;
 
 class QuantifyAccount extends Base
 {
@@ -89,7 +91,7 @@ class QuantifyAccount extends Base
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $countStandardPrincipal = 0; //累计本金
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
-                if (!$amount || $amount == 0) { 
+                if (!$amount || $amount == 0) {
                     if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
                         if(isset($yestData['principal']) && $yestData['principal'] > 0) {
                             $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] : 0;
@@ -297,19 +299,21 @@ class QuantifyAccount extends Base
      * @since 2022-08-19
      */
     public static function getOkxTradePairBalance($accountInfo) {
-        $vendor_name = "ccxt.ccxt";
-        Vendor($vendor_name);
-        $className = "\ccxt\\okex5";
-        $exchange  = new $className(array( //子账户
-            'apiKey' => $accountInfo['api_key'],
-            'secret' => $accountInfo['secret_key'],
-            'password' => $accountInfo['pass_phrase'],
-        ));
+        // $vendor_name = "ccxt.ccxt";
+        // Vendor($vendor_name);
+        // $className = "\ccxt\\okex5";
+        // $exchange  = new $className(array( //子账户
+        //     'apiKey' => $accountInfo['api_key'],
+        //     'secret' => $accountInfo['secret_key'],
+        //     'password' => $accountInfo['pass_phrase'],
+        // ));
         try {
             // $tradesList = $exchange->fetch_my_trades('GMX-USDT', null, null, ['before' => '563842929979478016']);
             // p($tradesList);
-            $balanceDetails = $exchange->fetch_account_balance();
+            // $balanceDetails = $exchange->fetch_account_balance();
             // p($balance);
+            $url = Config('okx_uri') . "/api/okex/get_account_balances";
+            $balanceDetails = self::getOkxRequesInfo($accountInfo, $url);
             $btcBalance = 0;
             $usdtBalance = 0;
             foreach ($balanceDetails['details'] as $k => $v) {
@@ -321,7 +325,9 @@ class QuantifyAccount extends Base
                             $price = 1;
                             $currencyUsd = 1;
                             if($v['ccy'] !== 'USDT') {
-                                $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
+                                $url = Config('okx_uri') . "/api/okex/get_market_ticker?instId=" . $v['ccy'].'-USDT';
+                                $prices = self::getOkxRequesInfo($accountInfo, $url);
+                                // $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
                                 $price = $prices['last'];
                                 $currencyUsd = (float)$v['cashBal'] * $price;
                                 $usdtBalance += (float)$currencyUsd;
@@ -336,9 +342,13 @@ class QuantifyAccount extends Base
                                 $maxBillId = self::getOkxAccountTradeDetailsMaxTradeId($accountInfo['id'], $v['ccy'].'-USDT');
                                 // p($maxBillId);
                                 if($maxBillId) {
-                                    $tradesList = $exchange->fetch_my_trades($v['ccy'].'-USDT', null, null, ['before' => $maxBillId]);
+                                    $url = Config('okx_uri') . "/api/okex/get_fills_history?instType=SPOT&instId=" . $v['ccy'].'-USDT' . '&before=' . $maxBillId;
+                                    $tradesList = self::getOkxRequesInfo($accountInfo, $url);
+                                    // $tradesList = $exchange->fetch_my_trades($v['ccy'].'-USDT', null, null, ['before' => $maxBillId]);
                                 } else {
-                                    $tradesList = $exchange->fetch_my_trades($v['ccy'].'-USDT');
+                                    $url = Config('okx_uri') . "/api/okex/get_fills_history?instType=SPOT&instId=" . $v['ccy'].'-USDT' . '&before=';
+                                    $tradesList = self::getOkxRequesInfo($accountInfo, $url);
+                                    // $tradesList = $exchange->fetch_my_trades($v['ccy'].'-USDT');
                                 }
                                 // p($tradesList);
                                 $setAccountTradeDetailsRes = self::setOkxAccountTradeDetails($accountInfo['id'], $v['ccy'], $tradesList, $maxBillId);
@@ -348,11 +358,19 @@ class QuantifyAccount extends Base
                 }
             }
             //获取GMXUSDT持仓信息
-            if($accountInfo['id'] == 7 || $accountInfo['id'] == 9) {
-                $positionsList = $exchange->fetch_positions('GMX-USDT', ['type' => 'SWAP']);
+            // if($accountInfo['id'] == 7 || $accountInfo['id'] == 9) {
+            //     $positionsList = $exchange->fetch_positions('GMX-USDT', ['type' => 'SWAP']);
+            //     if($positionsList) {
+            //         // @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info'], $exchange);
+            //         @self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'GMX', $positionsList, $exchange);
+            //     }
+            // }
+            if($accountInfo['id'] == 10) {
+                $url = Config('okx_uri') . "/api/okex/get_positions?instType=SWAP&instId=BTC-USDT-SWAP";
+                $positionsList = self::getOkxRequesInfo($accountInfo, $url, true);
                 if($positionsList) {
                     // @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info'], $exchange);
-                    @self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'GMX', $positionsList, $exchange);
+                    self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'BTC', $positionsList);
                 }
             }
             $returnArray = ['usdtBalance' => $usdtBalance];
@@ -368,6 +386,33 @@ class QuantifyAccount extends Base
                 echo $error_msg . "\r\n";
                 return false;
         }
+    }
+
+    /**
+     * 获取OKX账户余额信息
+     * @param array $accountInfo OKX账户信息
+     * @param string $url 请求URL
+     * @return bool|array 返回false表示失败，否则返回账户余额信息数组
+     * @author qinlh
+     * @since 2023-04-23
+     */
+    public static function getOkxRequesInfo($accountInfo, $url, $isList=false) {
+        $params = [
+            "api_key" => $accountInfo['api_key'],
+            "secret_key" => $accountInfo['secret_key'],
+            "passphrase" => $accountInfo['pass_phrase'],
+        ];
+        $response_string = RequestService::doJsonCurlPost($url, json_encode($params));
+        $response_arr = json_decode($response_string, true);
+        // p($response_arr);
+        if($response_arr && $response_arr['status'] === 'success') {
+            if(!$isList) {
+                return $response_arr['data'][0];
+            } else {
+                return $response_arr['data'];
+            }
+        }
+        return false;
     }
 
     /**
@@ -515,7 +560,8 @@ class QuantifyAccount extends Base
                 //监听是否有平仓
                 // self::getPositionsClosedPosition($account_id, $currency, $exchange);
                 foreach ($infos as $key => $val) {
-                    $element = $val['info'];
+                    // $element = $val['info'];
+                    $element = $val;
                     $setRateRes = self::setYieldHistoryList($account_id, $currency, $element['posSide'], $element['uplRatio'], $element['tradeId'], $element['uTime'], $element['cTime'], '', $element['avgPx'], $element['markPx'], $element['posId'], $element['upl']);
                     if($setRateRes) {
                         $positionsRes = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $element['tradeId']])->find();
@@ -535,7 +581,7 @@ class QuantifyAccount extends Base
                                 'mark_px' => $element['markPx'],
                                 'margin_balance' => $element['mgnMode'] === 'cross' ? $element['imr'] : $element['margin'],
                                 'margin_ratio' => $element['mgnRatio'],
-                                'upl' => $element['upl'],
+                                'upl' => $element['upl'] ? $element['upl'] : 0,
                                 'upl_ratio' => $element['uplRatio'],
                                 'max_upl_rate' => $max_upl_rate,
                                 'min_upl_rate' => $min_upl_rate,
@@ -555,8 +601,8 @@ class QuantifyAccount extends Base
                                 'avg_px' => $element['avgPx'],
                                 'mark_px' => $element['markPx'],
                                 'margin_balance' => $element['mgnMode'] === 'cross' ? $element['imr'] : $element['margin'],
-                                'margin_ratio' => $info['mgnRatio'],
-                                'upl' => $element['upl'],
+                                'margin_ratio' => $element['mgnRatio'],
+                                'upl' => $element['upl'] ? $element['upl'] : 0,
                                 'upl_ratio' => $element['uplRatio'],
                                 'max_upl_rate' => $element['uplRatio'],
                                 'min_upl_rate' => $element['uplRatio'],
