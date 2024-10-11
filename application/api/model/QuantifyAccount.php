@@ -570,8 +570,10 @@ class QuantifyAccount extends Base
                             $max_upl_rate = $positionsRes['max_upl_rate'];
                             $min_upl_rate = $positionsRes['min_upl_rate'];
                             $max_main_upl_arr = self::getPosIdYieldHistory($account_id, $currency, $element['tradeId']);
-                            $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
-                            $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
+                            if($max_main_upl_arr && count($max_main_upl_arr) > 0) {
+                                $max_upl_rate = (float)$max_main_upl_arr['max_rate'];
+                                $min_upl_rate = (float)$max_main_upl_arr['min_rate'];
+                            }
                             $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
                             $savePositionsRes = self::name('quantify_account_positions')->where('id', $positionsRes['id'])->update([
                                 'mgn_mode' => $element['mgnMode'],
