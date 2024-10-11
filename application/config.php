@@ -276,6 +276,7 @@ return [
     ],
 
     'h2o_api_url' => 'http://www.api.com', //H2O api url
+    'okx_uri' => 'http://127.0.0.1:8001',
     'admin_address' => '0x7DCBFF9995AC72222C6d46A45e82aA90B627f36D', //管理员钱包地址
     'env' => 'dev', //环境
 ];

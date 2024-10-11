@@ -599,8 +599,8 @@ export default {
                     { required: true, message: '请选择方向', trigger: 'change' }
                 ],
             },
-            activeName: 'MartinObserve',
-            tabAccountId: 1,
+            activeName: '1-0001',
+            tabAccountId: 10,
             accountList: [],
             InoutGoldList: [],
             InoutGoldCurrPage: 1, //当前页
@@ -650,7 +650,7 @@ export default {
 
     },
     created() {
-        // this.getList();
+        this.getList();
         this.getAccountList();
     },
     watch: {
