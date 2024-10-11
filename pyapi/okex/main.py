@@ -1,9 +1,6 @@
 import logging
 from fastapi import FastAPI
 from okx_router import router as okx_routes
-import sys
-
-print(sys.path)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
