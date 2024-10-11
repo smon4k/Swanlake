@@ -854,7 +854,7 @@ export default {
                 limit: this.currencyPositionsLimit,
                 page: this.currencyPositionsPage,
                 account_id: this.tabAccountId,
-                currency: 'GMX',
+                currency: 'BTC',
             }, json => {
                 console.log(json);
                 if (json.code == 10000) {
