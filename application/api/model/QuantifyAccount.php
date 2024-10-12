@@ -360,7 +360,7 @@ class QuantifyAccount extends Base
             //         @self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'GMX', $positionsList, $exchange);
             //     }
             // }
-            if($accountInfo['id'] == 10) {
+            if($accountInfo['is_position'] == 1) {
                 $url = Config('okx_uri') . "/api/okex/get_positions?instType=SWAP&instId=BTC-USDT-SWAP";
                 $positionsList = self::getOkxRequesInfo($accountInfo, $url, true);
                 if($positionsList) {
