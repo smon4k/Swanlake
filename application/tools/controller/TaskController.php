@@ -566,6 +566,11 @@ class TaskController extends ToolsBaseController
      */
     public function calcQuantifyAccountData() {
         $begin_time = time();
+        $key = "Swanlake:calcDepositAndWithdrawal:".$account_id.":Lock";
+        $isStart = Rediscache::getInstance()->get($key);
+        if($isStart) {
+            return false;
+        }
         $where = [];
         $where['state'] = 1;
         $accountList = QuantifyAccount::getAccountList($where);

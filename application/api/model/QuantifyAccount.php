@@ -64,11 +64,6 @@ class QuantifyAccount extends Base
      */
     public static function calcQuantifyAccountData($account_id=0, $direction=0, $amount=0, $remark='', $profit_amount=0, $profit_remark='') {
         if($account_id) {
-            $key = "Swanlake:calcDepositAndWithdrawal:".$account_id.":Lock";
-            $isStart = Rediscache::getInstance()->get($key);
-            if($isStart) {
-                return false;
-            }
             self::startTrans();
             try {
                 date_default_timezone_set("Etc/GMT-8");

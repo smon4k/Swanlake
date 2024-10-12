@@ -6,6 +6,7 @@
             &nbsp;
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
             <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
+            <el-button type="primary" @click="addQuantityAccount()">添加配置</el-button>
         </div>
         <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
             <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
@@ -175,6 +176,42 @@
                     </div>
                 </el-col>
             </el-row>
+        </el-dialog>
+
+        <el-dialog
+            title="添加账户"
+            :visible.sync="addQuantityAccountShow"
+            width="50%">
+            <el-form :model="accountForm" :rules="accountRules" ref="accountForm" label-width="120px">
+                <el-form-item label="账户名称" prop="name">
+                    <el-input v-model="ruleForm.name"></el-input>
+                </el-form-item>
+                <el-form-item label="APIKey" prop="api_key">
+                    <el-input v-model="ruleForm.api_key"></el-input>
+                </el-form-item>
+                <el-form-item label="SecretKey" prop="secret_key">
+                    <el-input v-model="ruleForm.secret_key"></el-input>
+                </el-form-item>
+                <el-form-item label="Passphrase" prop="pass_phrase">
+                    <el-input v-model="ruleForm.pass_phrase"></el-input>
+                </el-form-item>
+                <el-form-item label="网络" prop="type">
+                    <el-radio-group v-model="accountForm.type">
+                        <el-radio label="1">Binance</el-radio>
+                        <el-radio label="2">OKX</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="是否持仓" prop="is_position">
+                    <el-radio-group v-model="accountForm.is_position">
+                        <el-radio label="1">是</el-radio>
+                        <el-radio label="0">否</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisibleShow = false">取 消</el-button>
+                <el-button type="primary" @click="addAccountSubmitForm('accountForm')">确 定</el-button>
+            </span>
         </el-dialog>
 
         <!-- 账户余额明细数据 -->
@@ -599,6 +636,26 @@ export default {
                     { required: true, message: '请选择方向', trigger: 'change' }
                 ],
             },
+            accountRules: {
+                name: [
+                    { required: true, message: '请输入账户名称', trigger: 'blur' }
+                ],
+                api_key: [
+                    { required: true, message: '请输入APIKey', trigger: 'blur' }
+                ],
+                secret_key: [
+                    { required: true, message: '请输入SecretKey', trigger: 'blur' }
+                ],
+                pass_phrase: [
+                    { required: true, message: '请输入Passphrase', trigger: 'blur' }
+                ],
+                type: [
+                    { required: true, message: '请选择网络', trigger: 'change' }
+                ],
+                is_position: [
+                    { required: true, message: '请选择是否持仓', trigger: 'change' }
+                ],
+            },
             activeName: '1-0001',
             tabAccountId: 10,
             accountList: [],
@@ -637,6 +694,15 @@ export default {
             maxMinUplRatePage: 1,
             maxMinUplRateList: [],
             maxMinUplRateTotal: 0,
+            addQuantityAccountShow: false,
+            accountForm: {
+                name: '',
+                api_key: '',
+                secret_key: '',
+                pass_phrase: '',
+                type: '',
+                is_position: '1',
+            },
         }
     },
     computed: {
@@ -817,6 +883,36 @@ export default {
                 }
             });
         },
+        addAccountSubmitForm(formName) { //添加账户
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    const loading = this.$loading({
+                        target: '.el-dialog',
+                    });
+                    get('/Api/QuantifyAccount/calcDepositAndWithdrawal', {
+                        account_id: this.tabAccountId,
+                        direction: this.ruleForm.direction,
+                        amount: this.ruleForm.amount,
+                        remark: this.ruleForm.remark,
+                    }, (json) => {
+                        console.log(json);
+                        if (json && json.code == 10000) {
+                            this.$message.success('更新成功');
+                            this.$refs[formName].resetFields();
+                            loading.close();
+                            this.dialogVisibleShow = false;
+                            this.getList();
+                        } else {
+                            loading.close();
+                            this.$message.error(json.data.msg);
+                        }
+                    })
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        },
         dialogVisibleListClick() {
             this.dialogVisibleListShow = true;
             this.getInoutGoldList();
@@ -956,6 +1052,9 @@ export default {
         },
         DepositWithdrawalShow() { //出入金 弹框显示\
             this.dialogVisibleShow = true;
+        },
+        addQuantityAccount() {
+            this.addQuantityAccountShow = true;
         },
         tabsHandleClick(tab, event) { //tab切换
             // console.log(tab.$attrs['data-id'], event);
