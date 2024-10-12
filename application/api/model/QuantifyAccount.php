@@ -338,11 +338,11 @@ class QuantifyAccount extends Base
                                 // p($maxBillId);
                                 if($maxBillId) {
                                     $url = Config('okx_uri') . "/api/okex/get_fills_history?instType=SPOT&instId=" . $v['ccy'].'-USDT' . '&before=' . $maxBillId;
-                                    $tradesList = self::getOkxRequesInfo($accountInfo, $url);
+                                    $tradesList = self::getOkxRequesInfo($accountInfo, $url, true);
                                     // $tradesList = $exchange->fetch_my_trades($v['ccy'].'-USDT', null, null, ['before' => $maxBillId]);
                                 } else {
                                     $url = Config('okx_uri') . "/api/okex/get_fills_history?instType=SPOT&instId=" . $v['ccy'].'-USDT' . '&before=';
-                                    $tradesList = self::getOkxRequesInfo($accountInfo, $url);
+                                    $tradesList = self::getOkxRequesInfo($accountInfo, $url, true);
                                     // $tradesList = $exchange->fetch_my_trades($v['ccy'].'-USDT');
                                 }
                                 // p($tradesList);
@@ -1034,7 +1034,7 @@ class QuantifyAccount extends Base
                 if($maxTradeId > 0 && $key == 0) {
                     continue;
                 }
-                $infoArr = $val['info'];
+                $infoArr = $val;
                 $insertDataAll[] = [
                     'account_id' => $account_id,
                     'currency' => $currency,
