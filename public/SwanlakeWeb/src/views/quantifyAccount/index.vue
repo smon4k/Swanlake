@@ -209,7 +209,7 @@
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="dialogVisibleShow = false">取 消</el-button>
+                <el-button @click="addQuantityAccountShow = false">取 消</el-button>
                 <el-button type="primary" @click="addAccountSubmitForm('accountForm')">确 定</el-button>
             </span>
         </el-dialog>
