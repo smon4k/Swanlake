@@ -77,9 +77,9 @@ class QuantifyAccount extends Base
                     $balanceList = self::getOkxTradePairBalance($accountInfo);
                 }
                 if($account_id == 1) {
-                    $totalBalance = $balanceList['usdtBalance'] + 900; //总结余
+                    $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] + 900 : 0; //总结余
                 } else {
-                    $totalBalance = $balanceList['usdtBalance']; //总结余
+                    $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0; //总结余
                 }
                 // $totalBalance = 42792.03; //总结余
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
@@ -311,6 +311,10 @@ class QuantifyAccount extends Base
             $balanceDetails = self::getOkxRequesInfo($accountInfo, $url);
             $btcBalance = 0;
             $usdtBalance = 0;
+            if(empty($balanceDetails['details']) || count($balanceDetails) <= 0) {
+                echo "【" . $accountInfo['id'] . "】没有余额\r\n";
+                return;
+            }
             foreach ($balanceDetails['details'] as $k => $v) {
                 if(isset($v['ccy'])) {
                     if($v['ccy'] == 'USDT' || $v['ccy'] == 'BIFI' || $v['ccy'] == 'GMX' || $v['ccy'] == 'BTC' || $v['ccy'] == 'ETH' || $v['ccy'] == 'SAND') {
