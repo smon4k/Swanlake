@@ -285,7 +285,7 @@ class QuantifyaccountController extends BaseController
         $pass_phrase = $request->post('pass_phrase', '', 'trim');
         $type = $request->post('type', 0, 'intval');
         $is_position = $request->post('is_position', 0, 'intval');
-        if ($api_key == '' || $name == '' || $secret_key == '' || $pass_phrase == '' || $type <= 0 || $is_position <= 0) {
+        if ($api_key == '' || $name == '' || $secret_key == '' || $pass_phrase == '' || $type <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $result = QuantifyAccount::addQuantityAccount($name, $api_key, $secret_key, $pass_phrase, $type, $is_position);

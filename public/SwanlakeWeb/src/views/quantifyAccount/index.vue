@@ -6,7 +6,7 @@
             &nbsp;
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
             <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
-            <el-button type="primary" @click="addQuantityAccount()">添加配置</el-button>
+            <el-button type="primary" @click="addQuantityAccount()">添加账户</el-button>
         </div>
         <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
             <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
@@ -889,7 +889,7 @@ export default {
                     const loading = this.$loading({
                         target: '.el-dialog',
                     });
-                    get('/Api/QuantifyAccount/addQuantityAccount', this.accountForm, (json) => {
+                    post(this.apiUrl + '/Api/QuantifyAccount/addQuantityAccount', this.accountForm, (json) => {
                         console.log(json);
                         if (json && json.code == 10000) {
                             this.$message.success('更新成功');
