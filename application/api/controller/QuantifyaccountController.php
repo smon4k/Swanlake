@@ -272,4 +272,27 @@ class QuantifyaccountController extends BaseController
             return $this->as_json(70001, 'Error');
         }
     }
+
+    /**
+     * 添加账户
+     * @author qinlh
+     * @since 2024-10-14
+     */
+    public function addQuantityAccount(Request $request) {
+        $name = $request->post('name', '', 'trim');
+        $api_key = $request->post('api_key', '', 'trim');
+        $secret_key = $request->post('secret_key', '', 'trim');
+        $pass_phrase = $request->post('pass_phrase', '', 'trim');
+        $type = $request->post('type', 0, 'intval');
+        $is_position = $request->post('is_position', 0, 'intval');
+        if ($api_key == '' || $name == '' || $secret_key == '' || $pass_phrase == '' || $type <= 0 || $is_position <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = QuantifyAccount::addQuantityAccount($name, $api_key, $secret_key, $pass_phrase, $type, $is_position);
+        if($result) {
+            return $this->as_json($result);
+        } else {
+            return $this->as_json(70001, '创建失败');
+        }
+    }
 }

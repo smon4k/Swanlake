@@ -1305,4 +1305,50 @@ class QuantifyAccount extends Base
         // p($lists);
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
+
+    /**
+     * 添加账户数据
+     * @since 2024-10-14
+     */
+    public static function addQuantityAccount($name, $api_key, $secret_key, $pass_phrase, $type, $is_position) {
+        try {
+            $IsResData = self::name("quantify_account_positions")->where('name', $name)->find();
+            if($IsResData && count((array)$IsResData) > 0) {
+                $updateData = [
+                    'api_key' => $api_key,
+                    'secret_key' => $secret_key,
+                    'pass_phrase' => $pass_phrase,
+                    'state' => 1,
+                    'external' => $IsResData['external'],
+                    'type' => $type,
+                    'time' => date('Y-m-d H:i:s'),
+                    'is_position' => $is_position
+                ];
+                $res = self::where('id', $IsResData['id'])->update($updateData);
+                if($res) {
+                    return true;
+                }
+            } else {
+                $insertData = [
+                    'name' => $name,
+                    'api_key' => $api_key,
+                    'secret_key' => $secret_key,
+                    'pass_phrase' => $pass_phrase,
+                    'state' => 1,
+                    'external' => $IsResData['external'],
+                    'type' => $type,
+                    'time' => date('Y-m-d H:i:s'),
+                    'is_position' => $is_position
+                ];
+                self::name("quantify_account_positions")->insert($insertData);
+                $insertId = self::name("quantify_account_positions")->getLastInsID();
+                if($insertId) {
+                    return true;
+                }
+            }
+            return false;
+        } catch ( PDOException $e) {
+            return false;
+        }
+    }
 }

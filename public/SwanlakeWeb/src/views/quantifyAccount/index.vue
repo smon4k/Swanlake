@@ -184,16 +184,16 @@
             width="50%">
             <el-form :model="accountForm" :rules="accountRules" ref="accountForm" label-width="120px">
                 <el-form-item label="账户名称" prop="name">
-                    <el-input v-model="ruleForm.name"></el-input>
+                    <el-input v-model="accountForm.name"></el-input>
                 </el-form-item>
                 <el-form-item label="APIKey" prop="api_key">
-                    <el-input v-model="ruleForm.api_key"></el-input>
+                    <el-input v-model="accountForm.api_key"></el-input>
                 </el-form-item>
                 <el-form-item label="SecretKey" prop="secret_key">
-                    <el-input v-model="ruleForm.secret_key"></el-input>
+                    <el-input v-model="accountForm.secret_key"></el-input>
                 </el-form-item>
                 <el-form-item label="Passphrase" prop="pass_phrase">
-                    <el-input v-model="ruleForm.pass_phrase"></el-input>
+                    <el-input v-model="accountForm.pass_phrase"></el-input>
                 </el-form-item>
                 <el-form-item label="网络" prop="type">
                     <el-radio-group v-model="accountForm.type">
@@ -889,12 +889,7 @@ export default {
                     const loading = this.$loading({
                         target: '.el-dialog',
                     });
-                    get('/Api/QuantifyAccount/calcDepositAndWithdrawal', {
-                        account_id: this.tabAccountId,
-                        direction: this.ruleForm.direction,
-                        amount: this.ruleForm.amount,
-                        remark: this.ruleForm.remark,
-                    }, (json) => {
+                    get('/Api/QuantifyAccount/addQuantityAccount', this.accountForm, (json) => {
                         console.log(json);
                         if (json && json.code == 10000) {
                             this.$message.success('更新成功');
