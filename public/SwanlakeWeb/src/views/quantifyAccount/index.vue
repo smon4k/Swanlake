@@ -656,7 +656,7 @@ export default {
                     { required: true, message: '请选择是否持仓', trigger: 'change' }
                 ],
             },
-            activeName: '1-0001',
+            activeName: '全部',
             tabAccountId: 10,
             accountList: [],
             InoutGoldList: [],
