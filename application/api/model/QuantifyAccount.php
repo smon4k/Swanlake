@@ -270,7 +270,7 @@ class QuantifyAccount extends Base
 
             foreach ($data as $item) {
                 foreach ($totalData as $key => &$value) {
-                    $value += $item[$key];
+                    $value += (float)$item[$key];
                 }
             }
 
