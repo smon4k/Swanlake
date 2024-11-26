@@ -584,6 +584,8 @@ class TaskController extends ToolsBaseController
                 QuantifyAccount::calcQuantifyAccountData($account_id);
             }
         }
+
+        QuantifyAccount::calcQuantifyAccountTotalData();
             
         
         return (time() - $begin_time) . "s\n";

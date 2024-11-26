@@ -213,6 +213,88 @@ class QuantifyAccount extends Base
         }
     }
 
+    /**
+     * 统计总的量化数据
+     * @author qinlh
+     * @since 2024-11-26
+     */
+    public static function calcQuantifyAccountTotalData() {
+        self::startTrans();
+        try {
+            date_default_timezone_set("Etc/GMT-8");
+            $date = date('Y-m-d');
+            $data = self::name('quantify_equity_monitoring')->where('date', $date)->select();
+            $totalData = [
+                'principal' => 0,
+                'total_balance' => 0,
+                'daily_profit' => 0,
+                'daily_profit_rate' => 0,
+                'average_day_rate' => 0,
+                'average_year_rate' => 0,
+                'profit' => 0,
+                'profit_rate' => 0,
+                'price' => 0,
+                'total_share_profit' => 0,
+                'total_profit' => 0,
+            ];
+
+            foreach ($data as $item) {
+                foreach ($totalData as $key => &$value) {
+                    $value += $item[$key];
+                }
+            }
+
+            // Update the total data for the current date
+            $existingData = self::name('quantify_equity_monitoring_total')->where('date', $date)->find();
+            if ($existingData) {
+                self::name('quantify_equity_monitoring_total')->where('date', $date)->update([
+                    'principal' => $totalData['principal'],
+                    'total_balance' => $totalData['total_balance'],
+                    'daily_profit' => $totalData['daily_profit'],
+                    'daily_profit_rate' => $totalData['daily_profit_rate'],
+                    'average_day_rate' => $totalData['average_day_rate'],
+                    'average_year_rate' => $totalData['average_year_rate'],
+                    'profit' => $totalData['profit'],
+                    'profit_rate' => $totalData['profit_rate'],
+                    'price' => $totalData['price'],
+                    'total_share_profit' => $totalData['total_share_profit'],
+                    'total_profit' => $totalData['total_profit'],
+                    'up_time' => date('Y-m-d H:i:s'),
+                ]);
+            } else {
+                self::name('quantify_equity_monitoring_total')->insert([
+                    'account_id' => $account_id,
+                    'date' => $date,
+                    'principal' => $totalData['principal'],
+                    'total_balance' => $totalData['total_balance'],
+                    'daily_profit' => $totalData['daily_profit'],
+                    'daily_profit_rate' => $totalData['daily_profit_rate'],
+                    'average_day_rate' => $totalData['average_day_rate'],
+                    'average_year_rate' => $totalData['average_year_rate'],
+                    'profit' => $totalData['profit'],
+                    'profit_rate' => $totalData['profit_rate'],
+                    'price' => $totalData['price'],
+                    'total_share_profit' => $totalData['total_share_profit'],
+                    'total_profit' => $totalData['total_profit'],
+                    'up_time' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            self::commit();
+            return true;
+        } catch (\Exception $e) {
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            echo $error_msg . "\r\n";
+            self::rollback();
+            return false;
+        }
+    }
+
      /**
      * 获取Binance余额
      * @author qinlh
