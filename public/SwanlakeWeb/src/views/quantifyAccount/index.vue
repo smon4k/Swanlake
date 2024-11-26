@@ -716,7 +716,7 @@ export default {
 
     },
     created() {
-        this.getList();
+        this.getAllList();
         this.getAccountList();
     },
     watch: {
@@ -726,6 +726,51 @@ export default {
         "wbc-page": Page, //加载分页组件
     },
     methods: {
+        getAllList(ServerWhere) {
+            if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+                ServerWhere = {
+                    limit: this.pageSize,
+                    page: this.currPage,
+                };
+            }
+            console.log(ServerWhere);
+            this.loading = true;
+            get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDateAllList", ServerWhere, json => {
+                // console.log(json.data);
+                if (json.code == 10000) {
+                    if (json.data.data) {
+                        let list = (json.data && json.data.data) || [];
+                        if(this.isMobel) {
+                            if (this.currPage <= 1) {
+                                // console.log('首次加载');
+                                this.tableData = list;
+                                // this.$forceUpdate();
+                            } else {
+                                // console.log('二次加载');
+                                if (ServerWhere.page <= json.data.allpage) {
+                                    // console.log(ServerWhere.page, json.data.allpage);
+                                    this.tableData = [...this.tableData, ...list];
+                                    // this.$forceUpdate();
+                                }
+                            }
+                            this.currPage += 1;
+                            if (ServerWhere.page >= json.data.allpage) {
+                                // console.log(ServerWhere.page, json.data.allpage);
+                                this.finished = true;
+                            } else {
+                                this.finished = false;
+                            }
+                        } else {
+                            this.tableData = list;
+                        }
+                    }
+                    this.total = json.data.count;
+                    this.loading = false;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
         getList(ServerWhere) {
             if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
                 ServerWhere = {
@@ -776,7 +821,7 @@ export default {
             get(this.apiUrl + "/Api/QuantifyAccount/getAccountList", {}, json => {
                 console.log(json.data);
                 if (json.code == 10000) {
-                    this.accountList = json.data;
+                    this.accountList = [{ id: 0, name: '全部' }, ...json.data]; // Add default object
                 }
             })
         },
@@ -1052,12 +1097,16 @@ export default {
             this.addQuantityAccountShow = true;
         },
         tabsHandleClick(tab, event) { //tab切换
-            // console.log(tab.$attrs['data-id'], event);
+            console.log(tab.$attrs['data-id'], event);
             this.tabAccountId = tab.$attrs['data-id'];
             this.pageSize = 20;
             this.currPage = 1;
             this.tableData = [];
-            this.getList();
+            if(this.tabAccountId <= 0) {
+                this.getAllList();
+            } else {
+                this.getList();
+            }
         },
         shareProfitShow() { //分润 弹框
             this.profitShow = true;
