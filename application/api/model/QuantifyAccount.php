@@ -263,7 +263,6 @@ class QuantifyAccount extends Base
                 ]);
             } else {
                 self::name('quantify_equity_monitoring_total')->insert([
-                    'account_id' => $account_id,
                     'date' => $date,
                     'principal' => $totalData['principal'],
                     'total_balance' => $totalData['total_balance'],
