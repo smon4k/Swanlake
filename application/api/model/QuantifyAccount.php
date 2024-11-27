@@ -276,7 +276,7 @@ class QuantifyAccount extends Base
                     $value += (float)$item[$key];
                 }
                 $countStandardPrincipal += (float)$item['principal']; // Accumulate standard principal count
-                $totalProfit += (float)$item['profit']; // Accumulate total profit
+                $totalProfit += (float)$item['total_profit']; // Accumulate total profit
             }
 
             // Calculate daily profit rate
@@ -294,6 +294,7 @@ class QuantifyAccount extends Base
                     'principal' => $totalData['principal'],
                     'total_balance' => $totalData['total_balance'],
                     'daily_profit' => $totalData['daily_profit'],
+                    'daily_profit_rate' => $totalData['daily_profit_rate'],
                     'average_day_rate' => $totalData['average_day_rate'],
                     'average_year_rate' => $totalData['average_year_rate'],
                     'profit' => $totalData['profit'],
@@ -309,6 +310,7 @@ class QuantifyAccount extends Base
                     'principal' => $totalData['principal'],
                     'total_balance' => $totalData['total_balance'],
                     'daily_profit' => $totalData['daily_profit'],
+                    'daily_profit_rate' => $totalData['daily_profit_rate'],
                     'average_day_rate' => $totalData['average_day_rate'],
                     'average_year_rate' => $totalData['average_year_rate'],
                     'profit' => $totalData['profit'],
