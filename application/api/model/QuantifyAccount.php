@@ -258,21 +258,34 @@ class QuantifyAccount extends Base
                 'principal' => 0,
                 'total_balance' => 0,
                 'daily_profit' => 0,
-                'daily_profit_rate' => 0,
+                // 'daily_profit_rate' => 0,
                 'average_day_rate' => 0,
                 'average_year_rate' => 0,
                 'profit' => 0,
-                'profit_rate' => 0,
+                // 'profit_rate' => 0,
                 'price' => 0,
                 'total_share_profit' => 0,
                 'total_profit' => 0,
             ];
 
+            $countStandardPrincipal = 0; // Initialize count for standard principal
+            $totalProfit = 0; // Initialize total profit
+
             foreach ($data as $item) {
                 foreach ($totalData as $key => &$value) {
                     $value += (float)$item[$key];
                 }
+                $countStandardPrincipal += (float)$item['principal']; // Accumulate standard principal count
+                $totalProfit += (float)$item['profit']; // Accumulate total profit
             }
+
+            // Calculate daily profit rate
+            $dailyProfitRate = $countStandardPrincipal > 0 ? $totalData['daily_profit'] / $countStandardPrincipal * 100 : 0; //总 日利润率 = 总日利润 / 总本金
+            $totalData['daily_profit_rate'] = $dailyProfitRate;
+
+            // Calculate profit rate
+            $profitRate = $countStandardPrincipal > 0 ? $totalProfit / $countStandardPrincipal : 0; //利润率 = 总利润 / 本金
+            $totalData['profit_rate'] = $profitRate; // Update profit rate in total data
 
             // Update the total data for the current date
             $existingData = self::name('quantify_equity_monitoring_total')->where('date', $date)->find();
@@ -281,7 +294,6 @@ class QuantifyAccount extends Base
                     'principal' => $totalData['principal'],
                     'total_balance' => $totalData['total_balance'],
                     'daily_profit' => $totalData['daily_profit'],
-                    'daily_profit_rate' => $totalData['daily_profit_rate'],
                     'average_day_rate' => $totalData['average_day_rate'],
                     'average_year_rate' => $totalData['average_year_rate'],
                     'profit' => $totalData['profit'],
@@ -297,7 +309,6 @@ class QuantifyAccount extends Base
                     'principal' => $totalData['principal'],
                     'total_balance' => $totalData['total_balance'],
                     'daily_profit' => $totalData['daily_profit'],
-                    'daily_profit_rate' => $totalData['daily_profit_rate'],
                     'average_day_rate' => $totalData['average_day_rate'],
                     'average_year_rate' => $totalData['average_year_rate'],
                     'profit' => $totalData['profit'],
