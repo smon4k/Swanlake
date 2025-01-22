@@ -11,7 +11,7 @@
                     <!-- 全网最低电费 -->
                     <span>
                         {{ $t('subscribe:MinimumElectricityBill') }}
-                        <span>0.068 USDT</span> 
+                        <span>0.68 USDT</span> 
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <!-- 日产出 -->
