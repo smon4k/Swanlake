@@ -5,7 +5,7 @@
           <el-col :span="24" style="float:right;">
               <span>
                   {{ $t('subscribe:MinimumElectricityBill') }}
-                  <span>0.065 USDT</span> 
+                  <span>0.68 USDT</span> 
               </span>
               &nbsp;&nbsp;&nbsp;&nbsp;
               <span>
