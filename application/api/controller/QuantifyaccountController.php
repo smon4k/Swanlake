@@ -60,6 +60,26 @@ class QuantifyaccountController extends BaseController
         return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
     }
 
+     /**
+    * 获取每日统计数据 所有账户
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public function getQuantifyAccountDateAllList(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 1, 'intval');
+        $order_number = $request->request('order_number', '', 'trim');
+        // $standard = $request->request('standard', 0, 'intval');
+        $where = [];
+        // $where['state'] = 1;
+        $data = QuantifyAccount::getQuantifyAccountDateAllList($page, $where, $limits);
+        $count = $data['count'];
+        $allpage = $data['allpage'];
+        $lists = $data['lists'];
+        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+    }
+
     /**
     * 获取出入金列表数据
     * @param  [post] [description]
