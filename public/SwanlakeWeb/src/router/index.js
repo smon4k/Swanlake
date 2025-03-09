@@ -3,6 +3,7 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 import Layout from '@/layout'
+import OkxLayout from '@/layout/okxLayout'
 
 export const constantRoutes = [
     {
@@ -40,16 +41,16 @@ export const constantRoutes = [
         //我的产品投注 历史净值
         {
           path: 'financial/userDetailsList',
-          name: 'incomeList',
+          name: 'userDetailsList',
           component: () => import('@/views/manageFinances/productUserDetailsList'),
-          meta: { title: 'incomeList', keepAlive: true }
+          meta: { title: 'userDetailsList', keepAlive: true }
         },
         //产品投注 历史净值
         {
           path: 'financial/productDetailsList',
-          name: 'incomeList',
+          name: 'productDetailsList',
           component: () => import('@/views/manageFinances/productDetailsList'),
-          meta: { title: 'incomeList', keepAlive: true }
+          meta: { title: 'productDetailsList', keepAlive: true }
         },
         {
           path: 'order/record',
@@ -161,12 +162,34 @@ export const constantRoutes = [
           meta: { title: 'quantifyTemporary', keepAlive: false }
         },
       ]
-    },
+    }
 ]
+
+export const okxRoutes = [
+    {
+      path: '/okx/login',
+      component: () => import('@/okx-pages/login/index'),
+      meta: { title: 'okx-login', keepAlive: true }
+    },
+    {
+        path: '/okx',
+        component: OkxLayout,
+        children: [
+            {
+                path: 'home',
+                component: () => import('@/okx-pages/home/index'),
+                meta: { title: 'okx-home', keepAlive: true }
+            },  // 首页
+        ]
+    }
+]
+
+// 合并所有路由
+const allRoutes = [...constantRoutes, ...okxRoutes];
 
 const createRouter = () => new Router({
   scrollBehavior: () => ({ y: 0 }),
-  routes: constantRoutes
+  routes: allRoutes
 })
 
 const router = createRouter()
