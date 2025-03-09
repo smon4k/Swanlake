@@ -7,6 +7,7 @@
     </div>
 </template>
 <script>
+import { get, post } from "@/common/axios.js";
 import OkxHeaderNav from './components/okxHeaderNav.vue'
 import AppMain from './components/AppMain.vue'
 import { mapGetters, mapState } from 'vuex'
@@ -15,6 +16,7 @@ export default {
     components:{ AppMain, OkxHeaderNav},
     created(){
         this.$store.commit('copyDefaultState')
+        this.checkLogin()
     },
     computed:{
         ...mapGetters([
@@ -28,6 +30,7 @@ export default {
             userDenyId:state=>state.base.tradeStatus.userDenyId,
             domainHostAddress:state=>state.base.domainHostAddress,
             errMessage:state=>state.base.errMessage,
+            apiUrl:state=>state.base.apiUrl,
         })
     },
     watch:{
@@ -82,6 +85,22 @@ export default {
                     });
                     
                 }
+            }
+        }
+    },
+    methods:{
+        checkLogin() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                get(this.apiUrl + '/api/userokx/checkToken', {}, json => {
+                    console.log(json.data);
+                    if (json.code !== 10000) {
+                        // localStorage.removeItem('token');
+                        this.$router.push('/okx/login');
+                    }
+                });
+            } else {
+                this.$router.push('/okx/login');
             }
         }
     }

@@ -6,7 +6,7 @@ axios.defaults.baseURL = process.env.VUE_APP_BASE_API
 axios.interceptors.request.use(config => {
   if (localStorage.token) {
     config.headers = {
-      "exchange-token": localStorage.getItem('token')
+      "Authorization": localStorage.getItem('token')
     }
   }
   return config

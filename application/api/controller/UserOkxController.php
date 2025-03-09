@@ -23,18 +23,22 @@ use cache\Rediscache;
 
 class UserOkxController extends BaseController
 {
-
+    private $_uid = 0;
     public function _initialize()
     {
-        $token = request()->header('Authorization');
+        $token = request()->header('authorization');
         $path = request()->pathinfo();
         $excludedRoutes = [
             'api/userokx/sendVerificationCode',
             'api/userokx/login',
-            'api/userokx/index',
+            'api/userokx/createAccount',
+            'api/userokx/checkVerificationCode',
+            // 'api/userokx/index',
         ];
         if (!in_array($path, $excludedRoutes)) {
-            if (!UserOkx::checkToken($token)) {
+            $uid = UserOkx::checkToken($token);
+            $this->_uid = $uid;
+            if (!$uid) {
                 return json([
                     'code' => '70001',
                     'message' => 'Token verification failed'
@@ -137,7 +141,7 @@ class UserOkxController extends BaseController
      */
     public function sendVerificationCode(Request $request)
     {
-        $phone = $request->post('mobile', '', 'trim');
+        $phone = $request->request('mobile', '', 'trim');
         if ($phone == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
@@ -147,10 +151,11 @@ class UserOkxController extends BaseController
         }
         Rediscache::getInstance()->set('last_send_time_' . $phone, time(), 60);
         $code = mt_rand(1000, 9999);
-        $res = ClSms::sendSms($phone, $code);
+        // $res = ClSms::sendSms($phone, $code);
+        $res['code'] = 0;
         if ($res && $res['code'] == 0) {
             Rediscache::getInstance()->set($phone, $code, 300);
-            return $this->as_json('success');
+            return $this->as_json('success', $code);
         } else {
             return $this->as_json('70001', 'Send Error');
         }        
@@ -191,6 +196,19 @@ class UserOkxController extends BaseController
             return $this->as_json($result);
         } else {
             return $this->as_json('70001', 'Change Error');
+        }
+    }
+
+    /**
+     * 检测Token是否有效
+     * @param Request $request
+     * @return mixed
+     */
+    public function checkToken(Request $request) {
+        if($this->_uid) {
+            return $this->as_json($this->_uid);
+        } else {
+            return $this->as_json('70001', 'Invalid Token');
         }
     }
 }
