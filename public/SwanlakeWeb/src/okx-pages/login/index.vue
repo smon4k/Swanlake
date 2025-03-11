@@ -153,6 +153,10 @@ export default {
       }
     },
     validatePhone() {
+      if (this.phone === 'admin') {
+        this.phoneError = '';
+        return;
+      }
       if (!/^1[3-9]\d{9}$/.test(this.phone)) {
         this.phoneError = '手机号格式不正确，请输入11位数字';
       } else {
@@ -194,7 +198,11 @@ export default {
             if (json.code == 10000) {
               localStorage.setItem('token', json.data.token);
               this.$message.success('登录成功');
-              this.$router.push("/okx/home");
+              if(json.data.uid == 1) {
+                this.$router.push("/quantify/account");
+              } else {
+                this.$router.push("/okx/home");
+              }
             } else {
               this.$message.error(json.msg);
             }
@@ -263,7 +271,7 @@ export default {
 
 .form-item {
   width: 100%;
-  display: block;
+  display: flex;
 }
 
 .error-message {

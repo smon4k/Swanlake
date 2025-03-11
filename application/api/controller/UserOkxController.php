@@ -20,31 +20,13 @@ use think\Config;
 use think\Controller;
 use lib\ClSms;
 use cache\Rediscache;
+use app\api\model\QuantifyAccount;
 
-class UserOkxController extends BaseController
+class UserokxController extends QuantifybaseController
 {
-    private $_uid = 0;
     public function _initialize()
     {
-        $token = request()->header('authorization');
-        $path = request()->pathinfo();
-        $excludedRoutes = [
-            'api/userokx/sendVerificationCode',
-            'api/userokx/login',
-            'api/userokx/createAccount',
-            'api/userokx/checkVerificationCode',
-            // 'api/userokx/index',
-        ];
-        if (!in_array($path, $excludedRoutes)) {
-            $uid = UserOkx::checkToken($token);
-            $this->_uid = $uid;
-            if (!$uid) {
-                return json([
-                    'code' => '70001',
-                    'message' => 'Token verification failed'
-                ])->send();
-            }
-        }
+        parent::_initialize();
     }
 
     public function index()
@@ -205,8 +187,8 @@ class UserOkxController extends BaseController
      * @return mixed
      */
     public function checkToken(Request $request) {
-        if($this->_uid) {
-            return $this->as_json($this->_uid);
+        if(self::$_uid) {
+            return $this->as_json(self::$_uid);
         } else {
             return $this->as_json('70001', 'Invalid Token');
         }

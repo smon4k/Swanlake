@@ -11,16 +11,23 @@ axios.interceptors.request.use(config => {
   }
   return config
 }, error => {
-  Promise.reject(error)
+  return Promise.reject(error)
 })
+
 // 响应拦截器
 axios.interceptors.response.use(
   function (response) {
+    if (response.data.code == 80001) {
+      window.location.href = '/#/okx/login'
+    }
     return response.data
+  },
+  function (error) {
+    return Promise.reject(error)
   }
 )
 
 export const $post = async (path, data) => await axios.post(path, data)
-export const $get = async (path, params = {}) => await axios.get( path, { params })
+export const $get = async (path, params = {}) => await axios.get(path, { params })
 
-export const $axios = axios;
+export const $axios = axios

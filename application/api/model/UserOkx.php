@@ -53,7 +53,7 @@ class UserOkx extends Base
     public static function checkLogin($mobile='', $password='')
     {
         if ($mobile !== '' && $password !== '') {
-            $user_info = self::where('mobile', $mobile)->find();
+            $user_info = self::where('mobile', $mobile)->whereOr('username', $mobile)->find();
             if (!$user_info || empty($user_info)) {
                 return -1;
             }

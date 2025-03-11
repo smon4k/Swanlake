@@ -1438,7 +1438,7 @@ class QuantifyAccount extends Base
      * 添加账户数据
      * @since 2024-10-14
      */
-    public static function addQuantityAccount($name, $api_key, $secret_key, $pass_phrase, $type, $is_position) {
+    public static function addQuantityAccount($name, $api_key, $secret_key, $pass_phrase, $type, $is_position, $user_id=0) {
         try {
             $IsResData = self::where('name', $name)->find();
             if($IsResData && count((array)$IsResData) > 0) {
@@ -1450,7 +1450,8 @@ class QuantifyAccount extends Base
                     'external' => $IsResData['external'],
                     'type' => $type,
                     'time' => date('Y-m-d H:i:s'),
-                    'is_position' => $is_position
+                    'is_position' => $is_position,
+                    'user_id' => $user_id
                 ];
                 $res = self::where('id', $IsResData['id'])->update($updateData);
                 if($res) {
@@ -1466,7 +1467,8 @@ class QuantifyAccount extends Base
                     'external' => 0,
                     'type' => $type,
                     'time' => date('Y-m-d H:i:s'),
-                    'is_position' => $is_position
+                    'is_position' => $is_position,
+                    'user_id' => $user_id
                 ];
                 self::insert($insertData);
                 $insertId = self::getLastInsID();

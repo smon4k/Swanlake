@@ -27,6 +27,7 @@ export default {
         isConnected:false,
         accounts:'',
         userId: 0, //用户ID
+        userOkxId: 0, //用户OKX ID
         userInfo: {}, //用户ID
         isAdmin: false, //是否管理员
         chainId:'',
@@ -225,6 +226,9 @@ export default {
                 state.hashPowerPoolsList[index].loading = val
             }
         },
+        setUserOkxId(state, value) {
+            state.userOkxId = value;
+        }
     },
     getters:{
         pendingOrderAmount: state=>{

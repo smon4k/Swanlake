@@ -94,8 +94,10 @@ export default {
             if (token) {
                 get(this.apiUrl + '/api/userokx/checkToken', {}, json => {
                     console.log(json.data);
-                    if (json.code !== 10000) {
+                    if (json.code == 10000) {
                         // localStorage.removeItem('token');
+                        this.$store.commit('setUserOkxId', json.data);
+                    } else {
                         this.$router.push('/okx/login');
                     }
                 });

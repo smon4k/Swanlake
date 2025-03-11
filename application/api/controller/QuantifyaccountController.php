@@ -26,7 +26,7 @@ use cache\Rediscache;
 error_reporting(E_ALL);
 set_time_limit(0);
 ini_set('memory_limit', '-1');
-class QuantifyaccountController extends BaseController
+class QuantifyaccountController extends QuantifybaseController
 {
      /**
      * 记录量化数据
@@ -130,10 +130,14 @@ class QuantifyaccountController extends BaseController
      */
     public function getAccountList(Request $request) {
         $external = $request->request('external', 0, 'intval');
+        $user_id = $request->request('user_id', 0, 'intval');
         $where = [];
         $where['state'] = 1;
         if($external) {
             $where['external'] = 1;
+        }
+        if($user_id) {
+            $where['user_id'] = $user_id;
         }
         $result = QuantifyAccount::getAccountList($where);
         return $this->as_json($result);
