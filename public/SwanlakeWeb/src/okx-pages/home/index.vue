@@ -89,11 +89,15 @@
                   </el-row>
               </div>
               <div v-else>
-                  <div v-if="tableData.length">
+                  <div v-if="tableData.length" class="descriptions-table-list">
                       <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                           <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
                           <!-- <el-descriptions-item label="账户名称">{{ item.account }}</el-descriptions-item> -->
-                          <el-descriptions-item label="总结余">{{ keepDecimalNotRounding(item.total_balance, 2, true) }} USDT</el-descriptions-item>
+                            <el-descriptions-item label="总结余">
+                                <el-link type="primary" @click="getTotalBalanceClick()">
+                                    <span>{{ keepDecimalNotRounding(item.total_balance, 2, true) }} USDT</span>
+                                </el-link>
+                            </el-descriptions-item>
                           <!-- <el-descriptions-item label="币价">{{ keepDecimalNotRounding(item.price, 2, true) }} USDT</el-descriptions-item> -->
                           <el-descriptions-item label="日利润">{{ keepDecimalNotRounding(item.daily_profit, 2, true) }} USDT</el-descriptions-item>
                           <el-descriptions-item label="日利润率">{{ keepDecimalNotRounding(item.daily_profit_rate, 4, true) }}</el-descriptions-item>
@@ -150,7 +154,7 @@
       <el-dialog
           title="账户余额明细"
           :visible.sync="accountBalanceDetailsShow"
-          width="80%">
+          :width="isMobel ? '100%' : '80%'">
           <div @tab-click="accountBalanceTabClick">
                   <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
                       <el-option
@@ -160,45 +164,64 @@
                           :value="item">
                       </el-option>
                   </el-select>
-                  <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="500">
-                      <el-table-column prop="currency" label="币种" align="center" width="">
-                          <template slot-scope="scope">
-                              <el-link type="primary">
-                                  <span>{{ scope.row.currency }}</span>
-                              </el-link>
-                          </template>
-                      </el-table-column>
-                      <el-table-column prop="" label="价格" align="center" width="150">
-                          <template slot-scope="scope">
-                              <span>{{ scope.row.price ? keepDecimalNotRounding(scope.row.price, 10, true) : 0 }}</span>
-                          </template>
-                      </el-table-column>
-                      <el-table-column prop="" label="余额" align="center" width="150">
-                          <template slot-scope="scope">
-                              <span>{{ scope.row.balance ? keepDecimalNotRounding(scope.row.balance, 10, true) : 0 }}</span>
-                          </template>
-                      </el-table-column>
-                      <el-table-column prop="" label="USDT估值" align="center" width="">
-                          <template slot-scope="scope">
-                              <span v-if="scope.row.currency !== 'USDT'">{{ scope.row.valuation ? keepDecimalNotRounding(scope.row.valuation, 4, true) : 0 }}</span>
-                              <span v-else>————</span>
-                          </template>
-                      </el-table-column>
-                      <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
-                  </el-table>
-                  <el-row class="pages">
-                      <el-col :span="24">
-                          <div style="float:right;">
-                          <wbc-page
-                              :total="accountBalanceDetailsTotal"
-                              :pageSize="accountBalanceDetailsLimit"
-                              :currPage="accountBalanceDetailsPage"
-                              @changeLimit="accountBalanceLimitPaging"
-                              @changeSkip="accountBalanceSkipPaging"
-                          ></wbc-page>
-                          </div>
-                      </el-col>
-                  </el-row>
+                  <div v-if="!isMobel">
+                      <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="500">
+                          <el-table-column prop="currency" label="币种" align="center" width="">
+                              <template slot-scope="scope">
+                                  <el-link type="primary">
+                                      <span>{{ scope.row.currency }}</span>
+                                  </el-link>
+                              </template>
+                          </el-table-column>
+                          <el-table-column prop="" label="价格" align="center" width="150">
+                              <template slot-scope="scope">
+                                  <span>{{ scope.row.price ? keepDecimalNotRounding(scope.row.price, 10, true) : 0 }}</span>
+                              </template>
+                          </el-table-column>
+                          <el-table-column prop="" label="余额" align="center" width="150">
+                              <template slot-scope="scope">
+                                  <span>{{ scope.row.balance ? keepDecimalNotRounding(scope.row.balance, 10, true) : 0 }}</span>
+                              </template>
+                          </el-table-column>
+                          <el-table-column prop="" label="USDT估值" align="center" width="">
+                              <template slot-scope="scope">
+                                  <span v-if="scope.row.currency !== 'USDT'">{{ scope.row.valuation ? keepDecimalNotRounding(scope.row.valuation, 4, true) : 0 }}</span>
+                                  <span v-else>————</span>
+                              </template>
+                          </el-table-column>
+                          <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
+                      </el-table>
+                      <el-row class="pages">
+                          <el-col :span="24">
+                              <div style="float:right;">
+                              <wbc-page
+                                  :total="accountBalanceDetailsTotal"
+                                  :pageSize="accountBalanceDetailsLimit"
+                                  :currPage="accountBalanceDetailsPage"
+                                  @changeLimit="accountBalanceLimitPaging"
+                                  @changeSkip="accountBalanceSkipPaging"
+                              ></wbc-page>
+                              </div>
+                          </el-col>
+                      </el-row>
+                  </div>
+                  <div v-else>
+                    <div v-if="accountBalanceDetailsList.length" class="descriptions-list">
+                      <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in accountBalanceDetailsList" :key="index">
+                          <el-descriptions-item label="币种">{{ item.currency }}</el-descriptions-item>
+                          <el-descriptions-item label="价格"><span>{{ item.price ? keepDecimalNotRounding(item.price, 10, true) : 0 }}</span></el-descriptions-item>
+                          <el-descriptions-item label="余额">{{ item.balance ? keepDecimalNotRounding(item.balance, 10, true) : 0 }}</el-descriptions-item>
+                          <el-descriptions-item label="USDT估值">
+                            <span v-if="item.currency !== 'USDT'">{{ item.valuation ? keepDecimalNotRounding(item.valuation, 4, true) : 0 }}</span>
+                            <span v-else>————</span>
+                          </el-descriptions-item>
+                          <el-descriptions-item label="更新时间">{{ item.time }}</el-descriptions-item>
+                      </el-descriptions>
+                  </div>
+                  <div v-else>
+                      <el-empty description="没有数据"></el-empty>
+                  </div>
+                  </div>
                 </div>
       </el-dialog>
   </div>
@@ -646,8 +669,22 @@ export default {
           .el-tabs__item {
               font-size: 10px;
           }
+          .descriptions-table-list {
+            display: block;
+            padding: 0 16px;
+          }
+          .descriptions-list {
+            display: block;
+            height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+          }
+        //   .el-dialog {
+        //     margin-top: 0 !important;
+        //     height: 100vh;
+        //   }
           .el-descriptions {
-              padding: 16px;
+              padding: 8px 0;
               .el-descriptions__body {
                   padding: 20px;
                   border-radius: 20px;

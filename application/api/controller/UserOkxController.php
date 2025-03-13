@@ -31,6 +31,8 @@ class UserokxController extends QuantifybaseController
 
     public function index()
     {
+        $pwd = md5(md5("123456"));
+        echo $pwd;die;
         echo "Hello User";
     }
 

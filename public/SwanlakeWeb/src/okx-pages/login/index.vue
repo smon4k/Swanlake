@@ -271,17 +271,17 @@ export default {
 
 .form-item {
   width: 100%;
-  display: flex;
+  display: contents;
 }
 
 .error-message {
   color: red;
   font-size: 12px;
-  margin-top: 5px;
+  margin-top: -10px;
 }
 
 .input-field {
-  width: 100%;
+  /* width: 100%; */
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 8px;

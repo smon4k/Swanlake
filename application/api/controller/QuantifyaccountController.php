@@ -312,7 +312,7 @@ class QuantifyaccountController extends QuantifybaseController
         if ($api_key == '' || $name == '' || $secret_key == '' || $pass_phrase == '' || $type <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = QuantifyAccount::addQuantityAccount($name, $api_key, $secret_key, $pass_phrase, $type, $is_position);
+        $result = QuantifyAccount::addQuantityAccount($name, $api_key, $secret_key, $pass_phrase, $type, $is_position, self::$_uid);
         if($result) {
             return $this->as_json($result);
         } else {
