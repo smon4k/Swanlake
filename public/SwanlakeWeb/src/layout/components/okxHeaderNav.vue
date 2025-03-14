@@ -27,7 +27,7 @@
 
                 </div>
                 <div class="connectWallet" @click="connectWallet">
-                    {{ '150355****0706' }}
+                    {{ addressStr }}
                 </div>
                 <el-button type="text" @click="logout" style="margin-right: 12px;">退出</el-button>
             </div>
@@ -142,11 +142,19 @@ export default {
         ...mapGetters(['pendingOrderAmount']),
         addressStr(){
             // console.log(this.address);
-            if(!this.address || this.address == undefined || this.address == '') {
+            const username = localStorage.getItem('username');
+            // 如果 username 不存在或为空
+            if (!username || username.trim() === '') {
                 return "Connect Wallet";
-            } else {
-                return this.address.substring(0, 4) + "***" + this.address.substring(this.address.length - 3)
             }
+            
+            // 如果 username 长度小于或等于 4，直接返回
+            if (username.length <= 5) {
+                return username;
+            }
+            
+            // 否则，返回截取后的字符串
+            return username.substring(0, 4) + "***" + username.substring(username.length - 3);
         },
         isTotalMintPath(){
             return this.$route.path === '/totalMinting'
@@ -249,6 +257,8 @@ export default {
     methods:{
         logout(){
             this.$disconnect();
+            localStorage.clear();
+            this.$router.push({path:'/okx/login' })
         },
         handleSelect(index, path) { //菜单激活时事件
             // console.log(index, path);

@@ -197,6 +197,7 @@ export default {
             console.log(json.data);
             if (json.code == 10000) {
               localStorage.setItem('token', json.data.token);
+              localStorage.setItem('username', json.data.mobile);
               this.$message.success('登录成功');
               if(json.data.uid == 1) {
                 this.$router.push("/quantify/account");

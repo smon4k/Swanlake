@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" :style="cssVariables">
       <div style="text-align:right;margin-bottom: 10px;">
           <!-- <el-button type="primary" @click="shareProfitShow()">分润</el-button>
           <el-button type="primary" @click="shareProfitRecordShow()">分润记录</el-button>
@@ -163,7 +163,8 @@
       <el-dialog
           title="账户余额明细"
           :visible.sync="accountBalanceDetailsShow"
-          :width="isMobel ? '100%' : '80%'">
+          :width="isMobel ? '100%' : '80%'"
+          class="dialog-accont-balance">
           <div @tab-click="accountBalanceTabClick">
                   <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
                       <el-option
@@ -219,7 +220,6 @@
                         class="infinite-list-wrapper"
                         v-if="accountBalanceDetailsList.length" 
                         v-infinite-scroll="accountBalanceDetailsLoad"
-                        style="overflow:auto;height: 500px"
                     >
                       <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in accountBalanceDetailsList" :key="index">
                           <el-descriptions-item label="币种">{{ item.currency }}</el-descriptions-item>
@@ -361,7 +361,12 @@ export default {
           apiUrl:state=>state.base.apiUrl,
           userOkxId:state=>state.base.userOkxId,
       }),
-
+      cssVariables() {
+        return {
+            '--dialog-margin-top': this.isMobel ? '0' : '15vh',
+            '--dialog-height': this.isMobel ? '100vh' : 'none',
+        };
+    }
   },
   created() {
       this.getList();
@@ -395,7 +400,7 @@ export default {
                   account_id: this.tabAccountId,
               };
           }
-          console.log(ServerWhere);
+        //   console.log(ServerWhere);
           this.loading = true;
           get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDateList", ServerWhere, json => {
               // console.log(json.data);
@@ -437,9 +442,12 @@ export default {
           get(this.apiUrl + "/Api/QuantifyAccount/getAccountList", {
             user_id: this.userOkxId,
           }, json => {
-              console.log(json.data);
+              console.log("getAccountList", json.data);
               if (json.code == 10000) {
                   this.accountList = json.data;
+                  this.activeName = json.data[0].name;
+                  this.tabAccountId = json.data[0].id;
+                  this.getList();
               }
           })
       },
@@ -481,7 +489,7 @@ export default {
                           this.accountBalanceDetailsList = list;
                       }
                   }
-                  this.total = json.data.count;
+                  this.accountBalanceDetailsTotal = json.data.count;
                   this.accountBalanceDetailsLoading = false;
 
                   if(account_id) {
@@ -596,6 +604,7 @@ export default {
           this.accountBalanceDetailsList = [];
           this.accountBalanceTabValue = '1'
           this.accountBalanceDetailsFun();
+          this.accountBalanceDetailsPage = 1;
           this.accountBalanceDetailsShow = true;
       },
       InoutGoldLimitPaging(limit) {
@@ -739,8 +748,19 @@ export default {
         }
         .infinite-list-wrapper {
             height: 100vh;
+            margin-bottom: 50px;
             p {
                 text-align: center;
+            }
+        }
+        .dialog-accont-balance {
+            .el-dialog {
+                margin-top: var(--dialog-margin-top) !important;
+                height: var(--dialog-height);
+            }
+            .infinite-list-wrapper {
+                height: 80vh;
+                overflow: auto;
             }
         }
         .infinite-list-wrapper::-webkit-scrollbar { width: 0 !important }
