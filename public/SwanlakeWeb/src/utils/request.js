@@ -4,10 +4,9 @@ axios.defaults.baseURL = process.env.VUE_APP_BASE_API
 
 // 请求拦截器
 axios.interceptors.request.use(config => {
+  config.headers["Accept"] = "application/json";
   if (localStorage.token) {
-    config.headers = {
-      "Authorization": localStorage.getItem('token')
-    }
+    config.headers["Authorization"] = localStorage.getItem('token');
   }
   return config
 }, error => {

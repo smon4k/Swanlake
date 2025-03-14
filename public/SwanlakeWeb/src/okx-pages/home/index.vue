@@ -13,7 +13,8 @@
               <div v-if="!isMobel">
                   <el-table
                       :data="tableData"
-                      style="width: 100%">
+                      style="width: 100%"
+                      height="600">
                       <el-table-column prop="date" label="日期" align="center"></el-table-column>
                       <el-table-column prop="principal" label="累计本金(U)" align="center" width="150">
                           <template slot-scope="scope">
@@ -89,7 +90,13 @@
                   </el-row>
               </div>
               <div v-else>
-                  <div v-if="tableData.length" class="descriptions-table-list">
+                  <!-- <div v-if="tableData.length" class="descriptions-table-list"> -->
+                    <div 
+                        class="infinite-list-wrapper"
+                        v-if="tableData.length" 
+                        v-infinite-scroll="load"
+                        style="overflow:auto"
+                    >
                       <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                           <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
                           <!-- <el-descriptions-item label="账户名称">{{ item.account }}</el-descriptions-item> -->
@@ -106,6 +113,8 @@
                           <el-descriptions-item label="利润">{{ keepDecimalNotRounding(item.profit, 2, true) }} USDT</el-descriptions-item>
                           <el-descriptions-item label="利润率">{{ keepDecimalNotRounding(item.profit_rate * 100, 2, true) }}%</el-descriptions-item>
                       </el-descriptions>
+                      <p v-if="loading">加载中...</p>
+                      <p v-if="finished">没有更多了</p>
                   </div>
                   <div v-else>
                       <el-empty description="没有数据"></el-empty>
@@ -206,7 +215,12 @@
                       </el-row>
                   </div>
                   <div v-else>
-                    <div v-if="accountBalanceDetailsList.length" class="descriptions-list">
+                    <div 
+                        class="infinite-list-wrapper"
+                        v-if="accountBalanceDetailsList.length" 
+                        v-infinite-scroll="accountBalanceDetailsLoad"
+                        style="overflow:auto;height: 500px"
+                    >
                       <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in accountBalanceDetailsList" :key="index">
                           <el-descriptions-item label="币种">{{ item.currency }}</el-descriptions-item>
                           <el-descriptions-item label="价格"><span>{{ item.price ? keepDecimalNotRounding(item.price, 10, true) : 0 }}</span></el-descriptions-item>
@@ -217,6 +231,8 @@
                           </el-descriptions-item>
                           <el-descriptions-item label="更新时间">{{ item.time }}</el-descriptions-item>
                       </el-descriptions>
+                      <p v-if="accountBalanceDetailsLoading">加载中...</p>
+                      <p v-if="accountBalanceDetailsFinished">没有更多了</p>
                   </div>
                   <div v-else>
                       <el-empty description="没有数据"></el-empty>
@@ -243,6 +259,8 @@ export default {
           total: 1, //总条数
           loading: false,
           finished: false,
+          accountBalanceDetailsLoading: false,
+          accountBalanceDetailsFinished: false,
           PageSearchWhere: [],
           dialogVisibleShow: false,
           dialogVisibleListShow: false,
@@ -364,6 +382,11 @@ export default {
       "wbc-page": Page, //加载分页组件
   },
   methods: {
+        load () { //加载更多
+            if(!this.finished) {
+                this.getList();
+            }
+        },
       getList(ServerWhere) {
           if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
               ServerWhere = {
@@ -420,9 +443,15 @@ export default {
               }
           })
       },
+      accountBalanceDetailsLoad () {
+        if(!this.accountBalanceDetailsFinished) {
+            this.accountBalanceDetailsFun();
+        }
+      },
       accountBalanceDetailsFun(account_id) { //余额明细数据
           // console.log(account_id);
           // this.accountBalanceTabValue = '1'
+          this.accountBalanceDetailsLoading = true;
           get(this.apiUrl + "/Api/QuantifyAccount/getQuantifyAccountDetails", {
               account_id: this.tabAccountId,
               limit: this.accountBalanceDetailsLimit,
@@ -431,8 +460,30 @@ export default {
           }, json => {
               console.log(json.data);
               if (json.code == 10000) {
-                  this.accountBalanceDetailsList = json.data.lists;
-                  this.accountBalanceDetailsTotal = json.data.count;
+                if (json.data.lists) {
+                      let list = (json.data && json.data.lists) || [];
+                      if(this.isMobel) {
+                          if (this.accountBalanceDetailsPage <= 1) {
+                              // console.log('首次加载');
+                            this.accountBalanceDetailsList = list;
+                              // this.$forceUpdate();
+                          } else {
+                            this.accountBalanceDetailsList = [...this.accountBalanceDetailsList, ...list];
+                          }
+                          this.accountBalanceDetailsPage += 1;
+                          if (this.accountBalanceDetailsPage >= json.data.allpage) {
+                              // console.log(ServerWhere.page, json.data.allpage);
+                              this.accountBalanceDetailsFinished = true;
+                          } else {
+                              this.accountBalanceDetailsFinished = false;
+                          }
+                      } else {
+                          this.accountBalanceDetailsList = list;
+                      }
+                  }
+                  this.total = json.data.count;
+                  this.accountBalanceDetailsLoading = false;
+
                   if(account_id) {
                       this.getCurrencyList();
                   }
@@ -683,8 +734,18 @@ export default {
         //     margin-top: 0 !important;
         //     height: 100vh;
         //   }
+        .el-dialog__wrapper {
+            overflow-y: hidden;
+        }
+        .infinite-list-wrapper {
+            height: 100vh;
+            p {
+                text-align: center;
+            }
+        }
+        .infinite-list-wrapper::-webkit-scrollbar { width: 0 !important }
           .el-descriptions {
-              padding: 8px 0;
+              padding: 8px 8px;
               .el-descriptions__body {
                   padding: 20px;
                   border-radius: 20px;

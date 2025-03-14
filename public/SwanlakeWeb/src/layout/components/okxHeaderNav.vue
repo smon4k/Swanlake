@@ -29,7 +29,7 @@
                 <div class="connectWallet" @click="connectWallet">
                     {{ '150355****0706' }}
                 </div>
-                <el-button type="text" @click="logout">退出</el-button>
+                <el-button type="text" @click="logout" style="margin-right: 12px;">退出</el-button>
             </div>
 
             <el-divider></el-divider>

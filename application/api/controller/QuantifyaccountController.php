@@ -52,7 +52,9 @@ class QuantifyaccountController extends QuantifybaseController
         // $standard = $request->request('standard', 0, 'intval');
         $where = [];
         // $where['state'] = 1;
-        $where['account_id'] = $account_id;
+        if($account_id) {
+            $where['account_id'] = $account_id;
+        }
         $data = QuantifyAccount::getQuantifyAccountDateList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
