@@ -24,7 +24,7 @@
                       <el-table-column prop="" label="总结余(U)" align="center">
                           <template slot-scope="scope">
                           <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
-                          <el-link type="primary" @click="getTotalBalanceClick()">
+                          <el-link type="primary" @click="getTotalBalanceClick(scope.row)">
                               <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
                           </el-link>
                           </template>
@@ -101,7 +101,7 @@
                           <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
                           <!-- <el-descriptions-item label="账户名称">{{ item.account }}</el-descriptions-item> -->
                             <el-descriptions-item label="总结余">
-                                <el-link type="primary" @click="getTotalBalanceClick()">
+                                <el-link type="primary" @click="getTotalBalanceClick(item)">
                                     <span>{{ keepDecimalNotRounding(item.total_balance, 2, true) }} USDT</span>
                                 </el-link>
                             </el-descriptions-item>
@@ -164,7 +164,8 @@
           title="账户余额明细"
           :visible.sync="accountBalanceDetailsShow"
           :width="isMobel ? '100%' : '80%'"
-          class="dialog-accont-balance">
+          class="dialog-accont-balance"
+          @close="closeAccountBalanceDetails">
           <div @tab-click="accountBalanceTabClick">
                   <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
                       <el-option
@@ -350,6 +351,7 @@ export default {
               type: '2',
               is_position: '0',
           },
+          clickDate: '',
       }
   },
   computed: {
@@ -391,6 +393,14 @@ export default {
             if(!this.finished) {
                 this.getList();
             }
+        },
+        closeAccountBalanceDetails() {
+            this.accountBalanceDetailsPage = 1;
+            this.clickDate = '';
+            this.currencyList  = [];
+            this.accountBalanceDetailsFinished = false;
+            this.accountBalanceDetailsLoading = false;
+            this.accountBalanceDetailsList = [];
         },
       getList(ServerWhere) {
           if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
@@ -456,7 +466,7 @@ export default {
             this.accountBalanceDetailsFun();
         }
       },
-      accountBalanceDetailsFun(account_id) { //余额明细数据
+      accountBalanceDetailsFun() { //余额明细数据
           // console.log(account_id);
           // this.accountBalanceTabValue = '1'
           this.accountBalanceDetailsLoading = true;
@@ -465,6 +475,7 @@ export default {
               limit: this.accountBalanceDetailsLimit,
               page: this.accountBalanceDetailsPage,
               currency: this.currency,
+              date: this.clickDate,
           }, json => {
               console.log(json.data);
               if (json.code == 10000) {
@@ -491,10 +502,6 @@ export default {
                   }
                   this.accountBalanceDetailsTotal = json.data.count;
                   this.accountBalanceDetailsLoading = false;
-
-                  if(account_id) {
-                      this.getCurrencyList();
-                  }
               }
           })
       },
@@ -509,7 +516,8 @@ export default {
           })
       },
       selectCurrencyChange() { //根据币种选择对应的账户余额明细数据
-          this.accountBalanceDetailsFun();
+        this.accountBalanceDetailsPage = 1;
+        this.accountBalanceDetailsFun();
       },
 
       limitPaging(limit) {
@@ -599,10 +607,13 @@ export default {
               this.getMaxMinUplRate();
           }
       },
-      getTotalBalanceClick() { //获取总结余弹框
+      getTotalBalanceClick(row) { //获取总结余弹框
+          this.closeAccountBalanceDetails();
           this.currencyPositionsList = [];
           this.accountBalanceDetailsList = [];
           this.accountBalanceTabValue = '1'
+          this.clickDate = row.date;
+          this.getCurrencyList();
           this.accountBalanceDetailsFun();
           this.accountBalanceDetailsPage = 1;
           this.accountBalanceDetailsShow = true;

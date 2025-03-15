@@ -135,8 +135,8 @@ class UserokxController extends QuantifybaseController
         }
         Rediscache::getInstance()->set('last_send_time_' . $phone, time(), 60);
         $code = mt_rand(1000, 9999);
-        // $res = ClSms::sendSms($phone, $code);
-        $res['code'] = 0;
+        $res = ClSms::sendSms($phone, $code);
+        // $res['code'] = 0;
         if ($res && $res['code'] == 0) {
             Rediscache::getInstance()->set($phone, $code, 300);
             return $this->as_json('success', $code);

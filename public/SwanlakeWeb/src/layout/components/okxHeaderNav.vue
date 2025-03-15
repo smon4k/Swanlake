@@ -3,9 +3,9 @@
         <div class="container">
             <div class="headerNav-container">
                 <div class="sider-inner">
-                    <div class="menu" @click="menuDrawerShow = true" v-if="screenWidth < 1280">
+                    <!-- <div class="menu" @click="menuDrawerShow = true" v-if="screenWidth < 1280">
                         <img src="@/assets/menu.png" alt="" />
-                    </div>
+                    </div> -->
                     <!-- <div class="logo" v-show="screenWidth > 600">
                         <router-link to="/" class="logo-link">
                             <img
@@ -70,16 +70,7 @@
                 direction="ltr"
                 size="320px">
                 <div class="sider-inner">
-                    <div class="logo">
-                        <!-- <router-link to="/" class="logo-link">
-                            <img
-                                src="@/assets/log.jpeg"
-                                alt=""
-                                v-if="mainTheme === 'light'"
-                            />
-                            <img src="@/assets/log.jpeg" alt="" v-else />
-                        </router-link> -->
-                    </div>
+                    <!-- <div class="logo"></div> -->
                     <div class="title"> Swan Lake Quant </div>
                 </div>
                 <br><br>

@@ -155,6 +155,7 @@ class QuantifyaccountController extends QuantifybaseController
         $limits = $request->request('limit', 1, 'intval');
         $account_id = $request->request('account_id', 0, 'intval');
         $currency = $request->request('currency', '', 'trim');
+        $date = $request->request('date', '', 'trim');
         if(!$account_id || $account_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
@@ -163,6 +164,9 @@ class QuantifyaccountController extends QuantifybaseController
         $where['balance'] = ['>', 0];
         if($currency && $currency !== '') {
             $where['currency'] = $currency;
+        }
+        if($date && $date !== '') {
+            $where['date'] = $date;
         }
         $result = QuantifyAccount::getQuantifyAccountDetails($where, $page, $limits);
         return $this->as_json($result);
