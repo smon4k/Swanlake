@@ -371,8 +371,8 @@ export default {
     }
   },
   created() {
-      this.getList();
-      this.getAccountList();
+    //   this.getList();
+    //   this.getAccountList();
   },
   watch: {
     userOkxId: {
