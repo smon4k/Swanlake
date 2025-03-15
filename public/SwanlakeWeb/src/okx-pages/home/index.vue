@@ -305,7 +305,7 @@ export default {
               ],
           },
           activeName: '1-0001',
-          tabAccountId: 10,
+          tabAccountId: 0,
           accountList: [],
           InoutGoldList: [],
           InoutGoldCurrPage: 1, //当前页
@@ -378,7 +378,6 @@ export default {
     userOkxId: {
         handler: function (val, oldVal) {
             if(val) {
-                this.getList();
                 this.getAccountList();
             }
         },
@@ -390,7 +389,7 @@ export default {
   },
   methods: {
         load () { //加载更多
-            if(!this.finished) {
+            if(!this.finished && this.tabAccountId) {
                 this.getList();
             }
         },
