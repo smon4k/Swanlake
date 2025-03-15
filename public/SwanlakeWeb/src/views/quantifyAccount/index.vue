@@ -712,20 +712,43 @@ export default {
             isMobel:state=>state.comps.isMobel,
             mainTheme:state=>state.comps.mainTheme,
             apiUrl:state=>state.base.apiUrl,
+            userOkxId:state=>state.base.userOkxId,
         }),
 
     },
     created() {
-        this.getAllList();
-        this.getAccountList();
+        this.checkLogin();
     },
     watch: {
-
+        userOkxId: {
+            handler: function (val, oldVal) {
+                if(val) {
+                    this.getAccountList();
+                }
+            },
+            immediate: true,
+        },
     },
     components: {
         "wbc-page": Page, //加载分页组件
     },
     methods: {
+        checkLogin() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                get(this.apiUrl + '/api/userokx/checkToken', {}, json => {
+                    console.log(json.data);
+                    if (json.code == 10000) {
+                        // localStorage.removeItem('token');
+                        this.$store.commit('setUserOkxId', json.data);
+                    } else {
+                        this.$router.push('/okx/login');
+                    }
+                });
+            } else {
+                this.$router.push('/okx/login');
+            }
+        },
         getAllList(ServerWhere) {
             if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
                 ServerWhere = {
@@ -818,10 +841,13 @@ export default {
             });
         },
         getAccountList() {
-            get(this.apiUrl + "/Api/QuantifyAccount/getAccountList", {}, json => {
+            get(this.apiUrl + "/Api/QuantifyAccount/getAccountList", {
+                user_id: this.userOkxId
+            }, json => {
                 console.log(json.data);
                 if (json.code == 10000) {
                     this.accountList = [{ id: 0, name: '全部' }, ...json.data]; // Add default object
+                    this.getAllList();
                 }
             })
         },

@@ -8,7 +8,7 @@
           <!-- <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button> -->
           <el-button type="primary" @click="addQuantityAccount()">添加账户</el-button>
       </div>
-      <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
+      <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick" v-if="accountList.length">
           <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
               <div v-if="!isMobel">
                   <el-table
@@ -91,7 +91,7 @@
               </div>
               <div v-else>
                   <!-- <div v-if="tableData.length" class="descriptions-table-list"> -->
-                    <div 
+                    <div
                         class="infinite-list-wrapper"
                         v-if="tableData.length" 
                         v-infinite-scroll="load"
@@ -121,7 +121,10 @@
                   </div>
               </div>
           </el-tab-pane>
-      </el-tabs>
+        </el-tabs>
+        <div v-else>
+          <el-empty description="没有数据"></el-empty>
+      </div>
 
       <el-dialog
           title="添加账户"
@@ -574,11 +577,11 @@ export default {
                   post(this.apiUrl + '/Api/QuantifyAccount/addQuantityAccount', this.accountForm, (json) => {
                       console.log(json);
                       if (json && json.code == 10000) {
-                          this.$message.success('更新成功');
+                          this.$message.success('添加成功');
                           this.$refs[formName].resetFields();
                           loading.close();
-                          this.dialogVisibleShow = false;
-                          this.getList();
+                          this.addQuantityAccountShow = false;
+                          this.getAccountList();
                       } else {
                           loading.close();
                           this.$message.error(json.data.msg);
