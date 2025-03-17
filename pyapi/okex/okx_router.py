@@ -2,12 +2,44 @@ from typing import Optional
 import okx.Account as Account
 import okx.MarketData as MarketData
 import okx.Trade as Trade
+import okx.Funding as Funding
 from fastapi import APIRouter
 
 from schemas import AccountBalancesModel, CommonResponse
 
 router = APIRouter()
 
+# 获取划转记录
+@router.post("/api/okex/get_transfer_history", response_model=CommonResponse)
+async def get_transfer_history(
+    refugee: AccountBalancesModel,
+    type: str = "1",
+):
+    try:
+        fundingAPI = Funding.FundingAPI(
+            refugee.api_key, refugee.secret_key, refugee.passphrase, False, "0"
+        )
+        result = fundingAPI.get_bills(type)
+        if result["code"] == "0":
+            return CommonResponse(
+                status="success",
+                message="Transfer history fetched successfully",
+                data=result["data"],
+            )
+        else:
+            return CommonResponse(
+                status="error",
+                message="Failed to fetch transfer history",
+                data={
+                    "error_code": result["code"],
+                    "error_message": result.get("msg", "Unknown error"),
+                },
+            )
+    except Exception as e:
+        return CommonResponse(
+            status="error",
+            message="An error occurred",
+        )
 
 # 获取余额
 @router.post("/api/okex/get_account_balances", response_model=CommonResponse)
@@ -19,6 +51,7 @@ async def get_account_balances(
             refugee.api_key, refugee.secret_key, refugee.passphrase, False, "0"
         )
         result = accountAPI.get_account_balance(ccy)
+        print(result)
         if result["code"] == "0":
             return CommonResponse(
                 status="success",

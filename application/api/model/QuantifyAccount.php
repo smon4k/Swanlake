@@ -437,7 +437,7 @@ class QuantifyAccount extends Base
             $usdtBalance = 0;
             if(empty($balanceDetails['details']) || count($balanceDetails) <= 0) {
                 echo "【" . $accountInfo['id'] . "】没有余额\r\n";
-                return;
+                return false;
             }
             foreach ($balanceDetails['details'] as $k => $v) {
                 if(isset($v['ccy'])) {
@@ -1455,6 +1455,9 @@ class QuantifyAccount extends Base
                 ];
                 $res = self::where('id', $IsResData['id'])->update($updateData);
                 if($res) {
+                    // $url = Config('okx_uri') . "/api/okex/get_transfer_history";
+                    // $balanceDetails = self::getOkxRequesInfo($updateData, $url);
+                    // p($balanceDetails);
                     return true;
                 }
             } else {
@@ -1473,6 +1476,10 @@ class QuantifyAccount extends Base
                 self::insert($insertData);
                 $insertId = self::getLastInsID();
                 if($insertId) {
+                    $balanceList = self::getOkxTradePairBalance($insertData);
+                    if($balanceList && count((array)$balanceList) > 0) {
+                        self::calcQuantifyAccountData($insertId, 1, $balanceList['usdtBalance'], '第一笔入金');
+                    }
                     return true;
                 }
             }
