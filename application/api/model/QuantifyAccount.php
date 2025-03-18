@@ -121,7 +121,7 @@ class QuantifyAccount extends Base
                         if(isset($yestData['principal']) && $yestData['principal'] > 0) {
                             $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] : 0;
                         } else {
-                            $countStandardPrincipal = $total_balance;
+                            $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance;
                         }
                     } else {
                         $countStandardPrincipal = isset($dayData['principal']) ? $dayData['principal'] : $total_balance;
@@ -1000,6 +1000,8 @@ class QuantifyAccount extends Base
             $count = self::name('quantify_inout_gold')->where('account_id', $account_id)->sum('amount');
             if ($count !== 0) {
                 return $count;
+            } else {
+
             }
         }
         return 0;
