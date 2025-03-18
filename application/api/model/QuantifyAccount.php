@@ -124,7 +124,7 @@ class QuantifyAccount extends Base
                             $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance;
                         }
                     } else {
-                        $countStandardPrincipal = isset($dayData['principal']) ? $dayData['principal'] : $total_balance;
+                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance : (isset($dayData['principal']) ? $dayData['principal'] : $totalBalance);
                     }
                 } else {
                     //本金
@@ -1000,8 +1000,6 @@ class QuantifyAccount extends Base
             $count = self::name('quantify_inout_gold')->where('account_id', $account_id)->sum('amount');
             if ($count !== 0) {
                 return $count;
-            } else {
-
             }
         }
         return 0;
@@ -1538,5 +1536,48 @@ class QuantifyAccount extends Base
             }
         }
         return false;
+    }
+
+    /**
+     * 删除账户数据
+     * @since 2024-10-14
+     */
+    public static function deleteQuantityAccount($account_id) {
+        try {
+            $del1 = self::name('quantify_account_details')->where('account_id', $account_id)->delete();
+            if($del1 !== false) {
+                $del2 = self::name('quantify_account_positions')->where('account_id', $account_id)->delete();
+                if($del2 !== false) {
+                    $del3 = self::name('quantify_account_positions_rate')->where('account_id', $account_id)->delete();
+                    if($del3 !== false) {
+                        $del4 = self::name('quantify_account_trade_binance_details')->where('account_id', $account_id)->delete();
+                        if($del4 !== false) {
+                            $del5 = self::name('quantify_account_trade_okx_details')->where('account_id', $account_id)->delete();
+                            if($del5 !== false) {
+                                $del6 = self::name('quantify_dividend_record')->where('account_id', $account_id)->delete();
+                                if($del6 !== false) {
+                                    $del7 = self::name('quantify_equity_monitoring')->where('account_id', $account_id)->delete();
+                                    if($del7 !== false) {
+                                        $del8 = self::name('quantify_equity_monitoring_total')->where('account_id', $account_id)->delete();
+                                        if($del8 !== false) {
+                                            $del9 = self::name('quantify_inout_gold')->where('account_id', $account_id)->delete();
+                                            if($del9 !== false) {
+                                                $del10 = self::where('id', $account_id)->delete();
+                                                if($del10 !== false) {
+                                                    return true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return $result;
+        } catch (PDOException $e) {
+            return false;
+        }
     }
 }
