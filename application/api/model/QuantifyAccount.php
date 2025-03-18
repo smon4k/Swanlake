@@ -210,6 +210,7 @@ class QuantifyAccount extends Base
                             // return true;
                         }
                     } else {
+                        self::getTransferHistory($accountInfo);
                         $isTrue = true;
                         // self::commit();
                         // return true;
@@ -527,7 +528,6 @@ class QuantifyAccount extends Base
         ];
         $response_string = RequestService::doJsonCurlPost($url, json_encode($params));
         $response_arr = json_decode($response_string, true);
-        // p($response_arr);
         if($response_arr && $response_arr['status'] === 'success') {
             if(!$isList) {
                 return $response_arr['data'][0];
@@ -1028,7 +1028,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-01-31
      */
-    public static function setInoutGoldRecord($account_id=0, $amount='', $price, $type=0, $remark='')
+    public static function setInoutGoldRecord($account_id=0, $amount='', $price=0, $type=0, $remark='', $time='')
     {
         if ($account_id && $amount !== 0 && $type > 0) {
             $total_balance = 0;
@@ -1046,7 +1046,8 @@ class QuantifyAccount extends Base
                 'type' => $type,
                 'total_balance' => $total_balance,
                 'remark' => $remark,
-                'time' => date('Y-m-d H:i:s'),
+                'time' => $time ? $time :date('Y-m-d H:i:s'),
+                'bill_id' => ''
             ];
             $res = self::name('quantify_inout_gold')->insertGetId($insertData);
             if ($res) {
@@ -1455,9 +1456,6 @@ class QuantifyAccount extends Base
                 ];
                 $res = self::where('id', $IsResData['id'])->update($updateData);
                 if($res) {
-                    // $url = Config('okx_uri') . "/api/okex/get_transfer_history";
-                    // $balanceDetails = self::getOkxRequesInfo($updateData, $url);
-                    // p($balanceDetails);
                     return true;
                 }
             } else {
@@ -1487,5 +1485,56 @@ class QuantifyAccount extends Base
         } catch ( PDOException $e) {
             return false;
         }
+    }
+
+    /**
+     * 获取资金流水
+     * @author 
+     * @since 2023-10-14
+     */
+    public static function getTransferHistory($accountInfo) {
+        $url = Config('okx_uri') . "/api/okex/get_transfer_history";
+        $balanceDetails = self::getOkxRequesInfo($accountInfo, $url, true);
+        if ($balanceDetails && count($balanceDetails) > 0) {
+            foreach ($balanceDetails as $transfer) {
+                $amount = $transfer['balChg'];
+                $billId = $transfer['billId'];
+                $time = date('Y-m-d H:i:s', $transfer['ts'] / 1000);
+                self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, 1, '转出至交易账户',  $time);
+            }
+        }
+        return true;
+    }
+
+    public static function setInoutGoldRecordTransfer($account_id=0, $billId='', $amount='', $type=0, $remark='', $time='')
+    {
+        if ($account_id && $billId !=='' && $amount !== 0 && $type > 0) {
+            $total_balance = 0;
+            $existingRecord = self::name('quantify_inout_gold')->where('bill_id', $billId)->find();
+            if ($existingRecord) {
+                return true;
+            }
+            if($type == 1) {
+                $amount_num = $amount;
+                $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount;
+            } else {
+                $amount_num = $amount *= -1;
+                $total_balance = self::getInoutGoldTotalBalance($account_id) - (float)$amount;
+            }
+            $insertData = [
+                'account_id' => $account_id,
+                'amount' => $amount_num,
+                'type' => $type,
+                'total_balance' => $total_balance,
+                'remark' => $remark,
+                'time' => $time ? $time : date('Y-m-d H:i:s'),
+                'bill_id' => $billId
+            ];
+            $res = self::name('quantify_inout_gold')->insertGetId($insertData);
+            if ($res) {
+                return true;
+            }
+        }
+        return false;
     }
 }

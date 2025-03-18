@@ -325,4 +325,9 @@ class QuantifyaccountController extends QuantifybaseController
             return $this->as_json(70001, '创建失败');
         }
     }
+
+    // public function test(Request $request) {
+    //     $accountInfo = QuantifyAccount::getAccountInfo(19);
+    //     QuantifyAccount::getTransferHistory($accountInfo);
+    // }
 }

@@ -23,7 +23,8 @@ class QuantifybaseController extends Controller
             'api/userokx/login',
             'api/userokx/createAccount',
             'api/userokx/checkVerificationCode',
-            'Api/QuantifyAccount/addQuantityAccount'
+            // 'Api/QuantifyAccount/addQuantityAccount'
+            // 'Api/QuantifyAccount/test'
             // 'api/userokx/index',
         ];
         if (!in_array($path, $excludedRoutes)) {

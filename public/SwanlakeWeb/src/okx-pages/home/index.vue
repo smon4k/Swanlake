@@ -5,7 +5,7 @@
           <el-button type="primary" @click="shareProfitRecordShow()">分润记录</el-button>
           &nbsp;
           <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button> -->
-          <!-- <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button> -->
+          <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
           <el-button type="primary" @click="addQuantityAccount()">添加账户</el-button>
       </div>
       <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick" v-if="accountList.length">
@@ -162,6 +162,75 @@
           </span>
       </el-dialog>
 
+      <el-dialog
+      title="出/入金记录"
+      :visible.sync="dialogVisibleListShow"
+      :width="isMobel ? '100%' : '80%'">
+      <div v-if="!isMobel">
+          <el-table :data="InoutGoldList" style="width: 100%;" height="500">
+              <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+              <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
+              <el-table-column prop="amount" label="出入金额" align="center" width="150">
+                  <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} USDT</span>
+                  </template>
+              </el-table-column>
+              <el-table-column prop="type" label="类型" align="center">
+                  <template slot-scope="scope">
+                  <span v-if="scope.row.type == 1">入金</span>
+                  <span v-else>出金</span>
+                  </template>
+              </el-table-column>
+              <el-table-column prop="total_balance" label="账户余额" align="center" width="150">
+                  <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
+                  </template>
+              </el-table-column>
+              <el-table-column prop="" label="备注" align="center">
+                  <template slot-scope="scope">
+                  <span>{{ scope.row.remark }}</span>
+                  </template>
+              </el-table-column>
+          </el-table>
+          <el-row class="pages">
+              <el-col :span="24">
+                  <div style="float:right;">
+                  <wbc-page
+                      :total="InoutGoldTotal"
+                      :pageSize="InoutGoldPageSize"
+                      :currPage="InoutGoldCurrPage"
+                      @changeLimit="InoutGoldLimitPaging"
+                      @changeSkip="InoutGoldSkipPaging"
+                  ></wbc-page>
+                  </div>
+              </el-col>
+          </el-row>
+      </div>
+        <div v-else>
+            <div 
+                class="infinite-list-wrapper"
+                v-if="InoutGoldList.length" 
+                v-infinite-scroll="accountBalanceDetailsLoad"
+            >
+                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in InoutGoldList" :key="index">
+                    <el-descriptions-item label="时间">{{ item.time }}</el-descriptions-item>
+                    <el-descriptions-item label="出入金额"><span>{{ keepDecimalNotRounding(item.amount, 8, true) }} USDT</span></el-descriptions-item>
+                    <el-descriptions-item label="类型">
+                        <span v-if="item.type == 1">入金</span>
+                        <span v-else>出金</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="账户余额"><span>{{ keepDecimalNotRounding(item.total_balance, 4, true) }} USDT</span></el-descriptions-item>
+                    <el-descriptions-item label="备注">{{ item.remark }}</el-descriptions-item>
+                </el-descriptions>
+                <p v-if="InoutGoldLoading">加载中...</p>
+                <p v-if="InoutGoldFinished">没有更多了</p>
+            </div>
+            <div v-else>
+                <el-empty description="没有数据"></el-empty>
+            </div>
+        </div>
+  </el-dialog>
+
       <!-- 账户余额明细数据 -->
       <el-dialog
           title="账户余额明细"
@@ -313,6 +382,8 @@ export default {
           InoutGoldList: [],
           InoutGoldCurrPage: 1, //当前页
           InoutGoldPageSize: 20, //每页显示条数
+          InoutGoldLoading: false,
+          InoutGoldFinished: false,
           InoutGoldTotal: 1, //总条数
           accountBalanceDetailsShow: false,
           accountBalanceDetailsList: [],
@@ -568,6 +639,54 @@ export default {
               }
           });
       },
+      InoutGoldLoad () {
+        if(!this.InoutGoldFinished) {
+            this.getInoutGoldList();
+        }
+      },
+      getInoutGoldList(ServerWhere) { //获取出入金记录数据
+            var that = this.$data;
+            if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+                ServerWhere = {
+                    limit: that.InoutGoldPageSize,
+                    page: that.InoutGoldCurrPage,
+                    account_id: that.tabAccountId,
+                };
+            }
+            get("/Api/QuantifyAccount/getInoutGoldList", ServerWhere, json => {
+                console.log(json);
+                if (json.code == 10000) {
+                    if (json.data.data) {
+                        // this.InoutGoldList = json.data.data;
+                        // this.InoutGoldTotal = json.data.count;
+                        let list = (json.data && json.data.data) || [];
+
+                        if(this.isMobel) {
+                            if (this.InoutGoldCurrPage <= 1) {
+                                // console.log('首次加载');
+                                this.InoutGoldList = list;
+                                // this.$forceUpdate();
+                            } else {
+                                this.InoutGoldList = [...this.InoutGoldList, ...list];
+                            }
+                            this.InoutGoldCurrPage += 1;
+                            if (this.InoutGoldCurrPage >= json.data.allpage) {
+                                // console.log(ServerWhere.page, json.data.allpage);
+                                this.InoutGoldFinished = true;
+                            } else {
+                                this.InoutGoldFinished = false;
+                            }
+                        } else {
+                            this.InoutGoldList = list;
+                        }
+                    }
+                    this.InoutGoldTotal = json.data.count;
+                    this.InoutGoldLoading = false;
+                } else {
+                    this.$message.error("加载数据失败");
+                }
+            });
+        },
       addAccountSubmitForm(formName) { //添加账户
           this.$refs[formName].validate((valid) => {
               if (valid) {
