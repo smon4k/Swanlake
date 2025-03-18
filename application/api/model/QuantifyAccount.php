@@ -1510,7 +1510,7 @@ class QuantifyAccount extends Base
     {
         if ($account_id && $billId !=='' && $amount !== 0 && $type > 0) {
             $total_balance = 0;
-            $existingRecord = self::name('quantify_inout_gold')->where('bill_id', $billId)->find();
+            $existingRecord = self::name('quantify_inout_gold')->where(['account_id'=>$account_id, 'bill_id' => $billId])->find();
             if ($existingRecord) {
                 return true;
             }
