@@ -326,6 +326,25 @@ class QuantifyaccountController extends QuantifybaseController
         }
     }
 
+    /**
+     * 删除账户
+     * @param  [post] [description]
+     * @return [type] [description]
+     * @author [qinlh] [WeChat QinLinHui0706]
+     */
+    public function deleteQuantityAccount(Request $request) {
+        $account_id = $request->request('account_id', 0, 'intval');
+        if ($account_id <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = QuantifyAccount::deleteQuantityAccount($account_id);
+        if ($result) {
+            return $this->as_json('ok');
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
+
     // public function test(Request $request) {
     //     $accountInfo = QuantifyAccount::getAccountInfo(19);
     //     QuantifyAccount::getTransferHistory($accountInfo);

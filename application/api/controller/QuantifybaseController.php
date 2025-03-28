@@ -23,6 +23,7 @@ class QuantifybaseController extends Controller
             'api/userokx/login',
             'api/userokx/createAccount',
             'api/userokx/checkVerificationCode',
+            'Api/QuantifyAccount/deleteQuantityAccount'
             // 'Api/QuantifyAccount/addQuantityAccount'
             // 'Api/QuantifyAccount/test'
             // 'api/userokx/index',
