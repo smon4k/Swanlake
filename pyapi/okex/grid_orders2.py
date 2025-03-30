@@ -38,45 +38,87 @@ class TradingBotConfig:
 class OKXTradingBot:
     def __init__(self, config: TradingBotConfig):
         self.config = config
-        self.exchanges: Dict[str, ccxt.Exchange] = {}
-        self.active_orders: Dict[str, List[dict]] = {}  # 跟踪活跃订单
-        self.positions: Dict[str, dict] = {}  # 跟踪持仓 {symbol: position_data}
+        self.exchanges: Dict[int, ccxt.Exchange] = {}  # 改为用account_id作为key
+        self.active_orders: Dict[str, List[dict]] = {}
+        self.positions: Dict[str, dict] = {}
         self.running = True
+        self.account_cache: Dict[int, dict] = {}  # 账户信息缓存
 
     def get_db_connection(self):
         """获取数据库连接"""
         return pymysql.connect(**self.config.db_config)
     
-    def get_exchange(self, account_info: dict) -> ccxt.Exchange:
-        """获取交易所实例"""
-        exchange_name = account_info['exchange'].lower()
-        if exchange_name not in self.exchanges:
-            exchange_class = getattr(ccxt, exchange_name)
-            self.exchanges[exchange_name] = exchange_class({
+    async def get_account_info(self, account_id: int) -> Optional[dict]:
+        """从数据库获取账户信息（带缓存）"""
+        if account_id in self.account_cache:
+            return self.account_cache[account_id]
+        
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, exchange, api_key, api_secret, passphrase 
+                    FROM accounts WHERE id=%s AND status='active'
+                """, (account_id,))
+                account = cursor.fetchone()
+                if account:
+                    self.account_cache[account_id] = account
+                return account
+        except Exception as e:
+            print(f"获取账户信息失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+    
+    def get_exchange(self, account_id: int) -> Optional[ccxt.Exchange]:
+        """获取交易所实例（通过account_id）"""
+        if account_id in self.exchanges:
+            return self.exchanges[account_id]
+        
+        account_info = self.account_cache.get(account_id)
+        if not account_info:
+            return None
+        
+        try:
+            exchange_class = getattr(ccxt, account_info['exchange'].lower())
+            self.exchanges[account_id] = exchange_class({
                 "apiKey": account_info['api_key'],
                 "secret": account_info['api_secret'],
                 "password": account_info.get('passphrase'),
                 "options": {"defaultType": "swap"},
                 "enableRateLimit": True
             })
-        return self.exchanges[exchange_name]
+            return self.exchanges[account_id]
+        except Exception as e:
+            print(f"创建交易所实例失败: {e}")
+            return None
     
     async def get_market_price(self, exchange: ccxt.Exchange, symbol: str) -> Decimal:
         """获取当前市场价格"""
-        ticker = await exchange.fetch_ticker(symbol)
-        return Decimal(str(ticker["last"]))
+        try:
+            ticker = await exchange.fetch_ticker(symbol)
+            return Decimal(str(ticker["last"]))
+        except Exception as e:
+            print(f"获取市场价格失败: {e}")
+            raise
     
-    async def calculate_position_size(self, exchange: ccxt.Exchange, symbol: str) -> Decimal:
+    async def calculate_position_size(self, account_id: int, symbol: str) -> Decimal:
         """计算仓位大小"""
-        balance = await exchange.fetch_balance()
-        total_equity = Decimal(str(balance['total']['USDT']))  # 假设使用USDT作为基准
+        exchange = self.get_exchange(account_id)
+        if not exchange:
+            return Decimal('0')
         
-        # 计算合约张数 (根据交易所规格调整)
-        price = await self.get_market_price(exchange, symbol)
-        position_size = (total_equity * self.config.position_percent) / price
-        
-        # 不超过最大仓位
-        return min(position_size, self.config.max_position)
+        try:
+            balance = await exchange.fetch_balance()
+            total_equity = Decimal(str(balance['total']['USDT']))
+            price = await self.get_market_price(exchange, symbol)
+            position_size = (total_equity * self.config.position_percent) / (price * Decimal('0.01'))
+            return min(position_size, self.config.max_position)
+        except Exception as e:
+            print(f"计算仓位失败: {e}")
+            return Decimal('0')
     
     async def record_order(self, account_id: int, order_info: dict):
         """记录订单到数据库"""
@@ -86,19 +128,16 @@ class OKXTradingBot:
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO orders 
-                    (account_id, symbol, order_id, side, pos_side, price, size, ord_type, status, timestamp)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (account_id, symbol, order_id, side, price, quantity, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (
                     account_id,
                     order_info['symbol'],
                     order_info['id'],
                     order_info['side'],
-                    order_info.get('posSide'),
                     order_info.get('price'),
                     order_info['amount'],
-                    order_info['type'],
-                    order_info['status'],
-                    order_info['timestamp'] if 'timestamp' in order_info else int(time.time())
+                    order_info['status']
                 ))
             conn.commit()
         except Exception as e:
@@ -107,24 +146,101 @@ class OKXTradingBot:
             if conn:
                 conn.close()
     
-    async def cleanup_opposite_positions(self, exchange: ccxt.Exchange, symbol: str, direction: str):
+    async def save_position(self, account_id: int, symbol: str, position_data: dict):
+        """保存持仓到数据库"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO positions 
+                    (account_id, symbol, position_size, entry_price)
+                    VALUES (%s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                    position_size = VALUES(position_size),
+                    entry_price = VALUES(entry_price)
+                """, (
+                    account_id,
+                    symbol,
+                    float(position_data['size']),
+                    float(position_data['entry_price'])
+                ))
+            conn.commit()
+        except Exception as e:
+            print(f"保存持仓失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    async def remove_position(self, account_id: int, symbol: str):
+        """从数据库删除持仓"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM positions WHERE account_id=%s AND symbol=%s",
+                    (account_id, symbol)
+                )
+            conn.commit()
+        except Exception as e:
+            print(f"删除持仓失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    async def sync_positions_from_db(self):
+        """从数据库同步持仓状态"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT p.*, a.exchange 
+                    FROM positions p
+                    JOIN accounts a ON p.account_id = a.id
+                    WHERE a.status='active'
+                """)
+                positions = cursor.fetchall()
+                
+                for pos in positions:
+                    symbol = pos['symbol']
+                    account_id = pos['account_id']
+                    self.positions[symbol] = {
+                        'account_id': account_id,
+                        'exchange': pos['exchange'],
+                        'direction': 'long' if Decimal(str(pos['position_size'])) > 0 else 'short',
+                        'entry_price': Decimal(str(pos['entry_price'])),
+                        'size': abs(Decimal(str(pos['position_size']))),
+                        'last_check_price': Decimal(str(pos['entry_price'])),
+                        'sold_size': Decimal('0'),
+                        'bought_size': Decimal('0')
+                    }
+        except Exception as e:
+            print(f"同步持仓失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    async def cleanup_opposite_positions(self, account_id: int, symbol: str, direction: str):
         """清理相反方向仓位和挂单"""
+        exchange = self.get_exchange(account_id)
+        if not exchange:
+            return
+        
         pos_side = 'long' if direction == 'buy' else 'short'
         
-        # 1. 取消所有挂单
         try:
+            # 取消所有挂单
             open_orders = await exchange.fetch_open_orders(symbol)
             for order in open_orders:
                 try:
                     await exchange.cancel_order(order['id'], symbol)
-                    await asyncio.sleep(0.1)  # 限流
+                    await asyncio.sleep(0.1)
                 except Exception as e:
                     print(f"取消订单失败: {e}")
-        except Exception as e:
-            print(f"获取挂单失败: {e}")
-        
-        # 2. 平掉相反方向仓位
-        try:
+            
+            # 平掉相反方向仓位
             positions = await exchange.fetch_positions([symbol])
             for pos in positions:
                 if pos['posSide'] != pos_side and Decimal(str(pos['contracts'])) > 0:
@@ -139,12 +255,16 @@ class OKXTradingBot:
                             'reduceOnly': True
                         }
                     )
-                    await asyncio.sleep(0.2)  # 限流
+                    await asyncio.sleep(0.2)
         except Exception as e:
-            print(f"平仓失败: {e}")
+            print(f"清理仓位失败: {e}")
     
-    async def open_position(self, exchange: ccxt.Exchange, symbol: str, direction: str, amount: Decimal):
+    async def open_position(self, account_id: int, symbol: str, direction: str, amount: Decimal):
         """开仓下单"""
+        exchange = self.get_exchange(account_id)
+        if not exchange:
+            return None
+        
         params = {
             'posSide': 'long' if direction == 'buy' else 'short',
             'tdMode': 'cross'
@@ -163,8 +283,14 @@ class OKXTradingBot:
             print(f"开仓失败: {e}")
             raise
     
-    async def close_position(self, exchange: ccxt.Exchange, symbol: str, pos_side: str, amount: Decimal):
+    async def close_position(self, account_id: int, symbol: str, pos_side: str, 
+                           amount: Decimal, order_type: str = 'market',
+                           trigger_price: Decimal = None):
         """平仓下单"""
+        exchange = self.get_exchange(account_id)
+        if not exchange:
+            return None
+        
         params = {
             'posSide': pos_side,
             'tdMode': 'cross',
@@ -173,21 +299,49 @@ class OKXTradingBot:
         
         try:
             side = 'sell' if pos_side == 'long' else 'buy'
-            order = await exchange.create_order(
-                symbol=symbol,
-                type='market',
-                side=side,
-                amount=float(amount),
-                params=params
-            )
+            
+            if order_type == 'market':
+                order = await exchange.create_order(
+                    symbol=symbol,
+                    type='market',
+                    side=side,
+                    amount=float(amount),
+                    params=params
+                )
+            elif order_type == 'limit':
+                order = await exchange.create_order(
+                    symbol=symbol,
+                    type='limit',
+                    side=side,
+                    amount=float(amount),
+                    price=float(trigger_price),
+                    params=params
+                )
+            elif order_type == 'stop':
+                order = await exchange.create_order(
+                    symbol=symbol,
+                    type='market',
+                    side=side,
+                    amount=float(amount),
+                    params={
+                        **params,
+                        'stopLoss': {
+                            'triggerPrice': float(trigger_price),
+                            'slOrdPx': '-1'
+                        }
+                    }
+                )
+            
             return order
         except Exception as e:
             print(f"平仓失败: {e}")
             raise
     
-    async def create_grid_order(self, exchange: ccxt.Exchange, symbol: str, side: str, size: Decimal, price: Decimal):
-        """创建单个网格订单"""
-        if size <= Decimal('0'):
+    async def create_grid_order(self, account_id: int, symbol: str, 
+                              side: str, size: Decimal, price: Decimal):
+        """创建网格订单"""
+        exchange = self.get_exchange(account_id)
+        if not exchange or size <= Decimal('0'):
             return None
         
         pos_side = 'long' if side == 'buy' else 'short'
@@ -206,7 +360,6 @@ class OKXTradingBot:
                 params=params
             )
             
-            # 记录活跃订单
             if symbol not in self.active_orders:
                 self.active_orders[symbol] = []
             self.active_orders[symbol].append(order)
@@ -219,97 +372,83 @@ class OKXTradingBot:
     async def process_signal(self, signal: dict):
         """处理交易信号"""
         account_id = signal['account_id']
-        
-        # 获取账户信息
-        conn = self.get_db_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM accounts WHERE id=%s", (account_id,))
-                account = cursor.fetchone()
-        finally:
-            conn.close()
-        
+        account = await self.get_account_info(account_id)
         if not account:
-            print(f"账户 {account_id} 不存在")
             return
         
-        exchange = self.get_exchange(account)
         symbol = signal['symbol']
-        direction = signal['direction']  # 'buy' or 'sell'
+        direction = signal['direction']
         
-        print(f"处理信号: {direction} {symbol}")
+        print(f"处理信号: 账户{account_id} {direction} {symbol}")
 
-        # 1. 清空相反方向仓位和挂单
-        await self.cleanup_opposite_positions(exchange, symbol, direction)
+        # 1. 清理相反仓位
+        await self.cleanup_opposite_positions(account_id, symbol, direction)
         
-        # 2. 计算仓位大小
-        position_size = await self.calculate_position_size(exchange, symbol)
+        # 2. 计算仓位
+        position_size = await self.calculate_position_size(account_id, symbol)
         if position_size <= Decimal('0'):
-            print("仓位计算为0，跳过执行")
             return
         
-        # 3. 执行开仓
+        # 3. 开仓
+        exchange = self.get_exchange(account_id)
         market_price = await self.get_market_price(exchange, symbol)
-        order = await self.open_position(
-            exchange, symbol, direction, position_size
-        )
+        order = await self.open_position(account_id, symbol, direction, position_size)
         
-        # 4. 记录订单
+        # 4. 记录订单和持仓
         await self.record_order(account_id, order)
         
-        # 更新本地状态
-        self.positions[symbol] = {
+        position_data = {
             'account_id': account_id,
+            'exchange': account['exchange'],
             'direction': direction,
             'entry_price': market_price,
             'size': position_size,
             'last_check_price': market_price,
-            'sold_size': Decimal('0'),  # 已卖出量(做多时)
-            'bought_size': Decimal('0')  # 已买入量(做空时)
+            'sold_size': Decimal('0'),
+            'bought_size': Decimal('0')
         }
+        await self.save_position(account_id, symbol, position_data)
+        self.positions[symbol] = position_data
     
     async def check_stop_conditions(self, symbol: str):
-        """检查止损止盈条件"""
+        """检查止损止盈"""
         position = self.positions.get(symbol)
         if not position:
             return
         
         account_id = position['account_id']
-        conn = self.get_db_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM accounts WHERE id=%s", (account_id,))
-                account = cursor.fetchone()
-        finally:
-            conn.close()
-        
-        if not account:
+        exchange = self.get_exchange(account_id)
+        if not exchange:
             return
         
-        exchange = self.get_exchange(account)
         current_price = await self.get_market_price(exchange, symbol)
         entry_price = position['entry_price']
         direction = position['direction']
         
-        # 计算涨跌幅
-        if direction == 'buy':
-            profit_ratio = (current_price - entry_price) / entry_price
-            stop_condition = profit_ratio <= -self.config.stop_profit_loss
-            take_profit = profit_ratio >= self.config.stop_profit_loss
+        if direction == 'long':
+            price_diff = current_price - entry_price
+            stop_condition = price_diff <= -entry_price * self.config.stop_profit_loss
+            take_profit = price_diff >= entry_price * self.config.stop_profit_loss
         else:
-            profit_ratio = (entry_price - current_price) / entry_price
-            stop_condition = profit_ratio <= -self.config.stop_profit_loss
-            take_profit = profit_ratio >= self.config.stop_profit_loss
+            price_diff = entry_price - current_price
+            stop_condition = price_diff <= -entry_price * self.config.stop_profit_loss
+            take_profit = price_diff >= entry_price * self.config.stop_profit_loss
         
-        # 触发止损/止盈
         if stop_condition or take_profit:
-            print(f"触发{'止盈' if take_profit else '止损'}条件: {symbol}")
+            print(f"触发{'止盈' if take_profit else '止损'}: {symbol}")
             await self.close_position(
-                exchange, symbol, 
-                'long' if direction == 'buy' else 'short',
-                position['size']
+                account_id=account_id,
+                symbol=symbol,
+                pos_side='long' if direction == 'buy' else 'short',
+                amount=position['size'],
+                order_type='stop' if stop_condition else 'limit',
+                trigger_price=entry_price * (
+                    1 - self.config.stop_profit_loss if direction == 'buy' 
+                    else 1 + self.config.stop_profit_loss
+                )
             )
-            del self.positions[symbol]  # 移除持仓记录
+            await self.remove_position(account_id, symbol)
+            del self.positions[symbol]
     
     async def manage_grid_orders(self, symbol: str):
         """管理网格订单"""
@@ -318,143 +457,131 @@ class OKXTradingBot:
             return
         
         account_id = position['account_id']
-        conn = self.get_db_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM accounts WHERE id=%s", (account_id,))
-                account = cursor.fetchone()
-        finally:
-            conn.close()
-        
-        if not account:
+        exchange = self.get_exchange(account_id)
+        if not exchange:
             return
         
-        exchange = self.get_exchange(account)
         current_price = await self.get_market_price(exchange, symbol)
         last_price = position['last_check_price']
         price_change = (current_price - last_price) / last_price
         
-        # 检查是否达到网格阈值
         if abs(price_change) >= self.config.grid_step:
             direction = position['direction']
             size = position['size']
             
-            # 做多方向处理
-            if direction == 'buy':
-                if price_change > 0:  # 价格上涨
+            if direction == 'long':
+                if price_change > 0:  # 上涨卖出
                     sell_size = size * self.config.grid_sell_percent
                     if sell_size > Decimal('0'):
                         order = await self.create_grid_order(
-                            exchange, symbol, 'sell', sell_size, current_price
+                            account_id, symbol, 'sell', sell_size, current_price
                         )
                         if order:
                             position['size'] -= sell_size
                             position['sold_size'] += sell_size
-                else:  # 价格下跌
+                else:  # 下跌买入
                     if position['sold_size'] > Decimal('0'):
                         buy_size = position['sold_size'] * self.config.grid_buy_percent
                         if buy_size > Decimal('0'):
                             order = await self.create_grid_order(
-                                exchange, symbol, 'buy', buy_size, current_price
+                                account_id, symbol, 'buy', buy_size, current_price
                             )
                             if order:
                                 position['sold_size'] -= buy_size
                                 position['size'] += buy_size
-            
-            # 做空方向处理（逻辑相反）
-            else:  
-                if price_change < 0:  # 价格下跌
+            else:  # 做空
+                if price_change < 0:  # 下跌买入
                     buy_size = size * self.config.grid_sell_percent
                     if buy_size > Decimal('0'):
                         order = await self.create_grid_order(
-                            exchange, symbol, 'buy', buy_size, current_price
+                            account_id, symbol, 'buy', buy_size, current_price
                         )
                         if order:
                             position['size'] -= buy_size
                             position['bought_size'] += buy_size
-                else:  # 价格上涨
+                else:  # 上涨卖出
                     if position['bought_size'] > Decimal('0'):
                         sell_size = position['bought_size'] * self.config.grid_buy_percent
                         if sell_size > Decimal('0'):
                             order = await self.create_grid_order(
-                                exchange, symbol, 'sell', sell_size, current_price
+                                account_id, symbol, 'sell', sell_size, current_price
                             )
                             if order:
                                 position['bought_size'] -= sell_size
                                 position['size'] += sell_size
             
-            # 更新最后检查价格
             position['last_check_price'] = current_price
+            await self.save_position(account_id, symbol, position)
     
     async def signal_processing_task(self):
-        """任务1：处理交易信号"""
+        """信号处理任务"""
         while self.running:
             try:
                 conn = self.get_db_connection()
                 with conn.cursor() as cursor:
                     cursor.execute(
-                        "SELECT * FROM signals WHERE status='pending' AND processed=0 ORDER BY timestamp ASC LIMIT 1"
+                        "SELECT * FROM signals WHERE status='pending' LIMIT 1"
                     )
                     signal = cursor.fetchone()
                 
                 if signal:
                     await self.process_signal(signal)
-                    
-                    # 标记信号已处理
                     with conn.cursor() as cursor:
                         cursor.execute(
-                            "UPDATE signals SET processed=1 WHERE id=%s",
+                            "UPDATE signals SET status='processed' WHERE id=%s",
                             (signal['id'],)
                         )
-                        conn.commit()
+                    conn.commit()
                 
-                await asyncio.sleep(1)  # 每秒检查一次
-                
+                await asyncio.sleep(1)
             except Exception as e:
-                print(f"信号处理任务异常: {e}")
+                print(f"信号处理异常: {e}")
                 await asyncio.sleep(5)
             finally:
                 if 'conn' in locals():
                     conn.close()
     
     async def price_monitoring_task(self):
-        """任务2：监控价格变化"""
+        """价格监控任务"""
         while self.running:
             try:
-                # 获取所有需要监控的持仓
                 symbols = list(self.positions.keys())
-                if not symbols:
-                    await asyncio.sleep(self.config.check_interval)
-                    continue
-                
-                # 批量处理每个持仓
                 for symbol in symbols:
-                    # 1. 检查止损止盈
                     await self.check_stop_conditions(symbol)
-                    
-                    # 2. 管理网格订单
                     await self.manage_grid_orders(symbol)
-                
                 await asyncio.sleep(self.config.check_interval)
-                
             except Exception as e:
-                print(f"价格监控任务异常: {e}")
+                print(f"价格监控异常: {e}")
                 await asyncio.sleep(5)
     
-    async def run(self):
-        """运行交易机器人"""
-        # 初始化交易所连接
-        conn = self.get_db_connection()
+    async def initialize_accounts(self):
+        """初始化所有活跃账户"""
+        conn = None
         try:
+            conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM accounts WHERE status='active'")
+                cursor.execute("SELECT id FROM accounts WHERE status='active'")
                 accounts = cursor.fetchall()
                 for account in accounts:
-                    self.get_exchange(account)  # 初始化所有活跃账户
+                    account_id = account['id']
+                    await self.get_account_info(account_id)  # 加载到缓存
+                    self.get_exchange(account_id)  # 初始化交易所实例
+        except Exception as e:
+            print(f"初始化账户失败: {e}")
         finally:
-            conn.close()
+            if conn:
+                conn.close()
+    
+    async def run(self):
+        """运行主程序"""
+        # 初始化账户和交易所
+        await self.initialize_accounts()
         
-        # 启动双任务
+        # 同步持仓
+        await self.sync_positions_from_db()
+        print(f"初始化完成，恢复{len(self.positions)}个持仓")
+        
+        # 启动任务
         await asyncio.gather(
             self.signal_processing_task(),
             self.price_monitoring_task()
@@ -468,4 +595,4 @@ if __name__ == "__main__":
         asyncio.run(bot.run())
     except KeyboardInterrupt:
         bot.running = False
-        print("程序已安全停止")
+        print("程序安全退出")
