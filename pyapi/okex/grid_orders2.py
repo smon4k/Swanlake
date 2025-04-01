@@ -4,6 +4,7 @@ import pymysql
 import ccxt
 from decimal import Decimal, getcontext
 from typing import Dict, List, Optional, Tuple
+from decimal import Decimal, ROUND_DOWN
 
 # 设置Decimal精度
 getcontext().prec = 8
@@ -50,8 +51,8 @@ class OKXTradingBot:
     
     async def get_account_info(self, account_id: int) -> Optional[dict]:
         """从数据库获取账户信息（带缓存）"""
-        if account_id in self.account_cache:
-            return self.account_cache[account_id]
+        # if account_id in self.account_cache:
+        #     return self.account_cache[account_id]
         
         conn = None
         try:
@@ -91,6 +92,7 @@ class OKXTradingBot:
                 "options": {"defaultType": "swap"},
                 # "enableRateLimit": True
             })
+            self.exchanges[account_id].set_sandbox_mode(True)  # 开启模拟交易
             return self.exchanges[account_id]
         except Exception as e:
             print(f"创建交易所实例失败: {e}")
@@ -105,6 +107,20 @@ class OKXTradingBot:
             print(f"获取市场价格失败: {e}")
             raise
     
+    async def get_market_precision(self, exchange: ccxt.Exchange, symbol: str, instType: str = 'SWAP') -> Tuple[Decimal, Decimal]:
+        """获取市场的价格和数量精度"""
+        try:
+            markets = exchange.fetch_markets_by_type(instType, {'instId': f"{symbol}"})
+            price_precision = Decimal(str(markets[0]['precision']['price']))
+            amount_precision = Decimal(str(markets[0]['precision']['amount']))
+            return {
+                'price': price_precision,
+                'amount': amount_precision,
+            }
+        except Exception as e:
+            print(f"获取市场精度失败: {e}")
+            return Decimal('0.0001'), Decimal('0.0001')  # 设置默认精度值
+    
     async def calculate_position_size(self, account_id: int, symbol: str) -> Decimal:
         """计算仓位大小"""
         exchange = self.get_exchange(account_id)
@@ -113,18 +129,22 @@ class OKXTradingBot:
             return Decimal('0')
         
         try:
-            trading_pair = symbol.replace("/", ",")
+            trading_pair = symbol.replace("-", ",")
             balance = exchange.fetch_balance({"ccy": trading_pair})
             # balance = await exchange.fetch_balance()
-            total_equity = Decimal(str(balance["info"]['data'][0]['totalEq']))
+            total_equity = Decimal(str(balance["USDT"]['total']))
+            # print("balance", total_equity)
             price = await self.get_market_price(exchange, symbol)
-            position_size = (total_equity * self.config.position_percent) / (price * Decimal('0.01'))
+            market_precision = await self.get_market_precision(exchange, symbol, 'SWAP')
+            print("market_precision", market_precision)
+            position_size = (total_equity * self.config.position_percent) / (price * Decimal(market_precision['amount']))
+            position_size = position_size.quantize(Decimal(market_precision['price']), rounding='ROUND_DOWN')
             return min(position_size, self.config.max_position)
         except Exception as e:
             print(f"计算仓位失败: {e}")
             return Decimal('0')
     
-    async def record_order(self, account_id: int, order_info: dict):
+    async def record_order(self, account_id: int, order_info: dict, price: Decimal, quantity: Decimal):
         """记录订单到数据库"""
         conn = None
         try:
@@ -139,8 +159,8 @@ class OKXTradingBot:
                     order_info['symbol'],
                     order_info['id'],
                     order_info['side'],
-                    order_info.get('price'),
-                    order_info['amount'],
+                    price,
+                    quantity,
                     order_info['status']
                 ))
             conn.commit()
@@ -235,7 +255,8 @@ class OKXTradingBot:
         
         try:
             # 取消所有挂单
-            open_orders = await exchange.fetch_open_orders(symbol)
+            open_orders = exchange.fetch_open_orders(symbol, None, None, {'instType': 'SWAP'})
+            # print("open_orders", open_orders)
             for order in open_orders:
                 try:
                     await exchange.cancel_order(order['id'], symbol)
@@ -244,17 +265,18 @@ class OKXTradingBot:
                     print(f"取消订单失败: {e}")
             
             # 平掉相反方向仓位
-            positions = await exchange.fetch_positions([symbol])
+            positions = exchange.fetch_positions([symbol], {'instType': 'SWAP'})
+            # print("positions", positions)
             for pos in positions:
-                if pos['posSide'] != pos_side and Decimal(str(pos['contracts'])) > 0:
-                    close_side = 'sell' if pos['posSide'] == 'long' else 'buy'
-                    await exchange.create_order(
+                if pos['side'] != pos_side and Decimal(str(pos['contracts'])) > 0:
+                    close_side = 'sell' if pos['side'] == 'long' else 'buy'
+                    exchange.create_order(
                         symbol=symbol,
                         type='market',
                         side=close_side,
                         amount=float(Decimal(str(pos['contracts']))),
                         params={
-                            'posSide': pos['posSide'],
+                            'posSide': pos['side'],
                             'reduceOnly': True
                         }
                     )
@@ -262,26 +284,31 @@ class OKXTradingBot:
         except Exception as e:
             print(f"清理仓位失败: {e}")
     
-    async def open_position(self, account_id: int, symbol: str, direction: str, amount: Decimal, price: Decimal):
+    async def open_position(self, account_id: int, symbol: str, direction: str, amount: float, price: float):
         """开仓下单"""
         exchange = self.get_exchange(account_id)
         if not exchange:
             return None
         
         params = {
-            'posSide': 'buy' if direction == 'long' else 'sell',
+            'posSide': direction,
             'tdMode': 'cross'
         }
         try:
-            print("create_order", symbol, direction, amount)
+            # print("create_order", symbol, direction, price, amount)
             order = exchange.create_order(
                 symbol=symbol,
                 type='limit',
                 side='buy' if direction == 'long' else 'sell',
                 amount=float(amount),
-                price=price
+                price=price,
+                params=params
             )
-            return order
+            if order['info']['sCode'] == 0:
+                return order
+            else:
+                print(f"开仓失败: {order['info']}")
+                return None
         except Exception as e:
             print(f"开仓失败: {e}")
             raise
@@ -387,6 +414,8 @@ class OKXTradingBot:
         # 1. 清理相反仓位
         await self.cleanup_opposite_positions(account_id, symbol, direction)
         
+        # return
+    
         # 2. 计算仓位
         position_size = await self.calculate_position_size(account_id, symbol)
         # print("position_size", position_size)
@@ -397,9 +426,11 @@ class OKXTradingBot:
         exchange = self.get_exchange(account_id)
         market_price = await self.get_market_price(exchange, symbol)
         order = await self.open_position(account_id, symbol, direction, position_size, market_price)
-        
+        # print(order)
+        if not order:
+            return
         # 4. 记录订单和持仓
-        await self.record_order(account_id, order)
+        await self.record_order(account_id, order, market_price, position_size)
         
         position_data = {
             'account_id': account_id,
@@ -530,11 +561,11 @@ class OKXTradingBot:
                 # print(signal)
                 if signal:
                     await self.process_signal(signal)
-                    # with conn.cursor() as cursor:
-                    #     cursor.execute(
-                    #         "UPDATE signals SET status='processed' WHERE id=%s",
-                    #         (signal['id'],)
-                    #     )
+                    with conn.cursor() as cursor:
+                        cursor.execute(
+                            "UPDATE signals SET status='processed' WHERE id=%s",
+                            (signal['id'],)
+                        )
                     conn.commit()
                 
                 await asyncio.sleep(1)
@@ -549,6 +580,7 @@ class OKXTradingBot:
         """价格监控任务"""
         while self.running:
             try:
+                # print(self.positions)
                 symbols = list(self.positions.keys())
                 for symbol in symbols:
                     await self.check_stop_conditions(symbol)
@@ -586,7 +618,7 @@ class OKXTradingBot:
         print(f"初始化完成，恢复{len(self.positions)}个持仓")
         
         # 启动任务
-        await self.signal_processing_task()
+        await self.price_monitoring_task()
         # await asyncio.gather(
         #     self.signal_processing_task(),
         #     self.price_monitoring_task()
