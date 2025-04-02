@@ -13,7 +13,7 @@ class TradingBotConfig:
     """交易机器人配置类"""
     def __init__(self):
         # 仓位配置
-        self.position_percent = Decimal('0.8')  # 开仓比例(80%)
+        self.position_percent = Decimal('0.1')  # 开仓比例(80%)
         self.max_position = Decimal('100')      # 最大仓位张数
         
         # 止损止盈配置
@@ -136,7 +136,7 @@ class OKXTradingBot:
             # print("balance", total_equity)
             price = await self.get_market_price(exchange, symbol)
             market_precision = await self.get_market_precision(exchange, symbol, 'SWAP')
-            print("market_precision", market_precision)
+            # print("market_precision", market_precision)
             position_size = (total_equity * self.config.position_percent) / (price * Decimal(market_precision['amount']))
             position_size = position_size.quantize(Decimal(market_precision['price']), rounding='ROUND_DOWN')
             return min(position_size, self.config.max_position)
@@ -144,28 +144,78 @@ class OKXTradingBot:
             print(f"计算仓位失败: {e}")
             return Decimal('0')
     
-    async def record_order(self, account_id: int, order_info: dict, price: Decimal, quantity: Decimal):
+    async def record_order(self, exchange: ccxt.Exchange, account_id: int, order_id: str, price: Decimal, quantity: Decimal, symbol: str):
         """记录订单到数据库"""
+        conn = None
+        try:
+            order_info = exchange.fetch_order(order_id, symbol, {'instType': 'SWAP'})
+            # print("order_info", order_info)
+            if not order_info:
+                print(f"无法获取订单信息，订单ID: {order_id}")
+                return
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO orders 
+                    (account_id, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                    executed_price = VALUES(executed_price),
+                    status = VALUES(status)
+                """, (
+                    account_id,
+                    symbol,
+                    order_info['id'],
+                    order_info['side'],
+                    order_info['info']['ordType'],
+                    order_info['info']['posSide'],
+                    quantity,
+                    price,
+                    order_info['price'],
+                    order_info['info']['state']
+                ))
+            conn.commit()
+        except Exception as e:
+            print(f"订单记录失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    async def get_order_by_id(self, account_id: int, order_id: str) -> Optional[dict]:
+        """从数据库获取指定订单信息"""
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO orders 
-                    (account_id, symbol, order_id, side, price, quantity, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    account_id,
-                    order_info['symbol'],
-                    order_info['id'],
-                    order_info['side'],
-                    price,
-                    quantity,
-                    order_info['status']
-                ))
+                    SELECT * FROM orders WHERE account_id=%s AND order_id=%s
+                """, (account_id, order_id))
+                order = cursor.fetchone()
+                return order
+        except Exception as e:
+            print(f"获取指定订单信息失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+                
+    async def update_order_by_id(self, account_id: int, order_id: str, updates: dict):
+        """根据订单ID更新订单信息"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
+                values = list(updates.values()) + [account_id, order_id]
+                query = f"""
+                    UPDATE orders
+                    SET {set_clause}
+                    WHERE account_id=%s AND order_id=%s
+                """
+                cursor.execute(query, values)
             conn.commit()
         except Exception as e:
-            print(f"订单记录失败: {e}")
+            print(f"更新订单信息失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -178,20 +228,64 @@ class OKXTradingBot:
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO positions 
-                    (account_id, symbol, position_size, entry_price)
-                    VALUES (%s, %s, %s, %s)
+                    (account_id, pos_id, symbol, position_size, entry_price, position_status, open_time)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                     position_size = VALUES(position_size),
-                    entry_price = VALUES(entry_price)
+                    entry_price = VALUES(entry_price),
+                    position_status = VALUES(position_status),
+                    open_time = VALUES(open_time)
                 """, (
                     account_id,
+                    position_data.get('pos_id', None),
                     symbol,
-                    float(position_data['size']),
-                    float(position_data['entry_price'])
+                    float(position_data['position_size']),
+                    float(position_data['entry_price']),
+                    'open',
+                    position_data.get('open_time', time.strftime('%Y-%m-%d %H:%M:%S'))
                 ))
             conn.commit()
         except Exception as e:
             print(f"保存持仓失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    async def get_position_by_id(self, account_id: int, position_id: int) -> Optional[dict]:
+        """根据持仓ID和账户ID获取持仓信息"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT * FROM positions WHERE account_id=%s AND pos_id=%s
+                """, (account_id, position_id))
+                position = cursor.fetchone()
+                return position
+        except Exception as e:
+            print(f"获取持仓信息失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+    
+    async def update_position_by_id(self, account_id: int, position_id: int, updates: dict):
+        """根据持仓ID更新持仓信息"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
+                values = list(updates.values()) + [account_id, position_id]
+                query = f"""
+                    UPDATE positions
+                    SET {set_clause}
+                    WHERE account_id=%s AND pos_id=%s
+                """
+                cursor.execute(query, values)
+                conn.commit()
+        except Exception as e:
+            print(f"更新持仓信息失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -255,20 +349,30 @@ class OKXTradingBot:
         
         try:
             # 取消所有挂单
-            open_orders = exchange.fetch_open_orders(symbol, None, None, {'instType': 'SWAP'})
+            open_orders = exchange.fetch_open_orders(symbol, None, None, {'instType': 'SWAP'}) # 获取未成交的订单
             # print("open_orders", open_orders)
             for order in open_orders:
                 try:
-                    await exchange.cancel_order(order['id'], symbol)
+                    cancel_order =  exchange.cancel_order(order['id'], symbol) # 进行撤单
+                    if cancel_order['info']['sCode'] == 0:
+                        # print(f"取消订单成功: {cancel_order}")
+                        # 检查订单是否存在
+                        existing_order = await self.get_order_by_id(account_id, order['id'])
+                        if existing_order:
+                            # 更新订单信息
+                            await self.update_order_by_id(account_id, order['id'], {
+                                'status': 'canceled'
+                            })
                     await asyncio.sleep(0.1)
                 except Exception as e:
                     print(f"取消订单失败: {e}")
             
-            # 平掉相反方向仓位
-            positions = exchange.fetch_positions([symbol], {'instType': 'SWAP'})
-            # print("positions", positions)
+            # 平掉相反方向仓位 long 做多 short 做空
+            positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+            # print("positions", positions, direction)
             for pos in positions:
-                if pos['side'] != pos_side and Decimal(str(pos['contracts'])) > 0:
+                if pos['side'] != direction and Decimal(str(pos['contracts'])) > 0:
+                    # print("orderId:", pos['id'])
                     close_side = 'sell' if pos['side'] == 'long' else 'buy'
                     exchange.create_order(
                         symbol=symbol,
@@ -277,9 +381,22 @@ class OKXTradingBot:
                         amount=float(Decimal(str(pos['contracts']))),
                         params={
                             'posSide': pos['side'],
-                            'reduceOnly': True
+                            'tdMode': 'cross'
                         }
                     )
+                    # 检查是否存在持仓信息
+                    # existing_position = await self.get_position_by_id(account_id, pos['id'])
+                    # if existing_position:
+                    #     # 更新持仓信息
+                    #     positions = exchange.fetch_positions({'instType': 'SWAP', 'posId': pos['id']})
+                    #     for position in positions:
+                    #         if position['symbol'] == symbol:
+                    #             await self.update_position_by_id(account_id, pos['id'], {
+                    #                 'position_size': float(position['contracts']),
+                    #                 'entry_price': float(position['last']),
+                    #                 'position_status': 'closed' if Decimal(str(position['contracts'])) == 0 else 'open',
+                    #                 'close_type': 2
+                    #             })
                     await asyncio.sleep(0.2)
         except Exception as e:
             print(f"清理仓位失败: {e}")
@@ -304,10 +421,11 @@ class OKXTradingBot:
                 price=price,
                 params=params
             )
-            if order['info']['sCode'] == 0:
+            # print("order", order)
+            if order['info'].get('sCode') == '0':
                 return order
             else:
-                print(f"开仓失败: {order['info']}")
+                print(f"开仓失败: {order['info'].get('sMsg', '未知错误')}")
                 return None
         except Exception as e:
             print(f"开仓失败: {e}")
@@ -412,7 +530,7 @@ class OKXTradingBot:
         print(f"处理信号: 账户{account_id} {direction} {symbol}")
 
         # 1. 清理相反仓位
-        await self.cleanup_opposite_positions(account_id, symbol, direction)
+        # await self.cleanup_opposite_positions(account_id, symbol, direction)
         
         # return
     
@@ -425,25 +543,31 @@ class OKXTradingBot:
         # 3. 开仓
         exchange = self.get_exchange(account_id)
         market_price = await self.get_market_price(exchange, symbol)
-        order = await self.open_position(account_id, symbol, direction, position_size, market_price)
-        # print(order)
-        if not order:
-            return
-        # 4. 记录订单和持仓
-        await self.record_order(account_id, order, market_price, position_size)
-        
-        position_data = {
-            'account_id': account_id,
-            'exchange': account['exchange'],
-            'direction': direction,
-            'entry_price': market_price,
-            'size': position_size,
-            'last_check_price': market_price,
-            'sold_size': Decimal('0'),
-            'bought_size': Decimal('0')
-        }
-        await self.save_position(account_id, symbol, position_data)
-        self.positions[symbol] = position_data
+        # order = await self.open_position(account_id, symbol, direction, position_size, market_price)
+        # # print(order)
+        # if not order:
+        #     return
+        # # 4. 记录订单和持仓
+        # await self.record_order(exchange, account_id, order['id'], market_price, position_size, symbol)
+
+        # 5. 记录持仓信息
+        # positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+        # print("positions", positions)
+        # for pos in positions:
+        #     position = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP', 'posId': pos['id']})
+        #     print("position", position)
+            # if pos['side'] == direction and Decimal(pos['contracts']) > 0:
+            #     position_data = {
+            #         'account_id': account_id,
+            #         'pos_id': pos['id'],
+            #         'symbol': symbol,
+            #         'position_size': Decimal(pos['contracts']) * Decimal(pos['contractSize']),
+            #         'entry_price': float(market_price),
+            #         'position_status': 'open',
+            #         'open_time': time.strftime('%Y-%m-%d %H:%M:%S')
+            #     }
+            #     await self.save_position(account_id, symbol, position_data)
+            #     self.positions[symbol] = position_data
     
     async def check_stop_conditions(self, symbol: str):
         """检查止损止盈"""
@@ -550,31 +674,31 @@ class OKXTradingBot:
     
     async def signal_processing_task(self):
         """信号处理任务"""
-        while self.running:
-            try:
-                conn = self.get_db_connection()
-                with conn.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT * FROM signals WHERE status='pending' LIMIT 1"
-                    )
-                    signal = cursor.fetchone()
-                # print(signal)
-                if signal:
-                    await self.process_signal(signal)
-                    with conn.cursor() as cursor:
-                        cursor.execute(
-                            "UPDATE signals SET status='processed' WHERE id=%s",
-                            (signal['id'],)
-                        )
-                    conn.commit()
-                
-                await asyncio.sleep(1)
-            except Exception as e:
-                print(f"信号处理异常: {e}")
-                await asyncio.sleep(5)
-            finally:
-                if 'conn' in locals():
-                    conn.close()
+        # while self.running:
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT * FROM signals WHERE status='pending' LIMIT 1"
+                )
+                signal = cursor.fetchone()
+            # print(signal)
+            if signal:
+                await self.process_signal(signal)
+                # with conn.cursor() as cursor:
+                #     cursor.execute(
+                #         "UPDATE signals SET status='processed' WHERE id=%s",
+                #         (signal['id'],)
+                #     )
+                # conn.commit()
+            
+            await asyncio.sleep(1)
+        except Exception as e:
+            print(f"信号处理异常: {e}")
+            await asyncio.sleep(5)
+        finally:
+            if 'conn' in locals():
+                conn.close()
     
     async def price_monitoring_task(self):
         """价格监控任务"""
@@ -618,7 +742,7 @@ class OKXTradingBot:
         print(f"初始化完成，恢复{len(self.positions)}个持仓")
         
         # 启动任务
-        await self.price_monitoring_task()
+        await self.signal_processing_task()
         # await asyncio.gather(
         #     self.signal_processing_task(),
         #     self.price_monitoring_task()
