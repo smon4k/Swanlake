@@ -18,8 +18,8 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute("""
                     SELECT id, exchange, api_key, api_secret, api_passphrase 
-                    FROM accounts WHERE id=%s
-                """, (account_id,))
+                    FROM accounts WHERE id=%s AND status=%s
+                """, (account_id, 1))
                 account = cursor.fetchone()
                 if account:
                     self.account_cache[account_id] = account
