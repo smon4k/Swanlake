@@ -8,12 +8,15 @@ from database import Database
 from trading_bot_config import TradingBotConfig
 from aiohttp import web
 from datetime import datetime, UTC
+from dotenv import load_dotenv
+import os
 
 # 设置Decimal精度
 getcontext().prec = 8
 
 class OKXTradingBot:
     def __init__(self, config: TradingBotConfig):
+        load_dotenv()
         self.config = config
         self.exchanges: Dict[int, ccxt.Exchange] = {}  # 改为用account_id作为key
         self.active_orders: Dict[str, List[dict]] = {}
@@ -32,7 +35,7 @@ class OKXTradingBot:
             data = await request.json()
             # 解析请求体中的参数
             symbol = data.get('symbol')
-            account_id = 2
+            account_id = os.getenv("ACCOUNT_ID", 1)
             direction = 'long' if data.get('side') == 'buy' else 'short'  # 假设请求体中的'side'对应数据库中的'direction'
             # 当前时间的格式化字符串
             timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
