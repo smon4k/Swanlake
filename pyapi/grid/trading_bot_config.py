@@ -1,10 +1,14 @@
 from decimal import Decimal
+from dotenv import load_dotenv
+import os
 
 import pymysql
 
 class TradingBotConfig:
     """交易机器人配置类"""
     def __init__(self):
+        # 加载.env文件中的环境变量
+        load_dotenv()
         # 仓位配置
         self.position_percent = Decimal('0.8')  # 开仓比例(80%)
         self.max_position = Decimal('100')      # 最大仓位张数
@@ -19,10 +23,10 @@ class TradingBotConfig:
 
         # 数据库配置
         self.db_config = {
-            "host": "localhost",
-            "user": "root",
-            "password": "123456",
-            "database": "trading_bot",
+            "host": os.getenv("DB_HOST", "localhost"),
+            "user": os.getenv("DB_USER", "root"),
+            "password": os.getenv("DB_PASSWORD", "123456"),
+            "database": os.getenv("DB_DATABASE", "trading_bot"),
             "cursorclass": pymysql.cursors.DictCursor
         }
 
