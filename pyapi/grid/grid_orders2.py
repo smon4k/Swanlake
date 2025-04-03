@@ -7,7 +7,7 @@ from decimal import Decimal, ROUND_DOWN
 from database import Database
 from trading_bot_config import TradingBotConfig
 from aiohttp import web
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
 
@@ -38,7 +38,8 @@ class OKXTradingBot:
             account_id = os.getenv("ACCOUNT_ID", 1)
             direction = 'long' if data.get('side') == 'buy' else 'short'  # 假设请求体中的'side'对应数据库中的'direction'
             # 当前时间的格式化字符串
-            timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+
             if not symbol or not direction:
                 return web.json_response({"error": "Missing required parameters"}, status=400)
 
@@ -508,7 +509,7 @@ class OKXTradingBot:
         """启动API服务器"""
         runner = web.AppRunner(self.app)
         await runner.setup()
-        site = web.TCPSite(runner, 'localhost', 8088)  # 指定监听的地址和端口
+        site = web.TCPSite(runner, 'localhost', 8080)  # 指定监听的地址和端口
         await site.start()
         print("API服务器已启动，监听端口8088")
     
