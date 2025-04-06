@@ -1,7 +1,7 @@
 import asyncio
 from decimal import Decimal
 
-from pyapi.grid.database import Database
+from database import Database
 from trading_bot_config import TradingBotConfig
 from common_functions import get_exchange, get_market_price, get_market_precision, open_position
 
