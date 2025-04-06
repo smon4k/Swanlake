@@ -1,10 +1,12 @@
+from typing import Tuple
 import ccxt
 from decimal import Decimal
+from database import Database
 import asyncio
 
-async def get_exchange(account_id: int, db):
+async def get_exchange(self, account_id: int) -> ccxt.Exchange:
     """获取交易所实例（通过account_id）"""
-    account_info = await db.get_account_info(account_id)
+    account_info = await self.db.get_account_info(account_id)
     if account_info:
         exchange_id = account_info['exchange']
         exchange_class = getattr(ccxt, exchange_id)

@@ -93,7 +93,7 @@ class SignalProcessingTask:
 
     async def cleanup_opposite_positions(self, account_id: int, symbol: str, direction: str):
         """平掉相反方向仓位"""
-        exchange = await get_exchange(account_id, self.db)
+        exchange = await get_exchange(self, account_id)
         if not exchange:
             return
 
@@ -157,7 +157,7 @@ class SignalProcessingTask:
             return
             
         # 3. 获取市场价格
-        exchange = await get_exchange(account_id, self.db)
+        exchange = await get_exchange(self, account_id)
         price = await get_market_price(exchange, symbol)
         
         # 4. 下单并记录
@@ -197,7 +197,7 @@ class SignalProcessingTask:
             return
             
         # 2. 执行平仓
-        exchange = await get_exchange(account_id, self.db)
+        exchange = await get_exchange(self, account_id)
         order = await exchange.create_order(
             symbol,
             'market',
@@ -255,7 +255,7 @@ class SignalProcessingTask:
 
     async def calculate_position_size(self, account_id: int, symbol: str, position_percent: Decimal) -> Decimal:
         """计算仓位大小"""
-        exchange = await get_exchange(account_id)
+        exchange = await get_exchange(self, account_id)
         if not exchange:
             return Decimal('0')
 

@@ -26,7 +26,7 @@ class PriceMonitoringTask:
         """检查持仓"""
         try:
             # print("check_positions")
-            exchange = await get_exchange(account_id)
+            exchange = await get_exchange(self, account_id)
             if not exchange:
                 return
             # 获取订单未撤销的订单
@@ -82,7 +82,7 @@ class PriceMonitoringTask:
                 self.config.grid_buy_percent   # 例如0.04表示4%
             )
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
-            return
+            # return
             # 5. 创建新挂单（确保数量有效）
             if sell_size and float(sell_size) > 0:
                 sell_order = await open_position(
