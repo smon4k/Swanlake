@@ -119,8 +119,8 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO orders
-                    (account_id, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (account_id, symbol, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
                     status = VALUES(status)
@@ -128,6 +128,7 @@ class Database:
                     order_info['account_id'],
                     order_info['symbol'],
                     order_info['order_id'],
+                    order_info['clorder_id'],
                     order_info['side'],
                     order_info['order_type'],
                     order_info['pos_side'],
@@ -174,6 +175,28 @@ class Database:
                     UPDATE orders
                     SET {set_clause}
                     WHERE account_id=%s AND order_id=%s
+                """
+                cursor.execute(query, values)
+            conn.commit()
+        except Exception as e:
+            print(f"更新订单信息失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+
+    # 根据账户ID和交易对更新订单数据
+    async def update_order_by_symbol(self, account_id: int, symbol: str, updates: Dict):
+        """根据账户ID和交易对更新订单数据"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
+                values = list(updates.values()) + [account_id, symbol]
+                query = f"""
+                    UPDATE orders
+                    SET {set_clause}
+                    WHERE account_id=%s AND symbol=%s
                 """
                 cursor.execute(query, values)
             conn.commit()

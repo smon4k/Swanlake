@@ -3,6 +3,8 @@ import ccxt
 from decimal import Decimal
 from database import Database
 import asyncio
+import datetime
+import uuid
 
 async def get_exchange(self, account_id: int) -> ccxt.Exchange:
     """获取交易所实例（通过account_id）"""
@@ -39,9 +41,17 @@ async def get_market_precision(exchange: ccxt.Exchange, symbol: str, instType: s
     except Exception as e:
         print(f"获取市场精度失败: {e}")
         return Decimal('0.0001'), Decimal('0.0001')  # 设置默认精度值
-    
 
-async def open_position(self, account_id: int, symbol: str, side: str, pos_side: str, amount: float, price: float, order_type: str):
+async def generate_client_order_id():
+    prefix = 'Zx'
+    date_str = datetime.datetime.now().strftime('%Y%m%d')
+    unique_str = str(uuid.uuid4()).replace('-', '')[6:19]  # 模仿 uniqid() 第7到19位
+    ascii_str = ''.join(str(ord(c)) for c in unique_str)[:8]
+    client_order_id = prefix + date_str + ascii_str
+    return client_order_id
+
+
+async def open_position(self, account_id: int, symbol: str, side: str, pos_side: str, amount: float, price: float, order_type: str, client_order_id: str = None):
         """开仓、平仓下单"""
         exchange = await get_exchange(self, account_id)
         if not exchange:
@@ -49,7 +59,8 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
         
         params = {
             'posSide': pos_side,
-            'tdMode': 'cross'
+            'tdMode': 'cross',
+            'clOrdId': client_order_id,
         }
         try:
             # print("create_order", symbol, direction, price, amount)

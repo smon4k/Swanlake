@@ -1,7 +1,7 @@
 
 import asyncio
 from decimal import Decimal
-from common_functions import get_exchange, get_market_price, open_position, calculate_position_size, cleanup_opposite_positions
+from common_functions import generate_client_order_id, get_exchange, get_market_price, open_position, calculate_position_size, cleanup_opposite_positions
 from database import Database
 from trading_bot_config import TradingBotConfig
 
@@ -93,6 +93,7 @@ class PriceMonitoringTask:
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             # return
             # 5. 创建新挂单（确保数量有效）
+            client_order_id = await generate_client_order_id()
             if sell_size and float(sell_size) > 0:
                 sell_order = await open_position(
                     self,
@@ -102,12 +103,14 @@ class PriceMonitoringTask:
                     'short', 
                     float(sell_size), 
                     float(sell_price), 
-                    'limit'
+                    'limit',
+                    client_order_id
                 )
                 await self.db.add_order({
                     'account_id': account_id,
                     'symbol': symbol,
                     'order_id': sell_order['id'],
+                    'clorder_id': client_order_id,
                     'price': float(sell_price),
                     'executed_price': None,
                     'quantity': float(sell_size),
@@ -127,12 +130,14 @@ class PriceMonitoringTask:
                     'long', 
                     float(buy_size), 
                     float(buy_price), 
-                    'limit'
+                    'limit',
+                    client_order_id
                 )
                 await self.db.add_order({
                     'account_id': account_id,
                     'symbol': symbol,
                     'order_id': buy_order['id'],
+                    'clorder_id': client_order_id,
                     'price': float(buy_price),
                     'executed_price': None,
                     'quantity': float(buy_size),
@@ -217,6 +222,7 @@ class PriceMonitoringTask:
                 close_side = 'sell' if pos_side == 'long' else 'buy'
 
                 # 平仓
+                client_order_id = await generate_client_order_id()
                 close_order = await open_position(
                     self,
                     account_id,
@@ -225,19 +231,27 @@ class PriceMonitoringTask:
                     pos_side,
                     float(pos['contractSize']),
                     None,  # 市价单
-                    'market'
+                    'market',
+                    client_order_id
                 )
 
                 # ✅ 更新数据库状态
-                # await self.db.update_order_status(
-                #     account_id=account_id,
-                #     symbol=symbol,
-                #     pos_side=pos_side,
-                #     status='closed',
-                #     close_price=float(current_price),
-                #     close_type='stop_profit' if price_change > 0 else 'stop_loss',
-                #     close_time=datetime.utcnow()
-                # )
+                await self.db.add_order({
+                    'account_id': account_id,
+                    'symbol': symbol,
+                    'order_id': close_order['id'],
+                    'clorder_id': client_order_id,
+                    'price': float(current_price),
+                    'executed_price': None,
+                    'quantity': float(pos['contractSize']),
+                    'pos_side': pos_side,
+                    'order_type': 'market',
+                    'side': close_side,
+                    'status': 'filled',
+                    'is_clopos': 1,
+                })
+
+                await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单
 
                 await self.cancel_all_orders(account_id, symbol) # 取消所有未成交的订单
 
