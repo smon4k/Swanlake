@@ -48,13 +48,14 @@ class PriceMonitoringTask:
                     if fill_time > latest_fill_time:
                         latest_fill_time = fill_time
                         latest_order = order_info
-                if latest_order['info']['state'] == 'filled':
+                if order_info['info']['state'] == 'filled':
                     await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': order_info['info']['fillPx'], 'status': 'filled'})
-
-            if latest_order or latest_order['info']:
+            print(f"最新订单: {latest_order}")
+            if latest_order:
                 print(f"订单存在: {latest_order}")
                 if latest_order['info']['state'] == 'filled':
-                    # 更新订单信息
+                    # 检查止盈止损
+                    await self.check_and_close_position(exchange, latest_order['symbol'], account_id)
                     await self.manage_grid_orders(latest_order, account_id) #检查网格
 
         except Exception as e:
@@ -70,10 +71,11 @@ class PriceMonitoringTask:
                 
             symbol = order['info']['instId']
 
+            await self.cancel_all_orders(account_id, symbol) # 取消所有未成交的订单
+
             # 2. 平掉相反方向仓位
             # await cleanup_opposite_positions(self, exchange, account_id, symbol, order['side'])
 
-            await self.cancel_all_orders(account_id, symbol) # 取消所有未成交的订单
             
             # order_id = order['info']['ordId']
             filled_price = Decimal(str(order['info']['fillPx']))  # 订单成交价
@@ -154,22 +156,91 @@ class PriceMonitoringTask:
         
         try:
             open_orders = exchange.fetch_open_orders(symbol, None, None, {'instType': 'SWAP'}) # 获取未成交的订单
+            print(f"未成交订单: {open_orders}")
             for order in open_orders:
                 try:
                     cancel_order =  exchange.cancel_order(order['id'], symbol) # 进行撤单
-                    if cancel_order['info']['sCode'] == 0:
+                    print(f"取消订单: {cancel_order}")
+                    if cancel_order['info']['sCode'] == '0':
                         existing_order = await self.db.get_order_by_id(account_id, order['id'])
                         if existing_order:
                             # 更新订单信息
                             await self.db.update_order_by_id(account_id, order['id'], {
-                                'status': 'canceled',
-                                'is_clopos': 1,
+                                'status': 'canceled'
                             })
                         print(f"取消订单成功: {cancel_order}")
                 except Exception as e:
                     print(f"取消订单失败: {e}")
         except Exception as e:
             print(f"获取未成交订单失败: {e}")
+
+    #生成一个获取订单信息的测试方法
+    async def get_order_info(self, account_id: int, order_id: str):
+        """获取订单信息"""
+        exchange = await get_exchange(self, account_id)
+        if not exchange:
+            return None
+        
+        try:
+            order_info = exchange.fetch_order(order_id, None, None, {'instType': 'SWAP'})
+            print(f"订单信息: {order_info}")
+            return order_info
+        except Exception as e:
+            print(f"获取订单信息失败: {e}")
+
+    
+    async def check_and_close_position(self, exchange, symbol, account_id):
+        """检查止盈止损 并关闭持仓"""
+        positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+        current_price = await self.get_market_price(exchange, symbol)
+
+        for pos in positions:
+            contracts = Decimal(str(pos['contracts']))
+            if contracts <= 0:
+                continue  # 没仓位就跳过
+            pos_side = pos['side']  # 'long' 或 'short'
+            signal = self.db.get_latest_signal(account_id, symbol)  # 获取最新信号
+            if not signal:
+                entry_price = Decimal(str(pos['entryPrice']))
+            else:
+                entry_price = Decimal(str(signal['price']))
+
+            # 计算浮动盈亏比例
+            if pos_side == 'long':
+                price_change = (current_price - entry_price) / entry_price
+            else:
+                price_change = (entry_price - current_price) / entry_price
+
+            # 判断止盈/止损
+            if abs(price_change) >= Decimal(self.config.stop_profit_loss):  # ±0.7%
+                print(f"{pos_side.upper()} 触发止盈止损：浮动变化 {price_change:.4%}")
+                close_side = 'sell' if pos_side == 'long' else 'buy'
+
+                # 平仓
+                close_order = await open_position(
+                    self,
+                    account_id,
+                    symbol,
+                    close_side,
+                    pos_side,
+                    float(pos['contractSize']),
+                    None,  # 市价单
+                    'market'
+                )
+
+                # ✅ 更新数据库状态
+                # await self.db.update_order_status(
+                #     account_id=account_id,
+                #     symbol=symbol,
+                #     pos_side=pos_side,
+                #     status='closed',
+                #     close_price=float(current_price),
+                #     close_type='stop_profit' if price_change > 0 else 'stop_loss',
+                #     close_time=datetime.utcnow()
+                # )
+
+                await self.cancel_all_orders(account_id, symbol) # 取消所有未成交的订单
+
     
         
     

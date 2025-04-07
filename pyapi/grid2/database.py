@@ -55,6 +55,25 @@ class Database:
         finally:
             if conn:
                 conn.close()
+    
+    #获取信号表数据最新的一条数据
+    async def get_latest_signal(self, account_id: int) -> Optional[Dict]:
+        """获取信号表数据最新的一条数据"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT * FROM signals WHERE account_id=%s ORDER BY id DESC LIMIT 1
+                """, (account_id,))
+                signal = cursor.fetchone()
+                return signal
+        except Exception as e:
+            print(f"获取最新信号失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
                 
     async def record_order(self, account_id: int, order_id: str, price: float, quantity: float, symbol: str, order_info: Dict, is_clopos: int = 0):
         """记录订单到数据库"""
@@ -202,7 +221,7 @@ class Database:
                 query = """
                 SELECT id, account_id, timestamp, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos
                 FROM orders
-                WHERE account_id = %s AND symbol = %s AND side = %s AND (status!= 'cancelled' AND status!= 'closed')
+                WHERE account_id = %s AND symbol = %s AND pos_side = %s AND (status!= 'cancelled' AND status!= 'closed')
                 """
                 cursor.execute(query, (account_id, symbol, opposite_direction))
                 results = cursor.fetchall()
