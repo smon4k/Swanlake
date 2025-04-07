@@ -27,7 +27,7 @@ class OKXTradingBot:
                 for account in accounts:
                     account_id = account['id']
                     await self.db.get_account_info(account_id)  # 加载到缓存
-                    await get_exchange(account_id)  # 初始化交易所实例
+                    await get_exchange(self, account_id)  # 初始化交易所实例
         except Exception as e:
             print(f"初始化账户失败: {e}")
         finally:
@@ -39,10 +39,11 @@ class OKXTradingBot:
         await self.initialize_accounts()
 
         """运行主程序"""
-        signal_task = asyncio.create_task(self.signal_task.signal_processing_task())
+        # signal_task = asyncio.create_task(self.signal_task.signal_processing_task())
         price_task = asyncio.create_task(self.price_task.price_monitoring_task())
 
-        await asyncio.gather(signal_task, price_task)
+        # await asyncio.gather(signal_task, price_task)
+        await asyncio.gather(price_task)
 
 if __name__ == "__main__":
     config = TradingBotConfig()

@@ -69,7 +69,8 @@ class Database:
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
-                    status = VALUES(status)
+                    status = VALUES(status),
+                    is_clopos = VALUES(is_clopos)
                 """, (
                     account_id,
                     symbol,
@@ -86,6 +87,40 @@ class Database:
             conn.commit()
         except Exception as e:
             print(f"订单记录失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+        # 添加订单数据，只添加订单一些基本的信息数据
+    async def add_order(self, order_info: Dict):
+        """添加订单数据"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO orders
+                    (account_id, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                    executed_price = VALUES(executed_price),
+                    status = VALUES(status)
+                """, (
+                    order_info['account_id'],
+                    order_info['symbol'],
+                    order_info['order_id'],
+                    order_info['side'],
+                    order_info['order_type'],
+                    order_info['pos_side'],
+                    order_info['quantity'],
+                    order_info['price'],
+                    order_info['executed_price'],
+                    order_info['status'],
+                ))
+            conn.commit()
+        except Exception as e:
+            print(f"添加订单数据失败: {e}")
+            return {"status": "error", "message": str(e)}
         finally:
             if conn:
                 conn.close()
@@ -130,27 +165,25 @@ class Database:
                 conn.close()
 
     # 获取指定账户和交易对的所有未撤单订单
-    async def get_single_active_order(self, account_id: int) -> Optional[Dict]:
-        """获取指定账户中ID最小的未撤单订单（等待成交/部分成交/完全成交）"""
+    async def get_active_orders(self, account_id: int) -> List[Dict]:
+        """获取指定账户中所有未撤单订单（status为'live'），按ID升序排列"""
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute("""
                     SELECT * FROM orders 
-                    WHERE account_id=%s
-                    AND status  = 'live'
-                    ORDER BY id ASC
-                    LIMIT 1
-                """, (account_id,))
-                order = cursor.fetchone()  # 使用fetchone获取单条记录
-                return order
+                    WHERE account_id=%s AND status = 'live' ORDER BY id DESC LIMIT 2
+                """, (account_id))
+                results = cursor.fetchall()
+                return results
         except Exception as e:
             print(f"获取订单失败: {e}")
-            return None
+            return []
         finally:
             if conn:
                 conn.close()
+
 
     # 获取未平仓的反向订单数据
     async def get_unclosed_opposite_orders(self, account_id, symbol, direction):
@@ -168,7 +201,7 @@ class Database:
                 # 查询未平仓（status不为cancelled且不为closed）的反向订单
                 query = """
                 SELECT id, account_id, timestamp, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos
-                FROM order
+                FROM orders
                 WHERE account_id = %s AND symbol = %s AND side = %s AND (status!= 'cancelled' AND status!= 'closed')
                 """
                 cursor.execute(query, (account_id, symbol, opposite_direction))
@@ -179,6 +212,34 @@ class Database:
                     order = {columns[i]: row[i] for i in range(len(columns))}
                     orders.append(order)
                 return orders
+        except Exception as e:
+            print(f"数据库查询错误: {e}")
+            return []
+        finally:
+            conn.close()
+    
+    # 获取最新订单方向以及持仓方向的已成交订单数据
+    async def get_completed_order(self, account_id, symbol, direction):
+        """
+        从订单表获取指定订单方向以及持仓方向的已成交订单数据
+        :param account_id: 账户ID
+        :param symbol: 交易对
+        :param direction: 目标方向（long/short）
+        :return: 已成交订单数据列表
+        """
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                # 查询已成交（status为filled）的指定订单方向以及持仓方向的订单
+                query = """
+                    SELECT id, account_id, timestamp, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos
+                    FROM orders
+                    WHERE account_id = %s AND symbol = %s AND pos_side = %s AND status = 'filled' AND is_clopos = 0
+                    ORDER BY id DESC
+                """
+                cursor.execute(query, (account_id, symbol, direction))
+                order = cursor.fetchone()
+                return order
         except Exception as e:
             print(f"数据库查询错误: {e}")
             return []
