@@ -39,11 +39,13 @@ class OKXTradingBot:
         await self.initialize_accounts()
 
         """运行主程序"""
-        # signal_task = asyncio.create_task(self.signal_task.signal_processing_task())
-        price_task = asyncio.create_task(self.price_task.price_monitoring_task())
+        signal_task = asyncio.create_task(self.signal_task.signal_processing_task())
+        # await asyncio.gather(signal_task)
 
-        # await asyncio.gather(signal_task, price_task)
-        await asyncio.gather(price_task)
+        price_task = asyncio.create_task(self.price_task.price_monitoring_task())
+        # await asyncio.gather(price_task)
+
+        await asyncio.gather(signal_task, price_task)
 
 if __name__ == "__main__":
     config = TradingBotConfig()

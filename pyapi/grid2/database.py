@@ -119,14 +119,15 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO orders
-                    (account_id, symbol, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (account_id, symbol, position_group_id, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
                     status = VALUES(status)
                 """, (
                     order_info['account_id'],
                     order_info['symbol'],
+                    order_info['position_group_id'],
                     order_info['order_id'],
                     order_info['clorder_id'],
                     order_info['side'],
@@ -208,14 +209,14 @@ class Database:
 
     # 获取指定账户和交易对的所有未撤单订单
     async def get_active_orders(self, account_id: int) -> List[Dict]:
-        """获取指定账户中所有未撤单订单（status为'live'），按ID升序排列"""
+        """获取指定账户中所有未撤单订单（status为'live', buy sell limit订单），按ID升序排列"""
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute("""
                     SELECT * FROM orders 
-                    WHERE account_id=%s AND status = 'live' ORDER BY id DESC LIMIT 2
+                    WHERE account_id=%s AND (status = 'live' OR status = 'partially_filled') AND (side = 'buy' OR side = 'sell') AND order_type = 'limit'  ORDER BY id DESC LIMIT 2
                 """, (account_id))
                 results = cursor.fetchall()
                 return results
@@ -228,37 +229,61 @@ class Database:
 
 
     # 获取未平仓的反向订单数据
-    async def get_unclosed_opposite_orders(self, account_id, symbol, direction):
+    async def get_unclosed_opposite_quantity(self, account_id, symbol, direction) -> float:
         """
-        从订单表获取未平仓的反向订单数据
+        获取未平仓反向订单的总数量（quantity总和）
         :param account_id: 账户ID
         :param symbol: 交易对
         :param direction: 目标方向（long/short）
-        :return: 未平仓的反向订单数据列表
+        :return: 总未平仓反向订单的数量（float）
         """
-        opposite_direction ='short' if direction == 'long' else 'long'
+        opposite_direction = 'short' if direction == 'long' else 'long'
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                # 查询未平仓（status不为cancelled且不为closed）的反向订单
+                # 查询总 quantity（未被取消、未平仓、反向方向、未被标记为已平仓）
                 query = """
-                SELECT id, account_id, timestamp, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos
-                FROM orders
-                WHERE account_id = %s AND symbol = %s AND pos_side = %s AND (status!= 'cancelled' AND status!= 'closed')
+                    SELECT SUM(quantity) AS total_quantity
+                    FROM orders
+                    WHERE account_id = %s 
+                    AND symbol = %s 
+                    AND pos_side = %s 
+                    AND status != 'cancelled' 
+                    AND status != 'closed'
+                    AND is_clopos = 0
                 """
                 cursor.execute(query, (account_id, symbol, opposite_direction))
-                results = cursor.fetchall()
-                columns = [description[0] for description in cursor.description]
-                orders = []
-                for row in results:
-                    order = {columns[i]: row[i] for i in range(len(columns))}
-                    orders.append(order)
-                return orders
+                result = cursor.fetchone()
+                total_quantity = result[0] if result[0] is not None else 0
+                return float(total_quantity)
         except Exception as e:
             print(f"数据库查询错误: {e}")
-            return []
+            return 0
         finally:
-            conn.close()
+            if conn:
+                conn.close()
+    async def mark_orders_as_closed(self, account_id: int, symbol: str, direction: str):
+        """将某账户某交易对指定方向的未平仓订单标记为已平仓"""
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE orders
+                    SET is_clopos = 1
+                    WHERE account_id = %s
+                    AND symbol = %s 
+                    AND pos_side = %s 
+                    AND status != 'cancelled'
+                    AND is_clopos = 0
+                """, (account_id, symbol, direction))
+                conn.commit()
+        except Exception as e:
+            print(f"标记订单为已平仓失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+
+
     
     # 获取最新订单方向以及持仓方向的已成交订单数据
     async def get_completed_order(self, account_id, symbol, direction):
