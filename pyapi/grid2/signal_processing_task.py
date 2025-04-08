@@ -242,17 +242,21 @@ class SignalProcessingTask:
         )
         
         if order:
+            current_price = await get_market_price(exchange, symbol)
             # 4. 记录平仓订单
-            await self.db.record_order(
-                account_id=account_id,
-                order_id=order['id'],
-                symbol=symbol,
-                side=side,
-                order_type='market',
-                quantity=net_size,
-                price = None,
-                status='filled',
-                is_clopos=1
-            )
+            await self.db.add_order({
+                'account_id': account_id,
+                'symbol': symbol,
+                'order_id': order['id'],
+                'clorder_id': client_order_id,
+                'price': float(current_price),
+                'executed_price': None,
+                'quantity': float(net_size),
+                'pos_side': pos_side,
+                'order_type': 'market',
+                'side': side,
+                'status': 'filled',
+                'is_clopos': 1,
+            })
             # 5. 更新数据库中原始订单为已平仓
             await self.db.mark_orders_as_closed(account_id, symbol, direction)
