@@ -38,13 +38,15 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO signals (account_id, timestamp, symbol, direction, status)
-                    VALUES (%s, %s, %s, %s, %s)
+                    INSERT INTO signals (account_id, timestamp, symbol, direction, price, size, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (
                     signal_data['account_id'],
                     signal_data['timestamp'],
                     signal_data['symbol'],
                     signal_data['direction'],
+                    signal_data['price'],
+                    signal_data['size'],
                     signal_data['status'],
                 ))
                 conn.commit()
