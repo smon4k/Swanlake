@@ -13,7 +13,7 @@ class PriceMonitoringTask:
     
     async def price_monitoring_task(self):
         """价格监控任务"""
-        while getattr(self, 'running', True):  # 使用 getattr 来安全地访问 running 属性
+        while getattr(self, 'running', True): 
             try:
                 # positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 for account_id in self.db.account_cache:
@@ -235,8 +235,8 @@ class PriceMonitoringTask:
             stop_profit_loss = Decimal(self.config.stop_profit_loss)  # 确保 stop_profit_loss 是 Decimal 类型
             # 判断止盈/止损
             # print(f"止盈止损: {stop_profit_loss:.4%}, 浮动变化: {abs(price_change)}")
-            if abs(price_change) >= stop_profit_loss:  # ±0.7%
-                print(f"{pos_side.upper()} 触发止盈止损：浮动变化 {price_change:.4%}, 当前价格 {current_price}, 开仓价格 {entry_price}, 合约数 {contracts}")
+            if abs(price_change) <= -stop_profit_loss:  # ±0.7%
+                print(f"{pos_side.upper()} 触发止损：浮动变化 {price_change:.4%}, 当前价格 {current_price}, 开仓价格 {entry_price}, 合约数 {contracts}")
                 close_side = 'sell' if pos_side == 'long' else 'buy'
 
                 # 平仓
