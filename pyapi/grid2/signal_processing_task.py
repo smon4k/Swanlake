@@ -187,20 +187,26 @@ class SignalProcessingTask:
 
 
                 
-    async def handle_open_position(self, account_id: int, symbol: str, direction: str, side: str, percent: float, price: Decimal):
+    async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, percent: float, price: Decimal):
         """处理开仓"""
-        print(f"⚡ 开仓操作: {direction} {side}")
-        logging.info(f"⚡ 开仓操作: {direction} {side}")
+        print(f"⚡ 开仓操作: {pos_side} {side}")
+        logging.info(f"⚡ 开仓操作: {pos_side} {side}")
         exchange = await get_exchange(self, account_id)
         
         # 1. 平掉反向仓位
-        # await self.cleanup_opposite_positions(account_id, symbol, direction)
+        # await self.cleanup_opposite_positions(account_id, symbol, pos_side)
         
         # 2. 计算开仓量
         # price = await get_market_price(exchange, symbol)
-        commission_price = price + self.config.commission_price_difference # 信号价 + 50U
-        size = await calculate_position_size(self, exchange, symbol, percent, commission_price)
+        if(pos_side == 'short'): # 做空
+            price = price - self.config.commission_price_difference # 信号价 - 50U
+        elif(pos_side =='long'): # 做多
+            price = price + self.config.commission_price_difference # 信号价 + 50U
+
+        size = await calculate_position_size(self, exchange, symbol, percent, price)
         if size <= 0:
+            print(f"开仓量为0，不执行开仓")
+            logging.info(f"开仓量为0，不执行开仓")
             return
             
         # 3. 获取市场价格
@@ -211,9 +217,9 @@ class SignalProcessingTask:
             account_id, 
             symbol, 
             side, 
-            direction, 
+            pos_side, 
             float(size), 
-            float(commission_price), 
+            float(price), 
             'limit',
             client_order_id
         )
@@ -224,10 +230,10 @@ class SignalProcessingTask:
                 'symbol': symbol,
                 'order_id': order['id'],
                 'clorder_id': client_order_id,
-                'price': float(commission_price),
+                'price': float(price),
                 'executed_price': None,
                 'quantity': float(size),
-                'pos_side': direction,
+                'pos_side': pos_side,
                 'order_type': 'limit',
                 'side': side, 
                 'status': 'live',
