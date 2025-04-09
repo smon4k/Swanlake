@@ -416,7 +416,7 @@ class Database:
                 cursor.execute(f"""
                     SELECT p.*, a.exchange 
                     FROM {table('positions')} p
-                    JOIN accounts a ON p.account_id = a.id
+                    JOIN {table('accounts')} a ON p.account_id = a.id
                 """)
                 positions = cursor.fetchall()
                 return positions

@@ -62,7 +62,7 @@ class OKXTradingBot:
         try:
             conn = self.db.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("SELECT id FROM accounts")
+                cursor.execute(f"SELECT id FROM g_accounts")
                 accounts = cursor.fetchall()
                 for account in accounts:
                     account_id = account['id']

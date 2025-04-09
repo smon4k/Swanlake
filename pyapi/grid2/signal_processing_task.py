@@ -19,7 +19,7 @@ class SignalProcessingTask:
                 conn = self.db.get_db_connection()
                 with conn.cursor() as cursor:
                     cursor.execute(
-                        "SELECT * FROM signals WHERE status='pending' LIMIT 1"
+                        "SELECT * FROM g_signals WHERE status='pending' LIMIT 1"
                     )
                     signal = cursor.fetchone()
                 # print(signal)
@@ -27,7 +27,7 @@ class SignalProcessingTask:
                     await self.process_signal(signal)
                     with conn.cursor() as cursor:
                         cursor.execute(
-                            "UPDATE signals SET status='processed' WHERE id=%s",
+                            "UPDATE g_signals SET status='processed' WHERE id=%s",
                             (signal['id'],)
                         )
                     conn.commit()
