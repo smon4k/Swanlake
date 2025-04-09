@@ -78,9 +78,9 @@ class OKXTradingBot:
         """启动API服务器"""
         runner = web.AppRunner(self.app)
         await runner.setup()
-        site = web.TCPSite(runner, 'localhost', 83)  # 指定监听的地址和端口
+        site = web.TCPSite(runner, 'localhost', 8082)  # 指定监听的地址和端口
         await site.start()
-        print("API服务器已启动，监听端口83")
+        print("API服务器已启动，监听端口8082")
 
     async def run(self):
         """运行主程序"""
