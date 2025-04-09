@@ -46,31 +46,44 @@ class SignalProcessingTask:
         """处理交易信号（完整版）"""
         account_id = signal['account_id']
         symbol = signal['symbol']
-        action =  'buy' if signal['direction'] == 'long' else 'sell'  # 'buy' 或 'sell'
+        pos_side = signal['direction'] # 'long' 或 'short'
+        side =  'buy' if pos_side == 'long' else 'sell'  # 'buy' 或 'sell'
         size = signal['size']      # 1, 0, -1
         
-        print(f"📡 接收信号: {account_id} {symbol} {action}{size}")
+        print(f"📡 接收信号: {account_id} {symbol} {side} {size}")
 
         try:
             # 1. 解析操作类型
-            operation = self.parse_operation(action, size)
+            # operation = self.parse_operation(side, size)
             
-            # 2. 执行对应操作
-            if operation['type'] == 'open':
+            # 1. 解析操作类型 执行对应操作
+            # buy 1: 买入开多 buy long
+            # buy 0: 买入平空 结束做多 buy short
+            # sell -1: 卖出开空 sell short
+            # sell 0: 卖出平多 结束做空 sell long
+            if (side == 'buy' and size == 1) or (side == 'sell' and size == -1): # 开仓
+                # 1.1 开仓前先平掉反向仓位
+                await self.cleanup_opposite_positions(account_id, symbol, pos_side)
+
+                # 1.2 开仓
                 await self.handle_open_position(
                     account_id,
                     symbol,
-                    operation['direction'],
-                    operation['side'],
+                    pos_side,
+                    side,
                     self.config.position_percent
                 )
-            else:
+            elif (side == 'buy' and size == 0) or (side == 'sell' and size == 0): # 平仓
+                # 1.3 平仓
                 await self.handle_close_position(
                     account_id,
                     symbol,
-                    operation['direction'],
-                    operation['side']
+                    pos_side,
+                    side
                 )
+            else:
+                print(f"❌ 无效信号: {side}{size}")
+                logging.error(f"❌ 无效信号: {side}{size}")
 
         except Exception as e:
             print(f"‼️ 信号处理失败: {str(e)}")
@@ -92,76 +105,74 @@ class SignalProcessingTask:
         raise ValueError(f"无效信号组合: action={action}, size={size}")
 
     async def cleanup_opposite_positions(self, account_id: int, symbol: str, direction: str):
-        """平掉相反方向的持仓并更新数据库订单为已平仓"""
+        """平掉一个方向的仓位（双向持仓），并更新数据库订单为已平仓"""
         exchange = await get_exchange(self, account_id)
         if not exchange:
             return
 
         try:
-            # 获取持仓信息
             positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
-
             if not positions:
-                print("无持仓信息")
                 logging.warning("无持仓信息")
                 return
 
             opposite_direction = 'short' if direction == 'long' else 'long'
-            market_price = await get_market_price(exchange, symbol)
+            total_size = Decimal('0')
 
             for pos in positions:
                 pos_side = pos.get('side') or pos.get('posSide') or ''
                 pos_size = Decimal(str(pos.get('contracts') or pos.get('positionAmt') or 0))
                 if pos_size == 0 or pos_side.lower() != opposite_direction:
-                    continue  # 没有反向持仓，或持仓数量为0
+                    continue
+                total_size += abs(pos_size)
 
-                # 确定平仓方向（如原为long，则平仓方向为sell）
-                close_side = 'sell' if pos_side == 'long' else 'buy'
+            if total_size == 0:
+                logging.info(f"无反向持仓需要平仓：{opposite_direction}")
+                return
 
-                # 执行平仓订单
-                client_order_id = await get_client_order_id()
-                close_order = await open_position(
-                    self,
-                    account_id, 
-                    symbol, 
-                    close_side, 
-                    pos_side, 
-                    float(abs(pos_size)), 
-                    None, 
-                    'market',
-                    client_order_id,
-                    True
-                )
+            close_side = 'sell' if opposite_direction == 'long' else 'buy'
+            market_price = await get_market_price(exchange, symbol)
+            client_order_id = await get_client_order_id()
 
-                if close_order:
-                    # 记录平仓订单
-                    await self.db.add_order({
-                        'account_id': account_id,
-                        'symbol': symbol,
-                        'order_id': close_order['id'],
-                        'clorder_id': client_order_id,
-                        'price': float(market_price),
-                        'executed_price': None,
-                        'quantity': float(abs(pos_size)),
-                        'pos_side': pos_side,
-                        'order_type': 'market',
-                        'side': close_side,
-                        'status': 'filled',
-                        'is_clopos': 1,
-                        'position_group_id': str(uuid.uuid4()),
-                    })
+            close_order = await open_position(
+                self,
+                account_id,
+                symbol,
+                close_side,
+                opposite_direction,
+                float(total_size),
+                None,
+                'market',
+                client_order_id,
+                True  # reduceOnly=True
+            )
 
-                    # 更新数据库中原始反向未平仓订单为已平仓
-                    await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
-                    print(f"成功平掉{opposite_direction}方向持仓，更新订单状态为已平仓。")
-                    logging.info(f"成功平掉{opposite_direction}方向持仓，更新订单状态为已平仓。")
-                else:
-                    print(f"平仓订单失败，方向: {opposite_direction}, 数量: {pos_size}")
-                    logging.info(f"平仓订单失败，方向: {opposite_direction}, 数量: {pos_size}")
+            if close_order:
+                await self.db.add_order({
+                    'account_id': account_id,
+                    'symbol': symbol,
+                    'order_id': close_order['id'],
+                    'clorder_id': client_order_id,
+                    'price': float(market_price),
+                    'executed_price': None,
+                    'quantity': float(total_size),
+                    'pos_side': opposite_direction,
+                    'order_type': 'market',
+                    'side': close_side,
+                    'status': 'filled',
+                    'is_clopos': 1,
+                    'position_group_id': str(uuid.uuid4()),
+                })
+
+                await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
+                logging.info(f"成功平掉{opposite_direction}方向总持仓：{total_size}")
+
+            else:
+                logging.info(f"平仓失败，方向: {opposite_direction}，数量: {total_size}")
 
         except Exception as e:
-            print(f"清理相反方向仓位失败: {e}")
-            logging.error(f"清理相反方向仓位失败: {e}")
+            logging.error(f"清理反向持仓出错: {e}")
+
 
 
                 

@@ -102,79 +102,92 @@ class PriceMonitoringTask:
             logging.info(f"最新订单成交价: {filled_price}")
             # return
             # 3. 计算新挂单价格（基于订单成交价±0.2%）
-            sell_price = filled_price * (Decimal('1') + Decimal(str(self.config.grid_step)))
             buy_price = filled_price * (Decimal('1') - Decimal(str(self.config.grid_step)))
+            sell_price = filled_price * (Decimal('1') + Decimal(str(self.config.grid_step)))
             # print(f"计算挂单价: 卖{sell_price} 买{buy_price}")
             # return
             # 4. 使用calculate_position_size计算挂单数量
-            sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
             buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
+            sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             logging.info(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             # return
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
-            if sell_size and float(sell_size) > 0:
-                client_order_id = await get_client_order_id()
-                sell_order = await open_position(
-                    self,
-                    account_id, 
-                    symbol, 
-                    'sell', 
-                    'short', 
-                    float(sell_size), 
-                    float(sell_price), 
-                    'limit',
-                    client_order_id
-                )
-                await self.db.add_order({
-                    'account_id': account_id,
-                    'symbol': symbol,
-                    'order_id': sell_order['id'],
-                    'clorder_id': client_order_id,
-                    'price': float(sell_price),
-                    'executed_price': None,
-                    'quantity': float(sell_size),
-                    'pos_side': 'short',
-                    'order_type': 'limit',
-                    'side': 'sell',
-                    'status': 'live',
-                    'position_group_id': group_id,
-                })
-                print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
-                logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
+            signal = await self.db.get_latest_signal(account_id)  # 获取最新信号
+            if signal:
+                side = 'buy' if signal['direction'] == 'long' else 'sell'
+                pos_side = 'long'
+                if side == 'buy' and signal['size'] == 1: # 开多
+                    pos_side = 'long'
+                if side == 'sell' and signal['size'] == -1: # 开空
+                    pos_side = 'short'
 
-            if buy_size and float(buy_size) > 0:
-                client_order_id = await get_client_order_id()
-                buy_order = await open_position(
-                    self,
-                    account_id, 
-                    symbol, 
-                    'buy', 
-                    'short', 
-                    float(buy_size), 
-                    float(buy_price), 
-                    'limit',
-                    client_order_id,
-                    True
-                )
-                await self.db.add_order({
-                    'account_id': account_id,
-                    'symbol': symbol,
-                    'order_id': buy_order['id'],
-                    'clorder_id': client_order_id,
-                    'price': float(buy_price),
-                    'executed_price': None,
-                    'quantity': float(buy_size),
-                    'pos_side': 'short',
-                    'order_type': 'limit',
-                    'side': 'buy',
-                    'status': 'live',
-                    'position_group_id': group_id,
-                })
-                print(f"已挂买单: 价格{buy_price} 数量{buy_size}")
-                logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
+                print("开空开多", pos_side)
 
+                if buy_size and float(buy_size) > 0:
+                    client_order_id = await get_client_order_id()
+                    buy_order = await open_position(
+                        self,
+                        account_id, 
+                        symbol, 
+                        'buy', 
+                        pos_side, 
+                        float(buy_size), 
+                        float(buy_price), 
+                        'limit',
+                        client_order_id,
+                        True
+                    )
+                    await self.db.add_order({
+                        'account_id': account_id,
+                        'symbol': symbol,
+                        'order_id': buy_order['id'],
+                        'clorder_id': client_order_id,
+                        'price': float(buy_price),
+                        'executed_price': None,
+                        'quantity': float(buy_size),
+                        'pos_side': pos_side,
+                        'order_type': 'limit',
+                        'side': 'buy',
+                        'status': 'live',
+                        'position_group_id': group_id,
+                    })
+                    print(f"已挂买单: 价格{buy_price} 数量{buy_size}")
+                    logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
+
+                if sell_size and float(sell_size) > 0:
+                    client_order_id = await get_client_order_id()
+                    sell_order = await open_position(
+                        self,
+                        account_id, 
+                        symbol, 
+                        'sell', 
+                        pos_side, 
+                        float(sell_size), 
+                        float(sell_price), 
+                        'limit',
+                        client_order_id
+                    )
+                    await self.db.add_order({
+                        'account_id': account_id,
+                        'symbol': symbol,
+                        'order_id': sell_order['id'],
+                        'clorder_id': client_order_id,
+                        'price': float(sell_price),
+                        'executed_price': None,
+                        'quantity': float(sell_size),
+                        'pos_side': pos_side,
+                        'order_type': 'limit',
+                        'side': 'sell',
+                        'status': 'live',
+                        'position_group_id': group_id,
+                    })
+                    print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
+                    logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
+            else:
+                print("未获取到信号")
+                logging.warning("未获取到信号")
         except Exception as e:
             print(f"网格订单管理失败: {str(e)}")
             logging.error(f"网格订单管理失败: {str(e)}")
