@@ -51,7 +51,7 @@ async def get_client_order_id():
     return client_order_id
 
 
-async def open_position(self, account_id: int, symbol: str, side: str, pos_side: str, amount: float, price: float, order_type: str, client_order_id: str = None):
+async def open_position(self, account_id: int, symbol: str, side: str, pos_side: str, amount: float, price: float, order_type: str, client_order_id: str = None, is_reduce_only: bool = False):
         """开仓、平仓下单"""
         exchange = await get_exchange(self, account_id)
         if not exchange:
@@ -61,6 +61,7 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
             'posSide': pos_side,
             'tdMode': 'cross',
             'clOrdId': client_order_id,
+            'reduceOnly': is_reduce_only,
         }
         try:
             # print("create_order", symbol, direction, price, amount)

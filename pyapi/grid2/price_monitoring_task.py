@@ -155,7 +155,8 @@ class PriceMonitoringTask:
                     float(buy_size), 
                     float(buy_price), 
                     'limit',
-                    client_order_id
+                    client_order_id,
+                    True
                 )
                 await self.db.add_order({
                     'account_id': account_id,
@@ -239,7 +240,8 @@ class PriceMonitoringTask:
                     float(pos['contracts']),
                     None,  # 市价单
                     'market',
-                    client_order_id
+                    client_order_id,
+                    True,
                 )
                 # ✅ 更新数据库状态
                 await self.db.add_order({

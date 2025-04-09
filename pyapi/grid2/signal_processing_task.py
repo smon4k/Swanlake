@@ -129,7 +129,8 @@ class SignalProcessingTask:
                     float(abs(pos_size)), 
                     None, 
                     'market',
-                    client_order_id
+                    client_order_id,
+                    True
                 )
 
                 if close_order:
@@ -250,7 +251,8 @@ class SignalProcessingTask:
             float(net_size), 
             None, 
             'market',
-            client_order_id
+            client_order_id,
+            True
         )
         
         if order:
