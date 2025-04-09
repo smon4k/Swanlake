@@ -1,6 +1,8 @@
 import asyncio
 from decimal import Decimal, getcontext
 import os
+
+from dotenv import load_dotenv
 from database import Database
 from trading_bot_config import TradingBotConfig
 from signal_processing_task import SignalProcessingTask
@@ -8,9 +10,36 @@ from price_monitoring_task import PriceMonitoringTask
 from common_functions import get_exchange
 from aiohttp import web
 from datetime import datetime, timezone
+import logging
+
+load_dotenv()
 
 # 设置Decimal精度
 getcontext().prec = 8
+
+# 日志文件路径
+log_file_path = os.getenv("LOG_PATH")
+
+# 检查日志文件是否存在，如果存在则清空
+if os.path.exists(log_file_path):
+    with open(log_file_path, 'w', encoding='utf-8') as f:
+        f.truncate(0)  # 清空文件内容
+class InfoAndErrorFilter(logging.Filter):
+    def filter(self, record):
+        # 只允许 INFO 和 ERROR 级别的日志通过
+        return record.levelname in ['INFO', 'ERROR']
+    
+# 设置日志配置
+logging.basicConfig(
+    filename=log_file_path,  # 指定日志文件
+    level=logging.INFO,  # 设置日志级别
+    format='%(asctime)s - %(levelname)s - %(message)s',  # 日志格式
+    encoding='utf-8'  # 指定编码为 UTF-8
+)
+
+# 获取根日志器并添加过滤器
+logger = logging.getLogger()
+logger.addFilter(InfoAndErrorFilter())
 
 class OKXTradingBot:
     def __init__(self, config: TradingBotConfig):
@@ -70,6 +99,7 @@ class OKXTradingBot:
                     await get_exchange(self, account_id)  # 初始化交易所实例
         except Exception as e:
             print(f"初始化账户失败: {e}")
+            logging.error(f"初始化账户失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -81,6 +111,7 @@ class OKXTradingBot:
         site = web.TCPSite(runner, 'localhost', 8082)  # 指定监听的地址和端口
         await site.start()
         print("API服务器已启动，监听端口8082")
+        logging.info("API服务器已启动，监听端口8082")
 
     async def run(self):
         """运行主程序"""
@@ -107,3 +138,4 @@ if __name__ == "__main__":
         asyncio.run(bot.run())
     except KeyboardInterrupt:
         print("程序安全退出")
+        logging.info("程序安全退出")

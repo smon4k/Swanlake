@@ -1,6 +1,7 @@
 
 import asyncio
 from decimal import Decimal
+import logging
 import uuid
 from common_functions import cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, open_position, calculate_position_size, milliseconds_to_local_datetime
 from database import Database
@@ -21,6 +22,7 @@ class PriceMonitoringTask:
                 await asyncio.sleep(self.config.check_interval)
             except Exception as e:
                 print(f"价格监控异常: {e}")
+                logging.error(f"价格监控异常: {e}")
                 await asyncio.sleep(5)
     
     async def check_positions(self, account_id: int):
@@ -36,6 +38,7 @@ class PriceMonitoringTask:
             # return
             if not open_orders:
                 print("没有获取到持仓订单")
+                logging.warning("没有获取到持仓订单")
                 return
             latest_order = None
             latest_fill_time = 0
@@ -65,6 +68,7 @@ class PriceMonitoringTask:
                 
             if latest_order:
                 print(f"订单已成交，成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                logging.info(f"订单已成交，成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
                 # print(f"订单存在: {latest_order}")
                 if latest_order['info']['state'] == 'filled':
                     # 检查止盈止损
@@ -72,6 +76,7 @@ class PriceMonitoringTask:
 
         except Exception as e:
             print(f"检查持仓失败: {e}")
+            logging.error(f"检查持仓失败: {e}")
 
     async def manage_grid_orders(self, order: dict, account_id: int):
         """基于订单成交价进行撤单和网格管理，使用calculate_position_size计算挂单数量"""
@@ -79,6 +84,7 @@ class PriceMonitoringTask:
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 print("未找到交易所实例")
+                logging.warning("未找到交易所实例")
                 return
                 
             symbol = order['info']['instId']
@@ -93,6 +99,7 @@ class PriceMonitoringTask:
             filled_price = Decimal(order['info']['fillPx'])
             # filled_price = Decimal(str(order['info']['fillPx']))  # 订单成交价
             print(f"最新订单成交价: {filled_price}")
+            logging.info(f"最新订单成交价: {filled_price}")
             # return
             # 3. 计算新挂单价格（基于订单成交价±0.2%）
             sell_price = filled_price * (Decimal('1') + Decimal(str(self.config.grid_step)))
@@ -103,6 +110,7 @@ class PriceMonitoringTask:
             sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
             buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
+            logging.info(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             # return
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
@@ -134,6 +142,7 @@ class PriceMonitoringTask:
                     'position_group_id': group_id,
                 })
                 print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
+                logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
 
             if buy_size and float(buy_size) > 0:
                 client_order_id = await get_client_order_id()
@@ -163,9 +172,11 @@ class PriceMonitoringTask:
                     'position_group_id': group_id,
                 })
                 print(f"已挂买单: 价格{buy_price} 数量{buy_size}")
+                logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
 
         except Exception as e:
             print(f"网格订单管理失败: {str(e)}")
+            logging.error(f"网格订单管理失败: {str(e)}")
             import traceback
             traceback.print_exc()
 
@@ -179,9 +190,11 @@ class PriceMonitoringTask:
         try:
             order_info = exchange.fetch_order(order_id, None, None, {'instType': 'SWAP'})
             print(f"订单信息: {order_info}")
+            logging.info(f"订单信息: {order_info}")
             return order_info
         except Exception as e:
             print(f"获取订单信息失败: {e}")
+            logging.error(f"获取订单信息失败: {e}")
 
     
     async def check_and_close_position(self, exchange, account_id, symbol, price: float = None):
@@ -206,11 +219,13 @@ class PriceMonitoringTask:
                 price_change = Decimal((entry_price - current_price) / entry_price)
 
             print(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
+            logging.info(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
             stop_profit_loss = Decimal(self.config.stop_profit_loss)  # 确保 stop_profit_loss 是 Decimal 类型
             # 判断止盈/止损
             # print(f"止盈止损: {stop_profit_loss:.4%}, 浮动变化: {abs(price_change)}")
             if abs(price_change) <= -stop_profit_loss:  # ±0.7%
                 print(f"{pos_side.upper()} 触发止损：浮动变化 {price_change:.4%}, 当前价格 {current_price}, 开仓价格 {entry_price}, 合约数 {contracts}")
+                logging.info(f"{pos_side.upper()} 触发止损：浮动变化 {price_change:.4%}, 当前价格 {current_price}, 开仓价格 {entry_price}, 合约数 {contracts}")
                 close_side = 'sell' if pos_side == 'long' else 'buy'
 
                 # 平仓

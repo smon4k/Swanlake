@@ -1,3 +1,4 @@
+import logging
 import pymysql
 from typing import Dict, List, Optional
 
@@ -31,6 +32,7 @@ class Database:
                 return account
         except Exception as e:
             print(f"获取账户信息失败: {e}")
+            logging.error(f"获取账户信息失败: {e}")
             return None
         finally:
             if conn:
@@ -58,6 +60,7 @@ class Database:
                 return {"status": "success", "message": "Signal inserted successfully"}
         except Exception as e:
             print(f"写入信号失败: {e}")
+            logging.error(f"写入信号失败: {e}")
             return {"status": "error", "message": str(e)}
         finally:
             if conn:
@@ -77,6 +80,7 @@ class Database:
                 return signal
         except Exception as e:
             print(f"获取最新信号失败: {e}")
+            logging.error(f"获取最新信号失败: {e}")
             return None
         finally:
             if conn:
@@ -113,6 +117,7 @@ class Database:
             conn.commit()
         except Exception as e:
             print(f"订单记录失败: {e}")
+            logging.error(f"订单记录失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -148,6 +153,7 @@ class Database:
             conn.commit()
         except Exception as e:
             print(f"添加订单数据失败: {e}")
+            logging.error(f"添加订单数据失败: {e}")
             return {"status": "error", "message": str(e)}
         finally:
             if conn:
@@ -166,6 +172,7 @@ class Database:
                 return order
         except Exception as e:
             print(f"获取指定订单信息失败: {e}")
+            logging.error(f"获取指定订单信息失败: {e}")
             return None
         finally:
             if conn:
@@ -188,6 +195,7 @@ class Database:
             conn.commit()
         except Exception as e:
             print(f"更新订单信息失败: {e}")
+            logging.error(f"更新订单信息失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -210,6 +218,7 @@ class Database:
             conn.commit()
         except Exception as e:
             print(f"更新订单信息失败: {e}")
+            logging.error(f"更新订单信息失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -229,6 +238,7 @@ class Database:
                 return results
         except Exception as e:
             print(f"获取订单失败: {e}")
+            logging.error(f"获取订单失败: {e}")
             return []
         finally:
             if conn:
@@ -262,6 +272,7 @@ class Database:
                     return None
         except Exception as e:
             print(f"获取最新成交订单记录失败: {e}")
+            logging.error(f"获取最新成交订单记录失败: {e}")
             return None
         finally:
             if conn:
@@ -298,6 +309,7 @@ class Database:
                 return float(total_quantity)
         except Exception as e:
             print(f"数据库查询错误: {e}")
+            logging.error(f"数据库查询错误: {e}")
             return 0
         finally:
             if conn:
@@ -319,6 +331,7 @@ class Database:
                 conn.commit()
         except Exception as e:
             print(f"标记订单为已平仓失败: {e}")
+            logging.error(f"标记订单为已平仓失败: {e}")
         finally:
             if conn:
                 conn.close()
@@ -349,112 +362,7 @@ class Database:
                 return order
         except Exception as e:
             print(f"数据库查询错误: {e}")
+            logging.error(f"数据库查询错误: {e}")
             return []
         finally:
             conn.close()
-
-    async def save_position(self, account_id: int, symbol: str, position_data: Dict):
-        """保存持仓到数据库"""
-        conn = None
-        try:
-            conn = self.get_db_connection()
-            with conn.cursor() as cursor:
-                cursor.execute(f"""
-                    INSERT INTO {table('positions')}
-                    (account_id, pos_id, symbol, position_size, entry_price, position_status, open_time)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    ON DUPLICATE KEY UPDATE
-                    position_size = VALUES(position_size),
-                    entry_price = VALUES(entry_price),
-                    position_status = VALUES(position_status),
-                    open_time = VALUES(open_time)
-                """, (
-                    account_id,
-                    position_data.get('pos_id', None),
-                    symbol,
-                    float(position_data['position_size']),
-                    float(position_data['entry_price']),
-                    'open',
-                    position_data.get('open_time', time.strftime('%Y-%m-%d %H:%M:%S'))
-                ))
-            conn.commit()
-        except Exception as e:
-            print(f"保存持仓失败: {e}")
-        finally:
-            if conn:
-                conn.close()
-
-    async def get_position_by_id(self, account_id: int, position_id: int) -> Optional[Dict]:
-        """根据持仓ID和账户ID获取持仓信息"""
-        conn = None
-        try:
-            conn = self.get_db_connection()
-            with conn.cursor() as cursor:
-                cursor.execute(f"""
-                    SELECT * FROM {table('positions')} WHERE account_id=%s AND pos_id=%s
-                """, (account_id, position_id))
-                position = cursor.fetchone()
-                return position
-        except Exception as e:
-            print(f"获取持仓信息失败: {e}")
-            return None
-        finally:
-            if conn:
-                conn.close()
-
-    async def update_position_by_id(self, account_id: int, position_id: int, updates: Dict):
-        """根据持仓ID更新持仓信息"""
-        conn = None
-        try:
-            conn = self.get_db_connection()
-            with conn.cursor() as cursor:
-                set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
-                values = list(updates.values()) + [account_id, position_id]
-                query = f"""
-                    UPDATE {table('positions')}
-                    SET {set_clause}
-                    WHERE account_id=%s AND pos_id=%s
-                """
-                cursor.execute(query, values)
-                conn.commit()
-        except Exception as e:
-            print(f"更新持仓信息失败: {e}")
-        finally:
-            if conn:
-                conn.close()
-
-    async def remove_position(self, account_id: int, symbol: str):
-        """从数据库删除持仓"""
-        conn = None
-        try:
-            conn = self.get_db_connection()
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"DELETE FROM {table('positions')} WHERE account_id=%s AND symbol=%s",
-                    (account_id, symbol)
-                )
-            conn.commit()
-        except Exception as e:
-            print(f"删除持仓失败: {e}")
-        finally:
-            if conn:
-                conn.close()
-
-    async def sync_positions_from_db(self):
-        """从数据库同步持仓状态"""
-        conn = None
-        try:
-            conn = self.get_db_connection()
-            with conn.cursor() as cursor:
-                cursor.execute(f"""
-                    SELECT p.*, a.exchange 
-                    FROM {table('positions')} p
-                    JOIN {table('accounts')} a ON p.account_id = a.id
-                """)
-                positions = cursor.fetchall()
-                return positions
-        except Exception as e:
-            print(f"同步持仓失败: {e}")
-        finally:
-            if conn:
-                conn.close()

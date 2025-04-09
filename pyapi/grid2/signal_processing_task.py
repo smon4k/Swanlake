@@ -1,5 +1,6 @@
 import asyncio
 from decimal import Decimal
+import logging
 import uuid
 
 from database import Database
@@ -35,6 +36,7 @@ class SignalProcessingTask:
                 await asyncio.sleep(3)
             except Exception as e:
                 print(f"信号处理异常: {e}")
+                logging.error(f"信号处理异常: {e}")
                 await asyncio.sleep(5)
             finally:
                 if 'conn' in locals():
@@ -72,6 +74,7 @@ class SignalProcessingTask:
 
         except Exception as e:
             print(f"‼️ 信号处理失败: {str(e)}")
+            logging.error(f"‼️ 信号处理失败: {str(e)}")
 
     # ---------- 核心子方法 ----------
     def parse_operation(self, action: str, size: int) -> dict:
@@ -100,6 +103,7 @@ class SignalProcessingTask:
 
             if not positions:
                 print("无持仓信息")
+                logging.warning("无持仓信息")
                 return
 
             opposite_direction = 'short' if direction == 'long' else 'long'
@@ -149,11 +153,14 @@ class SignalProcessingTask:
                     # 更新数据库中原始反向未平仓订单为已平仓
                     await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
                     print(f"成功平掉{opposite_direction}方向持仓，更新订单状态为已平仓。")
+                    logging.info(f"成功平掉{opposite_direction}方向持仓，更新订单状态为已平仓。")
                 else:
                     print(f"平仓订单失败，方向: {opposite_direction}, 数量: {pos_size}")
+                    logging.info(f"平仓订单失败，方向: {opposite_direction}, 数量: {pos_size}")
 
         except Exception as e:
             print(f"清理相反方向仓位失败: {e}")
+            logging.error(f"清理相反方向仓位失败: {e}")
 
 
                 
@@ -207,10 +214,12 @@ class SignalProcessingTask:
     async def handle_close_position(self, account_id: int, symbol: str, direction: str, side: str):
         """处理平仓"""
         print(f"⚡ 平仓操作: {direction} {side}")
+        logging.info(f"⚡ 平仓操作: {direction} {side}")
         
         exchange = await get_exchange(self, account_id)
         if not exchange:
             print(f"❌ 获取 exchange 失败")
+            logging.error(f"❌ 获取 exchange 失败")
             return
 
         await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
@@ -227,6 +236,7 @@ class SignalProcessingTask:
         
         if net_size <= 0:
             print(f"✅ 无 {direction} 方向持仓可平")
+            logging.info(f"✅ 无 {direction} 方向持仓可平")
             return
         
         # 2. 执行平仓
