@@ -119,7 +119,7 @@ async def cleanup_opposite_positions(self, exchange: ccxt.Exchange, account_id: 
                 print("orderId:", order_id)
                 close_side = 'sell' if order_side == 'long' else 'buy'
                 market_price = await get_market_price(exchange, symbol)
-
+                client_order_id = await get_client_order_id()
                 # 执行平仓操作
                 close_order = await self.open_position(
                     account_id,
@@ -128,7 +128,9 @@ async def cleanup_opposite_positions(self, exchange: ccxt.Exchange, account_id: 
                     order_side,
                     float(order_size),
                     market_price,
-                    'market'
+                    'market',
+                    client_order_id,
+                    True,  # 设置为平仓
                 )
 
                 if not close_order:
