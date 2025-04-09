@@ -1,6 +1,11 @@
 import pymysql
 from typing import Dict, List, Optional
 
+TABLE_PREFIX = "g_"
+
+def table(name: str) -> str:
+    return f"{TABLE_PREFIX}{name}"
+
 class Database:
     def __init__(self, db_config: Dict):
         self.db_config = db_config
@@ -16,9 +21,9 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
+                cursor.execute(f"""
                     SELECT id, exchange, api_key, api_secret, api_passphrase 
-                    FROM accounts WHERE id=%s AND status=%s
+                    FROM {table('accounts')} WHERE id=%s AND status=%s
                 """, (account_id, 1))
                 account = cursor.fetchone()
                 if account:
@@ -37,8 +42,8 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO signals (account_id, timestamp, symbol, direction, price, size, status)
+                cursor.execute(f"""
+                    INSERT INTO {table('signals')} (account_id, timestamp, symbol, direction, price, size, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (
                     signal_data['account_id'],
@@ -65,8 +70,8 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT * FROM signals WHERE account_id=%s ORDER BY id DESC LIMIT 1
+                cursor.execute(f"""
+                    SELECT * FROM {table('signals')} WHERE account_id=%s ORDER BY id DESC LIMIT 1
                 """, (account_id,))
                 signal = cursor.fetchone()
                 return signal
@@ -84,8 +89,8 @@ class Database:
             print("order_info:", order_info)
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO orders 
+                cursor.execute(f"""
+                    INSERT INTO {table('orders')}
                     (account_id, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
@@ -119,8 +124,8 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO orders
+                cursor.execute(f"""
+                    INSERT INTO {table('orders')}
                     (account_id, symbol, position_group_id, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
@@ -154,8 +159,8 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT * FROM orders WHERE account_id=%s AND order_id=%s
+                cursor.execute(f"""
+                    SELECT * FROM {table('orders')} WHERE account_id=%s AND order_id=%s
                 """, (account_id, order_id))
                 order = cursor.fetchone()
                 return order
@@ -175,7 +180,7 @@ class Database:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
                 values = list(updates.values()) + [account_id, order_id]
                 query = f"""
-                    UPDATE orders
+                    UPDATE {table('orders')}
                     SET {set_clause}
                     WHERE account_id=%s AND order_id=%s
                 """
@@ -197,7 +202,7 @@ class Database:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
                 values = list(updates.values()) + [account_id, symbol]
                 query = f"""
-                    UPDATE orders
+                    UPDATE {table('orders')}
                     SET {set_clause}
                     WHERE account_id=%s AND symbol=%s
                 """
@@ -216,8 +221,8 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT * FROM orders 
+                cursor.execute(f"""
+                    SELECT * FROM {table('orders')} 
                     WHERE account_id=%s AND (status = 'live' OR status = 'partially_filled') AND (side = 'buy' OR side = 'sell') AND order_type = 'limit'  ORDER BY id DESC LIMIT 2
                 """, (account_id))
                 results = cursor.fetchall()
@@ -244,9 +249,9 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 查询总 quantity（未被取消、未平仓、反向方向、未被标记为已平仓）
-                query = """
+                query = f"""
                     SELECT SUM(quantity) AS total_quantity
-                    FROM orders
+                    FROM {table('orders')}
                     WHERE account_id = %s 
                     AND symbol = %s 
                     AND pos_side = %s 
@@ -269,8 +274,8 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    UPDATE orders
+                cursor.execute(f"""
+                    UPDATE {table('orders')}
                     SET is_clopos = 1
                     WHERE account_id = %s
                     AND symbol = %s 
@@ -300,9 +305,9 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 查询已成交（status为filled）的指定订单方向以及持仓方向的订单
-                query = """
+                query = f"""
                     SELECT id, account_id, timestamp, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos
-                    FROM orders
+                    FROM {table('orders')}
                     WHERE account_id = %s AND symbol = %s AND pos_side = %s AND status = 'filled' AND is_clopos = 0
                     ORDER BY id DESC
                 """
@@ -321,8 +326,8 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO positions 
+                cursor.execute(f"""
+                    INSERT INTO {table('positions')}
                     (account_id, pos_id, symbol, position_size, entry_price, position_status, open_time)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
@@ -352,8 +357,8 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT * FROM positions WHERE account_id=%s AND pos_id=%s
+                cursor.execute(f"""
+                    SELECT * FROM {table('positions')} WHERE account_id=%s AND pos_id=%s
                 """, (account_id, position_id))
                 position = cursor.fetchone()
                 return position
@@ -373,7 +378,7 @@ class Database:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
                 values = list(updates.values()) + [account_id, position_id]
                 query = f"""
-                    UPDATE positions
+                    UPDATE {table('positions')}
                     SET {set_clause}
                     WHERE account_id=%s AND pos_id=%s
                 """
@@ -392,7 +397,7 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "DELETE FROM positions WHERE account_id=%s AND symbol=%s",
+                    f"DELETE FROM {table('positions')} WHERE account_id=%s AND symbol=%s",
                     (account_id, symbol)
                 )
             conn.commit()
@@ -408,9 +413,9 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("""
+                cursor.execute(f"""
                     SELECT p.*, a.exchange 
-                    FROM positions p
+                    FROM {table('positions')} p
                     JOIN accounts a ON p.account_id = a.id
                 """)
                 positions = cursor.fetchall()

@@ -91,7 +91,6 @@ class OKXTradingBot:
         # 初始化账户和交易所
         await self.initialize_accounts()
 
-        """运行主程序"""
         signal_task = asyncio.create_task(self.signal_task.signal_processing_task())
         # await asyncio.gather(signal_task)
 
