@@ -120,6 +120,7 @@ class SignalProcessingTask:
         try:
             positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
             if not positions:
+                print("无持仓信息")
                 logging.warning("无持仓信息")
                 return
 
@@ -134,6 +135,7 @@ class SignalProcessingTask:
                 total_size += abs(pos_size)
 
             if total_size == 0:
+                print(f"无反向持仓需要平仓：{opposite_direction}")
                 logging.info(f"无反向持仓需要平仓：{opposite_direction}")
                 return
 
@@ -183,15 +185,14 @@ class SignalProcessingTask:
 
 
                 
-    async def handle_open_position(self, account_id: int, symbol: str, 
-                                direction: str, side: str, percent: float):
+    async def handle_open_position(self, account_id: int, symbol: str, direction: str, side: str, percent: float):
         """处理开仓"""
         print(f"⚡ 开仓操作: {direction} {side}")
         logging.info(f"⚡ 开仓操作: {direction} {side}")
         exchange = await get_exchange(self, account_id)
         
         # 1. 平掉反向仓位
-        await self.cleanup_opposite_positions(account_id, symbol, direction)
+        # await self.cleanup_opposite_positions(account_id, symbol, direction)
         
         # 2. 计算开仓量
         price = await get_market_price(exchange, symbol)
@@ -214,7 +215,7 @@ class SignalProcessingTask:
             'limit',
             client_order_id
         )
-        
+        print("order", order)
         if order:
             await self.db.add_order({
                 'account_id': account_id,
