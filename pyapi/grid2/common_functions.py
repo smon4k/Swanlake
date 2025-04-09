@@ -211,5 +211,32 @@ async def get_latest_filled_price_from_position_history(exchange, symbol: str, p
     except Exception as e:
         print(f"❌ 获取最新持仓历史失败: {e}")
         return Decimal('0')
+    
+
+async def cancel_all_orders(self, account_id: int, symbol: str):
+    """取消所有未成交的订单"""
+    exchange = await get_exchange(self, account_id)
+    if not exchange:
+        return None
+    
+    try:
+        open_orders = exchange.fetch_open_orders(symbol, None, None, {'instType': 'SWAP'}) # 获取未成交的订单
+        # print(f"未成交订单: {open_orders}")
+        for order in open_orders:
+            try:
+                cancel_order =  exchange.cancel_order(order['id'], symbol) # 进行撤单
+                print(f"取消未成交的订单: {order['id']}")
+                if cancel_order['info']['sCode'] == '0':
+                    existing_order = await self.db.get_order_by_id(account_id, order['id'])
+                    if existing_order:
+                        # 更新订单信息
+                        await self.db.update_order_by_id(account_id, order['id'], {
+                            'status': 'canceled'
+                        })
+                    # print(f"取消订单成功")
+            except Exception as e:
+                print(f"取消订单失败: {e}")
+    except Exception as e:
+        print(f"获取未成交订单失败: {e}")
 
 

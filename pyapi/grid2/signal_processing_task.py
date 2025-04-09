@@ -4,7 +4,7 @@ import uuid
 
 from database import Database
 from trading_bot_config import TradingBotConfig
-from common_functions import calculate_position_size, get_exchange, get_market_price, get_market_precision, open_position, get_client_order_id
+from common_functions import calculate_position_size, cancel_all_orders, get_exchange, get_market_price, get_market_precision, open_position, get_client_order_id
 
 class SignalProcessingTask:
     """交易信号处理类"""
@@ -143,6 +143,7 @@ class SignalProcessingTask:
                         'side': close_side,
                         'status': 'filled',
                         'is_clopos': 1,
+                        'position_group_id': str(uuid.uuid4()),
                     })
 
                     # 更新数据库中原始反向未平仓订单为已平仓
@@ -174,7 +175,6 @@ class SignalProcessingTask:
         # 3. 获取市场价格
         price = await get_market_price(exchange, symbol)
         client_order_id = await get_client_order_id()
-        group_id = str(uuid.uuid4())
         # 4. 下单并记录
         order = await open_position(
             self,
@@ -201,18 +201,20 @@ class SignalProcessingTask:
                 'order_type': 'limit',
                 'side': side, 
                 'status': 'live',
-                'position_group_id': group_id,
+                'position_group_id': str(uuid.uuid4()),
             })
 
     async def handle_close_position(self, account_id: int, symbol: str, direction: str, side: str):
         """处理平仓"""
         print(f"⚡ 平仓操作: {direction} {side}")
         
-        exchange = self.get_exchange(account_id)
+        exchange = await get_exchange(self, account_id)
         if not exchange:
             print(f"❌ 获取 exchange 失败")
             return
-    
+
+        await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
+
         # 1. 从数据库计算净持仓
         # 获取持仓信息
         positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
@@ -257,6 +259,7 @@ class SignalProcessingTask:
                 'side': side,
                 'status': 'filled',
                 'is_clopos': 1,
+                'position_group_id': str(uuid.uuid4()),
             })
             # 5. 更新数据库中原始订单为已平仓
             await self.db.mark_orders_as_closed(account_id, symbol, direction)

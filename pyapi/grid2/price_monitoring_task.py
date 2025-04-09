@@ -2,7 +2,7 @@
 import asyncio
 from decimal import Decimal
 import uuid
-from common_functions import get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, open_position, calculate_position_size, milliseconds_to_local_datetime
+from common_functions import cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, open_position, calculate_position_size, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 
@@ -83,7 +83,7 @@ class PriceMonitoringTask:
                 
             symbol = order['info']['instId']
 
-            await self.cancel_all_orders(account_id, symbol) # 取消所有未成交的订单
+            await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
 
             # 2. 平掉相反方向仓位
             # await cleanup_opposite_positions(self, exchange, account_id, symbol, order['side'])
@@ -169,32 +169,6 @@ class PriceMonitoringTask:
             import traceback
             traceback.print_exc()
 
-    async def cancel_all_orders(self, account_id: int, symbol: str):
-        """取消所有未成交的订单"""
-        exchange = await get_exchange(self, account_id)
-        if not exchange:
-            return None
-        
-        try:
-            open_orders = exchange.fetch_open_orders(symbol, None, None, {'instType': 'SWAP'}) # 获取未成交的订单
-            # print(f"未成交订单: {open_orders}")
-            for order in open_orders:
-                try:
-                    cancel_order =  exchange.cancel_order(order['id'], symbol) # 进行撤单
-                    print(f"取消未成交的订单: {order['id']}")
-                    if cancel_order['info']['sCode'] == '0':
-                        existing_order = await self.db.get_order_by_id(account_id, order['id'])
-                        if existing_order:
-                            # 更新订单信息
-                            await self.db.update_order_by_id(account_id, order['id'], {
-                                'status': 'canceled'
-                            })
-                        # print(f"取消订单成功")
-                except Exception as e:
-                    print(f"取消订单失败: {e}")
-        except Exception as e:
-            print(f"获取未成交订单失败: {e}")
-
     #生成一个获取订单信息的测试方法
     async def get_order_info(self, account_id: int, order_id: str):
         """获取订单信息"""
@@ -252,7 +226,6 @@ class PriceMonitoringTask:
                     'market',
                     client_order_id
                 )
-
                 # ✅ 更新数据库状态
                 await self.db.add_order({
                     'account_id': account_id,
@@ -267,11 +240,12 @@ class PriceMonitoringTask:
                     'side': close_side,
                     'status': 'filled',
                     'is_clopos': 1,
+                    'position_group_id': str(uuid.uuid4()),
                 })
 
                 await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单
 
-                await self.cancel_all_orders(account_id, symbol) # 取消所有未成交的订单
+                await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
 
     
         
