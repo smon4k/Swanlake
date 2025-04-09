@@ -57,9 +57,9 @@ class SignalProcessingTask:
             # operation = self.parse_operation(side, size)
             
             # 1. 解析操作类型 执行对应操作
-            # buy 1: 买入开多 buy long
+            # buy 1: 买入开多 buy long  结束：sell 0
             # buy 0: 买入平空 结束做多 buy short
-            # sell -1: 卖出开空 sell short
+            # sell -1: 卖出开空 sell short 结束： buy 0
             # sell 0: 卖出平多 结束做空 sell long
             if (side == 'buy' and size == 1) or (side == 'sell' and size == -1): # 开仓
                 # 1.1 开仓前先平掉反向仓位
@@ -75,12 +75,17 @@ class SignalProcessingTask:
                 )
             elif (side == 'buy' and size == 0) or (side == 'sell' and size == 0): # 平仓
                 # 1.3 平仓
-                await self.handle_close_position(
-                    account_id,
-                    symbol,
-                    pos_side,
-                    side
-                )
+                # await self.handle_close_position(
+                #     account_id,
+                #     symbol,
+                #     pos_side,
+                #     side
+                # )
+
+                # 1.4 取消所有未成交的订单
+                await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
+                # 1.5 平掉反向仓位
+                await self.cleanup_opposite_positions(account_id, symbol, pos_side)
             else:
                 print(f"❌ 无效信号: {side}{size}")
                 logging.error(f"❌ 无效信号: {side}{size}")
@@ -222,67 +227,3 @@ class SignalProcessingTask:
                 'status': 'live',
                 'position_group_id': str(uuid.uuid4()),
             })
-
-    async def handle_close_position(self, account_id: int, symbol: str, direction: str, side: str):
-        """处理平仓"""
-        print(f"⚡ 平仓操作: {direction} {side}")
-        logging.info(f"⚡ 平仓操作: {direction} {side}")
-        
-        exchange = await get_exchange(self, account_id)
-        if not exchange:
-            print(f"❌ 获取 exchange 失败")
-            logging.error(f"❌ 获取 exchange 失败")
-            return
-
-        await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
-
-        # 1. 从数据库计算净持仓
-        # 获取持仓信息
-        positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
-        net_size = Decimal('0')
-        for pos in positions:
-            pos_side = pos['side']  # long or short
-            if pos_side == direction:
-                net_size = Decimal(str(pos['contracts']))
-                break
-        
-        if net_size <= 0:
-            print(f"✅ 无 {direction} 方向持仓可平")
-            logging.info(f"✅ 无 {direction} 方向持仓可平")
-            return
-        
-        # 2. 执行平仓
-        client_order_id = await get_client_order_id()
-        order = await open_position(
-            self,
-            account_id, 
-            symbol, 
-            side, 
-            direction, 
-            float(net_size), 
-            None, 
-            'market',
-            client_order_id,
-            True
-        )
-        
-        if order:
-            current_price = await get_market_price(exchange, symbol)
-            # 4. 记录平仓订单
-            await self.db.add_order({
-                'account_id': account_id,
-                'symbol': symbol,
-                'order_id': order['id'],
-                'clorder_id': client_order_id,
-                'price': float(current_price),
-                'executed_price': None,
-                'quantity': float(net_size),
-                'pos_side': pos_side,
-                'order_type': 'market',
-                'side': side,
-                'status': 'filled',
-                'is_clopos': 1,
-                'position_group_id': str(uuid.uuid4()),
-            })
-            # 5. 更新数据库中原始订单为已平仓
-            await self.db.mark_orders_as_closed(account_id, symbol, direction)

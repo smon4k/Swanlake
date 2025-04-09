@@ -89,7 +89,7 @@ async def calculate_position_size(self, exchange: ccxt.Exchange, symbol: str, po
         trading_pair = symbol.replace("-", ",")
         balance = exchange.fetch_balance({"ccy": trading_pair})
         total_equity = Decimal(str(balance["USDT"]['total']))
-        print(f"账户余额: {total_equity}")
+        # print(f"账户余额: {total_equity}")
         # price = await get_market_price(exchange, symbol)
         market_precision = await get_market_precision(exchange, symbol, 'SWAP')
         # print("market_precision", market_precision)

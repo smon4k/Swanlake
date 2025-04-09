@@ -37,8 +37,8 @@ class PriceMonitoringTask:
             # print("open_orders", open_orders)
             # return
             if not open_orders:
-                print("没有获取到持仓订单")
-                logging.warning("没有获取到持仓订单")
+                # print("没有获取到持仓订单")
+                # logging.warning("没有获取到持仓订单")
                 return
             latest_order = None
             latest_fill_time = 0
@@ -232,8 +232,8 @@ class PriceMonitoringTask:
             else:
                 price_change = Decimal((entry_price - current_price) / entry_price)
 
-            print(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
-            logging.info(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
+            # print(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
+            # logging.info(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
             stop_profit_loss = Decimal(self.config.stop_profit_loss)  # 确保 stop_profit_loss 是 Decimal 类型
             # 判断止盈/止损
             # print(f"止盈止损: {stop_profit_loss:.4%}, 浮动变化: {abs(price_change)}")
