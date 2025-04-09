@@ -20,6 +20,7 @@ class TradingBotConfig:
         self.grid_step = Decimal('0.002')       # 0.2%
         self.grid_sell_percent = Decimal('0.05')  # 5%
         self.grid_buy_percent = Decimal('0.04')   # 4%
+        self.commission_price_difference = 50  # 委托价格差值(USDT)
 
         # 数据库配置
         self.db_config = {

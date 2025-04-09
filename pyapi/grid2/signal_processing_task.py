@@ -49,6 +49,7 @@ class SignalProcessingTask:
         pos_side = signal['direction'] # 'long' 或 'short'
         side =  'buy' if pos_side == 'long' else 'sell'  # 'buy' 或 'sell'
         size = signal['size']      # 1, 0, -1
+        price = signal['price']    # 0.00001
         
         print(f"📡 接收信号: {account_id} {symbol} {side} {size}")
         logging.info(f"📡 接收信号: {account_id} {symbol} {side} {size}")
@@ -72,7 +73,8 @@ class SignalProcessingTask:
                     symbol,
                     pos_side,
                     side,
-                    self.config.position_percent
+                    self.config.position_percent,
+                    price
                 )
             elif (side == 'buy' and size == 0) or (side == 'sell' and size == 0): # 平仓
                 # 1.3 平仓
@@ -185,7 +187,7 @@ class SignalProcessingTask:
 
 
                 
-    async def handle_open_position(self, account_id: int, symbol: str, direction: str, side: str, percent: float):
+    async def handle_open_position(self, account_id: int, symbol: str, direction: str, side: str, percent: float, price: Decimal):
         """处理开仓"""
         print(f"⚡ 开仓操作: {direction} {side}")
         logging.info(f"⚡ 开仓操作: {direction} {side}")
@@ -195,13 +197,13 @@ class SignalProcessingTask:
         # await self.cleanup_opposite_positions(account_id, symbol, direction)
         
         # 2. 计算开仓量
-        price = await get_market_price(exchange, symbol)
-        size = await calculate_position_size(self, exchange, symbol, percent, price)
+        # price = await get_market_price(exchange, symbol)
+        commission_price = price + self.config.commission_price_difference # 信号价 + 50U
+        size = await calculate_position_size(self, exchange, symbol, percent, commission_price)
         if size <= 0:
             return
             
         # 3. 获取市场价格
-        price = await get_market_price(exchange, symbol)
         client_order_id = await get_client_order_id()
         # 4. 下单并记录
         order = await open_position(
@@ -211,7 +213,7 @@ class SignalProcessingTask:
             side, 
             direction, 
             float(size), 
-            float(price), 
+            float(commission_price), 
             'limit',
             client_order_id
         )
@@ -222,7 +224,7 @@ class SignalProcessingTask:
                 'symbol': symbol,
                 'order_id': order['id'],
                 'clorder_id': client_order_id,
-                'price': float(price),
+                'price': float(commission_price),
                 'executed_price': None,
                 'quantity': float(size),
                 'pos_side': direction,
