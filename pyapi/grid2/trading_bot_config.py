@@ -31,4 +31,4 @@ class TradingBotConfig:
         }
 
         # 交易配置
-        self.check_interval = 10  # 价格检查间隔(秒)
+        self.check_interval = 3  # 价格检查间隔(秒)

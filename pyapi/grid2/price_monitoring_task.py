@@ -90,10 +90,10 @@ class PriceMonitoringTask:
 
             
             # order_id = order['info']['ordId']
-            filled_price = await get_latest_filled_price_from_position_history(exchange, symbol)
+            filled_price = Decimal(order['info']['fillPx'])
             # filled_price = Decimal(str(order['info']['fillPx']))  # 订单成交价
             print(f"最新订单成交价: {filled_price}")
-            
+            # return
             # 3. 计算新挂单价格（基于订单成交价±0.2%）
             sell_price = filled_price * (Decimal('1') + Decimal(str(self.config.grid_step)))
             buy_price = filled_price * (Decimal('1') - Decimal(str(self.config.grid_step)))

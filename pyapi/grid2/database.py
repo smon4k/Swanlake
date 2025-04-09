@@ -233,6 +233,39 @@ class Database:
         finally:
             if conn:
                 conn.close()
+    
+    # 获取订单表中最新成交的一条记录
+    async def get_latest_filled_order(self, account_id: int, symbol: str) -> Optional[Dict]:
+        """
+        获取指定账户和交易对的最新成交订单记录
+
+        :param account_id: 账户ID
+        :param symbol: 交易对
+        :return: 最新成交的订单记录，如果没有则返回None
+        """
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                query = f"""
+                    SELECT * FROM {table('orders')}
+                    WHERE account_id = %s 
+                    AND symbol = %s 
+                    AND status = 'filled'
+                    ORDER BY id DESC
+                    LIMIT 1
+                """
+                cursor.execute(query, (account_id, symbol))
+                result = cursor.fetchone()
+                if result:
+                    return result
+                else:
+                    return None
+        except Exception as e:
+            print(f"获取最新成交订单记录失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
 
 
     # 获取未平仓的反向订单数据
