@@ -51,6 +51,7 @@ class SignalProcessingTask:
         size = signal['size']      # 1, 0, -1
         
         print(f"📡 接收信号: {account_id} {symbol} {side} {size}")
+        logging.info(f"📡 接收信号: {account_id} {symbol} {side} {size}")
 
         try:
             # 1. 解析操作类型
@@ -82,9 +83,10 @@ class SignalProcessingTask:
                 #     side
                 # )
 
-                # 1.4 取消所有未成交的订单
+                # 1.3 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
-                # 1.5 平掉反向仓位
+
+                # 1.4 平掉反向仓位
                 await self.cleanup_opposite_positions(account_id, symbol, pos_side)
             else:
                 print(f"❌ 无效信号: {side}{size}")
@@ -185,6 +187,7 @@ class SignalProcessingTask:
                                 direction: str, side: str, percent: float):
         """处理开仓"""
         print(f"⚡ 开仓操作: {direction} {side}")
+        logging.info(f"⚡ 开仓操作: {direction} {side}")
         exchange = await get_exchange(self, account_id)
         
         # 1. 平掉反向仓位
