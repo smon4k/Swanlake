@@ -85,6 +85,28 @@ class Database:
         finally:
             if conn:
                 conn.close()
+
+    # 获取信号表中做多和做空的最新一条记录
+    async def get_latest_signal_by_direction(self, account_id: int) -> Optional[Dict]:
+        """获取信号表中做多和做空的最新一条记录"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT * FROM {table('signals')}
+                    WHERE account_id=%s AND (direction='long' AND size=1) OR (direction='short' AND size=-1)
+                    ORDER BY id DESC LIMIT 1
+                """, (account_id,))
+                signal = cursor.fetchone()
+                return signal
+        except Exception as e:
+            print(f"获取最新信号失败: {e}")
+            logging.error(f"获取最新信号失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
                 
     async def record_order(self, account_id: int, order_id: str, price: float, quantity: float, symbol: str, order_info: Dict, is_clopos: int = 0):
         """记录订单到数据库"""

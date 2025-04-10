@@ -208,9 +208,9 @@ class SignalProcessingTask:
             print(f"开仓量为0，不执行开仓")
             logging.info(f"开仓量为0，不执行开仓")
             return
-        if size >= self.config.total_position:
-            print(f"开仓量超过总仓位限制，不执行开仓")
-            logging.info(f"开仓量超过总仓位限制，不执行开仓")
+        if size >= self.config.max_position:
+            print(f"开仓量超过最大仓位限制，不执行开仓")
+            logging.info(f"开仓量超过最大仓位限制，不执行开仓")
             return
             
         # 3. 获取市场价格

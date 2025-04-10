@@ -10,6 +10,7 @@ class TradingBotConfig:
         # 加载.env文件中的环境变量
         load_dotenv()
         # 仓位配置
+        self.multiple = Decimal('3')             # 多空倍数
         self.position_percent = Decimal('0.8')  # 开仓比例(80%)
         self.max_position = Decimal('90')      # 最大仓位张数
         self.total_position = Decimal('100')      # 总仓位张数

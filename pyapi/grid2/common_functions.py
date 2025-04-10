@@ -93,7 +93,7 @@ async def calculate_position_size(self, exchange: ccxt.Exchange, symbol: str, po
         # price = await get_market_price(exchange, symbol)
         market_precision = await get_market_precision(exchange, symbol, 'SWAP')
         # print("market_precision", market_precision)
-        position_size = (total_equity * position_percent) / (price * Decimal(market_precision['amount']))
+        position_size = (total_equity * self.config.multiple * position_percent) / (price * Decimal(market_precision['amount']))
         position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
         return min(position_size, self.config.total_position)
     except Exception as e:
