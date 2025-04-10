@@ -47,11 +47,11 @@ module.exports = {
         },
         timeout: 600000,
       },
-      "/Answer": {
+      "/Grid": {
         target: "http://www.swan.com",
         changeOrigin: true,
         pathRewrite: {
-          "^/Answer": "/Answer"
+          "^/Grid": "/Grid"
         },
         timeout: 600000,
       },

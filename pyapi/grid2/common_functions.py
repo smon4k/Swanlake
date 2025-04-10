@@ -83,23 +83,17 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
             print(f"开仓失败: {e}")
             raise
 
-async def calculate_position_size(self, exchange: ccxt.Exchange, symbol: str, position_percent: Decimal, price: float) -> Decimal:
-    """计算仓位大小"""
+#获取账户余额
+async def get_account_balance(exchange: ccxt.Exchange, symbol:str) -> Decimal:
+    """获取账户余额"""
     try:
         trading_pair = symbol.replace("-", ",")
         balance = exchange.fetch_balance({"ccy": trading_pair})
         total_equity = Decimal(str(balance["USDT"]['total']))
-        print(f"账户余额: {total_equity}")
-        # price = await get_market_price(exchange, symbol)
-        market_precision = await get_market_precision(exchange, symbol, 'SWAP')
-        # print("market_precision", market_precision)
-        position_size = (total_equity * self.config.multiple * position_percent) / (price * Decimal(market_precision['amount']))
-        position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-        return min(position_size, self.config.total_position)
+        return total_equity
     except Exception as e:
-        print(f"计算仓位失败: {e}")
+        print(f"获取账户余额失败: {e}")
         return Decimal('0')
-    
 
 async def cleanup_opposite_positions(self, exchange: ccxt.Exchange, account_id: int, symbol: str, direction: str):
     """平掉相反方向仓位"""

@@ -3,7 +3,7 @@ import asyncio
 from decimal import Decimal
 import logging
 import uuid
-from common_functions import get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, open_position, calculate_position_size, milliseconds_to_local_datetime
+from common_functions import get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 
@@ -80,12 +80,12 @@ class PriceMonitoringTask:
             logging.error(f"检查持仓失败: {e}")
 
     async def manage_grid_orders(self, order: dict, account_id: int):
-        """基于订单成交价进行撤单和网格管理，使用calculate_position_size计算挂单数量"""
+        """基于订单成交价进行撤单和网格管理，计算挂单数量"""
         try:
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 print("未找到交易所实例")
-                logging.warning("未找到交易所实例")
+                logging.info("未找到交易所实例")
                 return
                 
             symbol = order['info']['instId']
@@ -111,7 +111,7 @@ class PriceMonitoringTask:
             positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
             if not positions:
                 print("网格下单 无持仓信息")
-                logging.warning("网格下单 无持仓信息")
+                logging.info("网格下单 无持仓信息")
                 return
             # print("positions", positions)
             total_position_value = Decimal('0')
@@ -121,16 +121,30 @@ class PriceMonitoringTask:
                     continue
                 value = abs(pos_amt)
                 total_position_value += value
-            if(total_position_value >= self.config.max_position):
+            price = await get_market_price(exchange, symbol)
+
+            signal = await self.db.get_latest_signal(account_id)  # 获取最新信号
+            side = 'buy' if signal['direction'] == 'long' else 'sell'
+
+            market_precision = await get_market_precision(exchange, symbol, 'SWAP') # 获取市场精度
+
+            print("总持仓数量", total_position_value)
+            total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price / self.config.multiple # 计算总持仓价值
+            print("总持仓价值", total_position_quantity)
+            if side == 'buy' and (total_position_quantity >= self.config.max_position): # 总持仓价值大于等于最大持仓
                 print("下单量超过最大持仓，不执行挂单")
-                logging.warning("下单量超过最大持仓，不执行挂单")
+                logging.info("下单量超过最大持仓，不执行挂单")
                 return
             
+            if side == 'sell' and (total_position_quantity <= 0.01): # 总持仓价值小于等于0.01
+                print("下单量小于0.01，不执行挂单")
+                logging.info("下单量小于0.01，不执行挂单")
+                return
             # 4. 使用calculate_position_size计算挂单数量
             # buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
             # sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
 
-            market_precision = await get_market_precision(exchange, symbol, 'SWAP')
+            
             buy_size = total_position_value * Decimal(str(self.config.grid_buy_percent))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
@@ -144,7 +158,6 @@ class PriceMonitoringTask:
             group_id = str(uuid.uuid4())
             signal = await self.db.get_latest_signal(account_id)  # 获取最新信号
             if signal:
-                side = 'buy' if signal['direction'] == 'long' else 'sell'
                 pos_side = 'long'
                 if side == 'buy' and signal['size'] == 1: # 开多
                     pos_side = 'long'
@@ -215,7 +228,7 @@ class PriceMonitoringTask:
                     logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
             else:
                 print("未获取到信号")
-                logging.warning("未获取到信号")
+                logging.info("未获取到信号")
         except Exception as e:
             print(f"网格订单管理失败: {str(e)}")
             logging.error(f"网格订单管理失败: {str(e)}")

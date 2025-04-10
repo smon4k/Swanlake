@@ -3,9 +3,11 @@ from decimal import Decimal
 import logging
 import uuid
 
+import ccxt
+
 from database import Database
 from trading_bot_config import TradingBotConfig
-from common_functions import calculate_position_size, cancel_all_orders, get_exchange, get_market_price, get_market_precision, open_position, get_client_order_id
+from common_functions import cancel_all_orders, get_account_balance, get_exchange, get_market_price, get_market_precision, open_position, get_client_order_id
 
 class SignalProcessingTask:
     """交易信号处理类"""
@@ -203,7 +205,17 @@ class SignalProcessingTask:
         elif(pos_side =='long'): # 做多
             price = price + self.config.commission_price_difference # 信号价 + 50U
 
-        size = await calculate_position_size(self, exchange, symbol, percent, price)
+        balance = await get_account_balance(exchange, symbol)
+        print(f"账户余额: {balance}")
+        if balance is None:
+            print(f"账户余额获取失败")
+            logging.error(f"账户余额获取失败")
+            return
+        max_balance = self.config.max_position * self.config.position_percent #  最大仓位数 * 开仓比例
+        if balance >= max_balance: # 超过最大仓位限制
+            balance = self.config.max_position
+        print(f"成交余额: {balance}")
+        size = await self.calculate_position_size(exchange, balance, symbol, percent, price)
         if size <= 0:
             print(f"开仓量为0，不执行开仓")
             logging.info(f"开仓量为0，不执行开仓")
@@ -243,3 +255,19 @@ class SignalProcessingTask:
                 'status': 'live',
                 'position_group_id': str(uuid.uuid4()),
             })
+
+    async def calculate_position_size(self, exchange: ccxt.Exchange, balance: Decimal, symbol: str, position_percent: Decimal, price: float) -> Decimal:
+        """计算仓位大小"""
+        try:
+            # balance = get_account_balance(exchange, symbol)
+            # total_equity = Decimal(str(balance["USDT"]['total']))
+            # print(f"账户余额: {total_equity}")
+            # price = await get_market_price(exchange, symbol)
+            market_precision = await get_market_precision(exchange, symbol, 'SWAP')
+            # print("market_precision", market_precision)
+            position_size = (balance * self.config.multiple * position_percent) / (price * Decimal(market_precision['amount']))
+            position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+            return min(position_size, self.config.total_position)
+        except Exception as e:
+            print(f"计算仓位失败: {e}")
+            return Decimal('0')
