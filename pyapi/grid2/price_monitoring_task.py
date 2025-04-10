@@ -3,7 +3,7 @@ import asyncio
 from decimal import Decimal
 import logging
 import uuid
-from common_functions import cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, open_position, calculate_position_size, milliseconds_to_local_datetime
+from common_functions import get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, open_position, calculate_position_size, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 
@@ -32,6 +32,7 @@ class PriceMonitoringTask:
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 return
+
             # 获取订单未成交的订单
             open_orders = await self.db.get_active_orders(account_id) # 获取未撤销的和未平仓的订单
             # print("open_orders", open_orders)
@@ -106,12 +107,39 @@ class PriceMonitoringTask:
             sell_price = filled_price * (Decimal('1') + Decimal(str(self.config.grid_step)))
             # print(f"计算挂单价: 卖{sell_price} 买{buy_price}")
             # return
+
+            positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+            if not positions:
+                print("网格下单 无持仓信息")
+                logging.warning("网格下单 无持仓信息")
+                return
+            # print("positions", positions)
+            total_position_value = Decimal('0')
+            for pos in positions:
+                pos_amt = Decimal(str(pos.get('contracts') or 0))
+                if pos_amt == 0:
+                    continue
+                value = abs(pos_amt)
+                total_position_value += value
+            if(total_position_value >= self.config.max_position):
+                print("下单量超过最大持仓，不执行挂单")
+                logging.warning("下单量超过最大持仓，不执行挂单")
+                return
+            
             # 4. 使用calculate_position_size计算挂单数量
-            buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
-            sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
+            # buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
+            # sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
+
+            market_precision = await get_market_precision(exchange, symbol, 'SWAP')
+            buy_size = total_position_value * Decimal(str(self.config.grid_buy_percent))
+            buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+
+            sell_size = total_position_value * Decimal(str(self.config.grid_sell_percent))
+            sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             logging.info(f"计算挂单量: 卖{sell_size} 买{buy_size}")
-            # return
+            
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
             signal = await self.db.get_latest_signal(account_id)  # 获取最新信号

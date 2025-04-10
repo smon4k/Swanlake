@@ -11,7 +11,8 @@ class TradingBotConfig:
         load_dotenv()
         # 仓位配置
         self.position_percent = Decimal('0.8')  # 开仓比例(80%)
-        self.max_position = Decimal('100')      # 最大仓位张数
+        self.max_position = Decimal('90')      # 最大仓位张数
+        self.total_position = Decimal('100')      # 总仓位张数
 
         # 止损止盈配置
         self.stop_profit_loss = Decimal('0.007')  # 0.7%

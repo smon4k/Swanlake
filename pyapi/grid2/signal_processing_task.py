@@ -208,6 +208,10 @@ class SignalProcessingTask:
             print(f"开仓量为0，不执行开仓")
             logging.info(f"开仓量为0，不执行开仓")
             return
+        if size >= self.config.total_position:
+            print(f"开仓量超过总仓位限制，不执行开仓")
+            logging.info(f"开仓量超过总仓位限制，不执行开仓")
+            return
             
         # 3. 获取市场价格
         client_order_id = await get_client_order_id()
@@ -223,7 +227,7 @@ class SignalProcessingTask:
             'limit',
             client_order_id
         )
-        print("order", order)
+        # print("order", order)
         if order:
             await self.db.add_order({
                 'account_id': account_id,
