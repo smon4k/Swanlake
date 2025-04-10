@@ -75,7 +75,6 @@ class SignalProcessingTask:
                     symbol,
                     pos_side,
                     side,
-                    self.config.position_percent,
                     price
                 )
             elif (side == 'buy' and size == 0) or (side == 'sell' and size == 0): # 平仓
@@ -189,7 +188,7 @@ class SignalProcessingTask:
 
 
                 
-    async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, percent: float, price: Decimal):
+    async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, price: Decimal):
         """处理开仓"""
         print(f"⚡ 开仓操作: {pos_side} {side}")
         logging.info(f"⚡ 开仓操作: {pos_side} {side}")
@@ -215,7 +214,7 @@ class SignalProcessingTask:
         if balance >= max_balance: # 超过最大仓位限制
             balance = self.config.max_position
         print(f"成交余额: {balance}")
-        size = await self.calculate_position_size(exchange, balance, symbol, percent, price)
+        size = await self.calculate_position_size(exchange, balance, symbol, self.config.position_percent, price)
         if size <= 0:
             print(f"开仓量为0，不执行开仓")
             logging.info(f"开仓量为0，不执行开仓")
