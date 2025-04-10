@@ -116,9 +116,9 @@ class AuthMenuRule extends Base
     * @author [qinlh] [WeChat QinLinHui0706]
     */
     public static function addAuthMenuRuleData($InsertData) {
-        $res = self::where("name", $InsertData['name'])->find();
+        $res = self::where("path", $InsertData['path'])->find();
         if($res) {
-            return ['code'=>0, 'msg'=>'该菜单已经存在'];
+            return ['code'=>0, 'msg'=>'该路由已经存在'];
         }
         $res = self::insert($InsertData);
         if(true == $res) {

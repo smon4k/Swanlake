@@ -129,7 +129,7 @@ class PriceMonitoringTask:
             market_precision = await get_market_precision(exchange, symbol, 'SWAP') # 获取市场精度
 
             print("总持仓数量", total_position_value)
-            total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price / self.config.multiple # 计算总持仓价值
+            total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
             print("总持仓价值", total_position_quantity)
             if side == 'buy' and (total_position_quantity >= self.config.max_position): # 总持仓价值大于等于最大持仓
                 print("下单量超过最大持仓，不执行挂单")
