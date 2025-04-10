@@ -30,6 +30,7 @@ const GoldBifis = () => import('@/pages/Gold/bifis.vue')
 const LlpMonitor = () => import('@/pages/LlpMonitor/list.vue')
 
 const GridOrderList = () => import('@/pages/Grid/list.vue')
+const GridOrderConfig = () => import('@/pages/Grid/config.vue')
 
 Vue.use(Router)
 
@@ -194,7 +195,16 @@ const router = new Router({
           name: 'GridOrderList',
           component: GridOrderList,
           meta: {
-            name: '网格订单',
+            name: '订单列表',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'grid/config',
+          name: 'GridOrderConfig',
+          component: GridOrderConfig,
+          meta: {
+            name: '机器人配置',
             notKeepAlive: true
           }
         }
