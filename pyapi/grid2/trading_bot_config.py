@@ -20,8 +20,18 @@ class TradingBotConfig:
 
         # 网格交易配置
         self.grid_step = Decimal('0.002')       # 0.2%
-        self.grid_sell_percent = Decimal('0.05')  # 5%
-        self.grid_buy_percent = Decimal('0.04')   # 4%
+        # self.grid_sell_percent = Decimal('0.05')  # 5%
+        # self.grid_buy_percent = Decimal('0.04')   # 4%
+        self.grid_percent_config = {
+            'long': {   # 做多逻辑：低买高卖
+                'buy': Decimal('0.04'),
+                'sell': Decimal('0.05')
+            },
+            'short': {  # 做空逻辑：高卖低买
+                'buy': Decimal('0.05'),
+                'sell': Decimal('0.04')
+            }
+        }
         self.commission_price_difference = 50  # 委托价格差值(USDT)
 
         # 数据库配置

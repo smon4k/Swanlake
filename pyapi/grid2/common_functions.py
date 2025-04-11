@@ -210,7 +210,7 @@ async def get_latest_filled_price_from_position_history(exchange, symbol: str, p
         return Decimal('0')
     
 
-async def cancel_all_orders(self, account_id: int, symbol: str):
+async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all'):
     """取消所有未成交的订单"""
     exchange = await get_exchange(self, account_id)
     if not exchange:
@@ -220,6 +220,12 @@ async def cancel_all_orders(self, account_id: int, symbol: str):
         open_orders = exchange.fetch_open_orders(symbol, None, None, {'instType': 'SWAP'}) # 获取未成交的订单
         # print(f"未成交订单: {open_orders}")
         for order in open_orders:
+            order_side = order.get('side', '').lower()
+
+            # 根据 side 参数过滤订单
+            if side != 'all' and order_side != side:
+                continue  # 跳过不匹配的订单
+
             try:
                 cancel_order =  exchange.cancel_order(order['id'], symbol) # 进行撤单
                 print(f"取消未成交的订单: {order['id']}")

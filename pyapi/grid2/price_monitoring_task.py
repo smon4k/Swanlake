@@ -32,7 +32,7 @@ class PriceMonitoringTask:
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 return
-
+        
             # 获取订单未成交的订单
             open_orders = await self.db.get_active_orders(account_id) # 获取未撤销的和未平仓的订单
             # print("open_orders", open_orders)
@@ -90,8 +90,6 @@ class PriceMonitoringTask:
                 
             symbol = order['info']['instId']
 
-            await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
-
             # 2. 平掉相反方向仓位
             # await cleanup_opposite_positions(self, exchange, account_id, symbol, order['side'])
 
@@ -131,24 +129,33 @@ class PriceMonitoringTask:
             print("总持仓数量", total_position_value)
             total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
             print("总持仓价值", total_position_quantity)
+            cancel_size = 'all'
             if side == 'buy' and (total_position_quantity >= self.config.max_position): # 总持仓价值大于等于最大持仓
+                cancel_size = 'buy' # 取消未成交的订单只取消买单
                 print("下单量超过最大持仓，不执行挂单")
                 logging.info("下单量超过最大持仓，不执行挂单")
                 return
             
             if side == 'sell' and (total_position_quantity <= 0.01): # 总持仓价值小于等于0.01
+                cancel_size = 'sell' # 取消未成交的订单只取消卖单
                 print("下单量小于0.01，不执行挂单")
                 logging.info("下单量小于0.01，不执行挂单")
                 return
+            
+            await cancel_all_orders(self, account_id, symbol, cancel_size) # 取消所有未成交的订单
+
             # 4. 使用calculate_position_size计算挂单数量
             # buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
             # sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
 
-            
-            buy_size = total_position_value * Decimal(str(self.config.grid_buy_percent))
+            buy_percent = self.config.grid_percent_config[signal['direction']]['buy']
+            # print('buy_percent', buy_percent)
+            buy_size = total_position_value * Decimal(str(buy_percent))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
-            sell_size = total_position_value * Decimal(str(self.config.grid_sell_percent))
+            sell_percent = self.config.grid_percent_config[signal['direction']]['sell']
+            # print('sell_percent', sell_percent)
+            sell_size = total_position_value * Decimal(str(sell_percent))
             sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
