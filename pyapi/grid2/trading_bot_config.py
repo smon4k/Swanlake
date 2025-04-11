@@ -1,14 +1,18 @@
 from decimal import Decimal
+from typing import Dict
 from dotenv import load_dotenv
 import os
+from database import Database
 
 import pymysql
 
 class TradingBotConfig:
     """交易机器人配置类"""
     def __init__(self):
+
         # 加载.env文件中的环境变量
         load_dotenv()
+
         # 仓位配置
         self.multiple = Decimal('3')             # 多空倍数
         self.position_percent = Decimal('0.8')  # 开仓比例(80%)
@@ -22,7 +26,7 @@ class TradingBotConfig:
         self.grid_step = Decimal('0.002')       # 0.2%
         # self.grid_sell_percent = Decimal('0.05')  # 5%
         # self.grid_buy_percent = Decimal('0.04')   # 4%
-        self.grid_percent_config = {
+        self.grid_percent_config = { # 网格比例配置
             'long': {   # 做多逻辑：低买高卖
                 'buy': Decimal('0.04'),
                 'sell': Decimal('0.05')
@@ -44,4 +48,4 @@ class TradingBotConfig:
         }
 
         # 交易配置
-        self.check_interval = 3  # 价格检查间隔(秒)
+        self.check_interval = 3  # 价格检查间隔(秒

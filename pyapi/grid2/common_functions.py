@@ -1,3 +1,4 @@
+import json
 from typing import Tuple
 import ccxt
 from decimal import Decimal
@@ -241,5 +242,16 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
                 print(f"取消订单失败: {e}")
     except Exception as e:
         print(f"获取未成交订单失败: {e}")
+
+async def get_max_position_value(self, account_id: int, symbol: str) -> Decimal:
+    """根据交易对匹配对应的最大仓位值"""
+    normalized_symbol = symbol.upper().replace('-SWAP', '')
+
+    max_position_list = self.db.account_config_cache.get(account_id, {}).get('max_position_list', [])
+    max_position_list_arr = json.loads(max_position_list)
+    for item in max_position_list_arr:
+        if item.get('symbol') == normalized_symbol:
+            return Decimal(item.get('value'))
+    return Decimal('0')  # 如果没有匹配到，返回0
 
 

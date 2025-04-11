@@ -11,10 +11,30 @@ class Database:
     def __init__(self, db_config: Dict):
         self.db_config = db_config
         self.account_cache: Dict[int, dict] = {}  # 账户信息缓存
+        self.account_config_cache: Dict[int, dict] = {}  # 账户配置信息缓存
 
     def get_db_connection(self):
         """获取数据库连接"""
         return pymysql.connect(**self.db_config)
+
+    # 根据账户id读取配置文件数据
+    async def get_config_by_account_id(self, account_id: int) -> Optional[Dict]:
+        """从数据库获取配置文件数据"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT * FROM {table('config')} WHERE account_id=%s
+                """, (account_id,))
+                config = cursor.fetchone()
+                if config:
+                    self.account_config_cache[account_id] = config  # 缓存配置信息
+                return config
+        except Exception as e:
+            print(f"获取配置文件数据失败: {e}")
+            logging.error(f"获取配置文件数据失败: {e}")
+            return None
 
     async def get_account_info(self, account_id: int) -> Optional[Dict]:
         """从数据库获取账户信息（带缓存）"""

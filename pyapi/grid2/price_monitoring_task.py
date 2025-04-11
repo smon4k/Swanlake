@@ -3,7 +3,7 @@ import asyncio
 from decimal import Decimal
 import logging
 import uuid
-from common_functions import get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, open_position, milliseconds_to_local_datetime
+from common_functions import get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 
@@ -65,7 +65,7 @@ class PriceMonitoringTask:
                         latest_order = order_info
                     executed_price = order_info['info'].get('fillPx') # 成交价格
 
-                await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
+                # await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                 
             if latest_order:
                 print(f"订单已成交，成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
@@ -99,10 +99,10 @@ class PriceMonitoringTask:
             # filled_price = Decimal(str(order['info']['fillPx']))  # 订单成交价
             print(f"最新订单成交价: {filled_price}")
             logging.info(f"最新订单成交价: {filled_price}")
-            # return
+            
             # 3. 计算新挂单价格（基于订单成交价±0.2%）
-            buy_price = filled_price * (Decimal('1') - Decimal(str(self.config.grid_step)))
-            sell_price = filled_price * (Decimal('1') + Decimal(str(self.config.grid_step)))
+            buy_price = filled_price * (Decimal('1') - Decimal(str(self.db.account_config_cache[account_id].get('grid_step'))))
+            sell_price = filled_price * (Decimal('1') + Decimal(str(self.db.account_config_cache[account_id].get('grid_step'))))
             # print(f"计算挂单价: 卖{sell_price} 买{buy_price}")
             # return
 
@@ -130,7 +130,8 @@ class PriceMonitoringTask:
             total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
             print("总持仓价值", total_position_quantity)
             cancel_size = 'all'
-            if side == 'buy' and (total_position_quantity >= self.config.max_position): # 总持仓价值大于等于最大持仓
+            max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
+            if side == 'buy' and (total_position_quantity >= max_position): # 总持仓价值大于等于最大持仓
                 cancel_size = 'buy' # 取消未成交的订单只取消买单
                 print("下单量超过最大持仓，不执行挂单")
                 logging.info("下单量超过最大持仓，不执行挂单")
@@ -160,6 +161,7 @@ class PriceMonitoringTask:
 
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             logging.info(f"计算挂单量: 卖{sell_size} 买{buy_size}")
+            return
             
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
