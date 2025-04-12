@@ -320,6 +320,10 @@
       },
       onUpdateSubmit(formName) { //修改
         const map = {};
+        if(this.FormData.max_position_list.length <= 0) {
+          this.$message.error('请添加仓位配置');
+          return;
+        }
         this.FormData.max_position_list.forEach(item => {
           if (item.symbol) map[item.symbol + '-SWAP'] = item.value;  // 加 -SWAP 是为了兼容原有字段
         });

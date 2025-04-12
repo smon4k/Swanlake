@@ -7,7 +7,7 @@ import ccxt
 
 from database import Database
 from trading_bot_config import TradingBotConfig
-from common_functions import cancel_all_orders, get_account_balance, get_exchange, get_market_price, get_market_precision, open_position, get_client_order_id
+from common_functions import cancel_all_orders, get_account_balance, get_exchange, get_market_price, get_market_precision, get_max_position_value, open_position, get_client_order_id
 
 class SignalProcessingTask:
     """交易信号处理类"""
@@ -212,7 +212,7 @@ class SignalProcessingTask:
             logging.error(f"账户余额获取失败")
             return
         
-        max_position = Decimal(self.db.account_config_cache[account_id].get('max_position'))
+        max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
         position_percent = Decimal(self.db.account_config_cache[account_id].get('position_percent'))
         max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
         if balance >= max_balance: # 超过最大仓位限制
