@@ -3,7 +3,7 @@ import asyncio
 from decimal import Decimal
 import logging
 import uuid
-from common_functions import get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
+from common_functions import get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 
@@ -101,8 +101,9 @@ class PriceMonitoringTask:
             logging.info(f"最新订单成交价: {filled_price}")
             
             # 3. 计算新挂单价格（基于订单成交价±0.2%）
-            buy_price = filled_price * (Decimal('1') - Decimal(str(self.db.account_config_cache[account_id].get('grid_step'))))
-            sell_price = filled_price * (Decimal('1') + Decimal(str(self.db.account_config_cache[account_id].get('grid_step'))))
+            grid_step = Decimal(str(self.db.account_config_cache[account_id].get('grid_step')))
+            buy_price = filled_price * (Decimal('1') - grid_step)
+            sell_price = filled_price * (Decimal('1') + grid_step)
             # print(f"计算挂单价: 卖{sell_price} 买{buy_price}")
             # return
 
@@ -148,20 +149,21 @@ class PriceMonitoringTask:
             # 4. 使用calculate_position_size计算挂单数量
             # buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
             # sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
-
-            buy_percent = self.config.grid_percent_config[signal['direction']]['buy']
+            percent_list = await get_grid_percent_list(self, account_id, signal['direction'])
+            buy_percent = percent_list.get('buy')
             # print('buy_percent', buy_percent)
             buy_size = total_position_value * Decimal(str(buy_percent))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
-            sell_percent = self.config.grid_percent_config[signal['direction']]['sell']
+            # sell_percent = self.config.grid_percent_config[signal['direction']]['sell']
+            sell_percent = percent_list.get('sell')
             # print('sell_percent', sell_percent)
             sell_size = total_position_value * Decimal(str(sell_percent))
             sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             logging.info(f"计算挂单量: 卖{sell_size} 买{buy_size}")
-            return
+            
             
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
@@ -284,7 +286,7 @@ class PriceMonitoringTask:
 
             # print(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
             # logging.info(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
-            stop_profit_loss = Decimal(self.config.stop_profit_loss)  # 确保 stop_profit_loss 是 Decimal 类型
+            stop_profit_loss = Decimal(Decimal(str(self.db.account_config_cache[account_id].get('stop_profit_loss'))))  # 确保 stop_profit_loss 是 Decimal 类型
             # 判断止盈/止损
             # print(f"止盈止损: {stop_profit_loss:.4%}, 浮动变化: {abs(price_change)}")
             if abs(price_change) <= -stop_profit_loss:  # ±0.7%

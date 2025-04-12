@@ -254,4 +254,14 @@ async def get_max_position_value(self, account_id: int, symbol: str) -> Decimal:
             return Decimal(item.get('value'))
     return Decimal('0')  # 如果没有匹配到，返回0
 
+async def get_grid_percent_list(self, account_id: int, direction: str) -> Decimal:
+    """根据交易对匹配对应的最大仓位值"""
+
+    grid_percent_list = self.db.account_config_cache.get(account_id, {}).get('grid_percent_list', [])
+    grid_percent_list_arr = json.loads(grid_percent_list)
+    for item in grid_percent_list_arr:
+        if item.get('direction') == direction:
+            return item
+    return []  # 如果没有匹配到，返回[]
+
 

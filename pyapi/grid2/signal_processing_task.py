@@ -199,10 +199,11 @@ class SignalProcessingTask:
         
         # 2. 计算开仓量
         # price = await get_market_price(exchange, symbol)
+        commission_price_difference = Decimal(self.db.account_config_cache[account_id].get('commission_price_difference'))
         if(pos_side == 'short'): # 做空
-            price = price - self.config.commission_price_difference # 信号价 - 50U
+            price = price - commission_price_difference # 信号价 - 50U
         elif(pos_side =='long'): # 做多
-            price = price + self.config.commission_price_difference # 信号价 + 50U
+            price = price + commission_price_difference # 信号价 + 50U
 
         balance = await get_account_balance(exchange, symbol)
         print(f"账户余额: {balance}")
@@ -210,16 +211,19 @@ class SignalProcessingTask:
             print(f"账户余额获取失败")
             logging.error(f"账户余额获取失败")
             return
-        max_balance = self.config.max_position * self.config.position_percent #  最大仓位数 * 开仓比例
+        
+        max_position = Decimal(self.db.account_config_cache[account_id].get('max_position'))
+        position_percent = Decimal(self.db.account_config_cache[account_id].get('position_percent'))
+        max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
         if balance >= max_balance: # 超过最大仓位限制
-            balance = self.config.max_position
+            balance = max_position
         print(f"成交余额: {balance}")
-        size = await self.calculate_position_size(exchange, balance, symbol, self.config.position_percent, price)
+        size = await self.calculate_position_size(exchange, balance, symbol, position_percent, price, account_id)
         if size <= 0:
             print(f"开仓量为0，不执行开仓")
             logging.info(f"开仓量为0，不执行开仓")
             return
-        if size >= self.config.max_position:
+        if size >= max_position:
             print(f"开仓量超过最大仓位限制，不执行开仓")
             logging.info(f"开仓量超过最大仓位限制，不执行开仓")
             return
@@ -255,7 +259,7 @@ class SignalProcessingTask:
                 'position_group_id': str(uuid.uuid4()),
             })
 
-    async def calculate_position_size(self, exchange: ccxt.Exchange, balance: Decimal, symbol: str, position_percent: Decimal, price: float) -> Decimal:
+    async def calculate_position_size(self, exchange: ccxt.Exchange, balance: Decimal, symbol: str, position_percent: Decimal, price: float, account_id: int) -> Decimal:
         """计算仓位大小"""
         try:
             # balance = get_account_balance(exchange, symbol)
@@ -266,7 +270,8 @@ class SignalProcessingTask:
             # print("market_precision", market_precision)
             position_size = (balance * position_percent) / (price * Decimal(market_precision['amount']))
             position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            return min(position_size, self.config.total_position)
+            total_position = Decimal(self.db.account_config_cache[account_id].get('total_position'))
+            return min(position_size, total_position)
         except Exception as e:
             print(f"计算仓位失败: {e}")
             return Decimal('0')
