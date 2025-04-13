@@ -264,4 +264,67 @@ async def get_grid_percent_list(self, account_id: int, direction: str) -> Decima
             return item
     return []  # 如果没有匹配到，返回[]
 
+import asyncio
+
+async def fetch_positions_history(self, account_id: int, inst_type: str = "SWAP", inst_id: str = None, limit: int = 100):
+    """
+    分页获取历史持仓记录（已平仓仓位）
+    :param account_id: 账户ID
+    :param inst_type: 交易类型，如 SWAP
+    :param inst_id: 指定交易对（如 BTC-USDT-SWAP），可选
+    :param limit: 每页获取数量（最大100）
+    :return: 历史持仓记录列表
+    """
+    exchange = await get_exchange(self, account_id)
+    if not exchange:
+        return []
+
+    history = []
+    after = None  # 用于分页
+    while True:
+        try:
+            params = {
+                "instType": inst_type,
+                "limit": limit,
+            }
+            if inst_id:
+                params["instId"] = inst_id
+            if after:
+                params["after"] = after
+
+            result = exchange.private_get_account_positions_history(params)
+            data = result.get("data", [])
+
+            if not data:
+                break
+
+            history.extend(data)
+
+            # 取下一页的游标
+            after = data[-1].get("ts")  # ts 时间戳作为分页游标
+            if len(data) < limit:
+                break  # 没有更多数据了
+
+            await asyncio.sleep(0.2)  # 防止请求过快触发限流
+
+        except Exception as e:
+            print(f"获取历史持仓失败: {e}")
+            break
+
+    return history
+    
+async def fetch_current_positions(self, account_id: int, inst_type: str = "SWAP") -> list:
+    """获取当前持仓信息，返回持仓数据列表"""
+    try:
+        exchange = await get_exchange(self, account_id)
+        if not exchange:
+            raise Exception("无法获取交易所对象")
+
+        positions = exchange.fetch_positions(params={"instType": inst_type})
+        return positions
+
+    except Exception as e:
+        print(f"获取当前持仓信息失败: {e}")
+        return []
+
 

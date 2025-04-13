@@ -7,7 +7,7 @@ from database import Database
 from trading_bot_config import TradingBotConfig
 from signal_processing_task import SignalProcessingTask
 from price_monitoring_task import PriceMonitoringTask
-from common_functions import get_exchange
+from common_functions import fetch_current_positions, fetch_positions_history, get_exchange
 from aiohttp import web
 from datetime import datetime, timezone
 import logging
@@ -49,11 +49,13 @@ class OKXTradingBot:
         self.price_task = PriceMonitoringTask(config, self.db)
         self.app = web.Application()
         self.app.add_routes([
-            web.post('/insert_signal', self.handle_insert_signal)  # 新增路由
+            web.post('/insert_signal', self.handle_insert_signal),  # 新增路由
+            web.get('/get_positions_history', self.get_positions_history),  # 分页获取历史持仓列表
+            web.get('/get_current_positions', self.get_current_positions),  # 获取当前持仓信息
         ])
 
     async def handle_insert_signal(self, request):
-        """处理写入信号的API请求"""
+        """接口：处理写入信号的API请求"""
         try:
             data = await request.json()
             # 解析请求体中的参数
@@ -84,6 +86,51 @@ class OKXTradingBot:
                 return web.json_response(result, status=500)
         except Exception as e:
             return web.json_response({"error": str(e)}, status=500)
+    
+    async def get_positions_history(self, request):
+        """接口：分页获取历史持仓列表"""
+        try:
+            data = await request.json()
+
+            # 提取参数并处理默认值
+            account_id = int(data.get("account_id"))
+            inst_id = data.get("inst_id")  # 可以为 None
+            inst_type = data.get("inst_type", "SWAP")  # 默认是 SWAP
+            limit = int(data.get("limit", 100))  # 默认每页 100 条
+
+            # 调用内部业务逻辑
+            result = await fetch_positions_history(
+                self,
+                account_id=account_id,
+                inst_type=inst_type,
+                inst_id=inst_id,
+                limit=limit
+            )
+
+            return web.json_response({"success": True, "data": result})
+        
+        except Exception as e:
+            return web.json_response({"success": False, "error": str(e)}, status=500)
+    
+    async def get_current_positions(request):
+        """接口：获取当前持仓信息"""
+        try:
+            data = await request.json()
+            account_id = int(data.get("account_id"))
+            inst_type = data.get("inst_type", "SWAP")
+
+            positions = await fetch_current_positions(account_id, inst_type)
+
+            return web.json_response({
+                "success": True,
+                "data": positions
+            })
+
+        except Exception as e:
+            return web.json_response({
+                "success": False,
+                "error": str(e)
+            }, status=500)
         
     async def initialize_accounts(self):
         """初始化所有活跃账户"""

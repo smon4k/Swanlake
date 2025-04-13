@@ -65,7 +65,7 @@ class PriceMonitoringTask:
                         latest_order = order_info
                     executed_price = order_info['info'].get('fillPx') # 成交价格
 
-                # await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
+                await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                 
             if latest_order:
                 print(f"订单已成交，成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
