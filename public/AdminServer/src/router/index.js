@@ -31,6 +31,7 @@ const LlpMonitor = () => import('@/pages/LlpMonitor/list.vue')
 
 const GridOrderList = () => import('@/pages/Grid/list.vue')
 const GridOrderConfig = () => import('@/pages/Grid/config.vue')
+const GridPositionsList = () => import('@/pages/Grid/positions.vue')
 
 Vue.use(Router)
 
@@ -205,6 +206,15 @@ const router = new Router({
           component: GridOrderConfig,
           meta: {
             name: '机器人配置',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'grid/positions',
+          name: 'GridPositionsList',
+          component: GridPositionsList,
+          meta: {
+            name: '持仓列表',
             notKeepAlive: true
           }
         }
