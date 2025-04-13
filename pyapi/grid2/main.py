@@ -90,14 +90,11 @@ class OKXTradingBot:
     async def get_positions_history(self, request):
         """接口：分页获取历史持仓列表"""
         try:
-            data = await request.json()
-
-            # 提取参数并处理默认值
-            account_id = int(data.get("account_id"))
-            inst_id = data.get("inst_id")  # 可以为 None
-            inst_type = data.get("inst_type", "SWAP")  # 默认是 SWAP
-            limit = int(data.get("limit", 100))  # 默认每页 100 条
-
+            account_id = int(request.query.get("account_id"))
+            inst_id = request.query.get("inst_id")  # 可以为 None
+            inst_type = request.query.get("inst_type", "SWAP") # 默认是 SWAP
+            limit = request.query.get("limit", 100)  # 默认每页 100 条
+            
             # 调用内部业务逻辑
             result = await fetch_positions_history(
                 self,
@@ -112,14 +109,13 @@ class OKXTradingBot:
         except Exception as e:
             return web.json_response({"success": False, "error": str(e)}, status=500)
     
-    async def get_current_positions(request):
+    async def get_current_positions(self, request):
         """接口：获取当前持仓信息"""
         try:
-            data = await request.json()
-            account_id = int(data.get("account_id"))
-            inst_type = data.get("inst_type", "SWAP")
-
-            positions = await fetch_current_positions(account_id, inst_type)
+            account_id = int(request.query.get("account_id"))
+            inst_id = request.query.get("inst_id")
+            inst_type = request.query.get("inst_type", "SWAP") # 默认是 SWAP
+            positions = await fetch_current_positions(self, account_id, inst_id, inst_type)
 
             return web.json_response({
                 "success": True,

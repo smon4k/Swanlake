@@ -313,14 +313,13 @@ async def fetch_positions_history(self, account_id: int, inst_type: str = "SWAP"
 
     return history
     
-async def fetch_current_positions(self, account_id: int, inst_type: str = "SWAP") -> list:
+async def fetch_current_positions(self, account_id: int, symbol: str, inst_type: str = "SWAP") -> list:
     """获取当前持仓信息，返回持仓数据列表"""
     try:
         exchange = await get_exchange(self, account_id)
         if not exchange:
             raise Exception("无法获取交易所对象")
-
-        positions = exchange.fetch_positions(params={"instType": inst_type})
+        positions = exchange.fetch_positions_for_symbol(symbol, {"instType": inst_type})
         return positions
 
     except Exception as e:
