@@ -237,7 +237,7 @@
             inst_id: that.inst_id,
           };
         }
-        get(this.utils.sig_url + "/get_current_positions", {
+        get("/sigadmin/get_current_positions", {
           account_id: that.account_id,
           inst_id: that.inst_id,
         }, json => {
@@ -260,7 +260,7 @@
             page: that.currPage,
           };
         }
-        get(this.utils.sig_url + "/get_positions_history", {
+        get("/sigadmin/get_positions_history", {
           account_id: that.account_id,
           inst_id: that.inst_id,
           limit: that.pageSize,
