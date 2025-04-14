@@ -2,7 +2,7 @@
     <div>
       <el-breadcrumb separator="/">
           <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-          <el-breadcrumb-item to="">存钱罐管理</el-breadcrumb-item>
+          <el-breadcrumb-item to="">SIG持仓管理</el-breadcrumb-item>
           <el-breadcrumb-item to="">数据统计</el-breadcrumb-item>
       </el-breadcrumb>
       <!-- <div class="project-top">
@@ -17,49 +17,173 @@
         </el-form>
       </div> -->
       <el-tabs type="card" @tab-click="tabClick">
-          <el-tab-pane label="数据">
-              <el-table :data="tableData" style="width: 100%;">
-                  <!-- <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column> -->
-                  <!-- <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
-                  <el-table-column prop="date" label="日期" align="center"></el-table-column>
-                  <el-table-column prop="amount" label="总市值" align="center">
-                      <template slot-scope="scope">
-                      <span>{{ keepDecimalNotRounding(scope.row.count_market_value, 2, true) }} USDT</span>
-                      </template>
-                  </el-table-column>
-                  <el-table-column prop="grid_spread" label="网格日利润" align="center">
-                      <template slot-scope="scope">
-                      <span>{{ keepDecimalNotRounding(scope.row.grid_day_spread, 2, true) }} {{scope.row.base_ccy}} USDT</span>
-                      </template>
-                  </el-table-column>
-                  <el-table-column prop="" label="网格日利润率" align="center">
-                      <template slot-scope="scope">
-                        <span v-if="Number(scope.row.grid_day_spread_rate) > 0">{{ keepDecimalNotRounding(scope.row.grid_day_spread_rate, 4, true) }}%</span>
-                        <span v-else>{{ keepDecimalNotRounding(scope.row.grid_day_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
-                      </template>
-                  </el-table-column>
-                  <el-table-column prop="average_day_rate" label="平均日利率" align="center">
-                      <template slot-scope="scope">
-                      <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 4, true) }}%</span>
-                      </template>
-                  </el-table-column>
-                  <el-table-column prop="average_year_rate" label="平均年利率" align="center">
-                      <template slot-scope="scope">
-                      <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 4, true) }}%</span>
-                      </template>
-                  </el-table-column>
-                  <el-table-column prop="" label="网格总利润" align="center">
-                      <template slot-scope="scope">
-                      <span>{{ keepDecimalNotRounding(scope.row.grid_spread, 2, true) }} USDT</span>
-                      </template>
-                  </el-table-column>
-                  <el-table-column prop="" label="网格总利润率" align="center">
-                      <template slot-scope="scope">
-                        <span v-if="Number(scope.row.grid_spread_rate) > 0">{{ keepDecimalNotRounding(scope.row.grid_spread_rate, 4, true) }}%</span>
-                        <span v-else>{{ keepDecimalNotRounding(scope.row.grid_spread / scope.row.count_market_value * 100, 4, true) }}%</span>
-                      </template>
-                  </el-table-column>
-              </el-table>
+          <el-tab-pane label="当前持仓">
+            <el-table :data="currentPositionsList" style="width: 100%;" v-loading="currentLoading">
+              <!-- 交易品种 -->
+              <el-table-column prop="symbol" label="交易品种" align="center"></el-table-column>
+              
+              <!-- 持仓方向 -->
+              <el-table-column prop="side" label="持仓方向" align="center">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.side === 'long'">开多</span>
+                  <span v-else-if="scope.row.side === 'short'">开空</span>
+                </template>
+              </el-table-column>
+
+              <!-- 持仓量 -->
+              <el-table-column label="持仓张数" align="center">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.contracts }} 张</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 标记价格 -->
+              <el-table-column label="标记价格" align="center">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.markPrice, 2, true) }}</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 开仓均价 -->
+              <el-table-column label="开仓均价" align="center">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.entryPrice, 2, true) }}</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 浮动收益 -->
+              <el-table-column label="浮动收益" align="center">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.unrealizedPnl, 2, true) }}</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 维持保证金率 -->
+              <el-table-column label="维持保证金率" align="center">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.maintenanceMarginPercentage * 100, 2, true) }}%</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 保证金 -->
+              <el-table-column label="保证金" align="center">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.collateral, 2, true) }} USDT</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 盈亏平衡价 -->
+              <el-table-column label="盈亏平衡价" align="center">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.entryPrice + (scope.row.unrealizedPnl / scope.row.contracts), 2, true) }} USDT</span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="历史持仓">
+            <el-table :data="positionsHistoryList" style="width: 100%;" v-loading="historyLoading">
+              <!-- 交易品种 -->
+              <el-table-column prop="symbol" label="交易品种" align="left">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.symbol }}</span>
+                  <br>
+                  <span v-if="scope.row.info.mgnMode === 'cross'">全仓</span>
+                  <span v-if="scope.row.info.mgnMode === 'isolated'">逐仓</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 委托时间 -->
+              <el-table-column prop="datetime" label="委托时间" align="left">
+                <template slot-scope="scope">
+                  <span>{{ formatDate(scope.row.datetime) }}</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 交易方向 -->
+              <el-table-column prop="side" label="交易方向" align="left">
+                <template slot-scope="scope">
+                  <div v-if="scope.row.info">
+                    <span v-if="scope.row.info.direction ===  'long' && scope.row.info.posSide === 'long'" style="color:#05C48E">买入开多</span>
+                    <span v-else-if="scope.row.info.direction === 'long' && scope.row.info.posSide === 'short'" style="color:#05C48E">买入平空</span>
+                    <span v-else-if="scope.row.info.direction === 'short' && scope.row.info.posSide === 'long'" style="color:#df473d;">卖出平多</span>
+                    <span v-else-if="scope.row.info.direction === 'short' && scope.row.info.posSide ==='short'" style="color:#df473d;">卖出开空</span>
+                    <span v-else style="color:#df473d;">卖出</span>
+                  </div>
+                </template>
+              </el-table-column>
+            
+              <!-- 成交均价 | 委托价 -->
+              <el-table-column label="成交均价 | 委托价" align="left">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.entryPrice, 2, true) }} USDT</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 已成交 | 委托总量 -->
+              <el-table-column label="已成交 | 委托总量" align="left">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.contractSize, 2, true) }} 合约</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 已成交｜委托价值 -->
+              <el-table-column label="已成交｜委托价值" align="left">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.contractSize * scope.row.entryPrice, 2, true) }} USDT</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 收益 | 收益率 -->
+              <el-table-column label="收益 | 收益率" align="left">
+                <template slot-scope="scope">
+                  <span style="color: #25a750">
+                    {{ keepDecimalNotRounding(scope.row.realizedPnl, 2, true) }} USDT
+                    <br>
+                    {{ keepDecimalNotRounding(scope.row.realizedPnl / (scope.row.contractSize * scope.row.entryPrice) * 100, 2, true) }}%
+                  </span>
+                </template>
+              </el-table-column>
+            
+              <!-- 手续费 -->
+              <el-table-column prop="fee" label="手续费" align="left">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.fee || 0, 2, true) }} USDT</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 止盈止损 -->
+              <!-- <el-table-column label="止盈止损" align="left">
+                <template slot-scope="scope">
+                  <span>
+                    止损价：{{ scope.row.stopLossPrice || '无' }}
+                    <br>
+                    止盈价：{{ scope.row.takeProfitPrice || '无' }}
+                  </span>
+                </template>
+              </el-table-column> -->
+            
+              <!-- 只减仓 -->
+              <el-table-column prop="hedged" label="只减仓" align="left" width="100">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.hedged ? '是' : '否' }}</span>
+                </template>
+              </el-table-column>
+            
+              <!-- 订单状态 | 编号 -->
+              <el-table-column label="订单状态 | 编号" align="left">
+                <template slot-scope="scope">
+                  <span>
+                    <span v-if="scope.row.info.type == '1'">部分成交</span>
+                    <span v-if="scope.row.info.type == '2'">完全成交</span>
+                    <span v-if="scope.row.info.type == '3'">强平</span>
+                    <span v-if="scope.row.info.type == '4'">强减</span>
+                    <span v-if="scope.row.info.type == '5'">ADL自动减仓</span>
+                    <br>
+                    {{ scope.row.id }}
+                  </span>
+                </template>
+              </el-table-column>
+            </el-table>
               <el-row class="pages">
               <el-col :span="24">
                   <div style="float:right;">
@@ -74,174 +198,7 @@
               </el-col>
               </el-row>
           </el-tab-pane>
-          <el-tab-pane label="币种统计">
-              <el-tabs tab-position="left">
-                  <el-tab-pane label="U本位">
-                      <div v-if="UtableData.length">
-                          <el-table :data="UtableData" style="width: 100%;">
-                              <!-- <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column> -->
-                              <!-- <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
-                              <el-table-column prop="date" label="日期" align="center"></el-table-column>
-                              <el-table-column prop="principal" label="累计本金" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.principal, 2, true) }} USDT</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="总结余" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }} USDT</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="币价" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="日利润" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 2, true) }} USDT</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="日利润率" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.daily_profit_rate, 4, true) }}%</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="平均日利率" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 4, true) }}%</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="平均年利率" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 4, true) }}%</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="利润" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.profit, 2, true) }} USDT</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="利润率" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 4, true) }}%</span>
-                                  </template>
-                              </el-table-column>
-                          </el-table>
-                          <el-row class="pages">
-                              <el-col :span="24">
-                                  <div style="float:right;">
-                                  <wbc-page
-                                      :total="Utotal"
-                                      :pageSize="UpageSize"
-                                      :currPage="UcurrPage"
-                                      @changeLimit="UlimitPaging"
-                                      @changeSkip="UskipPaging"
-                                  ></wbc-page>
-                                  </div>
-                              </el-col>
-                          </el-row>
-                      </div>
-                      <div v-else>
-                          <el-empty description="数据为空"></el-empty>
-                      </div>
-                  </el-tab-pane>
-                  <el-tab-pane label="币本位">
-                      <div v-if="BtableData.length">
-                          <el-table :data="BtableData" style="width: 100%;">
-                              <!-- <el-table-column sortable prop="id" type="index" label="序号" width="100" align="center" fixed="left"></el-table-column> -->
-                              <!-- <el-table-column prop="product_name" label="产品名称" align="center"></el-table-column> -->
-                              <el-table-column prop="date" label="日期" align="center"></el-table-column>
-                              <el-table-column prop="principal" label="累计本金" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.principal, 4, true) }} {{tradingPairData.transaction_currency}}</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="总结余" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} {{tradingPairData.transaction_currency}}</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="币价" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="日利润" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 4, true) }} {{tradingPairData.transaction_currency}}</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="日利润率" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.daily_profit_rate, 4, true) }}%</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="平均日利率" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 4, true) }}%</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="平均年利率" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 4, true) }}%</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="利润" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.profit, 4, true) }} {{tradingPairData.transaction_currency}}</span>
-                                  </template>
-                              </el-table-column>
-                              <el-table-column prop="" label="利润率" align="center">
-                                  <template slot-scope="scope">
-                                  <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 4, true) }}%</span>
-                                  </template>
-                              </el-table-column>
-                          </el-table>
-                          <el-row class="pages">
-                              <el-col :span="24">
-                                  <div style="float:right;">
-                                  <wbc-page
-                                      :total="Btotal"
-                                      :pageSize="BpageSize"
-                                      :currPage="BcurrPage"
-                                      @changeLimit="BlimitPaging"
-                                      @changeSkip="BskipPaging"
-                                  ></wbc-page>
-                                  </div>
-                              </el-col>
-                          </el-row>
-                      </div>
-                      <div v-else><el-empty description="没有数据"></el-empty></div>
-                  </el-tab-pane>
-              </el-tabs>
-          </el-tab-pane>
       </el-tabs>
-  
-      <el-dialog
-          title="出/入金"
-          :visible.sync="dialogVisibleShow"
-          width="30%"
-          :before-close="handleClose">
-          <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="80px">
-              <el-form-item label="方向" prop="direction">
-                  <el-radio-group v-model="ruleForm.direction">
-                  <el-radio label="1">入金</el-radio>
-                  <el-radio label="2">出金</el-radio>
-                  </el-radio-group>
-              </el-form-item>
-              <el-form-item label="金额" prop="amount">
-                  <el-input v-model="ruleForm.amount"></el-input>
-              </el-form-item>
-              <el-form-item label="备注">
-                  <el-input v-model="ruleForm.remark"></el-input>
-              </el-form-item>
-          </el-form>
-          <span slot="footer" class="dialog-footer">
-              <el-button @click="dialogVisibleShow = false">取 消</el-button>
-              <el-button type="primary" @click="submitForm('ruleForm')">确 定</el-button>
-          </span>
-      </el-dialog>
     </div>
   </template>
   <script>
@@ -251,82 +208,51 @@
   export default {
     data() {
       return {
-          account_id: 1,
+          account_id: 2,
+          inst_id: 'BTC-USDT-SWAP',
           currPage: 1, //当前页
-          pageSize: 20, //每页显示条数
+          pageSize: 100, //每页显示条数
           total: 100, //总条数
-          UcurrPage: 1, //当前页
-          UpageSize: 20, //每页显示条数
-          Utotal: 100, //总条数
-          BcurrPage: 1, //当前页
-          BpageSize: 20, //每页显示条数
-          Btotal: 100, //总条数
           PageSearchWhere: [], //分页搜索数组
-          UPageSearchWhere: [], //分页搜索数组
-          BPageSearchWhere: [], //分页搜索数组
-          product_name: "BTC-USDT",
-          address: "",
-          status: "",
-          class_id: "",
-          imageUrl: '',
-          fileObjData: {},
-          tableData: [],
-          UtableData: [],
-          BtableData: [],
-          srcList: [], //列表存放大图路径
-          dialogVisibleShow: false,
-          DialogTitle: '添加',
-          is_save_add_start: 1, //1：添加 2：修改
-          is_img_upload: 0, 
-          id: '', //球队id
-          type: '', //球队类型
-          GradeArr: [], //等级数据
-          ClassArr: [], //分类数据
-          UserAuthUid: 0, //当前登录用户id
-          fileTempType: 2,
-          dialogWidth: '50%',
-          imagesUrls: [],
-          videoUrl: '',
-          videoPoster: '',
-          ruleForm: {
-              direction: '',
-              amount: '',
-              remark: '',
-          },
-          rules: {
-            amount: [
-              { required: true, message: '请输入金额', trigger: 'blur' },
-            ],
-            direction: [
-              { required: true, message: '请选择方向', trigger: 'change' }
-            ],
-          },
-          tradingPairData: {},
+          positionsHistoryList: [],
+          historyLoading: false,
+          currentPositionsList: [],
+          currentLoading: false,
       };
     },
     methods: {
-      getTradingPairData() { //获取交易币种信息
-        get("/Admin/Piggybank/getTradingPairData", {}, json => {
-            console.log(json);
-          if (json.data.code == 10000) {
-            this.tradingPairData = json.data.data;
+      tabClick(item) {
+          console.log(item);
+          // if(item.label === '') {
+          // }
+          // if(item.label === '') {
+          // }
+      },
+      getCurrentPositionsListData(ServerWhere) { //获取当前持仓列表
+        var that = this.$data;
+        this.currentLoading = true;
+        if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+          ServerWhere = {
+            account_id: that.account_id,
+            inst_id: that.inst_id,
+          };
+        }
+        get(this.utils.sig_url + "/get_current_positions", {
+          account_id: that.account_id,
+          inst_id: that.inst_id,
+        }, json => {
+            // console.log(json);
+            this.currentLoading = false;
+          if (json.status == 200) {
+            this.currentPositionsList = json.data.data;
           } else {
             this.$message.error("加载数据失败");
           }
         });
       },
-      tabClick(item) {
-          console.log(item);
-          if(item.label === '币种统计') {
-              this.getUListData();
-              this.getBListData();
-          }
-          if(item.label === '网格数据') {
-              this.getListData();
-          }
-      },
-      getListData(ServerWhere) { //获取持仓列表
+      getPositionsHistoryListData(ServerWhere) { //获取历史持仓列表
         var that = this.$data;
+        this.historyLoading = true;
         if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
           ServerWhere = {
             account_id: that.account_id,
@@ -334,53 +260,15 @@
             page: that.currPage,
           };
         }
-        this.axios.get(this.utils.sig_url + "/get_positions_history", { 
-            params: {
-                account_id: that.account_id,
-                limit: that.pageSize,
-                page: that.currPage,
-            },
-            // withCredentials: true
-        })
-        .then(response => {
-            console.log(response);
-        },err => {
-            
-        })
-      },
-      getUListData(ServerWhere) { //获取U本位数据
-        var that = this.$data;
-        if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
-          ServerWhere = {
-            limit: that.UpageSize,
-            page: that.UcurrPage,
-            standard: 1,
-          };
-        }
-        get("/Admin/Piggybank/getUBPiggybankOrderDateList", ServerWhere, json => {
-            console.log(json);
-          if (json.data.code == 10000) {
-            this.UtableData = json.data.data.data;
-            this.Utotal = json.data.data.count;
-          } else {
-            this.$message.error("加载数据失败");
-          }
-        });
-      },
-      getBListData(ServerWhere) { //获取B本位数据
-        var that = this.$data;
-        if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
-          ServerWhere = {
-            limit: that.BpageSize,
-            page: that.BcurrPage,
-            standard: 2,
-          };
-        }
-        get("/Admin/Piggybank/getUBPiggybankOrderDateList", ServerWhere, json => {
-            console.log(json);
-          if (json.data.code == 10000) {
-            this.BtableData = json.data.data.data;
-            this.Btotal = json.data.data.count;
+        get(this.utils.sig_url + "/get_positions_history", {
+          account_id: that.account_id,
+          inst_id: that.inst_id,
+          limit: that.pageSize,
+        }, json => {
+            // console.log(json);
+            this.historyLoading = false;
+          if (json.status == 200) {
+            this.positionsHistoryList = json.data.data;
           } else {
             this.$message.error("加载数据失败");
           }
@@ -392,17 +280,14 @@
           page: this.currPage,
           limit: this.pageSize,
         };
-        if (this.product_name && this.product_name !== "") {
-          SearchWhere["product_name"] = this.product_name;
-        }
         this.PageSearchWhere = [];
         this.PageSearchWhere = SearchWhere;
-        this.getListData(SearchWhere);
+        this.getPositionsHistoryListData(SearchWhere);
       },
       SearchReset() {
         //搜索条件重置
         this.PageSearchWhere = [];
-        this.getListData();
+        this.getPositionsHistoryListData();
       },
       limitPaging(limit) {
         //赋值当前条数
@@ -426,87 +311,19 @@
         }
         this.getListData(this.PageSearchWhere); //刷新列表
       },
-      UlimitPaging(limit) {
-        //赋值当前条数
-        this.UpageSize = limit;
-        if (
-          this.UPageSearchWhere.limit &&
-          this.UPageSearchWhere.limit !== undefined
-        ) {
-          this.UPageSearchWhere.limit = limit;
-        }
-        this.getUListData(this.UPageSearchWhere); //刷新列表
-      },
-      UskipPaging(page) {
-        //赋值当前页数
-        this.UcurrPage = page;
-        if (
-          this.UPageSearchWhere.page &&
-          this.UPageSearchWhere.page !== undefined
-        ) {
-          this.UPageSearchWhere.page = page;
-        }
-        this.getUListData(this.UPageSearchWhere); //刷新列表
-      },
-      BlimitPaging(limit) {
-        //赋值当前条数
-        this.BpageSize = limit;
-        if (
-          this.BPageSearchWhere.limit &&
-          this.BPageSearchWhere.limit !== undefined
-        ) {
-          this.BPageSearchWhere.limit = limit;
-        }
-        this.getBListData(this.BPageSearchWhere); //刷新列表
-      },
-      BskipPaging(page) {
-        //赋值当前页数
-        this.BcurrPage = page;
-        if (
-          this.BPageSearchWhere.page &&
-          this.BPageSearchWhere.page !== undefined
-        ) {
-          this.BPageSearchWhere.page = page;
-        }
-        this.getBListData(this.BPageSearchWhere); //刷新列表
-      },
-      submitForm(formName) {
-          this.$refs[formName].validate((valid) => {
-              if (valid) {
-                  get('/Admin/Piggybank/calcDepositAndWithdrawal', {
-                      product_name: this.product_name,
-                      direction: this.ruleForm.direction,
-                      amount: this.ruleForm.amount,
-                      remark: this.ruleForm.remark,
-                  }, (json) => {
-                      if (json && json.data.code == 10000) {
-                          this.$message.success('更新成功');
-                          this.$refs[formName].resetFields();
-                          this.dialogVisibleShow = false;
-                      } else {
-                          this.$message.error(json.data.msg);
-                      }
-                  })
-              } else {
-                  console.log('error submit!!');
-                  return false;
-              }
-          });
-      },
-      resetForm(formName) {
-          this.$refs[formName].resetFields();
-      },
-      DepositWithdrawalShow() { //出入金 弹框显示
-          this.dialogVisibleShow = true;
-      },
       handleClose() {
           this.dialogVisibleShow = false;
+      },
+      formatDate(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(timestamp);
+        return date.toISOString().replace('T', ' ').substring(0, 19); // 格式化为 YYYY-MM-DD HH:MM:SS
       }
   
     },
     created() {
-      this.getTradingPairData();
-      this.getListData();
+      this.getCurrentPositionsListData();
+      this.getPositionsHistoryListData();
     },
     components: {
       "wbc-page": Page, //加载分页组件

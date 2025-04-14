@@ -3,7 +3,7 @@ import { Message } from 'element-ui';
 export default function (axios,router) {
 
   axios.defaults.timeout = 180000; //超时时间
-  axios.defaults.baseURL = 'https://swanlake.club'; //默认地址
+  axios.defaults.baseURL = ''; //默认地址
   axios.defaults.withCredentials = true;//允许携带cookie数据
   axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'; //post的默认请求头
   //响应器，获取数据成功还是失败

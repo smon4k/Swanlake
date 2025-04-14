@@ -266,7 +266,9 @@ async def get_grid_percent_list(self, account_id: int, direction: str) -> Decima
 
 import asyncio
 
-async def fetch_positions_history(self, account_id: int, inst_type: str = "SWAP", inst_id: str = None, limit: int = 100):
+import asyncio
+
+async def fetch_positions_history(self, account_id: int, inst_type: str = "SWAP", inst_id: str = None, limit: str = '100', after: str = None, before: str = None):
     """
     分页获取历史持仓记录（已平仓仓位）
     :param account_id: 账户ID
@@ -280,38 +282,26 @@ async def fetch_positions_history(self, account_id: int, inst_type: str = "SWAP"
         return []
 
     history = []
-    after = None  # 用于分页
     while True:
         try:
             params = {
                 "instType": inst_type,
-                "limit": limit,
+                "after": after,
+                "before": before,
             }
-            if inst_id:
-                params["instId"] = inst_id
-            if after:
-                params["after"] = after
 
-            result = exchange.private_get_account_positions_history(params)
-            data = result.get("data", [])
+            # 调用交易所接口获取历史持仓
+            result = exchange.fetch_positions_history([inst_id], None, limit, params)
 
-            if not data:
+            # 如果返回结果为空，说明已经获取完所有数据
+            if not result:
                 break
 
-            history.extend(data)
-
-            # 取下一页的游标
-            after = data[-1].get("ts")  # ts 时间戳作为分页游标
-            if len(data) < limit:
-                break  # 没有更多数据了
-
-            await asyncio.sleep(0.2)  # 防止请求过快触发限流
+            return result
 
         except Exception as e:
             print(f"获取历史持仓失败: {e}")
             break
-
-    return history
     
 async def fetch_current_positions(self, account_id: int, symbol: str, inst_type: str = "SWAP") -> list:
     """获取当前持仓信息，返回持仓数据列表"""

@@ -21,14 +21,16 @@ class PositionService:
         self.db = db
         self.config = config
 
-    async def get_positions_history(self, account_id: int, inst_id: Optional[str], inst_type: str, limit: int):
+    async def get_positions_history(self, account_id: int, inst_id: Optional[str], inst_type: str, limit: str, after: str = None, before: str = None):
         try:
             result = await fetch_positions_history(
                 self,
                 account_id=account_id,
                 inst_id=inst_id,
                 inst_type=inst_type,
-                limit=limit
+                limit=limit,
+                after=after,
+                before=before
             )
             return {"success": True, "data": result}
         except Exception as e:
@@ -37,13 +39,24 @@ class PositionService:
 
     async def get_current_positions(self, account_id: int, inst_id: Optional[str], inst_type: str):
         try:
+            # 获取当前持仓数据
             result = await fetch_current_positions(
                 self,  # 如果将来有 bot 实例，这里可传入
                 account_id=account_id,
                 symbol=inst_id,
                 inst_type=inst_type
             )
-            return {"success": True, "data": result}
+
+            # 过滤出 contracts > 0 的持仓数据
+            filtered_result = [position for position in result if position.get("contracts", 0) > 0]
+
+            # 如果过滤后没有符合条件的数据，返回空列表
+            if not filtered_result:
+                return {"success": True, "data": []}
+
+            # 返回过滤后的数据
+            return {"success": True, "data": filtered_result}
+
         except Exception as e:
             logger.error(f"获取当前持仓出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
@@ -76,9 +89,11 @@ async def get_positions_history(
     account_id: int = Query(..., description="账户ID"),
     inst_id: Optional[str] = Query(None, description="交易对ID，例如 BTC-USDT-SWAP"),
     inst_type: str = Query("SWAP", description="合约类型"),
-    limit: int = Query(100, description="分页数量")
+    limit: int = Query(100, description="分页数量"),
+    after: Optional[str] = Query(None, description="仓位更新之前的内容 时间戳 uTime"),
+    before: Optional[str] = Query(None, description="仓位更新之后的内容 时间戳 uTime")
 ):
-    return await service.get_positions_history(account_id, inst_id, inst_type, limit)
+    return await service.get_positions_history(account_id, inst_id, inst_type, limit, after, before)
 
 # ✅ 获取当前持仓
 @app.get("/get_current_positions")
@@ -91,5 +106,5 @@ async def get_current_positions(
 
 # ✅ 启动服务
 if __name__ == "__main__":
-    logger.info("启动 OKX 持仓服务...")
+    logger.info("启动 持仓 服务...")
     uvicorn.run("api_service:app", host="0.0.0.0", port=8083, reload=True)
