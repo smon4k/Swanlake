@@ -13,8 +13,8 @@
         <el-table-column prop="balance" label="账户余额" align="center">
           <template slot-scope="scope">
             <div class="balance-container">
-                <span v-if="!scope.row.balanceLoading">{{ scope.row.balance }} USDT</span>
-                <span v-else class="loading"></span>&nbsp;&nbsp;USDT
+                <span v-if="!scope.row.balanceLoading">{{ keepDecimalNotRounding(scope.row.balance, 2) }} USDT</span>
+                <span v-else><span class="loading"></span>&nbsp;&nbsp;USDT</span>
               </div>
           </template>
         </el-table-column>
