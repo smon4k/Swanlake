@@ -32,6 +32,7 @@ const LlpMonitor = () => import('@/pages/LlpMonitor/list.vue')
 const GridOrderList = () => import('@/pages/Grid/list.vue')
 const GridOrderConfig = () => import('@/pages/Grid/config.vue')
 const GridPositionsList = () => import('@/pages/Grid/positions.vue')
+const GridAccountsList = () => import('@/pages/Grid/accounts.vue')
 
 Vue.use(Router)
 
@@ -217,7 +218,16 @@ const router = new Router({
             name: '持仓列表',
             notKeepAlive: true
           }
-        }
+        },
+        {
+          path: 'grid/accounts',
+          name: 'GridAccountsList',
+          component: GridAccountsList,
+          meta: {
+            name: '账户列表',
+            notKeepAlive: true
+          }
+        },
       ]
     },
     {
