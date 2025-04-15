@@ -16,12 +16,13 @@
           </el-form-item>
         </el-form>
       </div>
-      <el-descriptions v-for="(item, index) in tableData" :key="index" :title="'账户' + item.account_id+' - '+item.api_key" border :column="2">
+      <el-descriptions v-for="(item, index) in tableData" :key="index" :title="item.account_name" border :column="2">
         <template slot="extra">
           <el-button size="mini" type="primary" @click="UpdateAdminUserInfo(item)">编辑</el-button>
           <el-button size="mini" type="danger" @click="DelData(item)">删除</el-button>
         </template>
-        <el-descriptions-item label="账户名称">{{ item.account_id }}-{{ item.api_key }}</el-descriptions-item>
+        <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item>
+        <el-descriptions-item label="API Secret">{{ item.api_secret }}</el-descriptions-item>
         <el-descriptions-item label="倍数">{{ item.multiple }}</el-descriptions-item>
         <el-descriptions-item label="开仓比例">{{ item.position_percent }}</el-descriptions-item>
         <el-descriptions-item label="总仓位">{{ item.total_position }}</el-descriptions-item>
@@ -341,12 +342,14 @@
                 ? '/Grid/grid/addRobotConfig'
                 : '/Grid/grid/updateRobotConfig';
               post(url, this.FormData, (json) => {
+                  console.log(json);
                   if (json && json.data.code == 10000) {
                       this.dialogVisibleShow = false;
                       this.$message({
                           type: 'success',
                           message: this.DialogTitle + '成功!'
                       });
+                      this.refreshConfig(json.data.data.data);
                       this.getListData();
                   } else {
                       this.dialogVisibleShow = false;
@@ -394,6 +397,22 @@
                   this.$message.error('修改失败');
               }
           })
+      },
+      refreshConfig(account_id) { // 刷新持仓机器人本地缓存
+        if(account_id) {
+          get('/sigadmin/refresh_config', {
+            account_id: account_id
+          }, (json) => {
+            if (json.status == 200) {
+              this.$message({
+                  message: '刷新持缓存成功',
+                  type: 'success'
+              });
+            } else {
+              this.$message.error('刷新持缓存失败');
+            }
+          })
+        }
       },
       // getAuthMenuRuleData() { //获取角色列表
       //   get('/Admin/Authmenurule/getAuthMenuRuleList', {}, (json) => {

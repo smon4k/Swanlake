@@ -39,12 +39,12 @@ class GridController extends BaseController
     public function getOrderList(Request $request) {
         $page = $request->request('page', 1, 'intval');
         $limits = $request->request('limit', 1, 'intval');
-        // $product_name = $request->request('product_name', '', 'trim');
+        $account_id = $request->request('account_id', 0, 'intval');
         $order_number = $request->request('order_number', '', 'trim');
         $where = [];
-        // if($product_name && $product_name !== "") {
-        //     $where['a.product_name'] = ['like',"%" . $product_name . "%"];
-        // } 
+        if($account_id) {
+            $where['a.account_id'] = $account_id;
+        } 
         if($order_number && $order_number !== "") {
             $where['a.order_id'] = ['like',"%" . $order_number . "%"];
         }
@@ -111,7 +111,7 @@ class GridController extends BaseController
         ];
         $res = Config::addRobotConfig($data);
         if($res['code'] == 1) {
-            return $this->as_json($res['msg']);
+            return $this->as_json($res);
         } else {
             return $this->as_json(70001, $res['msg']);
         }
@@ -153,7 +153,7 @@ class GridController extends BaseController
         ];
         $res = Config::updateRobotConfig($id, $data);
         if($res['code'] == 1) {
-            return $this->as_json($res['msg']); 
+            return $this->as_json($res); 
         } else {
             return $this->as_json(70001, $res['msg']); 
         }

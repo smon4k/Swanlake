@@ -8,7 +8,7 @@ import uvicorn
 # 模块依赖
 from database import Database
 from trading_bot_config import TradingBotConfig
-from common_functions import fetch_positions_history, fetch_current_positions
+from common_functions import fetch_positions_history, fetch_current_positions, get_account_balance, get_exchange
 
 # 日志配置
 logging.basicConfig(level=logging.INFO)
@@ -61,6 +61,31 @@ class PositionService:
             logger.error(f"获取当前持仓出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
+    async def get_account_balances(self, account_id: int, inst_id: Optional[str]):
+        try:
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
+                return None
+            # 获取账户余额数据
+            result = await get_account_balance(
+                exchange,
+                inst_id
+            )
+            return {"success": True, "data": result}
+        except Exception as e:
+            logger.error(f"获取账户余额出错: {e}")
+            return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+    
+    async def refresh_config_cache(self, account_id: int):
+        try:
+            # 刷新配置缓存数据
+            config = await self.db.get_config_by_account_id(account_id)
+            if not config:
+                return JSONResponse(status_code=404, content={"success": False, "error": "配置不存在"})
+            return {"success": True, "message": "配置缓存数据已刷新"}
+        except Exception as e:
+            logger.error(f"刷新配置缓存数据出错: {e}")
+            return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
 # ✅ 初始化应用
 config = TradingBotConfig()
@@ -103,6 +128,31 @@ async def get_current_positions(
     inst_type: str = Query("SWAP", description="合约类型")
 ):
     return await service.get_current_positions(account_id, inst_id, inst_type)
+
+#获取账户余额
+@app.get("/get_account_over")
+async def get_account_over(
+    account_id: int = Query(..., description="账户ID"),
+    inst_id: Optional[str] = Query(None, description="交易对ID"),
+):
+    try:
+        # 获取账户余额数据
+        balance = await service.get_account_balances(account_id, inst_id)
+        return {"success": True, "data": balance}
+    except Exception as e:
+        logger.error(f"获取账户余额出错: {e}")
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+    
+
+# 刷新配置缓存数据
+@app.get("/refresh_config")
+async def refresh_config(account_id: int = Query(..., description="账户ID"),):
+    try:
+        await service.refresh_config_cache(account_id)
+        return {"success": True, "message": "配置缓存数据已刷新"}
+    except Exception as e:
+        logger.error(f"刷新配置缓存数据出错: {e}")
+    
 
 # ✅ 启动服务
 if __name__ == "__main__":

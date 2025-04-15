@@ -3,7 +3,7 @@ import asyncio
 from decimal import Decimal
 import logging
 import uuid
-from common_functions import get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_latest_filled_price_from_position_history, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
+from common_functions import get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_total_positions, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 
@@ -113,13 +113,10 @@ class PriceMonitoringTask:
                 logging.info("网格下单 无持仓信息")
                 return
             # print("positions", positions)
-            total_position_value = Decimal('0')
-            for pos in positions:
-                pos_amt = Decimal(str(pos.get('contracts') or 0))
-                if pos_amt == 0:
-                    continue
-                value = abs(pos_amt)
-                total_position_value += value
+            total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
+            print("总持仓数", total_position_value)
+            logging.info(f"总持仓数: {total_position_value}")
+    
             price = await get_market_price(exchange, symbol)
 
             signal = await self.db.get_latest_signal(account_id)  # 获取最新信号
@@ -127,24 +124,11 @@ class PriceMonitoringTask:
 
             market_precision = await get_market_precision(exchange, symbol, 'SWAP') # 获取市场精度
 
-            print("总持仓数量", total_position_value)
             total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
             print("总持仓价值", total_position_quantity)
-            cancel_size = 'all'
-            max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
-            if side == 'buy' and (total_position_quantity >= max_position): # 总持仓价值大于等于最大持仓
-                cancel_size = 'buy' # 取消未成交的订单只取消买单
-                print("下单量超过最大持仓，不执行挂单")
-                logging.info("下单量超过最大持仓，不执行挂单")
-                return
+            logging.info(f"总持仓价值: {total_position_quantity}")
             
-            if side == 'sell' and (total_position_quantity <= 0.01): # 总持仓价值小于等于0.01
-                cancel_size = 'sell' # 取消未成交的订单只取消卖单
-                print("下单量小于0.01，不执行挂单")
-                logging.info("下单量小于0.01，不执行挂单")
-                return
-            
-            await cancel_all_orders(self, account_id, symbol, cancel_size) # 取消所有未成交的订单
+            await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
 
             # 4. 使用calculate_position_size计算挂单数量
             # buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
@@ -154,16 +138,35 @@ class PriceMonitoringTask:
             # print('buy_percent', buy_percent)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+            buy_size_total_quantity = Decimal(buy_size) * Decimal(market_precision['amount']) * buy_price
 
             # sell_percent = self.config.grid_percent_config[signal['direction']]['sell']
             sell_percent = percent_list.get('sell')
             # print('sell_percent', sell_percent)
             sell_size = total_position_value * Decimal(str(sell_percent))
             sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+            sell_size_total_quantity = Decimal(sell_size) * Decimal(market_precision['amount']) * sell_price
 
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             logging.info(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             
+            # 5. 判断所有仓位是否超过最大持仓量
+            # cancel_size = 'all'
+            max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
+            buy_total_size_position_quantity = Decimal(total_position_quantity) + Decimal(buy_size_total_quantity) - Decimal(sell_size_total_quantity)
+            print("开仓以及总持仓挂买价值", buy_total_size_position_quantity)
+            logging.info(f"开仓以及总持仓挂买价值：{buy_total_size_position_quantity}")
+            is_buy = True
+            if buy_total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
+                # cancel_size = 'buy' # 取消未成交的订单只取消买单
+                is_buy = False # 不执行挂单
+                print("下单量超过最大持仓，不执行挂单")
+                logging.info("下单量超过最大持仓，不执行挂单")
+                return
+            
+            sell_total_size_position_quantity = Decimal(total_position_quantity) - Decimal(sell_size_total_quantity)
+            print("开仓以及总持仓挂卖价值", sell_total_size_position_quantity)
+            logging.info(f"开仓以及总持仓挂卖价值：{sell_total_size_position_quantity}")
             
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
@@ -177,7 +180,7 @@ class PriceMonitoringTask:
 
                 print("开空开多", pos_side)
 
-                if buy_size and float(buy_size) > 0:
+                if is_buy and buy_size and float(buy_size) > 0:
                     client_order_id = await get_client_order_id()
                     buy_order = await open_position(
                         self,

@@ -33,7 +33,7 @@ class Config extends Base
         }
         $count = self::where($where)->alias('a')->join('accounts b', 'a.account_id=b.id')->count();//计算总页面
         $allpage = intval(ceil($count / $limits));
-        $lists = self::where($where)->alias('a')->join('accounts b', 'a.account_id=b.id')->field('a.*,b.api_key')->page($page, $limits)->order("id asc")->select()->toArray();
+        $lists = self::where($where)->alias('a')->join('accounts b', 'a.account_id=b.id')->field('a.*,b.api_key,b.api_secret,b.name as account_name')->page($page, $limits)->order("id asc")->select()->toArray();
         // p($lists);
         if(!$lists) return false;
 
@@ -58,9 +58,9 @@ class Config extends Base
         }
         $data['created_at'] = date("Y-m-d H:i:s", time());
         $data['created_at'] = date("Y-m-d H:i:s", time());
-        $res = self::insert($data);
-        if(true == $res) {
-            return ['code'=>1, 'msg'=>'添加成功'];
+        $configId = self::insertGetId($data);
+        if($configId) {
+            return ['code'=>1, 'msg'=>'添加成功', 'data' => $configId];
         } else {
             return ['code'=>0, 'msg'=>'添加失败'];
         }
@@ -79,7 +79,7 @@ class Config extends Base
         }
         $res = self::where("id", $id)->update($UpdateData);
         if(true == $res) {
-            return ['code'=>1, 'msg'=>'修改成功'];
+            return ['code'=>1, 'msg'=>'修改成功', 'data' => $id];
         } else {
             return ['code'=>0, 'msg'=>'修改失败'];
         } 

@@ -31,8 +31,9 @@ class Orders extends Base
         }
         $lists = self::name("orders")
                     ->alias("a")
+                    ->join("g_accounts b", "a.account_id=b.id", "left")
                     ->where($where)
-                    ->field('a.*')
+                    ->field('a.*,b.name as account_name')
                     ->order("id desc")
                     ->select()
                     ->toArray();
@@ -50,6 +51,7 @@ class Orders extends Base
         $resultArray = [];
         foreach ($newArrayData as $key => $val) {
             $resultArray[$key]['timestamp'] = $val[0]['timestamp'];
+            $resultArray[$key]['account_name'] = $val[0]['account_name'];
             $resultArray[$key]['lists'] = $val;
         }
         // p($resultArray);

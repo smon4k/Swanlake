@@ -5,8 +5,16 @@
           <el-breadcrumb-item to="">SIG持仓管理</el-breadcrumb-item>
           <el-breadcrumb-item to="">数据统计</el-breadcrumb-item>
       </el-breadcrumb>
-      <!-- <div class="project-top">
-        <el-form :inline="true" class="demo-form-inline" size="mini">
+      <div class="project-top">
+        <el-select v-model="account_id" placeholder="选择要搜索的账户" @change="accountChange">
+          <el-option
+            v-for="(item, index) in accountList"
+            :key="index"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
+        <!-- <el-form :inline="true" class="demo-form-inline" size="mini">
           <el-form-item label="产品名称:">
             <el-input clearable placeholder="产品名称" v-model="product_name"></el-input>
           </el-form-item>
@@ -14,8 +22,8 @@
             <el-button type="primary" @click="SearchClick()">搜索</el-button>
             <el-button class="pull-right" type="primary" @click="DepositWithdrawalShow()">出/入金</el-button>
           </el-form-item>
-        </el-form>
-      </div> -->
+        </el-form> -->
+      </div>
       <el-tabs type="card" @tab-click="tabClick">
           <el-tab-pane label="当前持仓">
             <el-table :data="currentPositionsList" style="width: 100%;" v-loading="currentLoading">
@@ -220,6 +228,7 @@
           historyLoading: false,
           currentPositionsList: [],
           currentLoading: false,
+          accountList: [],
       };
     },
     methods: {
@@ -229,6 +238,12 @@
           // }
           // if(item.label === '') {
           // }
+      },
+      accountChange(val) {
+        if(val) {
+          this.getCurrentPositionsListData();
+          this.getPositionsHistoryListData();
+        }
       },
       getCurrentPositionsListData(ServerWhere) { //获取当前持仓列表
         var that = this.$data;
@@ -320,10 +335,20 @@
         if (!timestamp) return '';
         const date = new Date(timestamp);
         return date.toISOString().replace('T', ' ').substring(0, 19); // 格式化为 YYYY-MM-DD HH:MM:SS
-      }
-  
+      },
+      getAccountList() {
+        get("/Grid/grid/getAccountList", {}, json => {
+            // console.log(json);
+            if (json.data.code == 10000) {
+                this.accountList = json.data.data;
+            } else {
+                this.$message.error("加载账户数据失败");
+            }
+        });
+      },
     },
     created() {
+      this.getAccountList();
       this.getCurrentPositionsListData();
       this.getPositionsHistoryListData();
     },
@@ -333,6 +358,10 @@
   };
   </script>
   <style lang="scss" scoped>
+    .project-top {
+      margin-bottom: 20px;
+      margin-top: 20px;
+    }
     .avatar-uploader .el-upload {
       border: 1px dashed #d9d9d9;
       border-radius: 6px;

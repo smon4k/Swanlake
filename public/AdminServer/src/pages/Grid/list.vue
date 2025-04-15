@@ -6,7 +6,15 @@
         <el-breadcrumb-item to="">订单列表</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">
-        <h2>{{ tradingPairData.name }} 策略详情</h2>
+        <!-- <h2>{{ tradingPairData.name }} 策略详情</h2> -->
+        <el-select v-model="account_id" clearable placeholder="选择要搜索的账户" @change="accountChange" @clear="accountClear">
+          <el-option
+            v-for="(item, index) in accountList"
+            :key="index"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
       <!-- <el-form :inline="true" class="demo-form-inline" size="mini">
         <el-form-item label="产品名称:">
           <el-input clearable placeholder="产品名称" v-model="product_name"></el-input>
@@ -20,7 +28,7 @@
     <el-collapse v-model="activeNames" @change="handleChange" v-for="(item, index) in tableData" :key="index">
         <el-collapse-item :title="item.timestamp" :name="index">
             <template slot="title">
-                <div style="margin-right:100px;">{{ item.timestamp }}</div>
+                <div style="margin-right:100px;">账户：{{ item.account_name }}  &nbsp;&nbsp;&nbsp;&nbsp; 时间：{{ item.timestamp }}</div>
                 <!-- <div style="margin-right:100px;">价差：{{ keepDecimalNotRounding(item.price, 4, true) }} USDT</div> -->
             </template>
             <el-table :data="item.lists" style="width: 100%;" v-show="true">
@@ -153,6 +161,7 @@ export default {
       total: 100, //总条数
       PageSearchWhere: [], //分页搜索数组
       product_name: "",
+      account_id: '',
       address: "",
       status: "",
       class_id: "",
@@ -164,8 +173,8 @@ export default {
       DialogTitle: '添加',
       is_save_add_start: 1, //1：添加 2：修改
       is_img_upload: 0, 
-      id: '', //球队id
-      type: '', //球队类型
+      id: '', 
+      type: '', 
       GradeArr: [], //等级数据
       ClassArr: [], //分类数据
       UserAuthUid: 0, //当前登录用户id
@@ -177,6 +186,7 @@ export default {
       videoPoster: '',
       activeNames: ['1'],
       tradingPairData: {},
+      accountList: [], // 账户列表
     };
   },
   mounted() {
@@ -185,6 +195,7 @@ export default {
   },
   created() {
     // this.getTradingPairData();
+    this.getAccountList();
     this.getListData();
   },
   components: {
@@ -200,6 +211,17 @@ export default {
           this.$message.error("加载数据失败");
         }
       });
+    },
+    accountChange(val) {
+      this.PageSearchWhere = {
+        limit: this.pageSize,
+        page: this.currPage,
+        account_id: val
+      }
+      this.getListData(this.PageSearchWhere);
+    },
+    accountClear() {
+      this.getListData();
     },
     getListData(ServerWhere) {
       var that = this.$data;
@@ -218,6 +240,16 @@ export default {
         } else {
           this.$message.error("加载数据失败");
         }
+      });
+    },
+    getAccountList() {
+      get("/Grid/grid/getAccountList", {}, json => {
+          console.log(json);
+          if (json.data.code == 10000) {
+              this.accountList = json.data.data;
+          } else {
+              this.$message.error("加载账户数据失败");
+          }
       });
     },
     // getClassList() {

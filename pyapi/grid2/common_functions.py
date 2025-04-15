@@ -88,8 +88,13 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
 async def get_account_balance(exchange: ccxt.Exchange, symbol:str) -> Decimal:
     """获取账户余额"""
     try:
-        trading_pair = symbol.replace("-", ",")
-        balance = exchange.fetch_balance({"ccy": trading_pair})
+        params = {}
+        if symbol:
+            trading_pair = symbol.replace("-", ",")
+            params = {
+                'ccy': trading_pair
+            }
+        balance = exchange.fetch_balance(params)
         total_equity = Decimal(str(balance["USDT"]['total']))
         return total_equity
     except Exception as e:
@@ -315,5 +320,17 @@ async def fetch_current_positions(self, account_id: int, symbol: str, inst_type:
     except Exception as e:
         print(f"获取当前持仓信息失败: {e}")
         return []
+
+# 获取账户总持仓数
+async def get_total_positions(self, account_id: int, symbol: str, inst_type: str = "SWAP") -> Decimal:
+    """获取账户总持仓数"""
+    try:
+        positions = await fetch_current_positions(self, account_id, symbol, inst_type)
+        total_positions = sum(abs(Decimal(position['info']['pos'])) for position in positions)
+        return total_positions
+
+    except Exception as e:
+        print(f"获取账户总持仓数失败: {e}")
+        return Decimal('0')
 
 
