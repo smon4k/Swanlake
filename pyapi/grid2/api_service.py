@@ -1,7 +1,10 @@
-from fastapi import FastAPI, Query
+from decimal import Decimal
+import os
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
+from datetime import datetime, timezone
 import logging
 import uvicorn
 
@@ -20,7 +23,41 @@ class PositionService:
     def __init__(self, config: TradingBotConfig, db: Database):
         self.db = db
         self.config = config
+    
+    # 接口：处理写入信号的API请求
+    async def insert_signal(self, account_id: int, symbol: str, side: str, price: Decimal, size: float):
+        """接口：处理写入信号的API请求"""
+        try:
+            # data = await request.json()
+            # 解析请求体中的参数
+            # symbol = data.get('symbol')
+            # account_id = os.getenv("ACCOUNT_ID", 1)
+            direction = 'long' if side == 'buy' else 'short'  # 假设请求体中的'side'对应数据库中的'direction'
+            # price = Decimal(data.get('price', 0))  # 假设请求体中的'price'对应数据库中的'price'
+            # size = float(data.get('size', 0))  # 假设请求体中的'size'对应数据库中的'size'
+            # 当前时间的格式化字符串
+            timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
+            if not symbol or not direction:
+                return JSONResponse(status_code=500, content={"success": False, "error": 'Missing required parameters'})
+
+            # 调用数据库方法写入信号
+            result = await self.db.insert_signal({
+                'account_id': account_id,  # 假设account_id是从请求头中获取的
+                'symbol': symbol,
+                'direction': direction,
+                'price': price,  # 假设价格为0，实际使用时需要根据需求设置
+                'size': size,  # 假设大小为0，实际使用时需要根据需求设置
+                'status': 'pending',
+                'timestamp': timestamp,
+            })
+            if result['status'] == 'success':
+                return {"success": True, "data": result}
+            else:
+                return JSONResponse(status_code=500, content={"success": False, "error": 'error'})
+        except Exception as e:
+            return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+    
     async def get_positions_history(self, account_id: int, inst_id: Optional[str], inst_type: str, limit: str, after: str = None, before: str = None):
         try:
             result = await fetch_positions_history(
@@ -152,7 +189,23 @@ async def refresh_config(account_id: int = Query(..., description="账户ID"),):
         return {"success": True, "message": "配置缓存数据已刷新"}
     except Exception as e:
         logger.error(f"刷新配置缓存数据出错: {e}")
-    
+
+@app.post("/insert_signal")
+async def handle_insert_signal(request: Request):
+    try:
+        data = await request.json()
+        # 解析请求体中的参数
+        symbol = data.get('symbol')
+        account_id = os.getenv("ACCOUNT_ID", 1)
+        price = Decimal(data.get('price', 0))  # 假设请求体中的'price'对应数据库中的'price'
+        size = float(data.get('size', 0))  # 假设请求体中的'size'对应数据库中的'size'
+        result = await service.insert_signal(account_id, symbol, data.get('side'), price, size)
+        if result['status'] == 'success':
+            return {"success": True, "data": result}
+        else:
+            return JSONResponse(status_code=500, content={"success": False, "error": 'error'})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
 # ✅ 启动服务
 if __name__ == "__main__":
