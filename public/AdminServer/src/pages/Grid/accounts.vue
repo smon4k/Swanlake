@@ -5,14 +5,17 @@
         <el-breadcrumb-item>账户列表</el-breadcrumb-item>
       </el-breadcrumb>
   
-      <el-table :data="accountList" style="width: 100%; margin-top: 20px;">
+      <el-table :data="accountList" style="width: 100%; margin-top: 20px;"  v-loading="loading">
         <el-table-column prop="name" label="账户名称" align="center"></el-table-column>
         <el-table-column prop="api_key" label="API Key" align="center"></el-table-column>
         <el-table-column prop="api_secret" label="API Secret" align="center"></el-table-column>
         <el-table-column prop="api_passphrase" label="API Passphrase" align="center"></el-table-column>
         <el-table-column prop="balance" label="账户余额" align="center">
           <template slot-scope="scope">
-            {{ scope.row.balance }} USDT
+            <div class="balance-container">
+                <span v-if="!scope.row.balanceLoading">{{ scope.row.balance }} USDT</span>
+                <span v-else class="loading"></span>&nbsp;&nbsp;USDT
+              </div>
           </template>
         </el-table-column>
       </el-table>
@@ -44,7 +47,8 @@
         total: 0,
         accountList: [],
         inst_id: 'BTC-USDT-SWAP',
-        PageSearchWhere: {}
+        PageSearchWhere: {},
+        loading: false,
       };
     },
     created() {
@@ -77,9 +81,15 @@
         this.getAccountList(this.PageSearchWhere); //刷新列表
         },
         getAccountList() {
+            this.loading = true;
             get("/Grid/grid/getAccountList", {}, response => {
                 if (response.data.code == 10000) {
-                    this.accountList = response.data.data;
+                    this.loading = false;
+                    this.accountList = response.data.data.map(account => ({
+                        ...account,
+                        balance: '--',
+                        balanceLoading: true // 初始化loading状态
+                    }));
                     this.total = response.data.data.count;
                     this.fetchAccountBalances();
                 } else {
@@ -95,7 +105,8 @@
                 }, response => {
                     console.log(response);
                     if (response.status == 200) {
-                        account.balance = response.data.data;
+                        account.balance = response.data.data.data;
+                        account.balanceLoading = false; // 结束loading
                     } else {
                         account.balance = '获取失败';
                         this.$message.error("获取账户余额失败");
@@ -162,35 +173,31 @@
   .el-carousel__item:nth-child(2n+1) {
     background-color: #d3dce6;
   }
-
-  /deep/ {
-    .preview-class {
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-      video {
-        // position: absolute;
-        width: 100%;
-        height: 70vh;
-      }
-      .el-dialog__headerbtn {
-        z-index: 1000;
-        color: rgb(3, 3, 3);
-        .el-dialog__close {
-          color: rgb(3, 3, 3);
-          font-size: 20px;
-          font-weight: 900;
-        }
-      }
-      .el-dialog__header {
-        padding: 0 !important;
-      }
-      .el-dialog__body {
-        padding: 0;
-      }
-      /* height: 100%; */
-    }
+  .balance-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .loading {
+    display: contents;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+  }
+  .loading::after {
+    content: ' ';
+    display: block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #606266;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: loading 1s linear infinite;
+  }
+  @keyframes loading {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 </style>
