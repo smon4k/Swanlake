@@ -152,7 +152,7 @@ class PriceMonitoringTask:
             percent_list = await get_grid_percent_list(self, account_id, signal['direction'])
             buy_percent = percent_list.get('buy')
             # print('buy_percent', buy_percent)
-            buy_size = total_position_value * Decimal(str(buy_percent))
+            buy_size = (total_position_value * Decimal(str(buy_percent)))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
             # sell_percent = self.config.grid_percent_config[signal['direction']]['sell']

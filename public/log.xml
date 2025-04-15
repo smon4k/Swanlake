@@ -1,0 +1,64 @@
+2025-04-09 09:24:09 GMX-USDT 获取交易对余额 Error 
+think\exception\ErrorException: Invalid argument supplied for foreach() in C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php:900
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(900): think\Error::appError(2, 'Invalid argumen...', 'C:\\Users\\v-linh...', 900, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1041): app\tools\model\Okx::getTradePairBalance('GMX-USDT')
+#2 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1155): app\tools\model\Okx::getTradeValuation('GMX-USDT')
+#3 C:\Users\v-linhuiqin\www\Swanlake\application\admin\controller\PiggybankController.php(144): app\tools\model\Okx::testBalancePosition()
+#4 [internal function]: app\admin\controller\PiggybankController->testBalancePosition()
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\admin\controller\PiggybankController), Array)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#8 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#9 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#10 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#11 {main}
+2025-04-09 09:24:11 GMX-USDT 获取单个产品行情信息 价格 Error 
+think\exception\ErrorException: Undefined index: GMX-USDT in C:\Users\v-linhuiqin\www\Swanlake\vendor\ccxt\php\Exchange.php:2498
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\vendor\ccxt\php\Exchange.php(2498): think\Error::appError(8, 'Undefined index...', 'C:\\Users\\v-linh...', 2498, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\vendor\ccxt\php\okex.php(918): ccxt\Exchange->market('GMX-USDT')
+#2 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1027): ccxt\okex->fetch_ticker('GMX-USDT')
+#3 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1044): app\tools\model\Okx::fetchMarketIndexTickers('GMX-USDT')
+#4 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1155): app\tools\model\Okx::getTradeValuation('GMX-USDT')
+#5 C:\Users\v-linhuiqin\www\Swanlake\application\admin\controller\PiggybankController.php(144): app\tools\model\Okx::testBalancePosition()
+#6 [internal function]: app\admin\controller\PiggybankController->testBalancePosition()
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\admin\controller\PiggybankController), Array)
+#8 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#9 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#10 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#11 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#12 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#13 {main}
+2025-04-09 09:24:13 GMX-USDT 获取交易对余额 Error 
+think\exception\ErrorException: Invalid argument supplied for foreach() in C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php:900
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(900): think\Error::appError(2, 'Invalid argumen...', 'C:\\Users\\v-linh...', 900, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1041): app\tools\model\Okx::getTradePairBalance('GMX-USDT')
+#2 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1155): app\tools\model\Okx::getTradeValuation('GMX-USDT')
+#3 C:\Users\v-linhuiqin\www\Swanlake\application\admin\controller\PiggybankController.php(144): app\tools\model\Okx::testBalancePosition()
+#4 [internal function]: app\admin\controller\PiggybankController->testBalancePosition()
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\admin\controller\PiggybankController), Array)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#8 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#9 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#10 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#11 {main}
+2025-04-09 09:24:15 GMX-USDT 获取单个产品行情信息 价格 Error 
+think\exception\ErrorException: Undefined index: GMX-USDT in C:\Users\v-linhuiqin\www\Swanlake\vendor\ccxt\php\Exchange.php:2498
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\vendor\ccxt\php\Exchange.php(2498): think\Error::appError(8, 'Undefined index...', 'C:\\Users\\v-linh...', 2498, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\vendor\ccxt\php\okex.php(918): ccxt\Exchange->market('GMX-USDT')
+#2 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1027): ccxt\okex->fetch_ticker('GMX-USDT')
+#3 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1044): app\tools\model\Okx::fetchMarketIndexTickers('GMX-USDT')
+#4 C:\Users\v-linhuiqin\www\Swanlake\application\tools\model\Okx.php(1155): app\tools\model\Okx::getTradeValuation('GMX-USDT')
+#5 C:\Users\v-linhuiqin\www\Swanlake\application\admin\controller\PiggybankController.php(144): app\tools\model\Okx::testBalancePosition()
+#6 [internal function]: app\admin\controller\PiggybankController->testBalancePosition()
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\admin\controller\PiggybankController), Array)
+#8 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#9 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#10 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#11 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#12 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#13 {main}

@@ -55,7 +55,7 @@
                 <el-table-column prop="amount" label="委托数量" align="center" width="150">
                     <template slot-scope="scope">
                       <div v-if="scope.row.quantity">
-                        <span>{{ keepDecimalNotRounding(scope.row.quantity, 4, true) }}BTC</span>
+                        <span>{{ keepDecimalNotRounding((scope.row.quantity / 100) * scope.row.price, 4, true) }} USDT</span>
                       </div>
                       <div v-else>——</div>
                     </template>

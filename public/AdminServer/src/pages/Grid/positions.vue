@@ -31,9 +31,11 @@
               </el-table-column>
 
               <!-- 持仓量 -->
-              <el-table-column label="持仓张数" align="center">
+              <el-table-column label="持仓量" align="center">
                 <template slot-scope="scope">
                   <span>{{ scope.row.contracts }} 张</span>
+                  <br>
+                  <span>{{ keepDecimalNotRounding(scope.row.contracts * scope.row.contractSize * scope.row.markPrice, 2, true) }} USDT</span>
                 </template>
               </el-table-column>
             
@@ -120,11 +122,11 @@
               </el-table-column>
             
               <!-- 已成交 | 委托总量 -->
-              <el-table-column label="已成交 | 委托总量" align="left">
+              <!-- <el-table-column label="已成交 | 委托总量" align="left">
                 <template slot-scope="scope">
                   <span>{{ keepDecimalNotRounding(scope.row.contractSize, 2, true) }} 合约</span>
                 </template>
-              </el-table-column>
+              </el-table-column> -->
             
               <!-- 已成交｜委托价值 -->
               <el-table-column label="已成交｜委托价值" align="left">
