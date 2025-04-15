@@ -40,7 +40,7 @@ class PositionService:
 
             if not symbol or not direction:
                 return JSONResponse(status_code=500, content={"success": False, "error": 'Missing required parameters'})
-
+            
             # 调用数据库方法写入信号
             result = await self.db.insert_signal({
                 'account_id': account_id,  # 假设account_id是从请求头中获取的
@@ -51,10 +51,7 @@ class PositionService:
                 'status': 'pending',
                 'timestamp': timestamp,
             })
-            if result['status'] == 'success':
-                return {"success": True, "data": result}
-            else:
-                return JSONResponse(status_code=500, content={"success": False, "error": 'error'})
+            return result
         except Exception as e:
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
     

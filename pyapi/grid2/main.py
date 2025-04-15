@@ -47,12 +47,12 @@ class OKXTradingBot:
         self.db = Database(config.db_config)
         self.signal_task = SignalProcessingTask(config, self.db)
         self.price_task = PriceMonitoringTask(config, self.db)
-        self.app = web.Application()
-        self.app.add_routes([
-            web.post('/insert_signal', self.handle_insert_signal),  # 新增路由
-            web.get('/get_positions_history', self.get_positions_history),  # 分页获取历史持仓列表
-            web.get('/get_current_positions', self.get_current_positions),  # 获取当前持仓信息
-        ])
+        # self.app = web.Application()
+        # self.app.add_routes([
+        #     web.post('/insert_signal', self.handle_insert_signal),  # 新增路由
+        #     web.get('/get_positions_history', self.get_positions_history),  # 分页获取历史持仓列表
+        #     web.get('/get_current_positions', self.get_current_positions),  # 获取当前持仓信息
+        # ])
 
     async def handle_insert_signal(self, request):
         """接口：处理写入信号的API请求"""
