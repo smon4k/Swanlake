@@ -210,4 +210,4 @@ async def handle_insert_signal(request: Request):
 # ✅ 启动服务
 if __name__ == "__main__":
     logger.info("启动 持仓 服务...")
-    uvicorn.run("api_service:app", host="0.0.0.0", port=8083, reload=True)
+    uvicorn.run("api_service:app", host="0.0.0.0", port=8082, reload=True)

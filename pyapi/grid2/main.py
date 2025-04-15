@@ -161,7 +161,7 @@ class OKXTradingBot:
         """运行主程序"""
 
         # 启动API服务器
-        asyncio.create_task(self.start_api_server())
+        # asyncio.create_task(self.start_api_server())
 
         # 初始化账户和交易所
         await self.initialize_accounts()
