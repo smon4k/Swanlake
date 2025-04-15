@@ -14,7 +14,7 @@
           <template slot-scope="scope">
             <div class="balance-container">
                 <span v-if="!scope.row.balanceLoading">{{ keepDecimalNotRounding(scope.row.balance, 2) }} USDT</span>
-                <span v-else><span class="loading"></span>&nbsp;&nbsp;USDT</span>
+                <span v-else style="display: contents;"><span class="loading"></span>&nbsp;&nbsp;USDT</span>
               </div>
           </template>
         </el-table-column>
