@@ -251,9 +251,8 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
 async def get_max_position_value(self, account_id: int, symbol: str) -> Decimal:
     """根据交易对匹配对应的最大仓位值"""
     normalized_symbol = symbol.upper().replace('-SWAP', '')
-
-    max_position_list = self.db.account_config_cache.get(account_id, {}).get('max_position_list', [])
-    max_position_list_arr = json.loads(max_position_list)
+    max_position_list = await self.db.get_config_by_account_id(account_id)
+    max_position_list_arr = json.loads(max_position_list['max_position_list'])
     for item in max_position_list_arr:
         if item.get('symbol') == normalized_symbol:
             return Decimal(item.get('value'))
@@ -261,9 +260,8 @@ async def get_max_position_value(self, account_id: int, symbol: str) -> Decimal:
 
 async def get_grid_percent_list(self, account_id: int, direction: str) -> Decimal:
     """根据交易对匹配对应的最大仓位值"""
-
-    grid_percent_list = self.db.account_config_cache.get(account_id, {}).get('grid_percent_list', [])
-    grid_percent_list_arr = json.loads(grid_percent_list)
+    grid_percent_list = await self.db.get_config_by_account_id(account_id)
+    grid_percent_list_arr = json.loads(grid_percent_list['grid_percent_list'])
     for item in grid_percent_list_arr:
         if item.get('direction') == direction:
             return item

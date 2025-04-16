@@ -124,7 +124,7 @@ class PriceMonitoringTask:
 
             market_precision = await get_market_precision(exchange, symbol, 'SWAP') # 获取市场精度
 
-            total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
+            total_position_quantity = Decimal(total_position_value) * Decimal(market_precision.get('amount')) * price # 计算总持仓价值
             print("总持仓价值", total_position_quantity)
             logging.info(f"总持仓价值: {total_position_quantity}")
             
@@ -137,15 +137,15 @@ class PriceMonitoringTask:
             buy_percent = percent_list.get('buy')
             # print('buy_percent', buy_percent)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
-            buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            buy_size_total_quantity = Decimal(buy_size) * Decimal(market_precision['amount']) * buy_price
+            buy_size = buy_size.quantize(Decimal(market_precision.get('amount')), rounding='ROUND_DOWN')
+            buy_size_total_quantity = Decimal(buy_size) * Decimal(market_precision.get('amount')) * buy_price
 
             # sell_percent = self.config.grid_percent_config[signal['direction']]['sell']
             sell_percent = percent_list.get('sell')
             # print('sell_percent', sell_percent)
             sell_size = total_position_value * Decimal(str(sell_percent))
-            sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            sell_size_total_quantity = Decimal(sell_size) * Decimal(market_precision['amount']) * sell_price
+            sell_size = sell_size.quantize(Decimal(market_precision.get('amount')), rounding='ROUND_DOWN')
+            sell_size_total_quantity = Decimal(sell_size) * Decimal(market_precision.get('amount')) * sell_price
 
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
             logging.info(f"计算挂单量: 卖{sell_size} 买{buy_size}")
