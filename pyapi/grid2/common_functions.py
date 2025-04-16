@@ -20,7 +20,7 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
             "options": {"defaultType": "swap"},
             # 'enableRateLimit': True,
         })
-        # exchange.set_sandbox_mode(True)  # 开启模拟交易
+        exchange.set_sandbox_mode(True)  # 开启模拟交易
         return exchange
     return None
 
