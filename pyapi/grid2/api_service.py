@@ -14,7 +14,7 @@ from trading_bot_config import TradingBotConfig
 from common_functions import fetch_positions_history, fetch_current_positions, get_account_balance, get_exchange
 
 # 日志配置
-log_file_path = os.getenv("LOG_PATH")
+log_file_path = os.getenv("LOG_API_PATH")
 
 # 检查日志文件是否存在，如果存在则清空
 if os.path.exists(log_file_path):
