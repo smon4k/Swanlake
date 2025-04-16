@@ -18,10 +18,13 @@ database.php
 /application/config.php
 /.env
 /public/upload
+/public/log.xml
 /runtime/
 /runtime/cache
 database_hp*.php
 /log.xml
 /pyapi/okex/venv
+/pyapi/grid2/venv
+/pyapi/grid2/info.log
 __pycache__/
 .env

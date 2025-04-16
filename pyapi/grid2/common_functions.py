@@ -20,7 +20,7 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
             "options": {"defaultType": "swap"},
             # 'enableRateLimit': True,
         })
-        exchange.set_sandbox_mode(True)  # 开启模拟交易
+        # exchange.set_sandbox_mode(True)  # 开启模拟交易
         return exchange
     return None
 
@@ -268,10 +268,6 @@ async def get_grid_percent_list(self, account_id: int, direction: str) -> Decima
         if item.get('direction') == direction:
             return item
     return []  # 如果没有匹配到，返回[]
-
-import asyncio
-
-import asyncio
 
 async def fetch_positions_history(self, account_id: int, inst_type: str = "SWAP", inst_id: str = None, limit: str = '100', after: str = None, before: str = None):
     """
