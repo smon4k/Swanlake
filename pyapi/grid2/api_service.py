@@ -91,7 +91,7 @@ class PositionService:
             )
             return {"success": True, "data": result}
         except Exception as e:
-            logger.error(f"获取历史持仓出错: {e}")
+            logging.error(f"获取历史持仓出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
     async def get_current_positions(self, account_id: int, inst_id: Optional[str], inst_type: str):
@@ -115,7 +115,7 @@ class PositionService:
             return {"success": True, "data": filtered_result}
 
         except Exception as e:
-            logger.error(f"获取当前持仓出错: {e}")
+            logging.error(f"获取当前持仓出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
     async def get_account_balances(self, account_id: int, inst_id: Optional[str]):
@@ -130,7 +130,7 @@ class PositionService:
             )
             return {"success": True, "data": result}
         except Exception as e:
-            logger.error(f"获取账户余额出错: {e}")
+            logging.error(f"获取账户余额出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
     
     async def refresh_config_cache(self, account_id: int):
@@ -141,7 +141,7 @@ class PositionService:
                 return JSONResponse(status_code=404, content={"success": False, "error": "配置不存在"})
             return {"success": True, "message": "配置缓存数据已刷新"}
         except Exception as e:
-            logger.error(f"刷新配置缓存数据出错: {e}")
+            logging.error(f"刷新配置缓存数据出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
 # ✅ 初始化应用
@@ -197,7 +197,7 @@ async def get_account_over(
         balance = await service.get_account_balances(account_id, inst_id)
         return {"success": True, "data": balance}
     except Exception as e:
-        logger.error(f"获取账户余额出错: {e}")
+        logging.error(f"获取账户余额出错: {e}")
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
     
 
@@ -208,7 +208,7 @@ async def refresh_config(account_id: int = Query(..., description="账户ID"),):
         await service.refresh_config_cache(account_id)
         return {"success": True, "message": "配置缓存数据已刷新"}
     except Exception as e:
-        logger.error(f"刷新配置缓存数据出错: {e}")
+        logging.error(f"刷新配置缓存数据出错: {e}")
 
 @app.post("/insert_signal")
 async def handle_insert_signal(request: Request):
@@ -229,6 +229,5 @@ async def handle_insert_signal(request: Request):
 
 # ✅ 启动服务
 if __name__ == "__main__":
-    logger.info("启动 持仓 服务...")
     logging.info("启动 持仓 服务...")
     uvicorn.run("api_service:app", host="0.0.0.0", port=8082, reload=True)
