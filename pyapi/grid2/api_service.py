@@ -1,5 +1,6 @@
 from decimal import Decimal
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +13,8 @@ import uvicorn
 from database import Database
 from trading_bot_config import TradingBotConfig
 from common_functions import fetch_positions_history, fetch_current_positions, get_account_balance, get_exchange
+
+load_dotenv()
 
 # 日志配置
 log_file_path = os.getenv("LOG_API_PATH")
