@@ -38,5 +38,5 @@ Task2： /etc/systemd/system/grid2-api.service
 
 ### systemctl 重置所有配置
 ```
-sudo systemctl daemon-reload
+sudo systemctl daemon-reload 
 ```
