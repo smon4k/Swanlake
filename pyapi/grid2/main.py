@@ -159,6 +159,8 @@ class OKXTradingBot:
 
     async def run(self):
         """运行主程序"""
+        print("启动持仓机器人任务")
+        logging.info("启动持仓机器人任务")
 
         # 启动API服务器
         # asyncio.create_task(self.start_api_server())
@@ -174,8 +176,6 @@ class OKXTradingBot:
 
         await asyncio.gather(signal_task, price_task)
 
-        print("启动持仓机器人任务成功")
-        logging.info("启动持仓机器人任务成功")
 
 if __name__ == "__main__":
     config = TradingBotConfig()
