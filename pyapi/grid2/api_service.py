@@ -14,8 +14,28 @@ from trading_bot_config import TradingBotConfig
 from common_functions import fetch_positions_history, fetch_current_positions, get_account_balance, get_exchange
 
 # 日志配置
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+log_file_path = os.getenv("LOG_PATH")
+
+# 检查日志文件是否存在，如果存在则清空
+if os.path.exists(log_file_path):
+    with open(log_file_path, 'w', encoding='utf-8') as f:
+        f.truncate(0)  # 清空文件内容
+class InfoAndErrorFilter(logging.Filter):
+    def filter(self, record):
+        # 只允许 INFO 和 ERROR 级别的日志通过
+        return record.levelname in ['INFO', 'ERROR']
+    
+# 设置日志配置
+logging.basicConfig(
+    filename=log_file_path,  # 指定日志文件
+    level=logging.INFO,  # 设置日志级别
+    format='%(asctime)s - %(levelname)s - %(message)s',  # 日志格式
+    encoding='utf-8'  # 指定编码为 UTF-8
+)
+
+# 获取根日志器并添加过滤器
+logger = logging.getLogger()
+logger.addFilter(InfoAndErrorFilter())
 
 
 # ✅ 封装业务逻辑类
@@ -207,4 +227,5 @@ async def handle_insert_signal(request: Request):
 # ✅ 启动服务
 if __name__ == "__main__":
     logger.info("启动 持仓 服务...")
+    logging.info("启动 持仓 服务...")
     uvicorn.run("api_service:app", host="0.0.0.0", port=8082, reload=True)

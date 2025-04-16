@@ -174,6 +174,9 @@ class OKXTradingBot:
 
         await asyncio.gather(signal_task, price_task)
 
+        print("启动持仓机器人任务成功")
+        logging.info("启动持仓机器人任务成功")
+
 if __name__ == "__main__":
     config = TradingBotConfig()
     bot = OKXTradingBot(config)
