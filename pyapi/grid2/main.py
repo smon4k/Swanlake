@@ -156,6 +156,18 @@ class OKXTradingBot:
         await site.start()
         print("API服务器已启动，监听端口8082")
         logging.info("API服务器已启动，监听端口8082")
+    
+    async def refresh_config_loop(self):
+        """定时刷新账户配置缓存"""
+        while True:
+            try:
+                # 刷新所有已缓存的账户配置
+                for account_id in list(self.db.account_config_cache.keys()):
+                    await self.db.get_config_by_account_id(account_id)
+                    print(f"刷新配置成功: account_id={account_id}")
+            except Exception as e:
+                print(f"刷新配置失败: {e}")
+            await asyncio.sleep(60)  # 每 60 秒刷新一次
 
     async def run(self):
         """运行主程序"""
@@ -172,9 +184,12 @@ class OKXTradingBot:
         # await asyncio.gather(signal_task)
 
         price_task = asyncio.create_task(self.price_task.price_monitoring_task())
+
+        # ✅ 添加定时刷新配置任务
+        refresh_config_task = asyncio.create_task(self.refresh_config_loop())
         # await asyncio.gather(price_task)
 
-        await asyncio.gather(signal_task, price_task)
+        await asyncio.gather(signal_task, price_task, refresh_config_task)
 
 
 if __name__ == "__main__":

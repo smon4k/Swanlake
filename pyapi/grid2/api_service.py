@@ -18,6 +18,7 @@ load_dotenv()
 
 # 日志配置
 log_file_path = os.getenv("LOG_API_PATH")
+api_port = int(os.getenv("API_PORT", 8082))
 
 # 检查日志文件是否存在，如果存在则清空
 if os.path.exists(log_file_path):
@@ -230,4 +231,4 @@ async def handle_insert_signal(request: Request):
 # ✅ 启动服务
 if __name__ == "__main__":
     logging.info("启动 持仓 服务...")
-    uvicorn.run("api_service:app", host="0.0.0.0", port=8082, reload=True)
+    uvicorn.run("api_service:app", host="0.0.0.0", port=api_port, reload=True)

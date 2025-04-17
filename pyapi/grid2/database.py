@@ -29,6 +29,7 @@ class Database:
                 """, (account_id,))
                 config = cursor.fetchone()
                 if config:
+                    # print(f'配置已经缓存: {account_id}, {config}')
                     self.account_config_cache[account_id] = config  # 缓存配置信息
                 return config
         except Exception as e:
