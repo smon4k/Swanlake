@@ -174,8 +174,8 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute(f"""
                     INSERT INTO {table('orders')}
-                    (account_id, symbol, position_group_id, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (account_id, symbol, position_group_id, profit, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
                     status = VALUES(status)
@@ -183,6 +183,7 @@ class Database:
                     order_info['account_id'],
                     order_info['symbol'],
                     order_info['position_group_id'],
+                    order_info['profit'],
                     order_info['order_id'],
                     order_info['clorder_id'],
                     order_info['side'],
@@ -225,6 +226,7 @@ class Database:
         """根据订单ID更新订单信息"""
         conn = None
         try:
+            # print("更新订单信息:", account_id, order_id, updates)
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
@@ -401,6 +403,36 @@ class Database:
                     ORDER BY id DESC
                 """
                 cursor.execute(query, (account_id, symbol, direction))
+                order = cursor.fetchone()
+                return order
+        except Exception as e:
+            print(f"数据库查询错误: {e}")
+            logging.error(f"数据库查询错误: {e}")
+            return []
+        finally:
+            conn.close()
+    
+    async def get_order_by_price_diff(self, account_id, symbol, direction, latest_price: float):
+        """
+        查询订单表中买入或卖出已成交的position_group_id为空的，按照成交时间降序排序，成交价格和最新价格之差的绝对值升序排序的一条数据
+        :param account_id: 账户ID
+        :param symbol: 交易对
+        :param direction: 目标方向（long/short）
+        :return: 符合条件的订单数据
+        """
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                # 查询已成交（status为filled）的指定订单方向以及持仓方向的订单
+                query = f"""
+                    SELECT id, account_id, timestamp, symbol, order_id, side, order_type, side, quantity, price, executed_price, status, is_clopos
+                    FROM {table('orders')}
+                    WHERE account_id = %s AND symbol = %s AND side = %s AND status = 'filled' AND (is_clopos = 0 or is_clopos = 1)
+                    AND position_group_id = ''
+                    ORDER BY ABS(%s - price) ASC, fill_time DESC
+                    LIMIT 1
+                """
+                cursor.execute(query, (account_id, symbol, direction, latest_price))
                 order = cursor.fetchone()
                 return order
         except Exception as e:
