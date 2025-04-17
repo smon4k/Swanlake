@@ -176,7 +176,8 @@ class SignalProcessingTask:
                     'side': close_side,
                     'status': 'filled',
                     'is_clopos': 1,
-                    'position_group_id': str(uuid.uuid4()),
+                    'position_group_id': '',
+                    'profit': 0,
                 })
 
                 await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
@@ -276,20 +277,22 @@ class SignalProcessingTask:
             client_order_id
         )
         # print("order", order)
+        new_price = await get_market_price(exchange, order['symbol'])
         if order:
             await self.db.add_order({
                 'account_id': account_id,
                 'symbol': symbol,
                 'order_id': order['id'],
                 'clorder_id': client_order_id,
-                'price': float(price),
-                'executed_price': None,
+                'price': float(new_price),
+                'executed_price': float(price),
                 'quantity': float(size),
                 'pos_side': pos_side,
                 'order_type': 'limit',
                 'side': side, 
                 'status': 'live',
-                'position_group_id': str(uuid.uuid4()),
+                'position_group_id': '',
+                'profit': 0,
             })
 
     async def calculate_position_size(self, exchange: ccxt.Exchange, balance: Decimal, symbol: str, position_percent: Decimal, price: float, account_id: int) -> Decimal:
