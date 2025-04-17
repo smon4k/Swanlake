@@ -162,9 +162,7 @@ class OKXTradingBot:
         while True:
             try:
                 # 刷新所有已缓存的账户配置
-                for account_id in list(self.db.account_config_cache.keys()):
-                    await self.db.get_config_by_account_id(account_id)
-                    print(f"刷新配置成功: account_id={account_id}")
+                await self.initialize_accounts()
             except Exception as e:
                 print(f"刷新配置失败: {e}")
             await asyncio.sleep(60)  # 每 60 秒刷新一次

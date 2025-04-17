@@ -27,7 +27,8 @@ class SignalProcessingTask:
                     signal = cursor.fetchone()
                 # print(signal)
                 if signal:
-                    await self.process_signal(signal)
+                    for account_id in self.db.account_cache:
+                        await self.process_signal(signal, account_id)
                     with conn.cursor() as cursor:
                         cursor.execute(
                             "UPDATE g_signals SET status='processed' WHERE id=%s",
@@ -44,9 +45,9 @@ class SignalProcessingTask:
                 if 'conn' in locals():
                     conn.close()
 
-    async def process_signal(self, signal: dict):
+    async def process_signal(self, signal: dict, account_id: int):
         """处理交易信号（完整版）"""
-        account_id = signal['account_id']
+        # account_id = signal['account_id']
         symbol = signal['symbol']
         pos_side = signal['direction'] # 'long' 或 'short'
         side =  'buy' if pos_side == 'long' else 'sell'  # 'buy' 或 'sell'
