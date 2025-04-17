@@ -347,9 +347,9 @@
                       this.dialogVisibleShow = false;
                       this.$message({
                           type: 'success',
-                          message: this.DialogTitle + '成功!'
+                          message: this.DialogTitle + '成功! 1分钟后生效'
                       });
-                      this.refreshConfig(json.data.data.data);
+                      // this.refreshConfig(json.data.data.data);
                       this.getListData();
                   } else {
                       this.dialogVisibleShow = false;
