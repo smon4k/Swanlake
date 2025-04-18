@@ -25,7 +25,7 @@ class PriceMonitoringTask:
                     continue
                 # positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 for account_id in self.db.account_cache:
-                    print(f"检查账户持仓: {account_id}")
+                    # print(f"检查账户持仓: {account_id}")
                     # logging.info(f"检查账户持仓: {account_id}")
                     await self.check_positions(account_id) # 检查持仓
                 await asyncio.sleep(self.config.check_interval)

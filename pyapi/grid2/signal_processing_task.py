@@ -202,8 +202,8 @@ class SignalProcessingTask:
                 
     async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, price: Decimal):
         """处理开仓"""
-        print(f"⚡ 开仓操作: {pos_side} {side}")
-        logging.info(f"⚡ 开仓操作: {pos_side} {side}")
+        print(f"⚡ 开仓操作: {pos_side} {side} {price} {symbol}")
+        logging.info(f"⚡ 开仓操作: {pos_side} {side} {price} {symbol}")
         exchange = await get_exchange(self, account_id)
         
         # 1. 平掉反向仓位
@@ -309,7 +309,7 @@ class SignalProcessingTask:
             # print(f"账户余额: {total_equity}")
             # price = await get_market_price(exchange, symbol)
             market_precision = await get_market_precision(exchange, symbol, 'SWAP')
-            # print("market_precision", market_precision)
+            print("market_precision", market_precision, price)
             position_size = (balance * position_percent) / (price * Decimal(market_precision['amount']))
             position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
             total_position = Decimal(self.db.account_config_cache[account_id].get('total_position'))
