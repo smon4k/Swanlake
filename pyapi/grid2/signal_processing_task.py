@@ -11,9 +11,11 @@ from common_functions import cancel_all_orders, get_account_balance, get_exchang
 
 class SignalProcessingTask:
     """交易信号处理类"""
-    def __init__(self, config: TradingBotConfig, db: Database):
+    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock):
         self.db = db
         self.config = config
+        self.running = True
+        self.signal_lock = signal_lock
 
     async def signal_processing_task(self):
         """信号处理任务"""
@@ -27,15 +29,18 @@ class SignalProcessingTask:
                     signal = cursor.fetchone()
                 # print(signal)
                 if signal:
-                    for account_id in self.db.account_cache:
-                        await self.process_signal(signal, account_id)
-                    with conn.cursor() as cursor:
-                        cursor.execute(
-                            "UPDATE g_signals SET status='processed' WHERE id=%s",
-                            (signal['id'],)
-                        )
-                    conn.commit()
-            
+                    async with self.signal_lock:  # 🚨加锁，避免 price_monitoring 同时执行
+                        print("🔁 处理信号中...")
+                        logging.info("🔁 处理信号中...")
+                        for account_id in self.db.account_cache:
+                            await self.process_signal(signal, account_id)
+                        with conn.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE g_signals SET status='processed' WHERE id=%s",
+                                (signal['id'],)
+                            )
+                        conn.commit()
+                
                 await asyncio.sleep(3)
             except Exception as e:
                 print(f"信号处理异常: {e}")
@@ -54,8 +59,8 @@ class SignalProcessingTask:
         size = signal['size']      # 1, 0, -1
         price = signal['price']    # 0.00001
         
-        print(f"📡 接收信号: {account_id} {symbol} {side} {size}")
-        logging.info(f"📡 接收信号: {account_id} {symbol} {side} {size}")
+        print(f"📡 账户 {account_id} 处理信号:  {symbol} {side} {size}")
+        logging.info(f"📡 账户 {account_id} 处理信号:  {symbol} {side} {size}")
 
         try:
             # 1. 解析操作类型
@@ -181,12 +186,15 @@ class SignalProcessingTask:
                 })
 
                 await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
+                print(f"成功平掉{opposite_direction}方向总持仓：{total_size}")
                 logging.info(f"成功平掉{opposite_direction}方向总持仓：{total_size}")
 
             else:
+                print(f"平仓失败，方向: {opposite_direction}，数量: {total_size}")
                 logging.info(f"平仓失败，方向: {opposite_direction}，数量: {total_size}")
 
         except Exception as e:
+            print(f"清理反向持仓出错: {e}")
             logging.error(f"清理反向持仓出错: {e}")
 
 

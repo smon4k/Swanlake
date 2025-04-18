@@ -21,8 +21,8 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
             "options": {"defaultType": "swap"},
             # 'enableRateLimit': True,
         })
-        is_simulation = int(os.getenv("IS_SIMULATION", 1))
-        if is_simulation == 1: # 1表示模拟环境
+        is_simulation = os.getenv("IS_SIMULATION", '1')
+        if is_simulation == '1': # 1表示模拟环境
             exchange.set_sandbox_mode(True)
         return exchange
     return None
