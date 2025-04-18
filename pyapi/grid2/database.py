@@ -66,10 +66,9 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(f"""
-                    INSERT INTO {table('signals')} (account_id, timestamp, symbol, direction, price, size, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO {table('signals')} (timestamp, symbol, direction, price, size, status)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                 """, (
-                    signal_data['account_id'],
                     signal_data['timestamp'],
                     signal_data['symbol'],
                     signal_data['direction'],
@@ -88,15 +87,15 @@ class Database:
                 conn.close()
     
     #获取信号表数据最新的一条数据
-    async def get_latest_signal(self, account_id: int) -> Optional[Dict]:
+    async def get_latest_signal(self) -> Optional[Dict]:
         """获取信号表数据最新的一条数据"""
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(f"""
-                    SELECT * FROM {table('signals')} WHERE account_id=%s ORDER BY id DESC LIMIT 1
-                """, (account_id,))
+                    SELECT * FROM {table('signals')} ORDER BY id DESC LIMIT 1
+                """)
                 signal = cursor.fetchone()
                 return signal
         except Exception as e:
@@ -108,7 +107,7 @@ class Database:
                 conn.close()
 
     # 获取信号表中做多和做空的最新一条记录
-    async def get_latest_signal_by_direction(self, account_id: int) -> Optional[Dict]:
+    async def get_latest_signal_by_direction(self) -> Optional[Dict]:
         """获取信号表中做多和做空的最新一条记录"""
         conn = None
         try:
@@ -116,9 +115,9 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute(f"""
                     SELECT * FROM {table('signals')}
-                    WHERE account_id=%s AND (direction='long' AND size=1) OR (direction='short' AND size=-1)
+                    WHERE (direction='long' AND size=1) OR (direction='short' AND size=-1)
                     ORDER BY id DESC LIMIT 1
-                """, (account_id,))
+                """)
                 signal = cursor.fetchone()
                 return signal
         except Exception as e:
