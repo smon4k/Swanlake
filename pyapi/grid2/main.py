@@ -45,8 +45,9 @@ class OKXTradingBot:
     def __init__(self, config: TradingBotConfig):
         self.config = config
         self.db = Database(config.db_config)
-        self.signal_task = SignalProcessingTask(config, self.db)
-        self.price_task = PriceMonitoringTask(config, self.db)
+        self.signal_lock = asyncio.Lock()
+        self.signal_task = SignalProcessingTask(config, self.db, self.signal_lock)
+        self.price_task = PriceMonitoringTask(config, self.db, self.signal_lock)
         # self.app = web.Application()
         # self.app.add_routes([
         #     web.post('/insert_signal', self.handle_insert_signal),  # 新增路由
@@ -60,7 +61,6 @@ class OKXTradingBot:
             data = await request.json()
             # 解析请求体中的参数
             symbol = data.get('symbol')
-            account_id = os.getenv("ACCOUNT_ID", 1)
             direction = 'long' if data.get('side') == 'buy' else 'short'  # 假设请求体中的'side'对应数据库中的'direction'
             price = Decimal(data.get('price', 0))  # 假设请求体中的'price'对应数据库中的'price'
             size = float(data.get('size', 0))  # 假设请求体中的'size'对应数据库中的'size'
@@ -72,7 +72,6 @@ class OKXTradingBot:
 
             # 调用数据库方法写入信号
             result = await self.db.insert_signal({
-                'account_id': account_id,  # 假设account_id是从请求头中获取的
                 'symbol': symbol,
                 'direction': direction,
                 'price': price,  # 假设价格为0，实际使用时需要根据需求设置
@@ -162,9 +161,9 @@ class OKXTradingBot:
         while True:
             try:
                 # 刷新所有已缓存的账户配置
-                for account_id in list(self.db.account_config_cache.keys()):
-                    await self.db.get_config_by_account_id(account_id)
-                    print(f"刷新配置成功: account_id={account_id}")
+                await self.initialize_accounts()
+                print("刷新账户配置成功")
+                logging.info("刷新账户配置成功")
             except Exception as e:
                 print(f"刷新配置失败: {e}")
             await asyncio.sleep(60)  # 每 60 秒刷新一次

@@ -49,7 +49,7 @@ class PositionService:
         self.config = config
     
     # 接口：处理写入信号的API请求
-    async def insert_signal(self, account_id: int, symbol: str, side: str, price: Decimal, size: float):
+    async def insert_signal(self, symbol: str, side: str, price: Decimal, size: float):
         """接口：处理写入信号的API请求"""
         try:
             # data = await request.json()
@@ -67,7 +67,6 @@ class PositionService:
             
             # 调用数据库方法写入信号
             result = await self.db.insert_signal({
-                'account_id': account_id,  # 假设account_id是从请求头中获取的
                 'symbol': symbol,
                 'direction': direction,
                 'price': price,  # 假设价格为0，实际使用时需要根据需求设置
@@ -217,10 +216,10 @@ async def handle_insert_signal(request: Request):
         data = await request.json()
         # 解析请求体中的参数
         symbol = data.get('symbol')
-        account_id = os.getenv("ACCOUNT_ID", 1)
+        # account_id = os.getenv("ACCOUNT_ID", 1)
         price = Decimal(data.get('price', 0))  # 假设请求体中的'price'对应数据库中的'price'
         size = float(data.get('size', 0))  # 假设请求体中的'size'对应数据库中的'size'
-        result = await service.insert_signal(account_id, symbol, data.get('side'), price, size)
+        result = await service.insert_signal(symbol, data.get('side'), price, size)
         if result['status'] == 'success':
             return {"success": True, "data": result}
         else:

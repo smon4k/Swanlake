@@ -6,18 +6,27 @@ import uuid
 from common_functions import get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_total_positions, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
+import traceback
 
 class PriceMonitoringTask:
-    def __init__(self, config: TradingBotConfig, db: Database):
+    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock):
         self.config = config
         self.db = db
+        self.signal_lock = signal_lock
     
     async def price_monitoring_task(self):
         """价格监控任务"""
         while getattr(self, 'running', True): 
             try:
+                if self.signal_lock.locked():
+                    print("⏸ 信号处理中，跳过一次监控")
+                    logging.info("⏸ 信号处理中，跳过一次监控")
+                    await asyncio.sleep(1)
+                    continue
                 # positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 for account_id in self.db.account_cache:
+                    print(f"检查账户持仓: {account_id}")
+                    logging.info(f"检查账户持仓: {account_id}")
                     await self.check_positions(account_id) # 检查持仓
                 await asyncio.sleep(self.config.check_interval)
             except Exception as e:
@@ -45,7 +54,7 @@ class PriceMonitoringTask:
             latest_fill_time = 0
 
             # 检查止盈止损并平仓
-            signal = await self.db.get_latest_signal(account_id)  # 获取最新信号
+            signal = await self.db.get_latest_signal()  # 获取最新信号
             await self.check_and_close_position(exchange, account_id, signal['symbol'], signal['price'])
         
             for order in open_orders:
@@ -119,7 +128,7 @@ class PriceMonitoringTask:
     
             price = await get_market_price(exchange, symbol)
 
-            signal = await self.db.get_latest_signal(account_id)  # 获取最新信号
+            signal = await self.db.get_latest_signal()  # 获取最新信号
             side = 'buy' if signal['direction'] == 'long' else 'sell'
 
             market_precision = await get_market_precision(exchange, symbol, 'SWAP') # 获取市场精度
@@ -170,7 +179,7 @@ class PriceMonitoringTask:
             
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
-            signal = await self.db.get_latest_signal(account_id)  # 获取最新信号
+            signal = await self.db.get_latest_signal()  # 获取最新信号
             if signal:
                 pos_side = 'long'
                 if side == 'buy' and signal['size'] == 1: # 开多
@@ -246,7 +255,6 @@ class PriceMonitoringTask:
         except Exception as e:
             print(f"网格订单管理失败: {str(e)}")
             logging.error(f"网格订单管理失败: {str(e)}")
-            import traceback
             traceback.print_exc()
 
     #生成一个获取订单信息的测试方法
@@ -268,69 +276,76 @@ class PriceMonitoringTask:
     
     async def check_and_close_position(self, exchange, account_id, symbol, price: float = None):
         """检查止盈止损 并关闭持仓"""
-        positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
-        # print(f"当前持仓: {positions}")
-        for pos in positions:
-            contracts = Decimal(str(pos['contracts']))
-            if contracts <= 0:
-                continue  # 没仓位就跳过
-            pos_side = pos['side']  # 'long' 或 'short'
-            if not price:
-                entry_price = Decimal(str(price))
-            else:
-                entry_price = Decimal(str(pos['entryPrice']))
+        try:
+            positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+            # print(f"当前持仓: {positions}")
+            for pos in positions:
+                contracts = Decimal(str(pos['contracts']))
+                if contracts <= 0:
+                    continue  # 没仓位就跳过
+                pos_side = pos['side']  # 'long' 或 'short'
+                if not price:
+                    entry_price = Decimal(str(price))
+                else:
+                    entry_price = Decimal(str(pos['entryPrice']))
 
-            # 计算浮动盈亏比例
-            current_price = await get_market_price(exchange, symbol)
-            if pos_side == 'long':
-                price_change = Decimal((current_price - entry_price) / entry_price)
-            else:
-                price_change = Decimal((entry_price - current_price) / entry_price)
+                # 计算浮动盈亏比例
+                current_price = await get_market_price(exchange, symbol)
+                if pos_side == 'long':
+                    price_change = (Decimal(current_price) - entry_price) / entry_price
+                else:
+                    price_change = (entry_price - Decimal(current_price)) / entry_price
 
-            # print(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
-            # logging.info(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
-            stop_profit_loss = Decimal(Decimal(str(self.db.account_config_cache[account_id].get('stop_profit_loss'))))  # 确保 stop_profit_loss 是 Decimal 类型
-            # 判断止盈/止损
-            # print(f"止盈止损: {stop_profit_loss:.4%}, 浮动变化: {abs(price_change)}")
-            if abs(price_change) <= -stop_profit_loss:  # ±0.7%
-                print(f"{pos_side.upper()} 触发止损：浮动变化 {price_change:.4%}, 当前价格 {current_price}, 开仓价格 {entry_price}, 合约数 {contracts}")
-                logging.info(f"{pos_side.upper()} 触发止损：浮动变化 {price_change:.4%}, 当前价格 {current_price}, 开仓价格 {entry_price}, 合约数 {contracts}")
-                close_side = 'sell' if pos_side == 'long' else 'buy'
+                # print(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
+                # logging.info(f"浮动变化: {abs(price_change):.4%}, 仓位方向: {pos_side}, 当前价格: {current_price}, 开仓价格: {entry_price}, 合约数: {contracts}")
+                stop_profit_loss = Decimal(Decimal(str(self.db.account_config_cache[account_id].get('stop_profit_loss'))))  # 确保 stop_profit_loss 是 Decimal 类型
+                # 判断止盈/止损
+                # print(f"止盈止损: {stop_profit_loss:.4%}, 浮动变化: {abs(price_change)}")
+                if abs(price_change) <= -stop_profit_loss:  # ±0.7%
+                    print(f"{pos_side.upper()} 触发止损：浮动变化 {price_change:.4%}, 当前价格 {current_price}, 开仓价格 {entry_price}, 合约数 {contracts}")
+                    logging.info(f"{pos_side.upper()} 触发止损：浮动变化 {price_change:.4%}, 当前价格 {current_price}, 开仓价格 {entry_price}, 合约数 {contracts}")
+                    close_side = 'sell' if pos_side == 'long' else 'buy'
 
-                # 平仓
-                client_order_id = await get_client_order_id()
-                close_order = await open_position(
-                    self,
-                    account_id,
-                    symbol,
-                    close_side,
-                    pos_side,
-                    float(pos['contracts']),
-                    None,  # 市价单
-                    'market',
-                    client_order_id,
-                    True,
-                )
-                # ✅ 更新数据库状态
-                await self.db.add_order({
-                    'account_id': account_id,
-                    'symbol': symbol,
-                    'order_id': close_order['id'],
-                    'clorder_id': client_order_id,
-                    'price': float(current_price),
-                    'executed_price': None,
-                    'quantity': float(pos['contracts']),
-                    'pos_side': pos_side,
-                    'order_type': 'market',
-                    'side': close_side,
-                    'status': 'filled',
-                    'is_clopos': 1,
-                    'position_group_id': str(uuid.uuid4()),
-                })
+                    # 平仓
+                    client_order_id = await get_client_order_id()
+                    close_order = await open_position(
+                        self,
+                        account_id,
+                        symbol,
+                        close_side,
+                        pos_side,
+                        float(pos['contracts']),
+                        None,  # 市价单
+                        'market',
+                        client_order_id,
+                        True,
+                    )
+                    # ✅ 更新数据库状态
+                    await self.db.add_order({
+                        'account_id': account_id,
+                        'symbol': symbol,
+                        'order_id': close_order['id'],
+                        'clorder_id': client_order_id,
+                        'price': float(current_price),
+                        'executed_price': None,
+                        'quantity': float(pos['contracts']),
+                        'pos_side': pos_side,
+                        'order_type': 'market',
+                        'side': close_side,
+                        'status': 'filled',
+                        'is_clopos': 1,
+                        'position_group_id': str(uuid.uuid4()),
+                    })
 
-                await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单
+                    await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单
 
-                await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
+                    await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
+
+        except Exception as e:
+            print(f"检查止盈止损失败: {e}")
+            logging.error(f"检查止盈止损失败: {e}")
+            traceback.print_exc()
+            
 
     
         
