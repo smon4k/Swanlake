@@ -162,7 +162,7 @@ class OKXTradingBot:
             try:
                 # 刷新所有已缓存的账户配置
                 await self.initialize_accounts()
-                print("刷新账户配置成功")
+                # print("刷新账户配置成功")
                 logging.info("刷新账户配置成功")
             except Exception as e:
                 print(f"刷新配置失败: {e}")
