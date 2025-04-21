@@ -25,7 +25,7 @@ class PriceMonitoringTask:
                     continue
                 # positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 for account_id in self.db.account_cache:
-                    print(f"检查账户持仓: {account_id}")
+                    # print(f"检查账户持仓: {account_id}")
                     # logging.info(f"检查账户持仓: {account_id}")
                     await self.check_positions(account_id) # 检查持仓
                 await asyncio.sleep(self.config.check_interval)
@@ -125,13 +125,17 @@ class PriceMonitoringTask:
             total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
             print("总持仓数", total_position_value)
             logging.info(f"总持仓数: {total_position_value}")
+            if total_position_value <= 0:
+                print("网格下单 无持仓信息")
+                logging.info("网格下单 无持仓信息")
+                return
     
             price = await get_market_price(exchange, symbol)
 
             signal = await self.db.get_latest_signal()  # 获取最新信号
             side = 'buy' if signal['direction'] == 'long' else 'sell'
 
-            market_precision = await get_market_precision(exchange, symbol, 'SWAP') # 获取市场精度
+            market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
 
             total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
             print("总持仓价值", total_position_quantity)
