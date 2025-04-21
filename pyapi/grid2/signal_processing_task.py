@@ -233,6 +233,7 @@ class SignalProcessingTask:
 
         balance = await get_account_balance(exchange, symbol)
         print(f"账户余额: {balance}")
+        logging.info(f"账户余额: {balance}")
         if balance is None:
             print(f"账户余额获取失败")
             logging.error(f"账户余额获取失败")
@@ -247,8 +248,10 @@ class SignalProcessingTask:
         size = await self.calculate_position_size(market_precision, balance, position_percent, price, account_id)
         print(f"开仓价: {price}")
         print(f"开仓量: {size}")
+        logging.info(f"开仓量: {size}")
         size_total_quantity = Decimal(size) * Decimal(market_precision['amount']) * price
         print(f"开仓价值: {size_total_quantity}")
+        logging.info(f"开仓价值: {size_total_quantity}")
         if size <= 0:
             print(f"开仓量为0，不执行开仓")
             logging.info(f"开仓量为0，不执行开仓")
