@@ -274,7 +274,7 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute(f"""
                     SELECT * FROM {table('orders')} 
-                    WHERE account_id=%s AND (status = 'live' OR status = 'partially_filled') AND (side = 'buy' OR side = 'sell') AND order_type = 'limit'  ORDER BY id DESC LIMIT 2
+                    WHERE account_id=%s AND (status = 'live' OR status = 'partially_filled') AND (side = 'buy' OR side = 'sell') AND order_type = 'limit'  ORDER BY id DESC
                 """, (account_id))
                 results = cursor.fetchall()
                 return results

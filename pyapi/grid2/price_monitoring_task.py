@@ -149,8 +149,14 @@ class PriceMonitoringTask:
             percent_list = await get_grid_percent_list(self, account_id, signal['direction'])
             buy_percent = percent_list.get('buy')
             # print('buy_percent', buy_percent)
+            # print("market_precision", market_precision)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+            if buy_size <= market_precision['min_amount']:
+                print(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
+                logging.info(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
+                return
+            
             buy_size_total_quantity = Decimal(buy_size) * Decimal(market_precision['amount']) * buy_price
 
             # sell_percent = self.config.grid_percent_config[signal['direction']]['sell']
@@ -158,6 +164,11 @@ class PriceMonitoringTask:
             # print('sell_percent', sell_percent)
             sell_size = total_position_value * Decimal(str(sell_percent))
             sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+            if sell_size <= market_precision['min_amount']:
+                print(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
+                logging.info(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
+                return
+            
             sell_size_total_quantity = Decimal(sell_size) * Decimal(market_precision['amount']) * sell_price
 
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
