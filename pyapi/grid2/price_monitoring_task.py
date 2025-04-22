@@ -59,6 +59,8 @@ class PriceMonitoringTask:
         
             for order in open_orders:
                 # 检查订单是否存在
+                # print(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                # logging.info(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                 order_info = exchange.fetch_order(order['order_id'], order['symbol'], {'instType': 'SWAP'})
                 # print("order_info", order_info)
                 fill_date_time = None
@@ -77,8 +79,8 @@ class PriceMonitoringTask:
                 await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                 
             if latest_order:
-                print(f"订单已成交，成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
-                logging.info(f"订单已成交，成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
                 # print(f"订单存在: {latest_order}")
                 if latest_order['info']['state'] == 'filled':
                     # 检查止盈止损
