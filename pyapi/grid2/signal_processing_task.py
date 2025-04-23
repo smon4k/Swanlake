@@ -40,8 +40,7 @@ class SignalProcessingTask:
                                 (signal['id'],)
                             )
                         conn.commit()
-                
-                await asyncio.sleep(3)
+                await asyncio.sleep(self.config.check_interval)
             except Exception as e:
                 print(f"信号处理异常: {e}")
                 logging.error(f"信号处理异常: {e}")
