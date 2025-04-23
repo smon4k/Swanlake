@@ -1,5 +1,6 @@
 from decimal import Decimal
 import os
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
@@ -60,7 +61,7 @@ class PositionService:
             # price = Decimal(data.get('price', 0))  # 假设请求体中的'price'对应数据库中的'price'
             # size = float(data.get('size', 0))  # 假设请求体中的'size'对应数据库中的'size'
             # 当前时间的格式化字符串
-            timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.now(ZoneInfo("Asia/Shanghai")).strftime('%Y-%m-%d %H:%M:%S')
 
             if not symbol or not direction:
                 return JSONResponse(status_code=500, content={"success": False, "error": 'Missing required parameters'})
