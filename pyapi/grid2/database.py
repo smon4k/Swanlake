@@ -87,15 +87,23 @@ class Database:
                 conn.close()
     
     #获取信号表数据最新的一条数据
-    async def get_latest_signal(self) -> Optional[Dict]:
-        """获取信号表数据最新的一条数据"""
+    async def get_latest_signal(self, symbol: Optional[str] = None) -> Optional[Dict]:
+        """获取信号表数据最新的一条数据，如果 symbol 为空则返回所有的最新一条"""
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
-                    SELECT * FROM {table('signals')} ORDER BY id DESC LIMIT 1
-                """)
+                if symbol:
+                    cursor.execute(f"""
+                        SELECT * FROM {table('signals')} 
+                        WHERE symbol = %s 
+                        ORDER BY id DESC LIMIT 1
+                    """, (symbol,))
+                else:
+                    cursor.execute(f"""
+                        SELECT * FROM {table('signals')} 
+                        ORDER BY id DESC LIMIT 1
+                    """)
                 signal = cursor.fetchone()
                 return signal
         except Exception as e:
@@ -105,6 +113,7 @@ class Database:
         finally:
             if conn:
                 conn.close()
+
 
     # 获取信号表中做多和做空的最新一条记录
     async def get_latest_signal_by_direction(self) -> Optional[Dict]:

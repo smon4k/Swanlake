@@ -3,7 +3,7 @@ import asyncio
 from decimal import Decimal
 import logging
 import uuid
-from common_functions import get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_total_positions, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
+from common_functions import get_account_balance, get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_total_positions, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 import traceback
@@ -131,10 +131,13 @@ class PriceMonitoringTask:
                 print("网格下单 无持仓信息")
                 logging.info("网格下单 无持仓信息")
                 return
-    
+
+            balance = await get_account_balance(exchange, symbol)
+            print(f"账户余额: {balance}")
+
             price = await get_market_price(exchange, symbol)
 
-            signal = await self.db.get_latest_signal()  # 获取最新信号
+            signal = await self.db.get_latest_signal(symbol)  # 获取最新信号
             side = 'buy' if signal['direction'] == 'long' else 'sell'
 
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
@@ -196,7 +199,7 @@ class PriceMonitoringTask:
             
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
-            signal = await self.db.get_latest_signal()  # 获取最新信号
+            signal = await self.db.get_latest_signal(symbol)  # 获取最新信号
             if signal:
                 pos_side = 'long'
                 if side == 'buy' and signal['size'] == 1: # 开多
