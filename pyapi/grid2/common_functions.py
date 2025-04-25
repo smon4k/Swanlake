@@ -32,31 +32,24 @@ async def get_market_price(exchange: ccxt.Exchange, symbol: str) -> Decimal:
     ticker = exchange.fetch_ticker(symbol)
     return Decimal(str(ticker['last']))
 
-async def get_market_precision(exchange: ccxt.Exchange, symbol: str) -> Dict[str, Decimal]:
-    """
-    获取目标交易对的价格和数量精度
-    """
+async def get_market_precision(exchange: ccxt.Exchange, symbol: str, instType: str = 'SWAP') -> Tuple[Decimal, Decimal]:
+    """获取市场的价格和数量精度"""
     try:
-        # 确保市场数据已加载
-        if not exchange.markets:
-            exchange.load_markets()
-
-        market = exchange.market(symbol)
-        contract_size = Decimal(str(market.get('contractSize', 1)))  # 默认是1，适用于BTC
-        price_precision = Decimal(str(market['precision']['price']))
-        amount_precision = Decimal(str(market['precision']['amount']))
+        markets = exchange.fetch_markets_by_type(instType, {'instId': f"{symbol}"})
+        # print("markets:", markets)
+        contract_size = Decimal(str(markets[0]['contractSize']))  # 默认是1，适用于BTC
+        price_precision = Decimal(str(markets[0]['precision']['price']))
+        amount_precision = Decimal(str(markets[0]['precision']['amount']))
+        min_amount = Decimal(str(markets[0]['limits']['amount']['min']))  # 最小下单量
         return {
+            'min_amount': min_amount,
             'contract_size': contract_size,
             'price': price_precision,
             'amount': amount_precision,
         }
-
     except Exception as e:
         print(f"获取市场精度失败: {e}")
-        return {
-            'price': Decimal('0.0001'),
-            'amount': Decimal('0.0001'),
-        }
+        return Decimal('0.0001'), Decimal('0.0001')  # 设置默认精度值
 
 
 async def get_client_order_id():

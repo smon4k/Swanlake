@@ -3,7 +3,7 @@ import asyncio
 from decimal import Decimal
 import logging
 import uuid
-from common_functions import get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_total_positions, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
+from common_functions import get_account_balance, get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_total_positions, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 import traceback
@@ -59,6 +59,8 @@ class PriceMonitoringTask:
         
             for order in open_orders:
                 # 检查订单是否存在
+                # print(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                # logging.info(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                 order_info = exchange.fetch_order(order['order_id'], order['symbol'], {'instType': 'SWAP'})
                 # print("order_info", order_info)
                 fill_date_time = None
@@ -77,8 +79,8 @@ class PriceMonitoringTask:
                 await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                 
             if latest_order:
-                print(f"订单已成交，成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
-                logging.info(f"订单已成交，成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
                 # print(f"订单存在: {latest_order}")
                 if latest_order['info']['state'] == 'filled':
                     # 检查止盈止损
@@ -129,10 +131,13 @@ class PriceMonitoringTask:
                 print("网格下单 无持仓信息")
                 logging.info("网格下单 无持仓信息")
                 return
-    
+
+            balance = await get_account_balance(exchange, symbol)
+            print(f"账户余额: {balance}")
+
             price = await get_market_price(exchange, symbol)
 
-            signal = await self.db.get_latest_signal()  # 获取最新信号
+            signal = await self.db.get_latest_signal(symbol)  # 获取最新信号
             side = 'buy' if signal['direction'] == 'long' else 'sell'
 
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
@@ -149,8 +154,14 @@ class PriceMonitoringTask:
             percent_list = await get_grid_percent_list(self, account_id, signal['direction'])
             buy_percent = percent_list.get('buy')
             # print('buy_percent', buy_percent)
+            # print("market_precision", market_precision)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+            if buy_size <= market_precision['min_amount']:
+                print(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
+                logging.info(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
+                return
+            
             buy_size_total_quantity = Decimal(buy_size) * Decimal(market_precision['amount']) * buy_price
 
             # sell_percent = self.config.grid_percent_config[signal['direction']]['sell']
@@ -158,6 +169,11 @@ class PriceMonitoringTask:
             # print('sell_percent', sell_percent)
             sell_size = total_position_value * Decimal(str(sell_percent))
             sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+            if sell_size <= market_precision['min_amount']:
+                print(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
+                logging.info(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
+                return
+            
             sell_size_total_quantity = Decimal(sell_size) * Decimal(market_precision['amount']) * sell_price
 
             print(f"计算挂单量: 卖{sell_size} 买{buy_size}")
@@ -183,7 +199,7 @@ class PriceMonitoringTask:
             
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
-            signal = await self.db.get_latest_signal()  # 获取最新信号
+            signal = await self.db.get_latest_signal(symbol)  # 获取最新信号
             if signal:
                 pos_side = 'long'
                 if side == 'buy' and signal['size'] == 1: # 开多
