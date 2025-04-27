@@ -41,7 +41,7 @@
             <span>最大仓位：{{ item.value }}</span>
           </div>
         </el-descriptions-item>
-        <el-descriptions-item label="价格差">{{ item.commission_price_difference }}</el-descriptions-item>
+        <el-descriptions-item label="价格浮动比例">{{ item.commission_price_difference }}</el-descriptions-item>
       </el-descriptions>
       <el-row v-if="tableData && tableData.length > 0">
         <el-col :span="24">
@@ -133,8 +133,8 @@
         <el-form-item label="网格间距" prop="grid_step">
           <el-input v-model="FormData.grid_step" placeholder="如 0.002"></el-input>
         </el-form-item>
-        <el-form-item label="价格差(USDT)" prop="commission_price_difference">
-          <el-input v-model="FormData.commission_price_difference" placeholder="如 50"></el-input>
+        <el-form-item label="价格浮动比(百分比)" prop="commission_price_difference">
+          <el-input v-model="FormData.commission_price_difference" placeholder="如 0.06%"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button @click="resetForm('FormData')">取消</el-button>

@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Tuple
+from typing import Dict, Tuple
 import ccxt
 from decimal import Decimal
 from database import Database
@@ -21,8 +21,8 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
             "options": {"defaultType": "swap"},
             # 'enableRateLimit': True,
         })
-        is_simulation = int(os.getenv("IS_SIMULATION", 1))
-        if is_simulation == 1: # 1表示模拟环境
+        is_simulation = os.getenv("IS_SIMULATION", '1')
+        if is_simulation == '1': # 1表示模拟环境
             exchange.set_sandbox_mode(True)
         return exchange
     return None
@@ -36,15 +36,21 @@ async def get_market_precision(exchange: ccxt.Exchange, symbol: str, instType: s
     """获取市场的价格和数量精度"""
     try:
         markets = exchange.fetch_markets_by_type(instType, {'instId': f"{symbol}"})
+        # print("markets:", markets)
+        contract_size = Decimal(str(markets[0]['contractSize']))  # 默认是1，适用于BTC
         price_precision = Decimal(str(markets[0]['precision']['price']))
         amount_precision = Decimal(str(markets[0]['precision']['amount']))
+        min_amount = Decimal(str(markets[0]['limits']['amount']['min']))  # 最小下单量
         return {
+            'min_amount': min_amount,
+            'contract_size': contract_size,
             'price': price_precision,
             'amount': amount_precision,
         }
     except Exception as e:
         print(f"获取市场精度失败: {e}")
         return Decimal('0.0001'), Decimal('0.0001')  # 设置默认精度值
+
 
 async def get_client_order_id():
     prefix = 'Zx'

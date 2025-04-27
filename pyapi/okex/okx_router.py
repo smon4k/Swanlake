@@ -51,7 +51,7 @@ async def get_account_balances(
             refugee.api_key, refugee.secret_key, refugee.passphrase, False, "0"
         )
         result = accountAPI.get_account_balance(ccy)
-        print(result)
+        # print(result)
         if result["code"] == "0":
             return CommonResponse(
                 status="success",

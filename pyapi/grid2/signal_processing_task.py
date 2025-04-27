@@ -11,9 +11,11 @@ from common_functions import cancel_all_orders, get_account_balance, get_exchang
 
 class SignalProcessingTask:
     """交易信号处理类"""
-    def __init__(self, config: TradingBotConfig, db: Database):
+    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock):
         self.db = db
         self.config = config
+        self.running = True
+        self.signal_lock = signal_lock
 
     async def signal_processing_task(self):
         """信号处理任务"""
@@ -27,15 +29,18 @@ class SignalProcessingTask:
                     signal = cursor.fetchone()
                 # print(signal)
                 if signal:
-                    await self.process_signal(signal)
-                    with conn.cursor() as cursor:
-                        cursor.execute(
-                            "UPDATE g_signals SET status='processed' WHERE id=%s",
-                            (signal['id'],)
-                        )
-                    conn.commit()
-            
-                await asyncio.sleep(3)
+                    async with self.signal_lock:  # 🚨加锁，避免 price_monitoring 同时执行
+                        print("🔁 处理信号中...")
+                        logging.info("🔁 处理信号中...")
+                        for account_id in self.db.account_cache:
+                            await self.process_signal(signal, account_id)
+                        with conn.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE g_signals SET status='processed' WHERE id=%s",
+                                (signal['id'],)
+                            )
+                        conn.commit()
+                await asyncio.sleep(self.config.check_interval)
             except Exception as e:
                 print(f"信号处理异常: {e}")
                 logging.error(f"信号处理异常: {e}")
@@ -44,17 +49,17 @@ class SignalProcessingTask:
                 if 'conn' in locals():
                     conn.close()
 
-    async def process_signal(self, signal: dict):
+    async def process_signal(self, signal: dict, account_id: int):
         """处理交易信号（完整版）"""
-        account_id = signal['account_id']
+        # account_id = signal['account_id']
         symbol = signal['symbol']
         pos_side = signal['direction'] # 'long' 或 'short'
         side =  'buy' if pos_side == 'long' else 'sell'  # 'buy' 或 'sell'
         size = signal['size']      # 1, 0, -1
         price = signal['price']    # 0.00001
         
-        print(f"📡 接收信号: {account_id} {symbol} {side} {size}")
-        logging.info(f"📡 接收信号: {account_id} {symbol} {side} {size}")
+        print(f"📡 账户 {account_id} 处理信号:  {symbol} {side} {size}")
+        logging.info(f"📡 账户 {account_id} 处理信号:  {symbol} {side} {size}")
 
         try:
             # 1. 解析操作类型
@@ -181,132 +186,142 @@ class SignalProcessingTask:
                 })
 
                 await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
+                print(f"成功平掉{opposite_direction}方向总持仓：{total_size}")
                 logging.info(f"成功平掉{opposite_direction}方向总持仓：{total_size}")
 
             else:
+                print(f"平仓失败，方向: {opposite_direction}，数量: {total_size}")
                 logging.info(f"平仓失败，方向: {opposite_direction}，数量: {total_size}")
 
         except Exception as e:
+            print(f"清理反向持仓出错: {e}")
             logging.error(f"清理反向持仓出错: {e}")
 
 
 
                 
     async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, price: Decimal):
-        """处理开仓"""
-        print(f"⚡ 开仓操作: {pos_side} {side}")
-        logging.info(f"⚡ 开仓操作: {pos_side} {side}")
-        exchange = await get_exchange(self, account_id)
-        
-        # 1. 平掉反向仓位
-        # await self.cleanup_opposite_positions(account_id, symbol, pos_side)
-        total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
-        print("总持仓数", total_position_value)
-        logging.info(f"总持仓数：{total_position_value}")
-        if total_position_value is None:
-            print(f"总持仓数获取失败")
-            logging.error(f"总持仓数获取失败")
-            return
-        market_precision = await get_market_precision(exchange, symbol, 'SWAP') # 获取市场精度
-        total_position_quantity = 0
-        if(total_position_value > 0):
-            total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
-            print("总持仓价值", total_position_quantity)
-        
-        # 2. 计算开仓量
-        # price = await get_market_price(exchange, symbol)
-        commission_price_difference = Decimal(self.db.account_config_cache[account_id].get('commission_price_difference'))
-        if(pos_side == 'short'): # 做空
-            price = price - commission_price_difference # 信号价 - 50U
-        elif(pos_side =='long'): # 做多
-            price = price + commission_price_difference # 信号价 + 50U
+        try:
+            """处理开仓"""
+            print(f"⚡ 开仓操作: {pos_side} {side} {price} {symbol}")
+            logging.info(f"⚡ 开仓操作: {pos_side} {side} {price} {symbol}")
+            exchange = await get_exchange(self, account_id)
+            
+            # 1. 平掉反向仓位
+            # await self.cleanup_opposite_positions(account_id, symbol, pos_side)
+            total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
+            print("总持仓数", total_position_value)
+            logging.info(f"总持仓数：{total_position_value}")
+            if total_position_value is None:
+                print(f"总持仓数获取失败")
+                logging.error(f"总持仓数获取失败")
+                return
+            market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
+            # print("市场精度", market_precision)
+            total_position_quantity = 0
+            if(total_position_value > 0):
+                total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
+                print("总持仓价值", total_position_quantity)
+            
+            # 2. 计算开仓量
+            # price = await get_market_price(exchange, symbol)
+            commission_price_difference = Decimal(self.db.account_config_cache[account_id].get('commission_price_difference'))
+            price_float = price * (commission_price_difference / 100) # 计算价格浮动比例
+            # print("价格浮动比例", price_float, commission_price_difference)
+            if(pos_side == 'short'): # 做空
+                price = price - price_float # 信号价 - 价格浮动比例
+            elif(pos_side =='long'): # 做多
+                price = price + price_float # 信号价 + 价格浮动比例
 
-        balance = await get_account_balance(exchange, symbol)
-        print(f"账户余额: {balance}")
-        if balance is None:
-            print(f"账户余额获取失败")
-            logging.error(f"账户余额获取失败")
-            return
-    
-        max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
-        position_percent = Decimal(self.db.account_config_cache[account_id].get('position_percent'))
-        max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
-        if balance >= max_balance: # 超过最大仓位限制
-            balance = max_position
-        print(f"成交余额: {balance}")
-        size = await self.calculate_position_size(exchange, balance, symbol, position_percent, price, account_id)
-        print(f"开仓量: {size}")
-        size_total_quantity = Decimal(size) * Decimal(market_precision['amount']) * price
-        print(f"开仓价值: {size_total_quantity}")
-        if size <= 0:
-            print(f"开仓量为0，不执行开仓")
-            logging.info(f"开仓量为0，不执行开仓")
-            return
+            balance = await get_account_balance(exchange, symbol)
+            print(f"账户余额: {balance}")
+            logging.info(f"账户余额: {balance}")
+            if balance is None:
+                print(f"账户余额获取失败")
+                logging.error(f"账户余额获取失败")
+                return
         
-        # 3. 判断当前币种是否超过最大持仓
-        # if size_total_quantity >= max_position:
-        #     print(f"开仓量超过最大仓位限制，不执行开仓")
-        #     logging.info(f"开仓量超过最大仓位限制，不执行开仓")
-        #     return
-        
-        # 4. 判断所有仓位是否超过最大持仓量
-        total_size_position_quantity = 0
-        if total_position_quantity > 0:
-            total_size_position_quantity = Decimal(total_position_quantity) + Decimal(size_total_quantity)
+            max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
+            position_percent = Decimal(self.db.account_config_cache[account_id].get('position_percent'))
+            max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
+            if balance >= max_balance: # 超过最大仓位限制
+                balance = max_position
+            print(f"成交余额: {balance}")
+            size = await self.calculate_position_size(market_precision, balance, position_percent, price, account_id)
+            print(f"开仓价: {price}")
+            print(f"开仓量: {size}")
+            logging.info(f"开仓量: {size}")
+            size_total_quantity = Decimal(size) * Decimal(market_precision['amount']) * price
+            print(f"开仓价值: {size_total_quantity}")
+            logging.info(f"开仓价值: {size_total_quantity}")
+            if size <= 0:
+                print(f"开仓量为0，不执行开仓")
+                logging.info(f"开仓量为0，不执行开仓")
+                return
+            
+            # 3. 判断当前币种是否超过最大持仓
+            # if size_total_quantity >= max_position:
+            #     print(f"开仓量超过最大仓位限制，不执行开仓")
+            #     logging.info(f"开仓量超过最大仓位限制，不执行开仓")
+            #     return
+            
+            # 4. 判断所有仓位是否超过最大持仓量
+            total_size_position_quantity = 0
+            if total_position_quantity > 0:
+                total_size_position_quantity = Decimal(total_position_quantity) + Decimal(size_total_quantity)
 
-        print("开仓以及总持仓价值", total_size_position_quantity)
-        logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
-        if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
-            logging.info(f"最大持仓数：{max_position}")
-            print(f"总持仓数大于等于最大持仓，不执行挂单")
-            logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
-            return
-        
-        # 3. 获取市场价格
-        client_order_id = await get_client_order_id()
-        # 4. 下单并记录
-        order = await open_position(
-            self,
-            account_id, 
-            symbol, 
-            side, 
-            pos_side, 
-            float(size), 
-            float(price), 
-            'limit',
-            client_order_id
-        )
-        # print("order", order)
-        new_price = await get_market_price(exchange, order['symbol'])
-        if order:
-            await self.db.add_order({
-                'account_id': account_id,
-                'symbol': symbol,
-                'order_id': order['id'],
-                'clorder_id': client_order_id,
-                'price': float(new_price),
-                'executed_price': float(price),
-                'quantity': float(size),
-                'pos_side': pos_side,
-                'order_type': 'limit',
-                'side': side, 
-                'status': 'live',
-                'position_group_id': '',
-                'profit': 0,
-            })
+            print("开仓以及总持仓价值", total_size_position_quantity)
+            logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
+            if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
+                logging.info(f"最大持仓数：{max_position}")
+                print(f"总持仓数大于等于最大持仓，不执行挂单")
+                logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
+                return
+            
+            # 3. 获取市场价格
+            client_order_id = await get_client_order_id()
+            # 4. 下单并记录
+            order = await open_position(
+                self,
+                account_id, 
+                symbol, 
+                side, 
+                pos_side, 
+                float(size), 
+                float(price), 
+                'limit',
+                client_order_id
+            )
+            # print("order", order)
+            if order:
+                await self.db.add_order({
+                    'account_id': account_id,
+                    'symbol': symbol,
+                    'order_id': order['id'],
+                    'clorder_id': client_order_id,
+                    'price': float(price),
+                    'executed_price': None,
+                    'quantity': float(size),
+                    'pos_side': pos_side,
+                    'order_type': 'limit',
+                    'side': side, 
+                    'status': 'live',
+                    'position_group_id': str(uuid.uuid4()),
+                })
+        except Exception as e:
+            print(f"开仓异常: {e}")
+            logging.error(f"开仓异常: {e}")
 
-    async def calculate_position_size(self, exchange: ccxt.Exchange, balance: Decimal, symbol: str, position_percent: Decimal, price: float, account_id: int) -> Decimal:
+    async def calculate_position_size(self, market_precision: object, balance: Decimal, position_percent: Decimal, price: float, account_id: int) -> Decimal:
         """计算仓位大小"""
         try:
-            # balance = get_account_balance(exchange, symbol)
-            # total_equity = Decimal(str(balance["USDT"]['total']))
-            # print(f"账户余额: {total_equity}")
-            # price = await get_market_price(exchange, symbol)
-            market_precision = await get_market_precision(exchange, symbol, 'SWAP')
-            # print("market_precision", market_precision)
-            position_size = (balance * position_percent) / (price * Decimal(market_precision['amount']))
+            # market_precision = await get_market_precision(exchange, symbol, 'SWAP')
+            # print("market_precision", market_precision, price)
+
+            position_size = (balance * position_percent) / (price * Decimal(market_precision['contract_size']))
             position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            total_position = Decimal(self.db.account_config_cache[account_id].get('total_position'))
+
+            total_position = Decimal(self.db.account_config_cache[account_id].get('total_position', 0)) # 获取配置文件对应币种最大持仓
             return min(position_size, total_position)
         except Exception as e:
             print(f"计算仓位失败: {e}")

@@ -440,6 +440,7 @@ class QuantifyAccount extends Base
                 echo "【" . $accountInfo['id'] . "】没有余额\r\n";
                 return false;
             }
+            $usdtBalance = $balanceDetails['totalEq'] > 0 ? $balanceDetails['totalEq'] : 0; //总余额
             foreach ($balanceDetails['details'] as $k => $v) {
                 if(isset($v['ccy'])) {
                     if($v['ccy'] == 'USDT' || $v['ccy'] == 'BIFI' || $v['ccy'] == 'GMX' || $v['ccy'] == 'BTC' || $v['ccy'] == 'ETH' || $v['ccy'] == 'SAND') {
@@ -454,10 +455,10 @@ class QuantifyAccount extends Base
                                 // $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
                                 $price = $prices['last'];
                                 $currencyUsd = (float)$v['cashBal'] * $price;
-                                $usdtBalance += (float)$currencyUsd;
+                                // $usdtBalance += (float)$currencyUsd;
                             } else {
                                 $currencyUsd =  (float)$v['eqUsd'];
-                                $usdtBalance += (float)$currencyUsd;
+                                // $usdtBalance += (float)$currencyUsd;
                             }
                             @self::updateQuantifyAccountDetails($accountInfo['id'], $v['ccy'], (float)$v['cashBal'], $currencyUsd, $price);
 
