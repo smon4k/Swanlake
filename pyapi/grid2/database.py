@@ -190,8 +190,8 @@ class Database:
                 """, (
                     order_info['account_id'],
                     order_info['symbol'],
-                    order_info['position_group_id'],
-                    order_info['profit'],
+                    order_info['position_group_id'] if 'position_group_id' in order_info else '',
+                    order_info['profit'] if 'profit' in order_info else None,
                     order_info['order_id'],
                     order_info['clorder_id'],
                     order_info['side'],
@@ -432,12 +432,14 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 查询已成交（status为filled）的指定订单方向以及持仓方向的订单
+                # SELECT id, account_id, timestamp, symbol, order_id, side, order_type, side, quantity, price, executed_price, status, is_clopos FROM g_orders WHERE account_id = 2 AND symbol = 'ETH-USDT-SWAP' AND side = 'sell' AND status = 'filled' AND (is_clopos = 0 or is_clopos = 1) AND position_group_id = ''  AND executed_price IS NOT NULL ORDER BY ABS(1811.19 - executed_price) ASC, fill_time DESC LIMIT 1
                 query = f"""
                     SELECT id, account_id, timestamp, symbol, order_id, side, order_type, side, quantity, price, executed_price, status, is_clopos
                     FROM {table('orders')}
                     WHERE account_id = %s AND symbol = %s AND side = %s AND status = 'filled' AND (is_clopos = 0 or is_clopos = 1)
                     AND position_group_id = ''
-                    ORDER BY ABS(%s - price) ASC, fill_time DESC
+                    AND executed_price IS NOT NULL
+                    ORDER BY ABS(%s - executed_price) ASC, fill_time DESC
                     LIMIT 1
                 """
                 cursor.execute(query, (account_id, symbol, direction, latest_price))

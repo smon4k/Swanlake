@@ -19,6 +19,7 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
             'secret': account_info['api_secret'],
             'password': account_info.get('api_passphrase', None),
             "options": {"defaultType": "swap"},
+            "timeout": 30000,
             # 'enableRateLimit': True,
         })
         is_simulation = os.getenv("IS_SIMULATION", '1')

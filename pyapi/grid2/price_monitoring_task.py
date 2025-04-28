@@ -278,9 +278,7 @@ class PriceMonitoringTask:
                         'pos_side': pos_side,
                         'order_type': 'limit',
                         'side': 'buy',
-                        'status': 'live',
-                        'position_group_id': group_id,
-                        'profit': 0,
+                        'status': 'live'
                     })
                     print(f"已挂买单: 价格{buy_price} 数量{buy_size}")
                     logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
@@ -309,9 +307,7 @@ class PriceMonitoringTask:
                         'pos_side': pos_side,
                         'order_type': 'limit',
                         'side': 'sell',
-                        'status': 'live',
-                        'position_group_id': group_id,
-                        'profit': 0,
+                        'status': 'live'
                     })
                     print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
                     logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
@@ -400,7 +396,6 @@ class PriceMonitoringTask:
                         'side': close_side,
                         'status': 'filled',
                         'is_clopos': 1,
-                        'position_group_id': str(uuid.uuid4()),
                     })
 
                     await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单
