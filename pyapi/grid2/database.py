@@ -191,7 +191,7 @@ class Database:
                     order_info['account_id'],
                     order_info['symbol'],
                     order_info['position_group_id'] if 'position_group_id' in order_info else '',
-                    order_info['profit'] if 'profit' in order_info else 0,
+                    order_info.get('profit') if order_info.get('profit') is not None else 0,
                     order_info['order_id'],
                     order_info['clorder_id'],
                     order_info['side'],
