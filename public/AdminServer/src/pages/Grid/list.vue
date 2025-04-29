@@ -28,8 +28,9 @@
     <el-collapse v-model="activeNames" @change="handleChange" v-for="(item, index) in tableData" :key="index">
         <el-collapse-item :title="item.timestamp" :name="index">
             <template slot="title">
-                <div style="margin-right:100px;">账户：{{ item.account_name }}  &nbsp;&nbsp;&nbsp;&nbsp; 时间：{{ item.timestamp }}</div>
+                <div style="margin-right:20px;">{{ item.account_name }}  &nbsp;&nbsp;&nbsp;&nbsp; 时间：{{ item.timestamp }}</div>
                 <!-- <div style="margin-right:100px;">价差：{{ keepDecimalNotRounding(item.price, 4, true) }} USDT</div> -->
+                <div style="">利润：{{ keepDecimalNotRounding(item.profit, 4, true) }} USDT</div>
             </template>
             <el-table :data="item.lists" style="width: 100%;" v-show="true">
                 <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column>
@@ -37,8 +38,11 @@
                 <el-table-column prop="order_id" label="订单号" align="center" width="200"></el-table-column>
                 <el-table-column prop="order_type" label="订单类型" align="center">
                     <template slot-scope="scope">
-                    <span v-if="scope.row.order_type == 'market'">市价单</span>
-                    <span v-else>限价单</span>
+                      <span v-if="scope.row.order_type">
+                        <span v-if="scope.row.order_type == 'market'">市价单</span>
+                        <span v-else>限价单</span>
+                      </span>
+                      <span v-else>——</span>
                     </template>
                 </el-table-column>
                 <!-- <el-table-column prop="base_ccy" label="交易货币币种" align="center"></el-table-column>
