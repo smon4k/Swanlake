@@ -54,8 +54,9 @@ class GridController extends BaseController
         $count = $data['count'];
         $allpage = $data['allpage'];
         $lists = $data['lists'];
+        $totalProfit = $data['totalProfit'];
         // p($lists);
-        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists, 'totalProfit' => $totalProfit]);
     }
 
 
