@@ -174,7 +174,7 @@ class SignalProcessingTask:
                     'order_id': close_order['id'],
                     'clorder_id': client_order_id,
                     'price': float(market_price),
-                    'executed_price': None,
+                    'executed_price': float(market_price),
                     'quantity': float(total_size),
                     'pos_side': opposite_direction,
                     'order_type': 'market',
@@ -182,6 +182,8 @@ class SignalProcessingTask:
                     'status': 'filled',
                     'is_clopos': 1,
                 })
+
+                # 进行配对                
 
                 await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
                 print(f"成功平掉{opposite_direction}方向总持仓：{total_size}")
