@@ -64,6 +64,12 @@ class Orders extends Base
         //分页
         $start = ($page - 1) * $limits;
         $returnArr = array_slice($newResultArray, $start, $limits);
+        $totalProfit = self::name("orders")
+            ->alias("a")
+            ->join("g_accounts b", "a.account_id=b.id", "left")
+            ->where($where)
+            ->sum('profit');
+        return ['count' => $total, 'allpage' => $allpage, 'lists' => $returnArr, 'totalProfit' => $totalProfit];
         // p($returnArr);
         return ['count'=>$total,'allpage'=>$allpage,'lists'=>$returnArr];
     }

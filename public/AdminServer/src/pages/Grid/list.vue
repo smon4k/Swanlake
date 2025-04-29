@@ -15,6 +15,7 @@
             :value="item.id">
           </el-option>
         </el-select>
+        <div style="margin-left: 20px;">总利润：{{ keepDecimalNotRounding(totalProfit, 4) }} USDT</div>
       <!-- <el-form :inline="true" class="demo-form-inline" size="mini">
         <el-form-item label="产品名称:">
           <el-input clearable placeholder="产品名称" v-model="product_name"></el-input>
@@ -195,6 +196,7 @@ export default {
         'BTC-USDT-SWAP': 0.01,
         'ETH-USDT-SWAP': 0.1,
       }, //小数位数
+      totalProfit: 0,
     };
   },
   mounted() {
@@ -245,6 +247,7 @@ export default {
           this.tableData = json.data.data.data;
           this.activeNames = json.data.data.data.map((item, index) => index);
           this.total = json.data.data.count;
+          this.totalProfit = json.data.data.totalProfit;
         } else {
           this.$message.error("加载数据失败");
         }
@@ -381,6 +384,8 @@ export default {
 </script>
 <style lang="scss" scoped>
   .project-top {
+    display: flex;
+    align-items: center;
     margin-bottom: 20px;
     margin-top: 20px;
   }
