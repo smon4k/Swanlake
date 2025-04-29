@@ -42,7 +42,7 @@ class GridController extends BaseController
         $account_id = $request->request('account_id', 0, 'intval');
         $order_number = $request->request('order_number', '', 'trim');
         $where = [];
-        $where['a.status'] = ['live', 'filled'];
+        $where['a.status'] = ['in', ['live', 'filled']];
         if($account_id) {
             $where['a.account_id'] = $account_id;
         } 
