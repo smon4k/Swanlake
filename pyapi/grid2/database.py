@@ -451,3 +451,51 @@ class Database:
             return []
         finally:
             conn.close()
+    
+    async def get_order_by_price_diff_v2(self, account_id: int, symbol: str, latest_price: float, mode: str = 'sell') -> Optional[Dict]:
+        """
+        根据基准订单，查询符合条件的一条订单（做多找卖，做空找买）
+        :param account_id: 账户ID
+        :param symbol: 交易对
+        :param base_order: 基准订单(dict)，例如买单或者卖单
+        :param mode: 查询方向 'sell'（找卖单）或者 'buy'（找买单）
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                if mode == 'sell':
+                    # 找价格高于买单成交价的卖单
+                    condition = "executed_price > %s"
+                    order_side = 'sell'
+                    sort_order = "executed_price ASC"
+                else:
+                    # 找价格低于卖单成交价的买单
+                    condition = "executed_price < %s"
+                    order_side = 'buy'
+                    sort_order = "executed_price DESC"
+
+                cursor.execute(f"""
+                    SELECT * FROM {table('orders')}
+                    WHERE account_id = %s 
+                    AND symbol = %s 
+                    AND side = %s
+                    AND status = 'filled'
+                    AND (is_clopos = 0 OR is_clopos = 1)
+                    AND position_group_id = ''
+                    AND executed_price IS NOT NULL
+                    AND {condition}
+                    ORDER BY {sort_order}, fill_time DESC
+                    LIMIT 1
+                """, (account_id, symbol, order_side, latest_price))
+                match_order = cursor.fetchone()
+
+            return match_order
+        except Exception as e:
+            print(f"查询配对订单失败: {e}")
+            logging.error(f"查询配对订单失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+        

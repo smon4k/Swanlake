@@ -49,6 +49,7 @@ class GridController extends BaseController
         if($order_number && $order_number !== "") {
             $where['a.order_id'] = ['like',"%" . $order_number . "%"];
         }
+        
         $data = Orders::getOrderList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];

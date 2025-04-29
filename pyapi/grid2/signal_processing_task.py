@@ -304,7 +304,7 @@ class SignalProcessingTask:
                     'order_type': 'limit',
                     'side': side, 
                     'status': 'live',
-                    # 'position_group_id': str(uuid.uuid4()),
+                    'position_group_id': str(uuid.uuid4()), #发送信号不参与配对 所以单独生成一个唯一的ID
                 })
         except Exception as e:
             print(f"开仓异常: {e}")

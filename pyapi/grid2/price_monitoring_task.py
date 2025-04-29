@@ -99,25 +99,25 @@ class PriceMonitoringTask:
             return
         print("开始匹配订单") 
         side = 'sell' if order['side'] == 'buy' else 'buy'
-        get_order_by_price_diff = await self.db.get_order_by_price_diff(account_id, order['info']['instId'], side, executed_price)
+        get_order_by_price_diff = await self.db.get_order_by_price_diff_v2(account_id, order['info']['instId'], executed_price, side)
         # print("get_order_by_price_diff", get_order_by_price_diff)
         profit = 0
         group_id = ""
-        new_price = await get_market_price(exchange, order['info']['instId'])
-        print(f"最新价格: {new_price}")
+        # new_price = await get_market_price(exchange, order['info']['instId'])
+        # print(f"最新价格: {new_price}")
         if get_order_by_price_diff:
-            if order['side'] == 'sell' and (Decimal(new_price) > Decimal(get_order_by_price_diff['price'])):
+            if order['side'] == 'sell' and (Decimal(executed_price) >= Decimal(get_order_by_price_diff['executed_price'])):
             # if order['side'] == 'buy':
                 # 计算利润
                 group_id = str(uuid.uuid4())
-                profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['price'])) * Decimal(order['amount'])
+                profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['executed_price'])) * Decimal(min(order['amount'], get_order_by_price_diff['quantity']))
                 print(f"配对订单成交，利润 buy: {profit}")
                 logging.info(f"配对订单成交，利润 buy: {profit}")
-            if order['side'] == 'buy' and (Decimal(new_price) < Decimal(get_order_by_price_diff['price'])):
+            if order['side'] == 'buy' and (Decimal(executed_price) <= Decimal(get_order_by_price_diff['executed_price'])):
             # if order['side'] == 'sell':
                 # 计算利润
                 group_id = str(uuid.uuid4())
-                profit = (Decimal(get_order_by_price_diff['price']) - Decimal(executed_price)) * Decimal(get_order_by_price_diff['quantity'])
+                profit = (Decimal(get_order_by_price_diff['executed_price']) - Decimal(executed_price)) * Decimal(min(order['amount'], get_order_by_price_diff['quantity']))
                 print(f"配对订单成交，利润 sell: {profit}")
                 logging.info(f"配对订单成交，利润 sell: {profit}")
             if profit != 0:
@@ -125,13 +125,19 @@ class PriceMonitoringTask:
                     'profit': profit, 
                     'position_group_id': group_id
                 })
-        await self.db.update_order_by_id(account_id, order['id'], {
-            'executed_price': executed_price, 
-            'status': order['info']['state'], 
-            'fill_time': fill_date_time, 
-            'profit': profit, 
-            'position_group_id': group_id
-        })
+            await self.db.update_order_by_id(account_id, order['id'], {
+                'executed_price': executed_price, 
+                'status': order['info']['state'], 
+                'fill_time': fill_date_time, 
+                'profit': profit, 
+                'position_group_id': group_id
+            })
+        else:
+            await self.db.update_order_by_id(account_id, order['id'], {
+                'executed_price': executed_price, 
+                'status': order['info']['state'], 
+                'fill_time': fill_date_time, 
+            })
 
 
     async def manage_grid_orders(self, order: dict, account_id: int):
