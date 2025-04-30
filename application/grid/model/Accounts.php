@@ -29,4 +29,52 @@ class Accounts extends Base
         }
         return [];
     }
+
+    /**
+     * 添加账户数据
+     * @since 2024-10-14
+     */
+    public static function addQuantityAccount($name, $api_key, $secret_key, $api_passphrase, $exchange, $is_position, $user_id=0) {
+        try {
+            $IsResData = self::where('name', $name)->find();
+            if($IsResData && count((array)$IsResData) > 0) {
+                $updateData = [
+                    'api_key' => $api_key,
+                    'api_secret' => $secret_key,
+                    'api_passphrase' => $api_passphrase,
+                    'status' => 1,
+                    'exchange' => $exchange,
+                    'add_time' => date('Y-m-d H:i:s'),
+                    'is_position' => $is_position
+                ];
+                $res = self::where('id', $IsResData['id'])->update($updateData);
+                if($res) {
+                    return true;
+                }
+            } else {
+                $insertData = [
+                    'name' => $name,
+                    'api_key' => $api_key,
+                    'api_secret' => $secret_key,
+                    'api_passphrase' => $api_passphrase,
+                    'status' => 1,
+                    'exchange' => $exchange,
+                    'add_time' => date('Y-m-d H:i:s'),
+                    'is_position' => $is_position
+                ];
+                self::insert($insertData);
+                $insertId = self::getLastInsID();
+                if($insertId) {
+                    // $balanceList = QuantifyAccount::getOkxTradePairBalance($insertData);
+                    // if($balanceList && count((array)$balanceList) > 0) {
+                    //     QuantifyAccount::calcQuantifyAccountData($insertId, 1, $balanceList['usdtBalance'], '第一笔入金');
+                    // }
+                    return true;
+                }
+            }
+            return false;
+        } catch ( PDOException $e) {
+            return false;
+        }
+    }
 }
