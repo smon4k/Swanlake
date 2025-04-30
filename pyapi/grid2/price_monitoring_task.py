@@ -75,7 +75,7 @@ class PriceMonitoringTask:
                         latest_fill_time = int(fill_time)
                         latest_order = order_info
                     executed_price = order_info['info'].get('fillPx') # 成交价格
-                    await self.update_order_status(order_info, account_id, executed_price, fill_date_time) # 更新订单状态
+                    await self.update_order_status(order_info, account_id, executed_price, fill_date_time, order['symbol']) # 更新订单状态
                 else:
                     await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                 
@@ -92,7 +92,7 @@ class PriceMonitoringTask:
             logging.error(f"检查持仓失败: {e}")
 
     #更新订单状态以及进行配对订单、计算利润
-    async def update_order_status(self, order: dict, account_id: int, executed_price: float = None, fill_date_time: str = None):
+    async def update_order_status(self, order: dict, account_id: int, executed_price: float = None, fill_date_time: str = None, symbol: str = None):
         """更新订单状态以及进行配对订单、计算利润"""
         exchange = await get_exchange(self, account_id)
         if not exchange:
@@ -106,18 +106,19 @@ class PriceMonitoringTask:
         # new_price = await get_market_price(exchange, order['info']['instId'])
         # print(f"最新价格: {new_price}")
         if get_order_by_price_diff:
+            market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
             if order['side'] == 'sell' and (Decimal(executed_price) >= Decimal(get_order_by_price_diff['executed_price'])):
             # if order['side'] == 'buy':
                 # 计算利润
                 group_id = str(uuid.uuid4())
-                profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['executed_price'])) * Decimal(min(order['amount'], get_order_by_price_diff['quantity']))
+                profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['executed_price'])) * Decimal(min(order['amount'], get_order_by_price_diff['quantity'])) * market_precision['contract_size'] * (1 - 0.00002)
                 print(f"配对订单成交，利润 buy: {profit}")
                 logging.info(f"配对订单成交，利润 buy: {profit}")
             if order['side'] == 'buy' and (Decimal(executed_price) <= Decimal(get_order_by_price_diff['executed_price'])):
             # if order['side'] == 'sell':
                 # 计算利润
                 group_id = str(uuid.uuid4())
-                profit = (Decimal(get_order_by_price_diff['executed_price']) - Decimal(executed_price)) * Decimal(min(order['amount'], get_order_by_price_diff['quantity']))
+                profit = (Decimal(get_order_by_price_diff['executed_price']) - Decimal(executed_price)) * Decimal(min(order['amount'], get_order_by_price_diff['quantity'])) * market_precision['contract_size'] * (1 - 0.00002)
                 print(f"配对订单成交，利润 sell: {profit}")
                 logging.info(f"配对订单成交，利润 sell: {profit}")
             if profit != 0:

@@ -217,7 +217,6 @@ class SignalProcessingTask:
                 logging.error(f"总持仓数获取失败")
                 return
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
-            # print("市场精度", market_precision)
             total_position_quantity = 0
             if(total_position_value > 0):
                 total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
