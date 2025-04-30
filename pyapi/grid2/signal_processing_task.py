@@ -307,6 +307,8 @@ class SignalProcessingTask:
                     'status': 'live',
                     'position_group_id': str(uuid.uuid4()), #发送信号不参与配对 所以单独生成一个唯一的ID
                 })
+                print(f"成功开仓: {order['id']}")
+                logging.info(f"成功开仓: {order['id']}")
         except Exception as e:
             print(f"开仓异常: {e}")
             logging.error(f"开仓异常: {e}")
