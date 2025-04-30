@@ -189,6 +189,7 @@ class PriceMonitoringTask:
 
             balance = await get_account_balance(exchange, symbol)
             print(f"账户余额: {balance}")
+            logging.info(f"账户余额: {balance}")
 
             price = await get_market_price(exchange, symbol)
 
