@@ -68,6 +68,8 @@ class PriceMonitoringTask:
                 executed_price = None
                 # print(order_info['info']['state'])
                 if order_info['info']['state'] == 'filled':
+                    print(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    logging.info(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                     fill_date_time = await milliseconds_to_local_datetime(fill_time) # 格式化成交时间
                     # print(f"成交价格: {executed_price}")
                     fill_time = float(fill_time)

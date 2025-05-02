@@ -245,7 +245,8 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
 
             try:
                 cancel_order =  exchange.cancel_order(order['id'], symbol) # 进行撤单
-                print(f"取消未成交的订单: {order['id']}")
+                print(f"取消账户:{account_id}-币种:{symbol},未成交的订单: {order['id']}")
+                logging.info(f"取消未成交的订单: {order['id']}")
                 if cancel_order['info']['sCode'] == '0':
                     existing_order = await self.db.get_order_by_id(account_id, order['id'])
                     if existing_order:
