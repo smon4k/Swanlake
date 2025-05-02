@@ -54,10 +54,10 @@ class PriceMonitoringTask:
             latest_fill_time = 0
 
             # 检查止盈止损并平仓
-            signal = await self.db.get_latest_signal()  # 获取最新信号
-            await self.check_and_close_position(exchange, account_id, signal['symbol'], signal['price'])
         
             for order in open_orders:
+                signal = await self.db.get_latest_signal(order['symbol'])  # 获取最新信号
+                await self.check_and_close_position(exchange, account_id, order['symbol'], signal['price'])
                 # 检查订单是否存在
                 # print(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                 # logging.info(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
@@ -68,82 +68,25 @@ class PriceMonitoringTask:
                 executed_price = None
                 # print(order_info['info']['state'])
                 if order_info['info']['state'] == 'filled':
+                    fill_date_time = await milliseconds_to_local_datetime(fill_time) # 格式化成交时间
                     # print(f"成交价格: {executed_price}")
-                    fill_date_time = await milliseconds_to_local_datetime(fill_time)
                     fill_time = float(fill_time)
-                    if fill_time > latest_fill_time:
-                        latest_fill_time = int(fill_time)
-                        latest_order = order_info
+                    latest_order = order_info
+                    # if fill_time > latest_fill_time:
+                    #     latest_fill_time = int(fill_time)
                     executed_price = order_info['info'].get('fillPx') # 成交价格
-                    await self.update_order_status(order_info, account_id, executed_price, fill_date_time, order['symbol']) # 更新订单状态
-                else:
-                    await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
-                
-            if latest_order:
-                print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
-                logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
-                # print(f"订单存在: {latest_order}")
-                if latest_order['info']['state'] == 'filled':
+
+                await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
+                if latest_order:
+                    print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                    logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                    # print(f"订单存在: {latest_order}")
                     # 检查止盈止损
                     await self.manage_grid_orders(latest_order, account_id) #检查网格
 
         except Exception as e:
             print(f"检查持仓失败: {e}")
             logging.error(f"检查持仓失败: {e}")
-
-    #更新订单状态以及进行配对订单、计算利润
-    async def update_order_status(self, order: dict, account_id: int, executed_price: float = None, fill_date_time: str = None, symbol: str = None):
-        """更新订单状态以及进行配对订单、计算利润"""
-        try:
-            exchange = await get_exchange(self, account_id)
-            if not exchange:
-                return
-            print("开始匹配订单") 
-            side = 'sell' if order['side'] == 'buy' else 'buy'
-            get_order_by_price_diff = await self.db.get_order_by_price_diff_v2(account_id, order['info']['instId'], executed_price, side)
-            # print("get_order_by_price_diff", get_order_by_price_diff)
-            profit = 0
-            group_id = ""
-            # new_price = await get_market_price(exchange, order['info']['instId'])
-            # print(f"最新价格: {new_price}")
-            if get_order_by_price_diff:
-                market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
-                if order['side'] == 'sell' and (Decimal(executed_price) >= Decimal(get_order_by_price_diff['executed_price'])):
-                # if order['side'] == 'buy':
-                    # 计算利润
-                    group_id = str(uuid.uuid4())
-                    profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['executed_price'])) * Decimal(min(order['amount'], Decimal(get_order_by_price_diff['quantity']))) * Decimal(market_precision['contract_size']) * (Decimal('1') - Decimal('0.00002'))
-                    print(f"配对订单成交，利润 buy: {profit}")
-                    logging.info(f"配对订单成交，利润 buy: {profit}")
-                if order['side'] == 'buy' and (Decimal(executed_price) <= Decimal(get_order_by_price_diff['executed_price'])):
-                # if order['side'] == 'sell':
-                    # 计算利润
-                    group_id = str(uuid.uuid4())
-                    profit = (Decimal(get_order_by_price_diff['executed_price']) - Decimal(executed_price)) * Decimal(min(order['amount'], Decimal(get_order_by_price_diff['quantity']))) * Decimal(market_precision['contract_size']) * (Decimal('1') - Decimal('0.00002'))
-                    print(f"配对订单成交，利润 sell: {profit}")
-                    logging.info(f"配对订单成交，利润 sell: {profit}")
-                if profit != 0:
-                    await self.db.update_order_by_id(account_id, get_order_by_price_diff['order_id'], {
-                        'profit': profit, 
-                        'position_group_id': group_id
-                    })
-                await self.db.update_order_by_id(account_id, order['id'], {
-                    'executed_price': executed_price, 
-                    'status': order['info']['state'], 
-                    'fill_time': fill_date_time, 
-                    'profit': profit, 
-                    'position_group_id': group_id
-                })
-            else:
-                await self.db.update_order_by_id(account_id, order['id'], {
-                    'executed_price': executed_price, 
-                    'status': order['info']['state'], 
-                    'fill_time': fill_date_time, 
-                })
-        except Exception as e:
-            print(f"配对计算利润失败: {str(e)}")
-            logging.error(f"配对计算利润失败: {str(e)}")
-
 
     async def manage_grid_orders(self, order: dict, account_id: int):
         """基于订单成交价进行撤单和网格管理，计算挂单数量"""
@@ -201,8 +144,6 @@ class PriceMonitoringTask:
             total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
             print("总持仓价值", total_position_quantity)
             logging.info(f"总持仓价值: {total_position_quantity}")
-            
-            await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
 
             # 4. 使用calculate_position_size计算挂单数量
             # buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
@@ -213,7 +154,7 @@ class PriceMonitoringTask:
             # print("market_precision", market_precision)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            if buy_size < market_precision['min_amount']:
+            if buy_size <= market_precision['min_amount']:
                 print(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
                 logging.info(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
                 return
@@ -225,7 +166,7 @@ class PriceMonitoringTask:
             # print('sell_percent', sell_percent)
             sell_size = total_position_value * Decimal(str(sell_percent))
             sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            if sell_size < market_precision['min_amount']:
+            if sell_size <= market_precision['min_amount']:
                 print(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
                 logging.info(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
                 return
@@ -266,6 +207,7 @@ class PriceMonitoringTask:
                 print("开空开多", pos_side)
 
                 if is_buy and buy_size and float(buy_size) > 0:
+                    await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     client_order_id = await get_client_order_id()
                     buy_order = await open_position(
                         self,
@@ -284,18 +226,20 @@ class PriceMonitoringTask:
                         'symbol': symbol,
                         'order_id': buy_order['id'],
                         'clorder_id': client_order_id,
-                        'price': float(price),
-                        'executed_price': float(buy_price),
+                        'price': float(buy_price),
+                        'executed_price': None,
                         'quantity': float(buy_size),
                         'pos_side': pos_side,
                         'order_type': 'limit',
                         'side': 'buy',
-                        'status': 'live'
+                        'status': 'live',
+                        'position_group_id': group_id,
                     })
                     print(f"已挂买单: 价格{buy_price} 数量{buy_size}")
                     logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
 
                 if sell_size and float(sell_size) > 0:
+                    await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     client_order_id = await get_client_order_id()
                     sell_order = await open_position(
                         self,
@@ -313,13 +257,14 @@ class PriceMonitoringTask:
                         'symbol': symbol,
                         'order_id': sell_order['id'],
                         'clorder_id': client_order_id,
-                        'price': float(price),
-                        'executed_price': float(sell_price),
+                        'price': float(sell_price),
+                        'executed_price': None,
                         'quantity': float(sell_size),
                         'pos_side': pos_side,
                         'order_type': 'limit',
                         'side': 'sell',
-                        'status': 'live'
+                        'status': 'live',
+                        'position_group_id': group_id,
                     })
                     print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
                     logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
@@ -408,6 +353,7 @@ class PriceMonitoringTask:
                         'side': close_side,
                         'status': 'filled',
                         'is_clopos': 1,
+                        'position_group_id': str(uuid.uuid4()),
                     })
 
                     await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单

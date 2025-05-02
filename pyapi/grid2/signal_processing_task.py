@@ -174,16 +174,15 @@ class SignalProcessingTask:
                     'order_id': close_order['id'],
                     'clorder_id': client_order_id,
                     'price': float(market_price),
-                    'executed_price': float(market_price),
+                    'executed_price': None,
                     'quantity': float(total_size),
                     'pos_side': opposite_direction,
                     'order_type': 'market',
                     'side': close_side,
                     'status': 'filled',
                     'is_clopos': 1,
+                    'position_group_id': str(uuid.uuid4()),
                 })
-
-                # 进行配对                
 
                 await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
                 print(f"成功平掉{opposite_direction}方向总持仓：{total_size}")
@@ -217,6 +216,7 @@ class SignalProcessingTask:
                 logging.error(f"总持仓数获取失败")
                 return
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
+            # print("市场精度", market_precision)
             total_position_quantity = 0
             if(total_position_value > 0):
                 total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
@@ -305,10 +305,8 @@ class SignalProcessingTask:
                     'order_type': 'limit',
                     'side': side, 
                     'status': 'live',
-                    'position_group_id': str(uuid.uuid4()), #发送信号不参与配对 所以单独生成一个唯一的ID
+                    'position_group_id': str(uuid.uuid4()),
                 })
-                print(f"成功开仓: {order['id']}")
-                logging.info(f"成功开仓: {order['id']}")
         except Exception as e:
             print(f"开仓异常: {e}")
             logging.error(f"开仓异常: {e}")
