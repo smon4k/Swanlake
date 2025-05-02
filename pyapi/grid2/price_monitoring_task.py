@@ -144,6 +144,8 @@ class PriceMonitoringTask:
             total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
             print("总持仓价值", total_position_quantity)
             logging.info(f"总持仓价值: {total_position_quantity}")
+            
+            await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
 
             # 4. 使用calculate_position_size计算挂单数量
             # buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
@@ -207,7 +209,7 @@ class PriceMonitoringTask:
                 print("开空开多", pos_side)
 
                 if is_buy and buy_size and float(buy_size) > 0:
-                    await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
+                    # await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     client_order_id = await get_client_order_id()
                     buy_order = await open_position(
                         self,
@@ -239,7 +241,7 @@ class PriceMonitoringTask:
                     logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
 
                 if sell_size and float(sell_size) > 0:
-                    await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
+                    # await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     client_order_id = await get_client_order_id()
                     sell_order = await open_position(
                         self,
