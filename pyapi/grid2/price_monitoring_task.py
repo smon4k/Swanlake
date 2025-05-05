@@ -158,7 +158,7 @@ class PriceMonitoringTask:
             # print("market_precision", market_precision)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            if buy_size <= market_precision['min_amount']:
+            if buy_size < market_precision['min_amount']:
                 print(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
                 logging.info(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
                 return
@@ -170,7 +170,7 @@ class PriceMonitoringTask:
             # print('sell_percent', sell_percent)
             sell_size = total_position_value * Decimal(str(sell_percent))
             sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            if sell_size <= market_precision['min_amount']:
+            if sell_size < market_precision['min_amount']:
                 print(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
                 logging.info(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
                 return
