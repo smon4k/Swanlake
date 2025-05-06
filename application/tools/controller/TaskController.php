@@ -13,6 +13,7 @@ use app\api\model\MyProduct;
 use app\api\model\DayNetworth;
 use app\api\model\BscAddressStatistics;
 use app\api\model\QuantifyAccount;
+use app\grid\model\QuantifyAccount as QuantifyAccountGrid;
 use app\admin\model\LlpFinance;
 use app\answer\model\DayNetworth as DayNetworthAnswer;
 use app\admin\model\Piggybank;
@@ -586,6 +587,38 @@ class TaskController extends ToolsBaseController
         }
 
         QuantifyAccount::calcQuantifyAccountTotalData();
+            
+        
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * 计算Grid账户数据统计
+     * @author qinlh
+     * @since 2025-05-06
+     */
+    public function calcGridQuantifyAccountData() {
+        $begin_time = time();
+        $where = [];
+        $where['status'] = 1;
+        $accountList = QuantifyAccountGrid::getAccountList($where);
+        $account_id = 0;
+        // $balance = QuantifyAccount::getTradePairBalance([
+            //     'api_key' => 'ix047O4nUsrMjl7RNNfkEsB1BlACOq6JceXwDbkUusHWgrJTLjuLPWP7kQc8F3gI',
+            //     'secret_key' => 'tb7K9G7gIIZx0XwPDPsL2xOvLs9RJ1BdRv8Y0TbU2QzY09KSYMRXlQ62SdmZzsga',
+            // ]);
+            // p($balance);
+            // QuantifyAccount::calcQuantifyAccountData(1);die;
+        foreach ($accountList as $key => $val) {
+            $account_id = $val['id'];
+            $key = "Swanlake:calcGridDepositAndWithdrawal:".$account_id.":Lock";
+            $isStart = Rediscache::getInstance()->get($key);
+            if(!$isStart) {
+                QuantifyAccountGrid::calcQuantifyAccountData($account_id);
+            }
+        }
+
+        QuantifyAccountGrid::calcQuantifyAccountTotalData();
             
         
         return (time() - $begin_time) . "s\n";

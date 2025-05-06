@@ -134,7 +134,7 @@ class QuantifyaccountController extends BaseController
         $external = $request->request('external', 0, 'intval');
         $user_id = $request->request('user_id', 0, 'intval');
         $where = [];
-        $where['state'] = 1;
+        $where['status'] = 1;
         if($external) {
             $where['external'] = 1;
         }
