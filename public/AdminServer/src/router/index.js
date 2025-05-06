@@ -33,6 +33,7 @@ const GridOrderList = () => import('@/pages/Grid/list.vue')
 const GridOrderConfig = () => import('@/pages/Grid/config.vue')
 const GridPositionsList = () => import('@/pages/Grid/positions.vue')
 const GridAccountsList = () => import('@/pages/Grid/accounts.vue')
+const AccountStatuement = () => import('@/pages/Grid/AccountStatuement.vue')
 
 Vue.use(Router)
 
@@ -225,6 +226,15 @@ const router = new Router({
           component: GridAccountsList,
           meta: {
             name: '账户列表',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'grid/account/statistical',
+          name: 'AccountStatuement',
+          component: AccountStatuement,
+          meta: {
+            name: '账户报表',
             notKeepAlive: true
           }
         },

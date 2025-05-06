@@ -101,16 +101,15 @@ class QuantifyAccount extends Base
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
-                if($accountInfo['type'] == 1) { //Binance
-                    $balanceList = self::getTradePairBalance($accountInfo);
-                } else { //OKX
+                if($accountInfo['exchange'] === 'okx') {
                     $balanceList = self::getOkxTradePairBalance($accountInfo);
+                } else { 
+                    return false;
+                    // $balanceList = self::getTradePairBalance($accountInfo);
                 }
-                if($account_id == 1) {
-                    $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] + 900 : 0; //总结余
-                } else {
-                    $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0; //总结余
-                }
+                
+                $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0; //总结余
+                
                 // $totalBalance = 42792.03; //总结余
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
@@ -524,8 +523,8 @@ class QuantifyAccount extends Base
     public static function getOkxRequesInfo($accountInfo, $url, $isList=false) {
         $params = [
             "api_key" => $accountInfo['api_key'],
-            "secret_key" => $accountInfo['secret_key'],
-            "passphrase" => $accountInfo['pass_phrase'],
+            "secret_key" => $accountInfo['api_secret'],
+            "passphrase" => $accountInfo['api_passphrase'],
         ];
         $response_string = RequestService::doJsonCurlPost($url, json_encode($params));
         $response_arr = json_decode($response_string, true);
@@ -922,7 +921,7 @@ class QuantifyAccount extends Base
      */
     public static function getAccountInfo($account_id=0) {
         if($account_id) {
-            $data = self::name('quantify_account')->where('id', $account_id)->find();
+            $data = self::name('accounts')->where('id', $account_id)->find();
             if($data && count((array)$data) > 0) {
                 return $data->toArray();
             }
@@ -936,7 +935,7 @@ class QuantifyAccount extends Base
      * @since 2023-01-31
      */
     public static function getAccountList($where=[]) {
-        $data = self::name('quantify_account')->where($where)->select();
+        $data = self::name('accounts')->where($where)->select();
         if($data && count((array)$data) > 0) {
             return $data->toArray();
         }
@@ -1197,7 +1196,7 @@ class QuantifyAccount extends Base
      */
     public static function getBinanceAccountTradeDetailsMaxTradeId($account_id=0, $symbol='') {
         if($account_id && $symbol !== '') {
-            $sql = "SELECT MAX(trade_id) AS max_trade_id FROM s_quantify_account_trade_binance_details WHERE account_id = '$account_id' AND symbol = '$symbol'";
+            $sql = "SELECT MAX(trade_id) AS max_trade_id FROM g_quantify_account_trade_binance_details WHERE account_id = '$account_id' AND symbol = '$symbol'";
             $res = self::query($sql);
             if($res && count((array)$res) > 0) {
                 return $res[0]['max_trade_id'];
@@ -1214,7 +1213,7 @@ class QuantifyAccount extends Base
      */
     public static function getOkxAccountTradeDetailsMaxTradeId($account_id=0, $symbol='') {
         if($account_id && $symbol !== '') {
-            $sql = "SELECT MAX(bill_id) AS max_bill_id FROM s_quantify_account_trade_okx_details WHERE account_id = '$account_id' AND symbol = '$symbol'";
+            $sql = "SELECT MAX(bill_id) AS max_bill_id FROM g_quantify_account_trade_okx_details WHERE account_id = '$account_id' AND symbol = '$symbol'";
             $res = self::query($sql);
             if($res && count((array)$res) > 0) {
                 return $res[0]['max_bill_id'];
@@ -1233,14 +1232,9 @@ class QuantifyAccount extends Base
             $limit = config('paginate.list_rows');// 获取总条数
         }
         $accountInfo = self::getAccountInfo($account_id);
-        $table = '';
-        if($accountInfo['type'] == 1) {
-            $table = 'quantify_account_trade_binance_details';
-            $order = 'trade_id desc';
-        } else {
-            $table = 'quantify_account_trade_okx_details';
-            $order = 'bill_id desc';
-        }
+        $table = 'quantify_account_trade_okx_details';
+        $order = 'bill_id desc';
+        
         $count = self::name($table)->where($where)->count();//计算总页面
         $allpage = intval(ceil($count / $limit));
         $lists = self::name($table)
@@ -1416,11 +1410,11 @@ class QuantifyAccount extends Base
         //             ->select()
         //             ->toArray();
         $begin = ($page - 1) * $limits;
-        $count_sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(NULLIF(IF(mark_price = 0, NULL, mark_price), 0)) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id`";
+        $count_sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(NULLIF(IF(mark_price = 0, NULL, mark_price), 0)) AS min_make_price, `time`, `pos_side` FROM g_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id`";
         $countRes = self::query($count_sql);
         $count = count((array)$countRes);
         $allpage = intval(ceil($count / $limits));
-        $sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(NULLIF(IF(mark_price = 0, NULL, mark_price), 0)) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id` ORDER BY `time` DESC LIMIT {$begin},{$limits}";
+        $sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(NULLIF(IF(mark_price = 0, NULL, mark_price), 0)) AS min_make_price, `time`, `pos_side` FROM g_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id` ORDER BY `time` DESC LIMIT {$begin},{$limits}";
         $lists = self::query($sql);
         foreach ($lists as $key => $val) {
             $lists[$key]['rate_average'] = ($val['max_rate'] + $val['min_rate']) / 2;
