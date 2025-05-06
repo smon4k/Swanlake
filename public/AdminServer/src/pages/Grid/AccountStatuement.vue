@@ -5,11 +5,11 @@
         <el-breadcrumb-item>账户数据统计</el-breadcrumb-item>
         </el-breadcrumb>
         <div style="text-align:right;margin-bottom: 10px;">
-            <el-button type="primary" @click="shareProfitShow()">分润</el-button>
-            <el-button type="primary" @click="shareProfitRecordShow()">分润记录</el-button>
+            <el-button type="primary" @click="shareProfitShow()" :disabled="activeName == '全部'">分润</el-button>
+            <el-button type="primary" @click="shareProfitRecordShow()" :disabled="activeName == '全部'">分润记录</el-button>
             &nbsp;
-            <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
-            <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
+            <el-button type="primary" @click="DepositWithdrawalShow()" :disabled="activeName == '全部'">出入金</el-button>
+            <el-button type="primary" @click="dialogVisibleListClick()" :disabled="activeName == '全部'">出入金记录</el-button>
             <!-- <el-button type="primary" @click="addQuantityAccount()">添加账户</el-button> -->
         </div>
         <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'top'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
@@ -140,7 +140,7 @@
         </el-dialog>
 
          <el-dialog
-            title="出/入金记录"
+            :title="activeName + ' 出/入金记录'"
             :visible.sync="dialogVisibleListShow"
             width="50%">
             <el-table :data="InoutGoldList" style="width: 100%;" height="500">
@@ -221,7 +221,7 @@
 
         <!-- 账户余额明细数据 -->
         <el-dialog
-            title="账户余额明细"
+            :title="activeName + ' 账户余额明细'"
             :visible.sync="accountBalanceDetailsShow"
             width="80%">
             <el-tabs v-model="accountBalanceTabValue" @tab-click="accountBalanceTabClick">
@@ -274,7 +274,7 @@
                         </el-col>
                     </el-row>
                 </el-tab-pane>
-                <el-tab-pane label="持仓信息" name="2">
+                <el-tab-pane label="持仓信息" name="2" v-if="false">
                     <el-table :data="currencyPositionsList" style="width: 100%;" height="500">
                         <el-table-column prop="currency" label="币种" align="center" width="">
                             <template slot-scope="scope">
@@ -442,7 +442,7 @@
 
         <!-- 账户币种交易明细 -->
         <el-dialog
-            title="账户币种交易明细"
+            :title="activeName + ' 账户币种交易明细'"
             :visible.sync="accountCurrencyDetailsShow"
             width="80%"
             v-loading="loading">
@@ -520,7 +520,7 @@
         </el-dialog>
 
         <el-dialog
-            title="分润记录"
+            :title="activeName + ' 分润记录'"
             :visible.sync="profitListShow"
             width="50%">
             <el-table :data="profitGoldList" style="width: 100%;" height="500">
