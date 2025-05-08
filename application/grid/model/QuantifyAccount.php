@@ -121,6 +121,7 @@ class QuantifyAccount extends Base
                             $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] : 0;
                         } else {
                             $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance;
+                            // $countStandardPrincipal = 0;
                         }
                     } else {
                         $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance : (isset($dayData['principal']) ? $dayData['principal'] : $totalBalance);
@@ -140,7 +141,12 @@ class QuantifyAccount extends Base
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // p($depositToday);
                 $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
-                $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
+                $quantifyEquityInfo = self::getQuantifyEquityMonDataOne($account_id);
+                if(isset($quantifyEquityInfo) && count((array)$quantifyEquityInfo) > 0) {
+                    $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
+                } else {
+                    $dailyProfit = $totalBalance - $countStandardPrincipal; //日利润 = 总结余-累计本金
+                }
                 // if($dailyProfit < -801) {
                 //     $totalBalance = $totalBalance + 700;
                 //     $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
@@ -938,6 +944,22 @@ class QuantifyAccount extends Base
         $data = self::name('accounts')->where($where)->select();
         if($data && count((array)$data) > 0) {
             return $data->toArray();
+        }
+        return [];
+    }
+
+    /**
+     * 获取账户数据是否存在
+     * @author qinlh
+     * @since 2025-05-08
+     */
+    public static function getQuantifyEquityMonDataOne($account_id=0)
+    {
+        if($account_id) {
+            $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id])->find();
+            if ($res && count((array)$res) > 0) {
+                return $res;
+            }
         }
         return [];
     }
