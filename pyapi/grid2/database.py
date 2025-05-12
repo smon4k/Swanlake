@@ -1,6 +1,7 @@
 import logging
 import pymysql
 from typing import Dict, List, Optional
+import json
 
 TABLE_PREFIX = "g_"
 
@@ -12,6 +13,7 @@ class Database:
         self.db_config = db_config
         self.account_cache: Dict[int, dict] = {}  # 账户信息缓存
         self.account_config_cache: Dict[int, dict] = {}  # 账户配置信息缓存
+        self.tactics_accounts_cache: Dict[str, List[int]] = {}  # 策略账户信息缓存
 
     def get_db_connection(self):
         """获取数据库连接"""
@@ -498,4 +500,46 @@ class Database:
         finally:
             if conn:
                 conn.close()
+    
+    #生成一个获取币种最大仓位配置数据，获取g_config里面的max_position_list策略字段数据（[{"symbol":"ETH-USDT","value":"1000","tactics":"Y1.1"},{"symbol":"BTC-USDT","value":"1000","tactics":"Q2.4"}]），检索所有配置数据，将对应的策略对应到指定的用户Id 例如：Y1.1：[account_1, account_2]
+    async def get_account_max_position(self) -> Optional[Dict]:
+        """
+        获取指定账户的最大仓位配置数据
+        :return: 最大仓位配置数据
+        """
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT a.id as account_id, c.max_position_list as max_position_list
+                    FROM {table('accounts')} a
+                    INNER JOIN {table('config')} c ON a.id = c.account_id
+                    WHERE a.status = %s
+                """, (1))
+                result = cursor.fetchall()
+                if result:
+                    tactics_accounts = {}
+                    for row in result:
+                        account_id = row.get('account_id')
+                        max_position_list = row.get('max_position_list')
+                        if not max_position_list:
+                            continue
+                        max_position_list_arr = json.loads(max_position_list)
+                        # print(max_position_list_arr)
+                        for pos in max_position_list_arr:
+                            tactic = pos.get("tactics")
+                            if tactic:
+                                tactics_accounts.setdefault(tactic, []).append(account_id)
+                    self.tactics_accounts_cache = tactics_accounts
+                    return tactics_accounts
+                else:
+                    return None
+        except Exception as e:
+            print(f"获取最大仓位配置数据失败: {e}")
+            logging.error(f"获取最大仓位配置数据失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
         
