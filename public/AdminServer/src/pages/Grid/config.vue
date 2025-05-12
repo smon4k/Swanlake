@@ -16,7 +16,15 @@
           </el-form-item>
         </el-form>
       </div>
-      <el-descriptions v-for="(item, index) in tableData" :key="index" :title="item.account_name" border :column="2">
+      <el-descriptions v-for="(item, index) in tableData" :key="index" border :column="2">
+        <template slot="title">
+          <div>{{ item.account_name }}</div> 
+          <div class="balance-container">
+            <span v-if="!item.balanceLoading">{{ keepDecimalNotRounding(item.balance, 2) }} USDT</span>
+            <span v-else style="display: contents;"><span class="loading"></span>&nbsp;&nbsp;USDT</span>
+          </div>
+        </template>
+        <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item>
         <template slot="extra">
           <el-button size="mini" type="primary" @click="UpdateAdminUserInfo(item)">编辑</el-button>
           <el-button size="mini" type="danger" @click="DelData(item)">删除</el-button>
@@ -38,7 +46,8 @@
         <el-descriptions-item label="币种最大仓位数配置	">
           <div v-for="(item, index) in item.max_position_list" :key="index">
             <span>{{ item.symbol }}：</span>
-            <span>最大仓位：{{ item.value }}</span>
+            <span>最大仓位：{{ item.value }}</span>&nbsp;&nbsp;
+            <span>币种策略：{{ item.tactics }}</span>
           </div>
         </el-descriptions-item>
         <el-descriptions-item label="价格浮动比例">{{ item.commission_price_difference }}</el-descriptions-item>
@@ -95,6 +104,16 @@
               :step="100"
               style="width: 140px; margin-right: 10px;">
             </el-input-number>
+            <el-select v-model="item.tactics" placeholder="选择策略" style="width: 180px; margin-right: 10px;">
+              <el-option
+                v-for="item in strategyOptions"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name">
+                  <span style="float: left">{{ item.name }}</span>
+                  <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
+              </el-option>
+            </el-select>
             <el-button type="danger" icon="el-icon-delete" @click="removeMaxPosition(index)"></el-button>
           </div>
           <el-button type="primary" icon="el-icon-plus" @click="addMaxPosition"  :disabled="FormData.max_position_list.length >= availableSymbols.length">添加</el-button>
@@ -178,6 +197,12 @@
         },
         accountList: [], // 账户列表
         availableSymbols: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT'],
+        strategyOptions: [
+          { name: 'Y1.1', label: 'BTC' },
+          { name: 'Q2.4', label: 'BTC' },
+          { name: 'Y1.0', label: 'ETH' },
+          { name: 'Q2.1', label: 'ETH' },
+        ],
         DialogTitle: '添加',
         is_save_add_start: 1, //1：添加 2：修改
         AuthMenuRuleData: [], //权限接口角色数据
@@ -216,8 +241,13 @@
         get("/Grid/grid/getRobotConfig", ServerWhere, json => {
             console.log(json);
             if (json.data.code == 10000) {
-                this.tableData = json.data.data.data;
                 this.total = json.data.data.count;
+                this.tableData = json.data.data.data.map(account => ({
+                    ...account,
+                    balance: '--',
+                    balanceLoading: true // 初始化loading状态
+                }));
+                this.fetchAccountBalances();
             } else {
                 this.$message.error("加载数据失败");
             }
@@ -233,6 +263,23 @@
             }
         });
       },
+      fetchAccountBalances() {
+            this.tableData.forEach(account => {
+                get("/sigadmin/get_account_over", {
+                    account_id: account.account_id,
+                    inst_id: this.inst_id
+                }, response => {
+                    console.log(response);
+                    if (response.status == 200) {
+                        account.balance = response.data.data.data;
+                        account.balanceLoading = false; // 结束loading
+                    } else {
+                        account.balance = '获取失败';
+                        this.$message.error("获取账户余额失败");
+                    }
+                });
+            });
+        },
       SearchClick() {
         //搜索事件
         var SearchWhere = {
@@ -328,6 +375,11 @@
         this.FormData.max_position_list.forEach(item => {
           if (item.symbol) map[item.symbol + '-SWAP'] = item.value;  // 加 -SWAP 是为了兼容原有字段
         });
+
+        if (this.FormData.max_position_list.some(item => !item.tactics || item.tactics.trim() === '')) {
+          this.$message.error('请为所有交易对选择策略');
+          return;
+        }
 
         const gridObj = {};
         this.FormData.grid_percent_list.forEach(item => {
@@ -454,5 +506,36 @@
     .el-descriptions__header {
       margin-bottom: 10px;
     }
+  }
+  .el-descriptions__title {
+    display: flex;
+  }
+  .balance-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 20px;
+  }
+  .loading {
+    display: contents;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+  }
+  .loading::after {
+    content: ' ';
+    display: block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #606266;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: loading 1s linear infinite;
+  }
+  @keyframes loading {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 </style>

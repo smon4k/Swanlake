@@ -140,6 +140,7 @@ class OKXTradingBot:
                     await self.db.get_account_info(account_id)  # 加载到缓存
                     await self.db.get_config_by_account_id(account_id)  # 加载到缓存
                     await get_exchange(self, account_id)  # 初始化交易所实例
+            await self.db.get_account_max_position()  # 加载策略数据
         except Exception as e:
             print(f"初始化账户失败: {e}")
             logging.error(f"初始化账户失败: {e}")
