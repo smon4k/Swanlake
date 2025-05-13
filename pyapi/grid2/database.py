@@ -68,9 +68,10 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(f"""
-                    INSERT INTO {table('signals')} (timestamp, symbol, direction, price, size, status)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    INSERT INTO {table('signals')} (name, timestamp, symbol, direction, price, size, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (
+                    signal_data['name'],
                     signal_data['timestamp'],
                     signal_data['symbol'],
                     signal_data['direction'],
