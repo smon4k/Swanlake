@@ -249,12 +249,12 @@ class SignalProcessingTask:
         
             max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
             position_percent = Decimal(self.db.account_config_cache[account_id].get('position_percent'))
-            max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
+            # max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
             # if balance >= max_balance: # 超过最大仓位限制
             #     balance = max_position
             # print(f"最大开仓数量: {max_balance}")
-            logging.info(f"最大开仓数量: {max_balance}")
-            size = await self.calculate_position_size(market_precision, max_balance, position_percent, price, account_id)
+            logging.info(f"最大开仓数量: {max_position}")
+            size = await self.calculate_position_size(market_precision, max_position, position_percent, price, account_id)
             # print(f"开仓价: {price}")
             logging.info(f"开仓价: {price}")
             # print(f"开仓量: {size}")
