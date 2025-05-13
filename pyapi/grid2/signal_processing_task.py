@@ -251,16 +251,18 @@ class SignalProcessingTask:
             max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
             # if balance >= max_balance: # 超过最大仓位限制
             #     balance = max_position
-            print(f"最大开仓数量: {max_balance}")
+            # print(f"最大开仓数量: {max_balance}")
+            logging.info(f"最大开仓数量: {max_balance}")
             size = await self.calculate_position_size(market_precision, max_balance, position_percent, price, account_id)
-            print(f"开仓价: {price}")
-            print(f"开仓量: {size}")
+            # print(f"开仓价: {price}")
+            logging.info(f"开仓价: {price}")
+            # print(f"开仓量: {size}")
             logging.info(f"开仓量: {size}")
             size_total_quantity = Decimal(size) * Decimal(market_precision['amount']) * price
-            print(f"开仓价值: {size_total_quantity}")
+            # print(f"开仓价值: {size_total_quantity}")
             logging.info(f"开仓价值: {size_total_quantity}")
             if size <= 0:
-                print(f"开仓量为0，不执行开仓")
+                # print(f"开仓量为0，不执行开仓")
                 logging.info(f"开仓量为0，不执行开仓")
                 return
             
@@ -275,13 +277,13 @@ class SignalProcessingTask:
             if total_position_quantity > 0:
                 total_size_position_quantity = Decimal(total_position_quantity) + Decimal(size_total_quantity)
 
-            print("开仓以及总持仓价值", total_size_position_quantity)
+            # print("开仓以及总持仓价值", total_size_position_quantity)
             logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
             if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
                 logging.info(f"最大持仓数：{max_position}")
-                print(f"最大持仓数：{max_position}")
+                # print(f"最大持仓数：{max_position}")
                 logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
-                print(f"总持仓数大于等于最大持仓，不执行挂单")
+                # print(f"总持仓数大于等于最大持仓，不执行挂单")
                 logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
                 return
             
