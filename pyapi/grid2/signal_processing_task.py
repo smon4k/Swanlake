@@ -32,15 +32,20 @@ class SignalProcessingTask:
                     async with self.signal_lock:  # 🚨加锁，避免 price_monitoring 同时执行
                         print("🔁 处理信号中...")
                         logging.info("🔁 处理信号中...")
-                        account_tactics_list = self.db.tactics_accounts_cache[signal['name']]
-                        for account_id in account_tactics_list:
-                            await self.process_signal(signal, account_id)
-                        with conn.cursor() as cursor:
-                            cursor.execute(
-                                "UPDATE g_signals SET status='processed' WHERE id=%s",
-                                (signal['id'],)
-                            )
-                        conn.commit()
+                        if signal['name'] in self.db.tactics_accounts_cache:
+                            account_tactics_list = self.db.tactics_accounts_cache[signal['name']]
+                            print(account_tactics_list)
+                            for account_id in account_tactics_list:
+                                await self.process_signal(signal, account_id)
+                            with conn.cursor() as cursor:
+                                cursor.execute(
+                                    "UPDATE g_signals SET status='processed' WHERE id=%s",
+                                    (signal['id'],)
+                                )
+                            conn.commit()
+                        else:
+                            print("🚫 无对应账户策略信号")
+                            logging.info("🚫 无对应账户策略信号")
                 await asyncio.sleep(self.config.check_interval)
             except Exception as e:
                 print(f"信号处理异常: {e}")
@@ -275,6 +280,8 @@ class SignalProcessingTask:
             logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
             if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
                 logging.info(f"最大持仓数：{max_position}")
+                print(f"最大持仓数：{max_position}")
+                logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
                 print(f"总持仓数大于等于最大持仓，不执行挂单")
                 logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
                 return
