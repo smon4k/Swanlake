@@ -185,7 +185,7 @@ class PriceMonitoringTask:
             max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
             buy_total_size_position_quantity = Decimal(total_position_quantity) + Decimal(buy_size_total_quantity) - Decimal(sell_size_total_quantity)
             print("开仓以及总持仓挂买价值", buy_total_size_position_quantity)
-            logging.info(f"开仓以及总持仓挂买价值：{buy_total_size_position_quantity}")
+            logging.info(f"开仓以及总持仓挂买价值：{buy_total_size_position_quantity} {max_position}")
             is_buy = True
             if buy_total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
                 # cancel_size = 'buy' # 取消未成交的订单只取消买单
