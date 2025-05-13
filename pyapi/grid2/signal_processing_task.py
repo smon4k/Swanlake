@@ -223,6 +223,7 @@ class SignalProcessingTask:
                 return
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
             # print("市场精度", market_precision)
+            # return
             total_position_quantity = 0
             if(total_position_value > 0):
                 total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
@@ -330,8 +331,9 @@ class SignalProcessingTask:
             position_size = (balance * position_percent) / (price * Decimal(market_precision['contract_size']))
             position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
-            total_position = Decimal(self.db.account_config_cache[account_id].get('total_position', 0)) # 获取配置文件对应币种最大持仓
-            return min(position_size, total_position)
+            # total_position = Decimal(self.db.account_config_cache[account_id].get('total_position', 0)) # 获取配置文件对应币种最大持仓
+            # return min(position_size, total_position)
+            return position_size
         except Exception as e:
             print(f"计算仓位失败: {e}")
             return Decimal('0')
