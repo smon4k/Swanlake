@@ -194,7 +194,7 @@ class PriceMonitoringTask:
                 is_buy = False # 不执行挂单
                 print("下单量超过最大持仓，不执行挂单")
                 logging.info("下单量超过最大持仓，不执行挂单")
-                return False
+                return True
             
             sell_total_size_position_quantity = Decimal(total_position_quantity) - Decimal(sell_size_total_quantity)
             print("开仓以及总持仓挂卖价值", sell_total_size_position_quantity)
