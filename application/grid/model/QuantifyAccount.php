@@ -141,8 +141,8 @@ class QuantifyAccount extends Base
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // p($depositToday);
                 $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
-                $quantifyEquityInfo = self::getQuantifyEquityMonDataOne($account_id);
-                if(isset($quantifyEquityInfo) && count((array)$quantifyEquityInfo) > 0) {
+                $hasOnlyTodayData = self::hasOnlyTodayData($account_id); //获取是否只第一天
+                if(!$hasOnlyTodayData) {
                     $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
                 } else {
                     $dailyProfit = $totalBalance - $countStandardPrincipal; //日利润 = 总结余-累计本金
@@ -949,19 +949,25 @@ class QuantifyAccount extends Base
     }
 
     /**
-     * 获取账户数据是否存在
-     * @author qinlh
+     * 判断账户是否只有今天一天的数据
+     * @author 
      * @since 2025-05-08
      */
-    public static function getQuantifyEquityMonDataOne($account_id=0)
+    public static function hasOnlyTodayData($account_id=0)
     {
-        if($account_id) {
-            $res = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id])->find();
-            if ($res && count((array)$res) > 0) {
-                return $res;
+        if ($account_id) {
+            $today = date('Y-m-d');
+            $count = self::name('quantify_equity_monitoring')
+                        ->where(['account_id' => $account_id])
+                        ->count();
+            $todayCount = self::name('quantify_equity_monitoring')
+                              ->where(['account_id' => $account_id, 'date' => $today])
+                              ->count();
+            if ($count === 1 && $todayCount === 1) {
+                return true;
             }
         }
-        return [];
+        return false;
     }
 
     /**
