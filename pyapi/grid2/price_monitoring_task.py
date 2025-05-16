@@ -78,13 +78,15 @@ class PriceMonitoringTask:
                     #     latest_fill_time = int(fill_time)
                     executed_price = order_info['info'].get('fillPx') # 成交价格
 
-                await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
+                # await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                 if latest_order:
                     print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
                     logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
                     # print(f"订单存在: {latest_order}")
-                    # 检查止盈止损
-                    await self.manage_grid_orders(latest_order, account_id) #检查网格
+                    # 网格管理 下单
+                    mangr_orders = await self.manage_grid_orders(latest_order, account_id) #检查网格
+                    if mangr_orders:
+                        await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
 
         except Exception as e:
             print(f"检查持仓失败: {e}")
@@ -97,7 +99,7 @@ class PriceMonitoringTask:
             if not exchange:
                 print("未找到交易所实例")
                 logging.info("未找到交易所实例")
-                return
+                return False
                 
             symbol = order['info']['instId']
 
@@ -122,7 +124,7 @@ class PriceMonitoringTask:
             if not positions:
                 print("网格下单 无持仓信息")
                 logging.info("网格下单 无持仓信息")
-                return
+                return False
             # print("positions", positions)
             total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
             print("总持仓数", total_position_value)
@@ -130,7 +132,7 @@ class PriceMonitoringTask:
             if total_position_value <= 0:
                 print("网格下单 无持仓信息")
                 logging.info("网格下单 无持仓信息")
-                return
+                return False
 
             balance = await get_account_balance(exchange, symbol)
             print(f"账户余额: {balance}")
@@ -161,7 +163,7 @@ class PriceMonitoringTask:
             if buy_size < market_precision['min_amount']:
                 print(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
                 logging.info(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
-                return
+                return False
             
             buy_size_total_quantity = Decimal(buy_size) * Decimal(market_precision['amount']) * buy_price
 
@@ -173,7 +175,7 @@ class PriceMonitoringTask:
             if sell_size < market_precision['min_amount']:
                 print(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
                 logging.info(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
-                return
+                return False
             
             sell_size_total_quantity = Decimal(sell_size) * Decimal(market_precision['amount']) * sell_price
 
@@ -192,7 +194,7 @@ class PriceMonitoringTask:
                 is_buy = False # 不执行挂单
                 print("下单量超过最大持仓，不执行挂单")
                 logging.info("下单量超过最大持仓，不执行挂单")
-                return
+                return False
             
             sell_total_size_position_quantity = Decimal(total_position_quantity) - Decimal(sell_size_total_quantity)
             print("开仓以及总持仓挂卖价值", sell_total_size_position_quantity)
@@ -272,13 +274,16 @@ class PriceMonitoringTask:
                     })
                     print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
                     logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
+                return True
             else:
                 print("未获取到信号")
                 logging.info("未获取到信号")
+                return True
         except Exception as e:
             print(f"网格订单管理失败: {str(e)}")
             logging.error(f"网格订单管理失败: {str(e)}")
             traceback.print_exc()
+            return False
 
     #生成一个获取订单信息的测试方法
     async def get_order_info(self, account_id: int, order_id: str):
