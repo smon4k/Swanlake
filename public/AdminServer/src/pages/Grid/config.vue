@@ -13,6 +13,7 @@
           <el-form-item>
             <!-- <el-button type="primary" @click="SearchClick()">搜索</el-button> -->
             <el-button class="pull-right" type="primary" @click="AddUserInfoShow()">添加配置</el-button>
+            <el-button class="pull-right" type="primary" @click="showTradeDialog()">手动操作</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -161,7 +162,59 @@
         </el-form-item>
       </el-form>
       </el-dialog>
-  
+      
+      <!-- 新增的交易信号弹框 -->
+      <el-dialog
+        title="交易信号配置"
+        :visible.sync="tradeDialogVisible"
+        width="50%">
+        <el-form :model="tradeForm" :rules="tradeRules" ref="tradeForm" label-width="100px">
+          <!-- <el-form-item label="选择账户" prop="account_id">
+            <el-select v-model="tradeForm.account_id" placeholder="请选择账户" clearable>
+              <el-option
+                v-for="item in accountList"
+                :key="item.id"
+                :label="item.name || `账户ID: ${item.id}`"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item> -->
+          
+          <el-form-item label="策略名称" prop="name">
+            <el-select v-model="tradeForm.name" placeholder="请选择策略">
+              <el-option
+                v-for="item in strategyOptions"
+                :key="item.name"
+                :label="`${item.name} (${item.label})`"
+                :value="item.name">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          
+          <el-form-item label="交易对" prop="symbol">
+            <el-select v-model="tradeForm.symbol" placeholder="请选择交易对">
+              <el-option label="BTC-USDT-SWAP" value="BTC-USDT-SWAP"></el-option>
+              <el-option label="ETH-USDT-SWAP" value="ETH-USDT-SWAP"></el-option>
+            </el-select>
+          </el-form-item>
+          
+          <el-form-item label="价格" prop="price">
+            <el-input-number 
+              v-model="tradeForm.price" 
+              :min="0" 
+              :precision="2" 
+              :step="0.01"
+              placeholder="请输入价格">
+            </el-input-number>
+          </el-form-item>
+          
+          <el-form-item>
+            <el-button type="primary" @click="submitTrade('open')">开仓</el-button>
+            <el-button type="danger" @click="submitTrade('close')">平仓</el-button>
+            <el-button @click="tradeDialogVisible = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
     </div>
   </template>
   <script>
@@ -200,6 +253,8 @@
         strategyOptions: [
           { name: 'Y1.1', label: 'BTC' },
           { name: 'Q2.4', label: 'BTC' },
+          { name: 'O6.1', label: 'BTC' },
+          { name: 'O4.1', label: 'BTC' },
           { name: 'Y1.0', label: 'ETH' },
           { name: 'Q2.1', label: 'ETH' },
         ],
@@ -217,6 +272,20 @@
             grid_step: [{ required: true, message: '请输入网格间距', trigger: 'blur' }],
             commission_price_difference: [{ required: true, message: '请输入价格差', trigger: 'blur' }]
         },
+        // 新增交易信号弹框相关数据
+        tradeDialogVisible: false,
+        tradeForm: {
+          account_id: '',
+          name: '',
+          symbol: 'ETH-USDT-SWAP',
+          price: 0,
+        },
+        tradeRules: {
+          account_id: [{ required: true, message: '请选择账户', trigger: 'change' }],
+          name: [{ required: true, message: '请选择策略', trigger: 'change' }],
+          symbol: [{ required: true, message: '请选择交易对', trigger: 'change' }],
+          price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+        }
       };
     },
     methods: {
@@ -479,6 +548,42 @@
       resetForm(formName) {
         this.$refs[formName].resetFields();
         this.dialogVisibleShow = false;
+      },
+      // 新增交易信号相关方法
+      showTradeDialog() {
+        this.tradeDialogVisible = true;
+        // 重置表单
+        this.tradeForm = {
+          account_id: '',
+          name: '',
+          symbol: 'ETH-USDT-SWAP',
+          price: 0,
+        };
+      },
+      submitTrade(action) {
+        this.$refs.tradeForm.validate(valid => {
+          if (valid) {
+            const params = {
+              name: this.tradeForm.name,
+              symbol: this.tradeForm.symbol,
+              price: this.tradeForm.price,
+              account_id: this.tradeForm.account_id,
+              side: action === 'open' ? 'buy' : 'sell',
+              size: action === 'open' ? '1' : '0'
+            };
+            
+            post("/sigtest/insert_signal", params, response => {
+              if (response.data.success) {
+                this.$message.success(`${action === 'open' ? '开仓' : '平仓'}指令发送成功`);
+                this.tradeDialogVisible = false;
+              } else {
+                this.$message.error(response.data.message || '操作失败');
+              }
+            }).catch(error => {
+              this.$message.error("请求失败: " + error.message);
+            });
+          }
+        });
       }
     },
     created() {
