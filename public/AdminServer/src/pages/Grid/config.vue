@@ -341,7 +341,7 @@
       },
       fetchAccountBalances() {
             this.tableData.forEach(account => {
-                get("/sigatest/get_account_over", {
+                get("/sigtest/get_account_over", {
                     account_id: account.account_id,
                     inst_id: this.inst_id
                 }, response => {
@@ -528,7 +528,7 @@
       },
       refreshConfig(account_id) { // 刷新持仓机器人本地缓存
         if(account_id) {
-          get('/sigatest/refresh_config', {
+          get('/sigtest/refresh_config', {
             account_id: account_id
           }, (json) => {
             if (json.status == 200) {
@@ -581,7 +581,7 @@
                 : '0'
             };
             
-            post("/sigatest/insert_signal", params, response => {
+            post("/sigtest/insert_signal", params, response => {
               if (response.data.success) {
                 this.$message.success(`${action === 'open' ? '开仓' : '平仓'}指令发送成功`);
                 this.tradeDialogVisible = false;
