@@ -1,6 +1,7 @@
 import logging
 import pymysql
 from typing import Dict, List, Optional
+import json
 
 TABLE_PREFIX = "g_"
 
@@ -12,6 +13,7 @@ class Database:
         self.db_config = db_config
         self.account_cache: Dict[int, dict] = {}  # 账户信息缓存
         self.account_config_cache: Dict[int, dict] = {}  # 账户配置信息缓存
+        self.tactics_accounts_cache: Dict[str, List[int]] = {}  # 策略账户信息缓存
 
     def get_db_connection(self):
         """获取数据库连接"""
@@ -66,9 +68,10 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(f"""
-                    INSERT INTO {table('signals')} (timestamp, symbol, direction, price, size, status)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    INSERT INTO {table('signals')} (name, timestamp, symbol, direction, price, size, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (
+                    signal_data['name'],
                     signal_data['timestamp'],
                     signal_data['symbol'],
                     signal_data['direction'],
@@ -182,15 +185,16 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute(f"""
                     INSERT INTO {table('orders')}
-                    (account_id, symbol, position_group_id, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (account_id, symbol, position_group_id, profit, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
                     status = VALUES(status)
                 """, (
                     order_info['account_id'],
                     order_info['symbol'],
-                    order_info['position_group_id'],
+                    order_info['position_group_id'] if 'position_group_id' in order_info else '',
+                    order_info.get('profit') if order_info.get('profit') is not None else 0,
                     order_info['order_id'],
                     order_info['clorder_id'],
                     order_info['side'],
@@ -233,6 +237,7 @@ class Database:
         """根据订单ID更新订单信息"""
         conn = None
         try:
+            # print("更新订单信息:", account_id, order_id, updates)
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
@@ -417,3 +422,125 @@ class Database:
             return []
         finally:
             conn.close()
+    
+    async def get_order_by_price_diff(self, account_id, symbol, direction, latest_price: float):
+        """
+        查询订单表中买入或卖出已成交的position_group_id为空的，按照成交时间降序排序，成交价格和最新价格之差的绝对值升序排序的一条数据
+        :param account_id: 账户ID
+        :param symbol: 交易对
+        :param direction: 目标方向（long/short）
+        :return: 符合条件的订单数据
+        """
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                # 查询已成交（status为filled）的指定订单方向以及持仓方向的订单
+                # SELECT id, account_id, timestamp, symbol, order_id, side, order_type, side, quantity, price, executed_price, status, is_clopos FROM g_orders WHERE account_id = 2 AND symbol = 'ETH-USDT-SWAP' AND side = 'sell' AND status = 'filled' AND (is_clopos = 0 or is_clopos = 1) AND position_group_id = ''  AND executed_price IS NOT NULL ORDER BY ABS(1811.19 - executed_price) ASC, fill_time DESC LIMIT 1
+                query = f"""
+                    SELECT id, account_id, timestamp, symbol, order_id, side, order_type, side, quantity, price, executed_price, status, is_clopos
+                    FROM {table('orders')}
+                    WHERE account_id = %s AND symbol = %s AND side = %s AND status = 'filled' AND (is_clopos = 0 or is_clopos = 1)
+                    AND position_group_id = ''
+                    AND executed_price IS NOT NULL
+                    ORDER BY ABS(%s - executed_price) ASC, fill_time DESC
+                    LIMIT 1
+                """
+                cursor.execute(query, (account_id, symbol, direction, latest_price))
+                order = cursor.fetchone()
+                return order
+        except Exception as e:
+            print(f"数据库查询错误: {e}")
+            logging.error(f"数据库查询错误: {e}")
+            return []
+        finally:
+            conn.close()
+    
+    async def get_order_by_price_diff_v2(self, account_id: int, symbol: str, latest_price: float, mode: str = 'sell') -> Optional[Dict]:
+        """
+        根据基准订单，查询符合条件的一条订单（做多找卖，做空找买）
+        :param account_id: 账户ID
+        :param symbol: 交易对
+        :param base_order: 基准订单(dict)，例如买单或者卖单
+        :param mode: 查询方向 'sell'（找卖单）或者 'buy'（找买单）
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                if mode == 'sell':
+                    # 找价格高于买单成交价的卖单
+                    condition = "executed_price > %s"
+                    order_side = 'sell'
+                    sort_order = "executed_price ASC"
+                else:
+                    # 找价格低于卖单成交价的买单
+                    condition = "executed_price < %s"
+                    order_side = 'buy'
+                    sort_order = "executed_price DESC"
+
+                cursor.execute(f"""
+                    SELECT * FROM {table('orders')}
+                    WHERE account_id = %s 
+                    AND symbol = %s 
+                    AND side = %s
+                    AND status = 'filled'
+                    AND (is_clopos = 0 OR is_clopos = 1)
+                    AND position_group_id = ''
+                    AND executed_price IS NOT NULL
+                    AND {condition}
+                    ORDER BY {sort_order}, fill_time DESC
+                    LIMIT 1
+                """, (account_id, symbol, order_side, latest_price))
+                match_order = cursor.fetchone()
+
+            return match_order
+        except Exception as e:
+            print(f"查询配对订单失败: {e}")
+            logging.error(f"查询配对订单失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+    
+    #生成一个获取币种最大仓位配置数据，获取g_config里面的max_position_list策略字段数据（[{"symbol":"ETH-USDT","value":"1000","tactics":"Y1.1"},{"symbol":"BTC-USDT","value":"1000","tactics":"Q2.4"}]），检索所有配置数据，将对应的策略对应到指定的用户Id 例如：Y1.1：[account_1, account_2]
+    async def get_account_max_position(self) -> Optional[Dict]:
+        """
+        获取指定账户的最大仓位配置数据
+        :return: 最大仓位配置数据
+        """
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT a.id as account_id, c.max_position_list as max_position_list
+                    FROM {table('accounts')} a
+                    INNER JOIN {table('config')} c ON a.id = c.account_id
+                    WHERE a.status = %s
+                """, (1))
+                result = cursor.fetchall()
+                if result:
+                    tactics_accounts = {}
+                    for row in result:
+                        account_id = row.get('account_id')
+                        max_position_list = row.get('max_position_list')
+                        if not max_position_list:
+                            continue
+                        max_position_list_arr = json.loads(max_position_list)
+                        # print(max_position_list_arr)
+                        for pos in max_position_list_arr:
+                            tactic = pos.get("tactics")
+                            if tactic:
+                                tactics_accounts.setdefault(tactic, []).append(account_id)
+                    self.tactics_accounts_cache = tactics_accounts
+                    return tactics_accounts
+                else:
+                    return None
+        except Exception as e:
+            print(f"获取最大仓位配置数据失败: {e}")
+            logging.error(f"获取最大仓位配置数据失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+        
