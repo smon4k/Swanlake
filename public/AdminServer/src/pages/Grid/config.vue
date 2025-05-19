@@ -581,7 +581,7 @@
                 : '0'
             };
             
-            post("/sigtest/insert_signal", params, response => {
+            post("/sigadmin/insert_signal", params, response => {
               if (response.data.success) {
                 this.$message.success(`${action === 'open' ? '开仓' : '平仓'}指令发送成功`);
                 this.tradeDialogVisible = false;
