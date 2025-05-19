@@ -12,8 +12,8 @@
           </el-form-item> -->
           <el-form-item>
             <!-- <el-button type="primary" @click="SearchClick()">搜索</el-button> -->
-            <el-button class="pull-right" type="primary" @click="AddUserInfoShow()">添加配置</el-button>
-            <el-button class="pull-right" type="primary" @click="showTradeDialog()">手动操作</el-button>
+            <el-button type="primary" @click="AddUserInfoShow()">添加配置</el-button>
+            <el-button type="primary" @click="showTradeDialog()">手动操作</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -201,13 +201,18 @@
           <el-form-item label="价格" prop="price">
             <el-input-number 
               v-model="tradeForm.price" 
-              :min="0" 
+              :min="1000" 
               :precision="2" 
-              :step="0.01"
+              :step="1000"
               placeholder="请输入价格">
             </el-input-number>
           </el-form-item>
-          
+          <el-form-item label="操作类型" prop="direction">
+            <el-radio-group v-model="tradeForm.direction">
+              <el-radio label="buy">买入</el-radio>
+              <el-radio label="sell">卖出</el-radio>
+            </el-radio-group>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="submitTrade('open')">开仓</el-button>
             <el-button type="danger" @click="submitTrade('close')">平仓</el-button>
@@ -279,12 +284,14 @@
           name: '',
           symbol: 'ETH-USDT-SWAP',
           price: 0,
+          direction: 'buy', // 默认买入
         },
         tradeRules: {
           account_id: [{ required: true, message: '请选择账户', trigger: 'change' }],
           name: [{ required: true, message: '请选择策略', trigger: 'change' }],
           symbol: [{ required: true, message: '请选择交易对', trigger: 'change' }],
           price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+          direction: [{ required: true, message: '请选择操作类型', trigger: 'change' }],
         }
       };
     },
@@ -556,7 +563,7 @@
         this.tradeForm = {
           account_id: '',
           name: '',
-          symbol: 'ETH-USDT-SWAP',
+          symbol: '',
           price: 0,
         };
       },
@@ -567,12 +574,14 @@
               name: this.tradeForm.name,
               symbol: this.tradeForm.symbol,
               price: this.tradeForm.price,
-              account_id: this.tradeForm.account_id,
-              side: action === 'open' ? 'buy' : 'sell',
-              size: action === 'open' ? '1' : '0'
+              // account_id: this.tradeForm.account_id,
+              side: this.tradeForm.direction,
+                size: action === 'open' 
+                ? (this.tradeForm.direction === 'buy' ? '1' : '-1') 
+                : '0'
             };
             
-            post("/sigtest/insert_signal", params, response => {
+            post("http://localhost:8083/insert_signal", params, response => {
               if (response.data.success) {
                 this.$message.success(`${action === 'open' ? '开仓' : '平仓'}指令发送成功`);
                 this.tradeDialogVisible = false;
