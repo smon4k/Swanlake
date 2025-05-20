@@ -173,7 +173,7 @@
         },
         fetchAccountBalances() {
             this.accountList.forEach(account => {
-                get("/sigadmin/get_account_over", {
+                get(`/${process.env.SIG_URL_NAME}/get_account_over`, {
                     account_id: account.id,
                     inst_id: this.inst_id
                 }, response => {
