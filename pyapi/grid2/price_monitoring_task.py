@@ -71,12 +71,10 @@ class PriceMonitoringTask:
                     print(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                     logging.info(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                     fill_date_time = await milliseconds_to_local_datetime(fill_time) # 格式化成交时间
-                    # print(f"成交价格: {executed_price}")
                     fill_time = float(fill_time)
-                    latest_order = order_info
-                    # if fill_time > latest_fill_time:
-                    #     latest_fill_time = int(fill_time)
-                    executed_price = order_info['info'].get('fillPx') # 成交价格
+                    if fill_time > latest_fill_time: # 找到最新的成交时间
+                        latest_fill_time = int(fill_time) 
+                        latest_order = order_info
 
                 # await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                 if latest_order:
@@ -84,13 +82,68 @@ class PriceMonitoringTask:
                     logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
                     # print(f"订单存在: {latest_order}")
                     # 网格管理 下单
+                    executed_price = order_info['info'].get('fillPx') # 成交价格
                     mangr_orders = await self.manage_grid_orders(latest_order, account_id) #检查网格
                     if mangr_orders:
                         await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
+                        await self.update_order_status(order_info, account_id, executed_price, fill_date_time, order['symbol']) # 更新订单状态以及进行配对订单
 
         except Exception as e:
             print(f"检查持仓失败: {e}")
             logging.error(f"检查持仓失败: {e}")
+    
+    #更新订单状态以及进行配对订单、计算利润
+    async def update_order_status(self, order: dict, account_id: int, executed_price: float = None, fill_date_time: str = None, symbol: str = None):
+        """更新订单状态以及进行配对订单、计算利润"""
+        try:
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
+                return
+            print("开始匹配订单") 
+            side = 'sell' if order['side'] == 'buy' else 'buy'
+            get_order_by_price_diff = await self.db.get_order_by_price_diff_v2(account_id, order['info']['instId'], executed_price, side)
+            # print("get_order_by_price_diff", get_order_by_price_diff)
+            profit = 0
+            group_id = ""
+            # new_price = await get_market_price(exchange, order['info']['instId'])
+            # print(f"最新价格: {new_price}")
+            if get_order_by_price_diff:
+                market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
+                if order['side'] == 'sell' and (Decimal(executed_price) >= Decimal(get_order_by_price_diff['executed_price'])):
+                # if order['side'] == 'buy':
+                    # 计算利润
+                    group_id = str(uuid.uuid4())
+                    profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['executed_price'])) * Decimal(min(order['amount'], Decimal(get_order_by_price_diff['quantity']))) * Decimal(market_precision['contract_size']) * (Decimal('1') - Decimal('0.00002'))
+                    print(f"配对订单成交，利润 buy: {profit}")
+                    logging.info(f"配对订单成交，利润 buy: {profit}")
+                if order['side'] == 'buy' and (Decimal(executed_price) <= Decimal(get_order_by_price_diff['executed_price'])):
+                # if order['side'] == 'sell':
+                    # 计算利润
+                    group_id = str(uuid.uuid4())
+                    profit = (Decimal(get_order_by_price_diff['executed_price']) - Decimal(executed_price)) * Decimal(min(order['amount'], Decimal(get_order_by_price_diff['quantity']))) * Decimal(market_precision['contract_size']) * (Decimal('1') - Decimal('0.00002'))
+                    print(f"配对订单成交，利润 sell: {profit}")
+                    logging.info(f"配对订单成交，利润 sell: {profit}")
+                if profit != 0:
+                    await self.db.update_order_by_id(account_id, get_order_by_price_diff['order_id'], {
+                        'profit': profit, 
+                        'position_group_id': group_id
+                    })
+                await self.db.update_order_by_id(account_id, order['id'], {
+                    'executed_price': executed_price, 
+                    'status': order['info']['state'], 
+                    'fill_time': fill_date_time, 
+                    'profit': profit, 
+                    'position_group_id': group_id
+                })
+            else:
+                await self.db.update_order_by_id(account_id, order['id'], {
+                    'executed_price': executed_price, 
+                    'status': order['info']['state'], 
+                    'fill_time': fill_date_time, 
+                })
+        except Exception as e:
+            print(f"配对计算利润失败: {str(e)}")
+            logging.error(f"配对计算利润失败: {str(e)}")
 
     async def manage_grid_orders(self, order: dict, account_id: int):
         """基于订单成交价进行撤单和网格管理，计算挂单数量"""
@@ -156,9 +209,10 @@ class PriceMonitoringTask:
             # sell_size = await calculate_position_size(self, exchange, symbol, self.config.grid_sell_percent, sell_price)  # 例如0.05表示5%
             percent_list = await get_grid_percent_list(self, account_id, signal['direction'])
             buy_percent = percent_list.get('buy')
-            # print('buy_percent', buy_percent)
+            print('buy_percent', buy_percent)
             # print("market_precision", market_precision)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
+            print(buy_size)
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
             if buy_size < market_precision['min_amount']:
                 print(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
