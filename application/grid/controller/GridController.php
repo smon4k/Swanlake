@@ -42,18 +42,21 @@ class GridController extends BaseController
         $account_id = $request->request('account_id', 0, 'intval');
         $order_number = $request->request('order_number', '', 'trim');
         $where = [];
+        $where['a.status'] = ['in', ['live', 'filled']];
         if($account_id) {
             $where['a.account_id'] = $account_id;
         } 
         if($order_number && $order_number !== "") {
             $where['a.order_id'] = ['like',"%" . $order_number . "%"];
         }
+        
         $data = Orders::getOrderList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
         $lists = $data['lists'];
+        $totalProfit = $data['totalProfit'];
         // p($lists);
-        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
+        return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists, 'totalProfit' => $totalProfit]);
     }
 
 

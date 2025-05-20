@@ -12,11 +12,20 @@
           </el-form-item> -->
           <el-form-item>
             <!-- <el-button type="primary" @click="SearchClick()">搜索</el-button> -->
-            <el-button class="pull-right" type="primary" @click="AddUserInfoShow()">添加配置</el-button>
+            <el-button type="primary" @click="AddUserInfoShow()">添加配置</el-button>
+            <el-button type="primary" @click="showTradeDialog()">手动操作</el-button>
           </el-form-item>
         </el-form>
       </div>
-      <el-descriptions v-for="(item, index) in tableData" :key="index" :title="item.account_name" border :column="2">
+      <el-descriptions v-for="(item, index) in tableData" :key="index" border :column="2">
+        <template slot="title">
+          <div>{{ item.account_name }}</div> 
+          <div class="balance-container">
+            <span v-if="!item.balanceLoading">{{ keepDecimalNotRounding(item.balance, 2) }} USDT</span>
+            <span v-else style="display: contents;"><span class="loading"></span>&nbsp;&nbsp;USDT</span>
+          </div>
+        </template>
+        <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item>
         <template slot="extra">
           <el-button size="mini" type="primary" @click="UpdateAdminUserInfo(item)">编辑</el-button>
           <el-button size="mini" type="danger" @click="DelData(item)">删除</el-button>
@@ -38,7 +47,8 @@
         <el-descriptions-item label="币种最大仓位数配置	">
           <div v-for="(item, index) in item.max_position_list" :key="index">
             <span>{{ item.symbol }}：</span>
-            <span>最大仓位：{{ item.value }}</span>
+            <span>最大仓位：{{ item.value }}</span>&nbsp;&nbsp;
+            <span>币种策略：{{ item.tactics }}</span>
           </div>
         </el-descriptions-item>
         <el-descriptions-item label="价格浮动比例">{{ item.commission_price_difference }}</el-descriptions-item>
@@ -95,6 +105,16 @@
               :step="100"
               style="width: 140px; margin-right: 10px;">
             </el-input-number>
+            <el-select v-model="item.tactics" placeholder="选择策略" style="width: 180px; margin-right: 10px;">
+              <el-option
+                v-for="item in strategyOptions"
+                :key="item.name"
+                :label="item.name"
+                :value="item.name">
+                  <span style="float: left">{{ item.name }}</span>
+                  <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
+              </el-option>
+            </el-select>
             <el-button type="danger" icon="el-icon-delete" @click="removeMaxPosition(index)"></el-button>
           </div>
           <el-button type="primary" icon="el-icon-plus" @click="addMaxPosition"  :disabled="FormData.max_position_list.length >= availableSymbols.length">添加</el-button>
@@ -142,7 +162,64 @@
         </el-form-item>
       </el-form>
       </el-dialog>
-  
+      
+      <!-- 新增的交易信号弹框 -->
+      <el-dialog
+        title="交易信号配置"
+        :visible.sync="tradeDialogVisible"
+        width="50%">
+        <el-form :model="tradeForm" :rules="tradeRules" ref="tradeForm" label-width="100px">
+          <!-- <el-form-item label="选择账户" prop="account_id">
+            <el-select v-model="tradeForm.account_id" placeholder="请选择账户" clearable>
+              <el-option
+                v-for="item in accountList"
+                :key="item.id"
+                :label="item.name || `账户ID: ${item.id}`"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item> -->
+          
+          <el-form-item label="策略名称" prop="name">
+            <el-select v-model="tradeForm.name" placeholder="请选择策略">
+              <el-option
+                v-for="item in strategyOptions"
+                :key="item.name"
+                :label="`${item.name} (${item.label})`"
+                :value="item.name">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          
+          <el-form-item label="交易对" prop="symbol">
+            <el-select v-model="tradeForm.symbol" placeholder="请选择交易对">
+              <el-option label="BTC-USDT-SWAP" value="BTC-USDT-SWAP"></el-option>
+              <el-option label="ETH-USDT-SWAP" value="ETH-USDT-SWAP"></el-option>
+            </el-select>
+          </el-form-item>
+          
+          <el-form-item label="价格" prop="price">
+            <el-input-number 
+              v-model="tradeForm.price" 
+              :min="1000" 
+              :precision="2" 
+              :step="1000"
+              placeholder="请输入价格">
+            </el-input-number>
+          </el-form-item>
+          <el-form-item label="操作类型" prop="direction">
+            <el-radio-group v-model="tradeForm.direction">
+              <el-radio label="buy">买入</el-radio>
+              <el-radio label="sell">卖出</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="submitTrade('open')">开仓</el-button>
+            <el-button type="danger" @click="submitTrade('close')">平仓</el-button>
+            <el-button @click="tradeDialogVisible = false">取消</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
     </div>
   </template>
   <script>
@@ -178,6 +255,14 @@
         },
         accountList: [], // 账户列表
         availableSymbols: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT'],
+        strategyOptions: [
+          { name: 'Y1.1', label: 'BTC' },
+          { name: 'Q2.4', label: 'BTC' },
+          { name: 'O6.1', label: 'BTC' },
+          { name: 'O4.1', label: 'BTC' },
+          { name: 'Y1.0', label: 'ETH' },
+          { name: 'Q2.1', label: 'ETH' },
+        ],
         DialogTitle: '添加',
         is_save_add_start: 1, //1：添加 2：修改
         AuthMenuRuleData: [], //权限接口角色数据
@@ -192,6 +277,22 @@
             grid_step: [{ required: true, message: '请输入网格间距', trigger: 'blur' }],
             commission_price_difference: [{ required: true, message: '请输入价格差', trigger: 'blur' }]
         },
+        // 新增交易信号弹框相关数据
+        tradeDialogVisible: false,
+        tradeForm: {
+          account_id: '',
+          name: '',
+          symbol: 'ETH-USDT-SWAP',
+          price: 0,
+          direction: 'buy', // 默认买入
+        },
+        tradeRules: {
+          account_id: [{ required: true, message: '请选择账户', trigger: 'change' }],
+          name: [{ required: true, message: '请选择策略', trigger: 'change' }],
+          symbol: [{ required: true, message: '请选择交易对', trigger: 'change' }],
+          price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+          direction: [{ required: true, message: '请选择操作类型', trigger: 'change' }],
+        }
       };
     },
     methods: {
@@ -216,8 +317,13 @@
         get("/Grid/grid/getRobotConfig", ServerWhere, json => {
             console.log(json);
             if (json.data.code == 10000) {
-                this.tableData = json.data.data.data;
                 this.total = json.data.data.count;
+                this.tableData = json.data.data.data.map(account => ({
+                    ...account,
+                    balance: '--',
+                    balanceLoading: true // 初始化loading状态
+                }));
+                this.fetchAccountBalances();
             } else {
                 this.$message.error("加载数据失败");
             }
@@ -233,6 +339,23 @@
             }
         });
       },
+      fetchAccountBalances() {
+            this.tableData.forEach(account => {
+                get(`/${process.env.SIG_URL_NAME}/get_account_over`, {
+                    account_id: account.account_id,
+                    inst_id: this.inst_id
+                }, response => {
+                    console.log(response);
+                    if (response.status == 200) {
+                        account.balance = response.data.data.data;
+                        account.balanceLoading = false; // 结束loading
+                    } else {
+                        account.balance = '获取失败';
+                        this.$message.error("获取账户余额失败");
+                    }
+                });
+            });
+        },
       SearchClick() {
         //搜索事件
         var SearchWhere = {
@@ -328,6 +451,11 @@
         this.FormData.max_position_list.forEach(item => {
           if (item.symbol) map[item.symbol + '-SWAP'] = item.value;  // 加 -SWAP 是为了兼容原有字段
         });
+
+        if (this.FormData.max_position_list.some(item => !item.tactics || item.tactics.trim() === '')) {
+          this.$message.error('请为所有交易对选择策略');
+          return;
+        }
 
         const gridObj = {};
         this.FormData.grid_percent_list.forEach(item => {
@@ -427,6 +555,44 @@
       resetForm(formName) {
         this.$refs[formName].resetFields();
         this.dialogVisibleShow = false;
+      },
+      // 新增交易信号相关方法
+      showTradeDialog() {
+        this.tradeDialogVisible = true;
+        // 重置表单
+        this.tradeForm = {
+          account_id: '',
+          name: '',
+          symbol: '',
+          price: 0,
+        };
+      },
+      submitTrade(action) {
+        this.$refs.tradeForm.validate(valid => {
+          if (valid) {
+            const params = {
+              name: this.tradeForm.name,
+              symbol: this.tradeForm.symbol,
+              price: this.tradeForm.price,
+              // account_id: this.tradeForm.account_id,
+              side: this.tradeForm.direction,
+                size: action === 'open' 
+                ? (this.tradeForm.direction === 'buy' ? '1' : '-1') 
+                : '0'
+            };
+            
+            post(`/${process.env.SIG_URL_NAME}/insert_signal`, params, response => {
+              if (response.data.success) {
+                this.$message.success(`${action === 'open' ? '开仓' : '平仓'}指令发送成功`);
+                this.tradeDialogVisible = false;
+              } else {
+                this.$message.error(response.data.message || '操作失败');
+              }
+            }).catch(error => {
+              this.$message.error("请求失败: " + error.message);
+            });
+          }
+        });
       }
     },
     created() {
@@ -455,5 +621,36 @@
     .el-descriptions__header {
       margin-bottom: 10px;
     }
+  }
+  .el-descriptions__title {
+    display: flex;
+  }
+  .balance-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 20px;
+  }
+  .loading {
+    display: contents;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+  }
+  .loading::after {
+    content: ' ';
+    display: block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #606266;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: loading 1s linear infinite;
+  }
+  @keyframes loading {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 </style>

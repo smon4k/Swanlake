@@ -54,10 +54,10 @@ class PriceMonitoringTask:
             latest_fill_time = 0
 
             # 检查止盈止损并平仓
-            signal = await self.db.get_latest_signal()  # 获取最新信号
-            await self.check_and_close_position(exchange, account_id, signal['symbol'], signal['price'])
         
             for order in open_orders:
+                signal = await self.db.get_latest_signal(order['symbol'])  # 获取最新信号
+                await self.check_and_close_position(exchange, account_id, order['symbol'], signal['price'])
                 # 检查订单是否存在
                 # print(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                 # logging.info(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
@@ -68,23 +68,25 @@ class PriceMonitoringTask:
                 executed_price = None
                 # print(order_info['info']['state'])
                 if order_info['info']['state'] == 'filled':
+                    print(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    logging.info(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    fill_date_time = await milliseconds_to_local_datetime(fill_time) # 格式化成交时间
                     # print(f"成交价格: {executed_price}")
-                    fill_date_time = await milliseconds_to_local_datetime(fill_time)
                     fill_time = float(fill_time)
-                    if fill_time > latest_fill_time:
-                        latest_fill_time = int(fill_time)
-                        latest_order = order_info
+                    latest_order = order_info
+                    # if fill_time > latest_fill_time:
+                    #     latest_fill_time = int(fill_time)
                     executed_price = order_info['info'].get('fillPx') # 成交价格
 
-                await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
-                
-            if latest_order:
-                print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
-                logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
-                # print(f"订单存在: {latest_order}")
-                if latest_order['info']['state'] == 'filled':
-                    # 检查止盈止损
-                    await self.manage_grid_orders(latest_order, account_id) #检查网格
+                # await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
+                if latest_order:
+                    print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                    logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                    # print(f"订单存在: {latest_order}")
+                    # 网格管理 下单
+                    mangr_orders = await self.manage_grid_orders(latest_order, account_id) #检查网格
+                    if mangr_orders:
+                        await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
 
         except Exception as e:
             print(f"检查持仓失败: {e}")
@@ -97,7 +99,7 @@ class PriceMonitoringTask:
             if not exchange:
                 print("未找到交易所实例")
                 logging.info("未找到交易所实例")
-                return
+                return False
                 
             symbol = order['info']['instId']
 
@@ -122,7 +124,7 @@ class PriceMonitoringTask:
             if not positions:
                 print("网格下单 无持仓信息")
                 logging.info("网格下单 无持仓信息")
-                return
+                return False
             # print("positions", positions)
             total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
             print("总持仓数", total_position_value)
@@ -130,10 +132,11 @@ class PriceMonitoringTask:
             if total_position_value <= 0:
                 print("网格下单 无持仓信息")
                 logging.info("网格下单 无持仓信息")
-                return
+                return False
 
             balance = await get_account_balance(exchange, symbol)
             print(f"账户余额: {balance}")
+            logging.info(f"账户余额: {balance}")
 
             price = await get_market_price(exchange, symbol)
 
@@ -146,7 +149,7 @@ class PriceMonitoringTask:
             print("总持仓价值", total_position_quantity)
             logging.info(f"总持仓价值: {total_position_quantity}")
             
-            await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
+            await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
 
             # 4. 使用calculate_position_size计算挂单数量
             # buy_size = await calculate_position_size(self, exchange, symbol,self.config.grid_buy_percent, buy_price)   # 例如0.04表示4%
@@ -157,10 +160,10 @@ class PriceMonitoringTask:
             # print("market_precision", market_precision)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            if buy_size <= market_precision['min_amount']:
+            if buy_size < market_precision['min_amount']:
                 print(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
                 logging.info(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")
-                return
+                return False
             
             buy_size_total_quantity = Decimal(buy_size) * Decimal(market_precision['amount']) * buy_price
 
@@ -169,10 +172,10 @@ class PriceMonitoringTask:
             # print('sell_percent', sell_percent)
             sell_size = total_position_value * Decimal(str(sell_percent))
             sell_size = sell_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            if sell_size <= market_precision['min_amount']:
+            if sell_size < market_precision['min_amount']:
                 print(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
                 logging.info(f"卖单数量小于最小下单量: {sell_size} < {market_precision['min_amount']}")
-                return
+                return False
             
             sell_size_total_quantity = Decimal(sell_size) * Decimal(market_precision['amount']) * sell_price
 
@@ -184,14 +187,14 @@ class PriceMonitoringTask:
             max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
             buy_total_size_position_quantity = Decimal(total_position_quantity) + Decimal(buy_size_total_quantity) - Decimal(sell_size_total_quantity)
             print("开仓以及总持仓挂买价值", buy_total_size_position_quantity)
-            logging.info(f"开仓以及总持仓挂买价值：{buy_total_size_position_quantity}")
+            logging.info(f"开仓以及总持仓挂买价值：{buy_total_size_position_quantity} {max_position}")
             is_buy = True
             if buy_total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
                 # cancel_size = 'buy' # 取消未成交的订单只取消买单
                 is_buy = False # 不执行挂单
                 print("下单量超过最大持仓，不执行挂单")
                 logging.info("下单量超过最大持仓，不执行挂单")
-                return
+                return False
             
             sell_total_size_position_quantity = Decimal(total_position_quantity) - Decimal(sell_size_total_quantity)
             print("开仓以及总持仓挂卖价值", sell_total_size_position_quantity)
@@ -210,6 +213,7 @@ class PriceMonitoringTask:
                 print("开空开多", pos_side)
 
                 if is_buy and buy_size and float(buy_size) > 0:
+                    # await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     client_order_id = await get_client_order_id()
                     buy_order = await open_position(
                         self,
@@ -241,6 +245,7 @@ class PriceMonitoringTask:
                     logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
 
                 if sell_size and float(sell_size) > 0:
+                    # await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     client_order_id = await get_client_order_id()
                     sell_order = await open_position(
                         self,
@@ -269,13 +274,16 @@ class PriceMonitoringTask:
                     })
                     print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
                     logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
+                return True
             else:
                 print("未获取到信号")
                 logging.info("未获取到信号")
+                return True
         except Exception as e:
             print(f"网格订单管理失败: {str(e)}")
             logging.error(f"网格订单管理失败: {str(e)}")
             traceback.print_exc()
+            return False
 
     #生成一个获取订单信息的测试方法
     async def get_order_info(self, account_id: int, order_id: str):

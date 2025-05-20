@@ -32,8 +32,13 @@ class SignalProcessingTask:
                     async with self.signal_lock:  # 🚨加锁，避免 price_monitoring 同时执行
                         print("🔁 处理信号中...")
                         logging.info("🔁 处理信号中...")
-                        for account_id in self.db.account_cache:
-                            await self.process_signal(signal, account_id)
+                        if signal['name'] in self.db.tactics_accounts_cache:
+                            account_tactics_list = self.db.tactics_accounts_cache[signal['name']]
+                            for account_id in account_tactics_list:
+                                await self.process_signal(signal, account_id)
+                        else:
+                            print("🚫 无对应账户策略信号")
+                            logging.info("🚫 无对应账户策略信号")
                         with conn.cursor() as cursor:
                             cursor.execute(
                                 "UPDATE g_signals SET status='processed' WHERE id=%s",
@@ -53,13 +58,14 @@ class SignalProcessingTask:
         """处理交易信号（完整版）"""
         # account_id = signal['account_id']
         symbol = signal['symbol']
+        name = signal['name']
         pos_side = signal['direction'] # 'long' 或 'short'
         side =  'buy' if pos_side == 'long' else 'sell'  # 'buy' 或 'sell'
         size = signal['size']      # 1, 0, -1
         price = signal['price']    # 0.00001
         
-        print(f"📡 账户 {account_id} 处理信号:  {symbol} {side} {size}")
-        logging.info(f"📡 账户 {account_id} 处理信号:  {symbol} {side} {size}")
+        print(f"📡 账户 {account_id} 处理信号:  {name} {symbol} {side} {size}")
+        logging.info(f"📡 账户 {account_id} 处理信号: {name} {symbol} {side} {size}")
 
         try:
             # 1. 解析操作类型
@@ -217,6 +223,7 @@ class SignalProcessingTask:
                 return
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
             # print("市场精度", market_precision)
+            # return
             total_position_quantity = 0
             if(total_position_value > 0):
                 total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
@@ -242,19 +249,21 @@ class SignalProcessingTask:
         
             max_position = await get_max_position_value(self, account_id, symbol) # 获取配置文件对应币种最大持仓
             position_percent = Decimal(self.db.account_config_cache[account_id].get('position_percent'))
-            max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
-            if balance >= max_balance: # 超过最大仓位限制
-                balance = max_position
-            print(f"成交余额: {balance}")
-            size = await self.calculate_position_size(market_precision, balance, position_percent, price, account_id)
-            print(f"开仓价: {price}")
-            print(f"开仓量: {size}")
+            # max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
+            # if balance >= max_balance: # 超过最大仓位限制
+            #     balance = max_position
+            # print(f"最大开仓数量: {max_balance}")
+            logging.info(f"最大开仓数量: {max_position}")
+            size = await self.calculate_position_size(market_precision, max_position, position_percent, price, account_id)
+            # print(f"开仓价: {price}")
+            logging.info(f"开仓价: {price}")
+            # print(f"开仓量: {size}")
             logging.info(f"开仓量: {size}")
             size_total_quantity = Decimal(size) * Decimal(market_precision['amount']) * price
-            print(f"开仓价值: {size_total_quantity}")
+            # print(f"开仓价值: {size_total_quantity}")
             logging.info(f"开仓价值: {size_total_quantity}")
             if size <= 0:
-                print(f"开仓量为0，不执行开仓")
+                # print(f"开仓量为0，不执行开仓")
                 logging.info(f"开仓量为0，不执行开仓")
                 return
             
@@ -269,11 +278,13 @@ class SignalProcessingTask:
             if total_position_quantity > 0:
                 total_size_position_quantity = Decimal(total_position_quantity) + Decimal(size_total_quantity)
 
-            print("开仓以及总持仓价值", total_size_position_quantity)
+            # print("开仓以及总持仓价值", total_size_position_quantity)
             logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
             if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
                 logging.info(f"最大持仓数：{max_position}")
-                print(f"总持仓数大于等于最大持仓，不执行挂单")
+                # print(f"最大持仓数：{max_position}")
+                logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
+                # print(f"总持仓数大于等于最大持仓，不执行挂单")
                 logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
                 return
             
@@ -320,8 +331,9 @@ class SignalProcessingTask:
             position_size = (balance * position_percent) / (price * Decimal(market_precision['contract_size']))
             position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
-            total_position = Decimal(self.db.account_config_cache[account_id].get('total_position', 0)) # 获取配置文件对应币种最大持仓
-            return min(position_size, total_position)
+            # total_position = Decimal(self.db.account_config_cache[account_id].get('total_position', 0)) # 获取配置文件对应币种最大持仓
+            # return min(position_size, total_position)
+            return position_size
         except Exception as e:
             print(f"计算仓位失败: {e}")
             return Decimal('0')

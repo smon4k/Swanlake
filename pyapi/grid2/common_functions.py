@@ -7,6 +7,7 @@ from database import Database
 import asyncio
 from datetime import datetime, timezone
 import uuid
+import logging
 
 async def get_exchange(self, account_id: int) -> ccxt.Exchange:
     """获取交易所实例（通过account_id）"""
@@ -19,6 +20,7 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
             'secret': account_info['api_secret'],
             'password': account_info.get('api_passphrase', None),
             "options": {"defaultType": "swap"},
+            "timeout": 30000,
             # 'enableRateLimit': True,
         })
         is_simulation = os.getenv("IS_SIMULATION", '1')
@@ -243,7 +245,8 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
 
             try:
                 cancel_order =  exchange.cancel_order(order['id'], symbol) # 进行撤单
-                print(f"取消未成交的订单: {order['id']}")
+                print(f"取消账户:{account_id}-币种:{symbol},未成交的订单: {order['id']}")
+                logging.info(f"取消未成交的订单: {order['id']}")
                 if cancel_order['info']['sCode'] == '0':
                     existing_order = await self.db.get_order_by_id(account_id, order['id'])
                     if existing_order:
@@ -335,5 +338,53 @@ async def get_total_positions(self, account_id: int, symbol: str, inst_type: str
     except Exception as e:
         print(f"获取账户总持仓数失败: {e}")
         return Decimal('0')
+    
+#更新订单状态以及进行配对订单、计算利润
+async def update_order_status(self, order: dict, account_id: int, executed_price: float = None, fill_date_time: str = None):
+    """更新订单状态以及进行配对订单、计算利润"""
+    exchange = await get_exchange(self, account_id)
+    if not exchange:
+        return
+    print("开始匹配订单") 
+    side = 'sell' if order['side'] == 'buy' else 'buy'
+    get_order_by_price_diff = await self.db.get_order_by_price_diff_v2(account_id, order['info']['instId'], executed_price, side)
+    # print("get_order_by_price_diff", get_order_by_price_diff)
+    profit = 0
+    group_id = ""
+    # new_price = await get_market_price(exchange, order['info']['instId'])
+    # print(f"最新价格: {new_price}")
+    if get_order_by_price_diff:
+        if order['side'] == 'sell' and (Decimal(executed_price) >= Decimal(get_order_by_price_diff['executed_price'])):
+        # if order['side'] == 'buy':
+            # 计算利润
+            group_id = str(uuid.uuid4())
+            profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['executed_price'])) * Decimal(min(order['amount'], get_order_by_price_diff['quantity']))
+            print(f"配对订单成交，利润 buy: {profit}")
+            logging.info(f"配对订单成交，利润 buy: {profit}")
+        if order['side'] == 'buy' and (Decimal(executed_price) <= Decimal(get_order_by_price_diff['executed_price'])):
+        # if order['side'] == 'sell':
+            # 计算利润
+            group_id = str(uuid.uuid4())
+            profit = (Decimal(get_order_by_price_diff['executed_price']) - Decimal(executed_price)) * Decimal(min(order['amount'], get_order_by_price_diff['quantity']))
+            print(f"配对订单成交，利润 sell: {profit}")
+            logging.info(f"配对订单成交，利润 sell: {profit}")
+        if profit != 0:
+            await self.db.update_order_by_id(account_id, get_order_by_price_diff['order_id'], {
+                'profit': profit, 
+                'position_group_id': group_id
+            })
+        await self.db.update_order_by_id(account_id, order['id'], {
+            'executed_price': executed_price, 
+            'status': order['info']['state'], 
+            'fill_time': fill_date_time, 
+            'profit': profit, 
+            'position_group_id': group_id
+        })
+    else:
+        await self.db.update_order_by_id(account_id, order['id'], {
+            'executed_price': executed_price, 
+            'status': order['info']['state'], 
+            'fill_time': fill_date_time, 
+        })
 
 

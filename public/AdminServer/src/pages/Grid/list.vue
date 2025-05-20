@@ -15,6 +15,7 @@
             :value="item.id">
           </el-option>
         </el-select>
+        <div style="margin-left: 20px;">总利润：{{ keepDecimalNotRounding(totalProfit, 4) }} USDT</div>
       <!-- <el-form :inline="true" class="demo-form-inline" size="mini">
         <el-form-item label="产品名称:">
           <el-input clearable placeholder="产品名称" v-model="product_name"></el-input>
@@ -28,8 +29,9 @@
     <el-collapse v-model="activeNames" @change="handleChange" v-for="(item, index) in tableData" :key="index">
         <el-collapse-item :title="item.timestamp" :name="index">
             <template slot="title">
-                <div style="margin-right:100px;">账户：{{ item.account_name }}  &nbsp;&nbsp;&nbsp;&nbsp; 时间：{{ item.timestamp }}</div>
+                <div style="margin-right:20px;">{{ item.account_name }}  &nbsp;&nbsp;&nbsp;&nbsp; 时间：{{ item.timestamp }}</div>
                 <!-- <div style="margin-right:100px;">价差：{{ keepDecimalNotRounding(item.price, 4, true) }} USDT</div> -->
+                <div style="">利润：{{ keepDecimalNotRounding(item.profit, 4, true) }} USDT</div>
             </template>
             <el-table :data="item.lists" style="width: 100%;" v-show="true">
                 <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"></el-table-column>
@@ -37,8 +39,11 @@
                 <el-table-column prop="order_id" label="订单号" align="center" width="200"></el-table-column>
                 <el-table-column prop="order_type" label="订单类型" align="center">
                     <template slot-scope="scope">
-                    <span v-if="scope.row.order_type == 'market'">市价单</span>
-                    <span v-else>限价单</span>
+                      <span v-if="scope.row.order_type">
+                        <span v-if="scope.row.order_type == 'market'">市价单</span>
+                        <span v-else>限价单</span>
+                      </span>
+                      <span v-else>——</span>
                     </template>
                 </el-table-column>
                 <!-- <el-table-column prop="base_ccy" label="交易货币币种" align="center"></el-table-column>
@@ -63,7 +68,7 @@
                 <el-table-column prop="amount" label="委托数量" align="center" width="150">
                     <template slot-scope="scope">
                       <div v-if="scope.row.quantity">
-                        <span>{{ keepDecimalNotRounding((scope.row.quantity / 100) * scope.row.price, 4, true) }} USDT</span>
+                        <span>{{ keepDecimalNotRounding((scope.row.quantity * Number(symbol_decimal[scope.row.symbol])) * scope.row.price, 4, true) }} USDT</span>
                       </div>
                       <div v-else>——</div>
                     </template>
@@ -187,6 +192,11 @@ export default {
       activeNames: ['1'],
       tradingPairData: {},
       accountList: [], // 账户列表
+      symbol_decimal: {
+        'BTC-USDT-SWAP': 0.01,
+        'ETH-USDT-SWAP': 0.1,
+      }, //小数位数
+      totalProfit: 0,
     };
   },
   mounted() {
@@ -237,6 +247,7 @@ export default {
           this.tableData = json.data.data.data;
           this.activeNames = json.data.data.data.map((item, index) => index);
           this.total = json.data.data.count;
+          this.totalProfit = json.data.data.totalProfit;
         } else {
           this.$message.error("加载数据失败");
         }
@@ -373,6 +384,8 @@ export default {
 </script>
 <style lang="scss" scoped>
   .project-top {
+    display: flex;
+    align-items: center;
     margin-bottom: 20px;
     margin-top: 20px;
   }
