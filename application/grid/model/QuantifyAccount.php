@@ -156,11 +156,19 @@ class QuantifyAccount extends Base
                 $averageDayCountNum = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<=', $date]])->count(); //获取平均数总人数
                 $averageDayRateRes = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<=', $date]])->avg('daily_profit_rate'); //获取平均日利率
                 if(!$dayData || empty($dayData)) { //今日第一次执行 加上今天的日利润率
-                    $averageDayRate = ($averageDayRateRes * $averageDayCountNum + $dailyProfitRate) / (1 + $averageDayCountNum);
+                    if($hasOnlyTodayData) { //如果是第一天执行
+                        $averageDayRate = 0;
+                    } else {
+                        $averageDayRate = ($averageDayRateRes * $averageDayCountNum + $dailyProfitRate) / (1 + $averageDayCountNum);
+                    }
                 } else {
                     $averageDayRate = $averageDayRateRes;
                 }
-                $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
+                if($hasOnlyTodayData) {
+                    $averageYearRate = 0;
+                } else {
+                    $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
+                }
                 $profit = $totalBalance - $countStandardPrincipal;//利润 = 总结余 - 本金
                 
                 $totalShareProfit = self::getTotalProfitBalance($account_id); //总分润 = 所有分润累计
