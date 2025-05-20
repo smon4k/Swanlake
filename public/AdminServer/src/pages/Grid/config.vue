@@ -400,7 +400,7 @@
       },
       refreshConfig(account_id) { // 刷新持仓机器人本地缓存
         if(account_id) {
-          get('/sigadmin/refresh_config', {
+            get(`/${process.env.SIG_URL_NAME}/refresh_config`, {
             account_id: account_id
           }, (json) => {
             if (json.status == 200) {
@@ -433,6 +433,7 @@
       this.getListData();
       this.getAccountList();
       // this.getAuthMenuRuleData();
+      console.log(process.env.SIG_URL_NAME);
     },
     components: {
       "wbc-page": Page //加载分页组件
