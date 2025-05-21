@@ -135,12 +135,12 @@ class PriceMonitoringTask:
                     'profit': profit, 
                     'position_group_id': group_id
                 })
-            else:
-                await self.db.update_order_by_id(account_id, order['id'], {
-                    'executed_price': executed_price, 
-                    'status': order['info']['state'], 
-                    'fill_time': fill_date_time, 
-                })
+            # else:
+            #     await self.db.update_order_by_id(account_id, order['id'], {
+            #         'executed_price': executed_price, 
+            #         'status': order['info']['state'], 
+            #         'fill_time': fill_date_time, 
+            #     })
         except Exception as e:
             print(f"配对计算利润失败: {str(e)}")
             logging.error(f"配对计算利润失败: {str(e)}")
