@@ -260,6 +260,8 @@
           { name: 'Q2.4', label: 'BTC' },
           { name: 'O6.1', label: 'BTC' },
           { name: 'O4.1', label: 'BTC' },
+          { name: 'T1.0', label: 'BTC' },
+          { name: 'T1.1', label: 'BTC' },
           { name: 'Y1.0', label: 'ETH' },
           { name: 'Q2.1', label: 'ETH' },
         ],
