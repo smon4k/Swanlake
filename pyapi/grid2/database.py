@@ -90,23 +90,27 @@ class Database:
                 conn.close()
     
     #获取信号表数据最新的一条数据
-    async def get_latest_signal(self, symbol: Optional[str] = None) -> Optional[Dict]:
+    async def get_latest_signal(self, symbol: Optional[str] = None, name: Optional[str] = None, account_id: int = 0) -> Optional[Dict]:
         """获取信号表数据最新的一条数据，如果 symbol 为空则返回所有的最新一条"""
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
+                query = f"SELECT * FROM {table('signals')} WHERE 1=1"
+                params = []
+                
                 if symbol:
-                    cursor.execute(f"""
-                        SELECT * FROM {table('signals')} 
-                        WHERE symbol = %s 
-                        ORDER BY id DESC LIMIT 1
-                    """, (symbol,))
-                else:
-                    cursor.execute(f"""
-                        SELECT * FROM {table('signals')} 
-                        ORDER BY id DESC LIMIT 1
-                    """)
+                    query += " AND symbol = %s"
+                    params.append(symbol)
+                if name:
+                    query += " AND name = %s"
+                    params.append(name)
+                if account_id > 0:
+                    query += " AND account_id = %s"
+                    params.append(account_id)
+                
+                query += " ORDER BY id DESC LIMIT 1"
+                cursor.execute(query, tuple(params))
                 signal = cursor.fetchone()
                 return signal
         except Exception as e:
@@ -538,6 +542,36 @@ class Database:
         except Exception as e:
             print(f"获取最大仓位配置数据失败: {e}")
             logging.error(f"获取最大仓位配置数据失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    async def get_tactics_by_account_and_symbol(self, account_id: int, symbol: str) -> Optional[str]:
+        """
+        获取配置表中指定用户和指定币种的max_position_list下面对应的tactics
+        :param account_id: 用户ID
+        :param symbol: 币种
+        :return: 对应的tactics，如果没有则返回None
+        """
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT max_position_list
+                    FROM {table('config')}
+                    WHERE account_id = %s
+                """, (account_id,))
+                result = cursor.fetchone()
+                if result and result.get('max_position_list'):
+                    max_position_list = json.loads(result['max_position_list'])
+                    for item in max_position_list:
+                        if item.get('symbol') == symbol:
+                            return item.get('tactics')
+                return None
+        except Exception as e:
+            print(f"获取tactics失败: {e}")
+            logging.error(f"获取tactics失败: {e}")
             return None
         finally:
             if conn:

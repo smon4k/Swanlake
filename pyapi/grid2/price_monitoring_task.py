@@ -56,7 +56,11 @@ class PriceMonitoringTask:
             # 检查止盈止损并平仓
         
             for order in open_orders:
-                signal = await self.db.get_latest_signal(order['symbol'])  # 获取最新信号
+                symbol_tactics = order['symbol']
+                if order['symbol'].endswith('-SWAP'):
+                    symbol_tactics = order['symbol'].replace('-SWAP', '')
+                tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
+                signal = await self.db.get_latest_signal(order['symbol'], tactics)  # 获取最新信号
                 await self.check_and_close_position(exchange, account_id, order['symbol'], signal['price'])
                 # 检查订单是否存在
                 # print(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
@@ -192,8 +196,17 @@ class PriceMonitoringTask:
             logging.info(f"账户余额: {balance}")
 
             price = await get_market_price(exchange, symbol)
+            # Remove '-SWAP' from the symbol if it exists
+            symbol_tactics = symbol
+            if symbol.endswith('-SWAP'):
+                symbol_tactics = symbol.replace('-SWAP', '')
 
-            signal = await self.db.get_latest_signal(symbol)  # 获取最新信号
+            tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
+            if not tactics:
+                print(f"未找到策略配置: {account_id} {symbol_tactics}")
+                logging.info(f"未找到策略配置: {account_id} {symbol_tactics}")
+                return False
+            signal = await self.db.get_latest_signal(symbol, tactics)  # 获取最新信号
             side = 'buy' if signal['direction'] == 'long' else 'sell'
 
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
@@ -256,7 +269,7 @@ class PriceMonitoringTask:
             
             # 5. 创建新挂单（确保数量有效）
             group_id = str(uuid.uuid4())
-            signal = await self.db.get_latest_signal(symbol)  # 获取最新信号
+            # signal = await self.db.get_latest_signal(symbol)  # 获取最新信号
             if signal:
                 pos_side = 'long'
                 if side == 'buy' and signal['size'] == 1: # 开多
