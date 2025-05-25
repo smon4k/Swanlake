@@ -279,7 +279,7 @@ class PriceMonitoringTask:
                         float(buy_price), 
                         'limit',
                         client_order_id,
-                        True
+                        False
                     )
                     await self.db.add_order({
                         'account_id': account_id,
@@ -310,7 +310,8 @@ class PriceMonitoringTask:
                         float(sell_size), 
                         float(sell_price), 
                         'limit',
-                        client_order_id
+                        client_order_id,
+                        False
                     )
                     await self.db.add_order({
                         'account_id': account_id,
