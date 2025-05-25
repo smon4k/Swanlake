@@ -11,6 +11,7 @@ from common_functions import fetch_current_positions, fetch_positions_history, g
 from aiohttp import web
 from datetime import datetime, timezone
 import logging
+from logging.handlers import TimedRotatingFileHandler
 
 load_dotenv()
 
@@ -29,13 +30,23 @@ class InfoAndErrorFilter(logging.Filter):
         # 只允许 INFO 和 ERROR 级别的日志通过
         return record.levelname in ['INFO', 'ERROR']
     
-# 设置日志配置
-logging.basicConfig(
-    filename=log_file_path,  # 指定日志文件
-    level=logging.INFO,  # 设置日志级别
-    format='%(asctime)s - %(levelname)s - %(message)s',  # 日志格式
-    encoding='utf-8'  # 指定编码为 UTF-8
+# 设置 TimedRotatingFileHandler（每天午夜轮转，保留3天）
+log_handler = TimedRotatingFileHandler(
+    filename=log_file_path,
+    when='midnight',  # 每天午夜分割
+    interval=1,       # 每天一个文件
+    backupCount=7,    # 保留7个备份（即3天）
+    encoding='utf-8'
 )
+log_handler.setFormatter(
+    logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+)
+
+# 配置日志
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)  # 设置日志级别
+logger.addHandler(log_handler)
+logger.addFilter(InfoAndErrorFilter())  # 添加过滤器
 
 # 获取根日志器并添加过滤器
 logger = logging.getLogger()
