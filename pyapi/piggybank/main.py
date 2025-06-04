@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent.parent))  # 调整到 pyapi 目录
 import argparse
 from db import SessionLocal
 from exchanges.factory import ExchangeFactory
