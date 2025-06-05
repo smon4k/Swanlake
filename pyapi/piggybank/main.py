@@ -30,9 +30,9 @@ def main():
         
         # 创建策略实例
         config = Config()
-        if args.strategy == 'balance':
+        if args.strategy == 'balance': # 执行平衡策略
             strategy = BalanceStrategy(exchange, db_session, config)
-        elif args.strategy == 'pending':
+        elif args.strategy == 'pending': # 执行挂单策略
             strategy = PendingStrategy(exchange, db_session, config)
         else:
             raise ValueError(f"未知策略: {args.strategy}")

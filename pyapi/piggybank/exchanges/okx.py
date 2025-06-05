@@ -6,7 +6,7 @@ from config.okx_config import OkxConfig
 class OkxExchange(BaseExchange):
     def __init__(self):
         self.config = OkxConfig()
-        self.client = ccxt.okex5({
+        self.client = ccxt.okx({
             'apiKey': self.config.API_KEY,
             'secret': self.config.SECRET_KEY,
             'password': self.config.PASSPHRASE,

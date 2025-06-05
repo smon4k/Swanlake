@@ -25,6 +25,7 @@ database_hp*.php
 /log.xml
 /pyapi/okex/venv
 /pyapi/grid2/venv
+/pyapi/piggybank/venv
 /pyapi/grid2/log
 __pycache__/
 .env

@@ -1,5 +1,7 @@
 from datetime import datetime
 from typing import Dict, Optional, Tuple
+
+from pyapi.piggybank.db.models import Piggybank
 from .base_strategy import BaseStrategy
 from config.constants import OrderType, OrderSide
 from utils.helpers import generate_client_order_id
