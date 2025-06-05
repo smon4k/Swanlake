@@ -4,6 +4,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class OkxConfig:
-    API_KEY = os.getenv('OKX_API_KEY', '68ca4b58-f022-42e1-8055-8fd565bc4eff')
-    SECRET_KEY = os.getenv('OKX_SECRET_KEY', 'BD573AF9E7B806503C9AB25B255BD62D')
+    API_KEY = os.getenv('OKX_API_KEY', '236b8938-f693-448d-93fd-4d8f6d7cc40a')
+    SECRET_KEY = os.getenv('OKX_SECRET_KEY', '91216FFD5ED06E24DEBE5552FDEE6AA3')
     PASSPHRASE = os.getenv('OKX_PASSPHRASE', 'Zx112211@')
