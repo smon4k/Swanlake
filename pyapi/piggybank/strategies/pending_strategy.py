@@ -1,5 +1,7 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Dict, Optional, Tuple
+from zoneinfo import ZoneInfo
 
 from pyapi.piggybank.db.models import Piggybank
 from pyapi.piggybank.strategies.balance_strategy import BalanceStrategy
@@ -16,10 +18,8 @@ class PendingStrategy(BaseStrategy):
         """执行挂单策略"""
         try:
             normalized_symbol = self.exchange.normalize_symbol(symbol)
-            
             # 检查现有挂单
             pending_orders = self.crud.get_pending_orders(self.get_exchange_name(), normalized_symbol)
-            
             if pending_orders and len(pending_orders) >= 2:
                 return self._handle_existing_orders(normalized_symbol, pending_orders)
             else:
@@ -36,7 +36,6 @@ class PendingStrategy(BaseStrategy):
         # 检查订单成交情况
         buy_filled = self._check_order_filled(buy_order) if buy_order else False
         sell_filled = self._check_order_filled(sell_order) if sell_order else False
-        
         if buy_filled or sell_filled:
             return self._process_filled_order(
                 symbol, 
@@ -49,15 +48,15 @@ class PendingStrategy(BaseStrategy):
     def _check_order_filled(self, order) -> bool:
         """检查订单是否成交超过50%"""
         order_details = self.exchange.fetch_order(order.order_id, order.symbol)
-        filled_amount = float(order_details['info'].get('accFillSz', order_details.get('filled', 0)))
+        filled_amount = Decimal(order_details['info'].get('accFillSz', order_details.get('filled', 0)))
         return filled_amount >= (order.amount * 0.5)
     
     def _process_filled_order(self, symbol: str, filled_order, is_buy: bool) -> bool:
         """处理已成交订单"""
         # 获取订单详情
         order_details = self.exchange.fetch_order(filled_order.order_id, symbol)
-        filled_amount = float(order_details['info'].get('accFillSz', order_details.get('filled', 0)))
-        avg_price = float(order_details['info'].get('avgPx', order_details.get('average', 0)))
+        filled_amount = Decimal(order_details['info'].get('accFillSz', order_details.get('filled', 0)))
+        avg_price = Decimal(order_details['info'].get('avgPx', order_details.get('average', 0)))
         
         # 取消所有挂单
         self.exchange.cancel_all_orders(symbol)
@@ -123,25 +122,24 @@ class PendingStrategy(BaseStrategy):
     
     def _place_new_orders(self, symbol: str) -> bool:
         """放置新的挂单"""
+        print(111)
         valuation = self._get_valuation(symbol)
         market_info = self.exchange.get_market_info(symbol)
-        
         if not market_info:
             print(f"[{self.get_exchange_name()}] 无法获取市场信息")
             return False
             
-        min_size = float(market_info['info'].get('minSz', 0))
+        min_size = Decimal(market_info['info'].get('minSz', 0))
         
         # 获取上次成交价格
         last_order = self.crud.get_last_piggybank(self.get_exchange_name(), symbol)
         last_price = last_order.price if last_order else valuation['btc_price']
-        
         # 计算买卖价格
         buy_price, sell_price = self._calculate_pending_prices(last_price)
         
         # 计算买卖数量
         buy_amount, sell_amount = self._calculate_pending_amounts(valuation, buy_price, sell_price)
-        
+        print(buy_amount, sell_amount, min_size)
         if buy_amount < min_size and sell_amount < min_size:
             print(f"[{self.get_exchange_name()}] 买卖数量均小于最小下单量 {min_size}，停止挂单")
             return False
@@ -156,7 +154,7 @@ class PendingStrategy(BaseStrategy):
                 side=OrderSide.BUY.value,
                 amount=buy_amount,
                 price=buy_price,
-                params={'clOrdId': buy_order_id}
+                params={'clOrdId': buy_order_id, 'tdMode': 'cross'}
             )
         
         # 放置卖单
@@ -169,25 +167,25 @@ class PendingStrategy(BaseStrategy):
                 side=OrderSide.SELL.value,
                 amount=sell_amount,
                 price=sell_price,
-                params={'clOrdId': sell_order_id}
+                params={'clOrdId': sell_order_id, 'tdMode': 'cross'}
             )
         
         # 保存挂单信息
         if buy_order or sell_order:
             new_valuation = self._get_valuation(symbol)
-            base_ccy = market_info['info'].get('baseCcy', symbol.split('-')[0])
-            quote_ccy = market_info['info'].get('quoteCcy', symbol.split('-')[1])
+            # base_ccy = market_info['info'].get('baseCcy', symbol.split('-')[0]) 
+            # quote_ccy = market_info['info'].get('quoteCcy', symbol.split('-')[1])
             
             if buy_order:
                 self._save_pending_order(
                     symbol, buy_order, buy_order_id, 1, OrderType.LIMIT.value,
-                    buy_amount, buy_price, new_valuation, base_ccy, quote_ccy
+                    buy_amount, buy_price, new_valuation
                 )
             
             if sell_order:
                 self._save_pending_order(
                     symbol, sell_order, sell_order_id, 2, OrderType.LIMIT.value,
-                    sell_amount, sell_price, new_valuation, base_ccy, quote_ccy
+                    sell_amount, sell_price, new_valuation
                 )
             
             return True
@@ -201,7 +199,8 @@ class PendingStrategy(BaseStrategy):
     
     def _calculate_pending_amounts(self, valuation: Dict, buy_price: float, sell_price: float) -> Tuple[float, float]:
         """计算挂单数量"""
-        ratio_parts = [float(x) for x in self.config.BALANCE_RATIO.split(':')]
+        print(valuation, buy_price, sell_price)
+        ratio_parts = [Decimal(x) for x in self.config.BALANCE_RATIO.split(':')]
         
         if valuation['btc_valuation'] > valuation['usdt_valuation']:
             # 主要考虑卖出
@@ -220,8 +219,10 @@ class PendingStrategy(BaseStrategy):
     
     def _save_pending_order(self, symbol: str, order: Dict, order_id: str, 
                           order_type: int, order_class: str, amount: float, 
-                          price: float, valuation: Dict, base_ccy: str, quote_ccy: str):
+                          price: float, valuation: Dict):
         """保存挂单信息到数据库"""
+        now = datetime.now()
+        timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
         order_data = {
             'exchange': self.get_exchange_name(),
             'product_name': symbol,
@@ -231,16 +232,15 @@ class PendingStrategy(BaseStrategy):
             'type': order_type,
             'order_type': order_class,
             'amount': amount,
+            'clinch_amount': amount,
             'price': price,
             'currency1': valuation['btc_balance'],
             'currency2': valuation['usdt_balance'],
             'clinch_currency1': valuation['btc_balance'] + (amount if order_type == 1 else -amount),
             'clinch_currency2': valuation['usdt_balance'] - (amount * price if order_type == 1 else -amount * price),
             'status': OrderStatus.PENDING.value,
-            'time': datetime.now(),
-            'up_time': datetime.now(),
-            'base_ccy': base_ccy,
-            'quote_ccy': quote_ccy
+            'time': timestamp,
+            'up_time': timestamp,
         }
         self.crud.create_pendord(order_data)
     

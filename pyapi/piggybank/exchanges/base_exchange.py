@@ -19,7 +19,7 @@ class BaseExchange(ABC):
     
     @abstractmethod
     def create_order(self, symbol: str, order_type: str, side: str, 
-                   amount: float, price: Optional[float] = None) -> Dict:
+                   amount: float, price: Optional[float] = None, params={}) -> Dict:
         """创建订单"""
         pass
     

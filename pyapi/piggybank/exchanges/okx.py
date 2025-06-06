@@ -24,8 +24,8 @@ class OkxExchange(BaseExchange):
         return markets[0] if markets else None
     
     def create_order(self, symbol: str, order_type: str, side: str, 
-                   amount: float, price: Optional[float] = None) -> Dict:
-        return self.client.create_order(symbol, order_type, side, amount, price)
+                   amount: float, price: Optional[float] = None, params={}) -> Dict:
+        return self.client.create_order(symbol, order_type, side, amount, price, params)
     
     def cancel_order(self, order_id: str, symbol: str) -> bool:
         result = self.client.cancel_order(order_id, symbol)

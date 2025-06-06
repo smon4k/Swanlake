@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean
 from .base import Base
 
 class Piggybank(Base):
-    __tablename__ = 'piggybank'
+    __tablename__ = 'p_piggybank'
     
     id = Column(Integer, primary_key=True)
     exchange = Column(String(20))
@@ -26,7 +26,7 @@ class Piggybank(Base):
     time = Column(DateTime)
 
 class PiggybankPendord(Base):
-    __tablename__ = 'piggybank_pendord'
+    __tablename__ = 'p_piggybank_pendord'
     
     id = Column(Integer, primary_key=True)
     exchange = Column(String(20))
@@ -37,6 +37,7 @@ class PiggybankPendord(Base):
     type = Column(Integer)  # 1: buy, 2: sell
     order_type = Column(String(20))
     amount = Column(Float)
+    clinch_amount = Column(Float)
     price = Column(Float)
     currency1 = Column(Float)
     currency2 = Column(Float)
@@ -47,7 +48,7 @@ class PiggybankPendord(Base):
     up_time = Column(DateTime)
 
 class PiggybankDate(Base):
-    __tablename__ = 'piggybank_date'
+    __tablename__ = 'p_piggybank_date'
     
     id = Column(Integer, primary_key=True)
     exchange = Column(String(20))

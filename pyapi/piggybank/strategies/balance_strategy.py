@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Dict, Optional, Tuple
 
 from pyapi.piggybank.db.models import Piggybank
@@ -19,6 +20,7 @@ class BalanceStrategy(BaseStrategy):
             
             # 获取交易对估值和市场信息
             valuation = self._get_valuation(normalized_symbol)
+            print("valuation", valuation)
             market_info = self.exchange.get_market_info(normalized_symbol)
             
             if not market_info:
@@ -26,10 +28,10 @@ class BalanceStrategy(BaseStrategy):
                 return False
                 
             # 获取最小交易量
-            min_size = float(market_info['info'].get('minSz', 0))
+            min_size = Decimal(market_info['info'].get('minSz', 0))
             
             # 计算变化比例
-            change_ratio = self._calculate_change_ratio(valuation)
+            change_ratio = self._calculate_change_ratio(valuation, normalized_symbol)
             
             if change_ratio > self.config.CHANGE_RATIO:
                 client_order_id = generate_client_order_id()
@@ -39,8 +41,10 @@ class BalanceStrategy(BaseStrategy):
                 btc_amount, usdt_amount = self._calculate_order_amounts(valuation)
                 
                 if btc_amount > min_size:
+                    print("btc_amount", btc_amount)
                     return self._place_sell_order(normalized_symbol, btc_amount, client_order_id, market_info, valuation)
                 elif usdt_amount > min_size:
+                    print("usdt_amount", usdt_amount)
                     return self._place_buy_order(normalized_symbol, usdt_amount, client_order_id, market_info, valuation)
                 else:
                     print(f"[{self.get_exchange_name()}] 下单数量小于最小下单量 {min_size}，停止下单")
@@ -55,21 +59,27 @@ class BalanceStrategy(BaseStrategy):
     def _get_valuation(self, symbol: str) -> Dict:
         """获取交易对估值"""
         balance = self.exchange.get_balance()
+        # print("balance", balance)
         ticker = self.exchange.get_ticker(symbol)
         
         currency1, currency2 = symbol.split('-') if '-' in symbol else symbol.split('/')
         
         # 获取币种余额
+        details = balance['info']['data'][0].get('details', [])
+
         btc_balance = sum(
-            float(asset['free']) for asset in balance['info'].get('details', balance['info'].get('balances', [])) 
-            if asset.get('ccy', asset.get('asset', '')) == currency1
+            Decimal(asset.get('availBal', 0)) for asset in details
+            if asset.get('ccy') == currency1
         )
+        print("btc_balance", btc_balance, currency1)
+
         usdt_balance = sum(
-            float(asset['free']) for asset in balance['info'].get('details', balance['info'].get('balances', [])) 
-            if asset.get('ccy', asset.get('asset', '')) == currency2
+            Decimal(asset.get('availBal', 0)) for asset in details
+            if asset.get('ccy') == currency2
         )
+        print("usdt_balance", usdt_balance, currency2)
         
-        btc_price = float(ticker['last'])
+        btc_price = Decimal(ticker['last'])
         btc_valuation = btc_balance * btc_price
         usdt_valuation = usdt_balance
         
@@ -81,16 +91,16 @@ class BalanceStrategy(BaseStrategy):
             'usdt_valuation': usdt_valuation
         }
     
-    def _calculate_change_ratio(self, valuation: Dict) -> float:
+    def _calculate_change_ratio(self, valuation: Dict, symbol: str) -> float:
         """计算变化比例"""
-        last_balanced = self.crud.get_last_piggybank(self.get_exchange_name(), valuation['product_name'])
+        last_balanced = self.crud.get_last_piggybank(self.get_exchange_name(), symbol)
         last_valuation = last_balanced.balanced_valuation if last_balanced else valuation['usdt_valuation']
         
         return abs(valuation['btc_valuation'] - valuation['usdt_valuation']) / last_valuation * 100
     
     def _calculate_order_amounts(self, valuation: Dict) -> Tuple[float, float]:
         """计算买卖订单数量"""
-        ratio_parts = [float(x) for x in self.config.BALANCE_RATIO.split(':')]
+        ratio_parts = [Decimal(x) for x in self.config.BALANCE_RATIO.split(':')]
         
         if valuation['btc_valuation'] > valuation['usdt_valuation']:
             # 卖出BTC
@@ -115,7 +125,7 @@ class BalanceStrategy(BaseStrategy):
             order_type=OrderType.MARKET.value,
             side=OrderSide.SELL.value,
             amount=amount,
-            params={'clOrdId': client_order_id}
+            params={'clOrdId': client_order_id, 'tdMode': 'cross'}
         )
         
         if order['info'].get('sCode', '0') == '0' or order.get('status') == 'filled':
@@ -134,7 +144,7 @@ class BalanceStrategy(BaseStrategy):
             order_type=OrderType.MARKET.value,
             side=OrderSide.BUY.value,
             amount=amount,
-            params={'clOrdId': client_order_id}
+            params={'clOrdId': client_order_id, 'tdMode': 'cross'}
         )
         
         if order['info'].get('sCode', '0') == '0' or order.get('status') == 'filled':
@@ -150,9 +160,9 @@ class BalanceStrategy(BaseStrategy):
         """处理订单结果并保存到数据库"""
         order_details = self.exchange.fetch_order(order['id'], symbol)
         
-        filled_amount = float(order_details['info'].get('accFillSz', order_details.get('filled', 0)))
-        avg_price = float(order_details['info'].get('avgPx', order_details.get('average', 0)))
-        last_price = float(order_details['info'].get('fillPx', avg_price)) if order_details['info'].get('fillPx') else avg_price
+        filled_amount = Decimal(order_details['info'].get('accFillSz', order_details.get('filled', 0)))
+        avg_price = Decimal(order_details['info'].get('avgPx', order_details.get('average', 0)))
+        last_price = Decimal(order_details['info'].get('fillPx', avg_price)) if order_details['info'].get('fillPx') else avg_price
         
         # 获取配对订单和利润
         pair_id, profit = self._get_pair_info(side, last_price, filled_amount, symbol)
@@ -171,7 +181,7 @@ class BalanceStrategy(BaseStrategy):
             'quote_ccy': market_info['info'].get('quoteCcy', symbol.split('-')[1]),
             'type': 1 if side == OrderSide.BUY.value else 2,
             'order_type': OrderType.MARKET.value,
-            'amount': float(order['amount']),
+            'amount': Decimal(order['amount']),
             'clinch_number': filled_amount,
             'price': last_price,
             'profit': profit,
