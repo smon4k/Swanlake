@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import Dict, Optional, Tuple
 
 from pyapi.piggybank.db.models import Piggybank
+from pyapi.piggybank.strategies.init import safe_float
 from .base_strategy import BaseStrategy
 from config.constants import OrderType, OrderSide
 from utils.helpers import generate_client_order_id
@@ -29,7 +30,6 @@ class BalanceStrategy(BaseStrategy):
                 
             # 获取最小交易量
             min_size = Decimal(market_info['info'].get('minSz', 0))
-            
             # 计算变化比例
             change_ratio = self._calculate_change_ratio(valuation, normalized_symbol)
             
@@ -39,7 +39,7 @@ class BalanceStrategy(BaseStrategy):
                 
                 # 计算订单数量
                 btc_amount, usdt_amount = self._calculate_order_amounts(valuation)
-                
+                print("BTC 订单数量:", btc_amount, "USDT 订单数量:", usdt_amount)
                 if btc_amount > min_size:
                     print("btc_amount", btc_amount)
                     return self._place_sell_order(normalized_symbol, btc_amount, client_order_id, market_info, valuation)
@@ -92,11 +92,23 @@ class BalanceStrategy(BaseStrategy):
         }
     
     def _calculate_change_ratio(self, valuation: Dict, symbol: str) -> float:
-        """计算变化比例"""
+        """计算变化比例（兼容Decimal和float类型）"""
         last_balanced = self.crud.get_last_piggybank(self.get_exchange_name(), symbol)
-        last_valuation = last_balanced.balanced_valuation if last_balanced else valuation['usdt_valuation']
         
-        return abs(valuation['btc_valuation'] - valuation['usdt_valuation']) / last_valuation * 100
+        # 确保所有数值都是Decimal或都是float
+        btc_val = Decimal(str(valuation['btc_valuation']))
+        usdt_val = Decimal(str(valuation['usdt_valuation']))
+        
+        if last_balanced:
+            last_val = Decimal(str(last_balanced.balanced_valuation))
+        else:
+            last_val = Decimal(str(valuation['usdt_valuation']))
+        
+        # 计算变化比例（保持Decimal精度）
+        ratio = (abs(btc_val - usdt_val) / last_val) * Decimal('100')
+        
+        # 返回float类型结果
+        return float(ratio)
     
     def _calculate_order_amounts(self, valuation: Dict) -> Tuple[float, float]:
         """计算买卖订单数量"""
@@ -181,7 +193,7 @@ class BalanceStrategy(BaseStrategy):
             'quote_ccy': market_info['info'].get('quoteCcy', symbol.split('-')[1]),
             'type': 1 if side == OrderSide.BUY.value else 2,
             'order_type': OrderType.MARKET.value,
-            'amount': Decimal(order['amount']),
+            'amount': safe_float(order['amount']),
             'clinch_number': filled_amount,
             'price': last_price,
             'profit': profit,

@@ -10,7 +10,11 @@ class OkxExchange(BaseExchange):
             'apiKey': self.config.API_KEY,
             'secret': self.config.SECRET_KEY,
             'password': self.config.PASSPHRASE,
-            'enableRateLimit': True
+            'enableRateLimit': True,
+            'proxies': {
+                'http': 'http://127.0.0.1:7890',
+                'https': 'http://127.0.0.1:7890',
+            }
         })
     
     def get_balance(self) -> Dict:

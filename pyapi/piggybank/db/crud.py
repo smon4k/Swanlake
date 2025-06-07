@@ -66,3 +66,13 @@ class CRUD:
         self.db.commit()
         self.db.refresh(piggybank_date)
         return piggybank_date
+    
+    def get_last_balanced_valuation(self, exchange: str, symbol: str) -> float:
+        """Get the last balanced valuation"""
+        data = self.db.query(Piggybank)\
+            .filter(Piggybank.exchange == exchange, Piggybank.product_name == symbol)\
+            .order_by(Piggybank.id.desc(), Piggybank.time.desc())\
+            .first()
+        if data:
+            return data.balanced_valuation
+        return 0

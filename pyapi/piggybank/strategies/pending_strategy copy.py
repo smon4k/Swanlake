@@ -43,11 +43,12 @@ class PendingStrategy(BaseStrategy):
         if last_balanced is None or Decimal(last_balanced) <= 0:
             # 如果没有历史平衡估值，则使用当前 USDT 估值作为基准
             last_balanced = usdt_valuation
+
         # 计算涨跌幅比例（%）
         change_ratio = (abs(btc_valuation - usdt_valuation) / Decimal(last_balanced)) * 100
 
-        if change_ratio <= Decimal(self.config.CHANGE_RATIO):
-            print(f"[{self.get_exchange_name()}] 涨跌幅度 {change_ratio:.2f}% 未超过阈值 {self.config.CHANGE_RATIO}%，停止下单")
+        if change_ratio <= Decimal(self.config.CHANGE_RATIO_THRESHOLD):
+            print(f"[{self.get_exchange_name()}] 涨跌幅度 {change_ratio:.2f}% 未超过阈值 {self.config.CHANGE_RATIO_THRESHOLD}%，停止下单")
             return False
 
         print(f"[{self.get_exchange_name()}] 涨跌幅度 {change_ratio:.2f}% 超过阈值，开始下单")
@@ -78,13 +79,14 @@ class PendingStrategy(BaseStrategy):
                 print(f"[{self.get_exchange_name()}] 卖单数量 {sell_amount} 小于最小下单量 {min_size}，停止下单")
                 return False
             # 下单：市场卖单
-            result = self.exchange.create_order(
+            result = self.exchange.create_trade_order(
                 symbol=symbol,
-                order_type=OrderType.MARKET.value,
-                side=OrderSide.SELL.value,
+                clOrdId=client_order_id,
+                order_type='market',
+                side='sell',
                 amount=float(sell_amount),
                 price=None,
-                params={'clOrdId': client_order_id, 'tdMode': 'cross'}
+                params={}
             )
             order_amount = sell_amount
         else:
@@ -99,13 +101,14 @@ class PendingStrategy(BaseStrategy):
                 print(f"[{self.get_exchange_name()}] 买单金额 {buy_amount} 小于最小下单量 {min_size}，停止下单")
                 return False
             # 下单：市场买单
-            result = self.exchange.create_order(
+            result = self.exchange.create_trade_order(
                 symbol=symbol,
-                order_type=OrderType.MARKET.value,
-                side=OrderSide.BUY.value,
+                clOrdId=client_order_id,
+                order_type='market',
+                side='buy',
                 amount=float(buy_amount),
                 price=None,
-                params={'clOrdId': client_order_id, 'tdMode': 'cross'}
+                params={}
             )
             order_amount = buy_amount
 
@@ -174,7 +177,7 @@ class PendingStrategy(BaseStrategy):
         """
         last_record = self.crud.get_last_balanced_valuation(self.get_exchange_name(), symbol)
         if last_record:
-            return Decimal(last_record)
+            return Decimal(last_record['balanced_valuation'])
         return None
 
     # 复用 BalanceStrategy 中的 _get_valuation 和 _get_pair_info 方法
