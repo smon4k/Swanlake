@@ -37,7 +37,7 @@ class PendingStrategy(BaseStrategy):
         btc_valuation = Decimal(valuation['btc_valuation'])
         usdt_valuation = Decimal(valuation['usdt_valuation'])
         btc_price = Decimal(valuation['btc_price'])
-
+        print("btc_valuation", btc_valuation, "usdt_valuation", usdt_valuation)
         # 2. 获取上次平衡状态下的估值（这里要求开发者自行实现该方法，若无则采用 usdt_valuation 作为基准）
         last_balanced = self._get_last_balanced_valuation(symbol)
         if last_balanced is None or Decimal(last_balanced) <= 0:
@@ -45,7 +45,7 @@ class PendingStrategy(BaseStrategy):
             last_balanced = usdt_valuation
         # 计算涨跌幅比例（%）
         change_ratio = (abs(btc_valuation - usdt_valuation) / Decimal(last_balanced)) * 100
-
+        print("change_ratio", change_ratio)
         if change_ratio <= Decimal(self.config.CHANGE_RATIO):
             print(f"[{self.get_exchange_name()}] 涨跌幅度 {change_ratio:.2f}% 未超过阈值 {self.config.CHANGE_RATIO}%，停止下单")
             return False
@@ -70,11 +70,14 @@ class PendingStrategy(BaseStrategy):
             # 卖单：按比例计算卖出额（与 PHP 中 $btcSellNum 类似）
             diff = btc_valuation - usdt_valuation
             sell_value = ratio_parts[0] * (diff / (ratio_parts[0] + ratio_parts[1]))
-            sell_amount = sell_value / btc_price  # 卖出数量（以 BTC 计）
+            sell_amount_number = Decimal(sell_value) / Decimal(btc_price)
+
+            # 格式化为 8 位小数字符串
+            sell_amount = format(sell_amount_number, '.8f')
             order_side = OrderSide.SELL.value
             order_type_num = 2
             print(f"[{self.get_exchange_name()}] 准备卖出 BTC, 数量: {sell_amount}, 最小下单量: {min_size}")
-            if sell_amount < min_size:
+            if Decimal(sell_amount) < min_size:
                 print(f"[{self.get_exchange_name()}] 卖单数量 {sell_amount} 小于最小下单量 {min_size}，停止下单")
                 return False
             # 下单：市场卖单
@@ -108,17 +111,18 @@ class PendingStrategy(BaseStrategy):
                 params={'clOrdId': client_order_id, 'tdMode': 'cross'}
             )
             order_amount = buy_amount
-
         # 7. 判断下单结果
-        if result.get('sCode', -1) != 0:
-            print(f"[{self.get_exchange_name()}] 下单失败, 响应: {result}")
+        sCode = int(result.get('info', {}).get('sCode', -1))
+        print(f"[{self.get_exchange_name()}] 下单响应 sCode: {sCode}")
+        if sCode != 0:
+            print(f"[{self.get_exchange_name()}] 下单失败, 响应111: {result}")
             return False
 
-        order_id = result.get('ordId')
+        order_id = result.get('info', {}).get('ordId')
         print(f"[{self.get_exchange_name()}] 下单成功, 订单号: {order_id}")
 
         # 8. 获取订单详情，参照 PHP 用 fetch_trade_order 获取成交信息
-        order_details = self.exchange.fetch_trade_order(symbol, client_order_id, None)
+        order_details = self.exchange.fetch_order(order_id, symbol)
         # 解析成交详情：累计成交数量、成交均价、最新成交价格
         filled_amount = Decimal(order_details.get('accFillSz', 0))
         avg_price = Decimal(order_details.get('avgPx', btc_price))
