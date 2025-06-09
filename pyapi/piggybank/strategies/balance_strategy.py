@@ -8,227 +8,157 @@ from .base_strategy import BaseStrategy
 from config.constants import OrderType, OrderSide
 from utils.helpers import generate_client_order_id
 
-class BalanceStrategy(BaseStrategy):
-    def __init__(self, exchange, db_session, config):
-        super().__init__(exchange, db_session)
+
+class BalanceStrategy:
+    def __init__(self, config, exchange):
         self.config = config
-    
-    def execute(self, symbol: str) -> bool:
-        """执行平衡策略"""
-        try:
-            # 标准化交易对符号
-            normalized_symbol = self.exchange.normalize_symbol(symbol)
-            
-            # 获取交易对估值和市场信息
-            valuation = self._get_valuation(normalized_symbol)
-            print("valuation", valuation)
-            market_info = self.exchange.get_market_info(normalized_symbol)
-            
-            if not market_info:
-                print(f"[{self.get_exchange_name()}] 无法获取市场信息")
-                return False
-                
-            # 获取最小交易量
-            min_size = Decimal(market_info['info'].get('minSz', 0))
-            # 计算变化比例
-            change_ratio = self._calculate_change_ratio(valuation, normalized_symbol)
-            
-            if change_ratio > self.config.CHANGE_RATIO:
-                client_order_id = generate_client_order_id()
-                print(f"[{self.get_exchange_name()}] 下单ID: {client_order_id}")
-                
-                # 计算订单数量
-                btc_amount, usdt_amount = self._calculate_order_amounts(valuation)
-                print("BTC 订单数量:", btc_amount, "USDT 订单数量:", usdt_amount)
-                if btc_amount > min_size:
-                    print("btc_amount", btc_amount)
-                    return self._place_sell_order(normalized_symbol, btc_amount, client_order_id, market_info, valuation)
-                elif usdt_amount > min_size:
-                    print("usdt_amount", usdt_amount)
-                    return self._place_buy_order(normalized_symbol, usdt_amount, client_order_id, market_info, valuation)
-                else:
-                    print(f"[{self.get_exchange_name()}] 下单数量小于最小下单量 {min_size}，停止下单")
-                    return False
-            else:
-                print(f"[{self.get_exchange_name()}] 涨跌幅度小于 {self.config.CHANGE_RATIO}%，停止下单")
-                return False
-        except Exception as e:
-            print(f"[{self.get_exchange_name()}] 平衡策略执行错误: {str(e)}")
-            return False
-    
-    def _get_valuation(self, symbol: str) -> Dict:
-        """获取交易对估值"""
-        balance = self.exchange.get_balance()
-        # print("balance", balance)
-        ticker = self.exchange.get_ticker(symbol)
-        
-        currency1, currency2 = symbol.split('-') if '-' in symbol else symbol.split('/')
-        
-        # 获取币种余额
-        details = balance['info']['data'][0].get('details', [])
+        self.exchange = exchange
+        self.balances = {}
 
-        btc_balance = sum(
-            Decimal(asset.get('availBal', 0)) for asset in details
-            if asset.get('ccy') == currency1
-        )
-        print("btc_balance", btc_balance, currency1)
+    def execute(self, symbol):
+        # symbol = self.config.symbol
+        base_token, quote_token = symbol.split('/')
 
-        usdt_balance = sum(
-            Decimal(asset.get('availBal', 0)) for asset in details
-            if asset.get('ccy') == currency2
-        )
-        print("usdt_balance", usdt_balance, currency2)
-        
-        btc_price = Decimal(ticker['last'])
-        btc_valuation = btc_balance * btc_price
-        usdt_valuation = usdt_balance
-        
-        return {
-            'btc_price': btc_price,
-            'btc_balance': btc_balance,
-            'usdt_balance': usdt_balance,
-            'btc_valuation': btc_valuation,
-            'usdt_valuation': usdt_valuation
-        }
-    
-    def _calculate_change_ratio(self, valuation: Dict, symbol: str) -> float:
-        """计算变化比例（兼容Decimal和float类型）"""
-        last_balanced = self.crud.get_last_piggybank(self.get_exchange_name(), symbol)
-        
-        # 确保所有数值都是Decimal或都是float
-        btc_val = Decimal(str(valuation['btc_valuation']))
-        usdt_val = Decimal(str(valuation['usdt_valuation']))
-        
-        if last_balanced:
-            last_val = Decimal(str(last_balanced.balanced_valuation))
+        # Step 1: 获取估值
+        valuation = self.get_token_valuation()
+        base_valuation = valuation.get(base_token, {}).get('usdt_value', 0)
+        quote_valuation = valuation.get(quote_token, {}).get('usdt_value', 0)
+
+        if base_valuation == 0 or quote_valuation == 0:
+            print("估值数据异常，跳过本轮")
+            return
+
+        valuation_diff = abs(base_valuation - quote_valuation)
+        valuation_ratio = valuation_diff / max(base_valuation, quote_valuation)
+
+        if valuation_ratio >= Decimal('0.02'):
+            print(f"[估值不平衡] {base_token}:{base_valuation}, {quote_token}:{quote_valuation}, 差异比: {valuation_ratio:.2%}")
+            self._cancel_open_orders(symbol)
+            self._market_eat_order(base_token, quote_token, valuation)
+
+            # 重新挂单
+            market_info = self.exchange.get_market_info(symbol)
+            self._place_balancing_orders(market_info, valuation)
         else:
-            last_val = Decimal(str(valuation['usdt_valuation']))
-        
-        # 计算变化比例（保持Decimal精度）
-        ratio = (abs(btc_val - usdt_val) / last_val) * Decimal('100')
-        
-        # 返回float类型结果
-        return float(ratio)
-    
-    def _calculate_order_amounts(self, valuation: Dict) -> Tuple[float, float]:
-        """计算买卖订单数量"""
-        ratio_parts = [Decimal(x) for x in self.config.BALANCE_RATIO.split(':')]
-        
-        if valuation['btc_valuation'] > valuation['usdt_valuation']:
-            # 卖出BTC
-            sell_amount = ratio_parts[0] * (
-                (valuation['btc_valuation'] - valuation['usdt_valuation']) / 
-                (ratio_parts[0] + ratio_parts[1])
-            )
-            return sell_amount / valuation['btc_price'], 0
+            print(f"[估值平衡] 差异比: {valuation_ratio:.2%}，无需调整")
+
+        # Step 2: 获取当前挂单信息
+        open_orders = self.exchange.fetch_open_orders(symbol)
+        has_filled = any(order['filled'] > 0 for order in open_orders)
+
+        if has_filled:
+            print("[成交检测] 有订单已成交，开始盈亏配对处理")
+            self._process_filled_orders(open_orders)
         else:
-            # 买入BTC
-            buy_amount = ratio_parts[1] * (
-                (valuation['usdt_valuation'] - valuation['btc_valuation']) / 
-                (ratio_parts[0] + ratio_parts[1])
-            )
-            return 0, buy_amount
-    
-    def _place_sell_order(self, symbol: str, amount: float, client_order_id: str, 
-                         market_info: Dict, valuation: Dict) -> bool:
-        """处理卖出订单"""
-        order = self.exchange.create_order(
+            balance_changed = self._check_balance_changed()
+            if balance_changed:
+                print("[余额变化] 有成交但未记录，撤单并重新下单")
+                self._cancel_open_orders(symbol)
+                market_info = self.exchange.get_market_info(symbol)
+                self._place_balancing_orders(market_info, valuation)
+
+    def _cancel_open_orders(self, symbol):
+        print(f"[撤单] 撤销 {symbol} 所有挂单")
+        self.exchange.cancel_all_orders(symbol)
+
+    def _market_eat_order(self, base_token, quote_token, valuation):
+        """市价吃掉多的币种"""
+        symbol = self.config.symbol
+        if valuation[base_token]['usdt_value'] > valuation[quote_token]['usdt_value']:
+            token_to_sell = base_token
+            side = OrderSide.SELL.value
+        else:
+            token_to_sell = quote_token
+            side = OrderSide.SELL.value
+
+        amount = valuation[token_to_sell].get('balance', 0)
+        if amount <= 0:
+            print(f"[吃单跳过] {token_to_sell} 无余额")
+            return
+
+        print(f"[市价吃单] 卖出 {token_to_sell} 数量: {amount}")
+        self.exchange.create_order(
             symbol=symbol,
             order_type=OrderType.MARKET.value,
+            side=side,
+            amount=float(amount),
+            params={'tdMode': 'cross'}
+        )
+
+    def _place_balancing_orders(self, market_info, valuation):
+        """根据估值重挂买卖单"""
+        base_token, quote_token = self.config.symbol.split('/')
+        base_usdt = valuation.get(base_token, {}).get('usdt_value', 0)
+        quote_usdt = valuation.get(quote_token, {}).get('usdt_value', 0)
+
+        if base_usdt > quote_usdt:
+            self._place_sell_order(market_info, valuation)
+        else:
+            self._place_buy_order(market_info, valuation)
+
+    def _place_sell_order(self, market_info, valuation):
+        """下限价卖单"""
+        base_token, _ = self.config.symbol.split('/')
+        amount = valuation[base_token].get('balance', 0)
+        price = market_info.get('best_bid', 0)
+        if amount <= 0 or price <= 0:
+            print("[限价卖单跳过] 无有效数量或价格")
+            return
+
+        print(f"[挂限价卖单] 数量: {amount}, 价格: {price}")
+        self.exchange.create_order(
+            symbol=self.config.symbol,
+            order_type=OrderType.LIMIT.value,
             side=OrderSide.SELL.value,
-            amount=amount,
-            params={'clOrdId': client_order_id, 'tdMode': 'cross'}
+            price=float(price),
+            amount=float(amount),
+            params={'tdMode': 'cross'}
         )
-        
-        if order['info'].get('sCode', '0') == '0' or order.get('status') == 'filled':
-            print(f"[{self.get_exchange_name()}] 卖出订单成功")
-            return self._process_order_result(
-                order, symbol, client_order_id, OrderSide.SELL.value, 
-                market_info, valuation
-            )
-        return False
-    
-    def _place_buy_order(self, symbol: str, amount: float, client_order_id: str, 
-                        market_info: Dict, valuation: Dict) -> bool:
-        """处理买入订单"""
-        order = self.exchange.create_order(
-            symbol=symbol,
-            order_type=OrderType.MARKET.value,
+
+    def _place_buy_order(self, market_info, valuation):
+        """下限价买单"""
+        _, quote_token = self.config.symbol.split('/')
+        quote_balance = valuation[quote_token].get('balance', 0)
+        ask_price = market_info.get('best_ask', 0)
+        if quote_balance <= 0 or ask_price <= 0:
+            print("[限价买单跳过] 无有效余额或价格")
+            return
+
+        amount = quote_balance / ask_price
+        print(f"[挂限价买单] 数量: {amount}, 价格: {ask_price}")
+        self.exchange.create_order(
+            symbol=self.config.symbol,
+            order_type=OrderType.LIMIT.value,
             side=OrderSide.BUY.value,
-            amount=amount,
-            params={'clOrdId': client_order_id, 'tdMode': 'cross'}
+            price=float(ask_price),
+            amount=float(amount),
+            params={'tdMode': 'cross'}
         )
-        
-        if order['info'].get('sCode', '0') == '0' or order.get('status') == 'filled':
-            print(f"[{self.get_exchange_name()}] 买入订单成功")
-            return self._process_order_result(
-                order, symbol, client_order_id, OrderSide.BUY.value, 
-                market_info, valuation
-            )
-        return False
-    
-    def _process_order_result(self, order: Dict, symbol: str, client_order_id: str, 
-                            side: str, market_info: Dict, valuation: Dict) -> bool:
-        """处理订单结果并保存到数据库"""
-        order_details = self.exchange.fetch_order(order['id'], symbol)
-        
-        filled_amount = Decimal(order_details['info'].get('accFillSz', order_details.get('filled', 0)))
-        avg_price = Decimal(order_details['info'].get('avgPx', order_details.get('average', 0)))
-        last_price = Decimal(order_details['info'].get('fillPx', avg_price)) if order_details['info'].get('fillPx') else avg_price
-        
-        # 获取配对订单和利润
-        pair_id, profit = self._get_pair_info(side, last_price, filled_amount, symbol)
-        
-        # 获取平衡后的估值
-        new_valuation = self._get_valuation(symbol)
-        
-        # 准备订单数据
-        order_data = {
-            'exchange': self.get_exchange_name(),
-            'product_name': symbol,
-            'order_id': order['id'],
-            'order_number': client_order_id,
-            'td_mode': 'cross',
-            'base_ccy': market_info['info'].get('baseCcy', symbol.split('-')[0]),
-            'quote_ccy': market_info['info'].get('quoteCcy', symbol.split('-')[1]),
-            'type': 1 if side == OrderSide.BUY.value else 2,
-            'order_type': OrderType.MARKET.value,
-            'amount': safe_float(order['amount']),
-            'clinch_number': filled_amount,
-            'price': last_price,
-            'profit': profit,
-            'pair': pair_id,
-            'currency1': valuation['btc_balance'],
-            'currency2': valuation['usdt_balance'],
-            'balanced_valuation': new_valuation['usdt_valuation'],
-            'make_deal_price': avg_price,
-            'time': datetime.now()
+
+    def _check_balance_changed(self):
+        """检测是否有余额变动"""
+        new_balance = self.exchange.fetch_balance()
+        changed = False
+        for token, info in new_balance.items():
+            old = self.balances.get(token, {}).get('total', 0)
+            new = info.get('total', 0)
+            if abs(new - old) > 1e-8:
+                changed = True
+                break
+        self.balances = new_balance
+        return changed
+
+    def _process_filled_orders(self, orders):
+        """盈亏配对逻辑（你自己已有实现）"""
+        # 请在此处填入你已有的盈亏配对逻辑
+        pass
+
+    def get_token_valuation(self):
+        """返回格式：
+        {
+            "BTC": {"balance": 0.1, "usdt_value": 5000},
+            "USDT": {"balance": 5000, "usdt_value": 5000}
         }
-        
-        # 保存订单到数据库
-        order_record = self.crud.create_piggybank(order_data)
-        
-        # 如果找到配对订单，更新配对信息
-        if pair_id:
-            self.crud.db.query(Piggybank).filter(Piggybank.id == pair_id).update({
-                'pair': order_record.id,
-                'profit': profit
-            })
-            self.crud.db.commit()
-        
-        return True
-    
-    def _get_pair_info(self, side: str, price: float, amount: float, symbol: str) -> Tuple[Optional[int], float]:
-        """获取配对订单信息和利润"""
-        last_order = self.crud.get_last_piggybank(self.get_exchange_name(), symbol)
-        
-        if not last_order or last_order.pair != 0:
-            return None, 0.0
-        
-        if (side == OrderSide.SELL.value and price > last_order.price) or \
-           (side == OrderSide.BUY.value and price < last_order.price):
-            profit = amount * (price - last_order.price) if side == OrderSide.SELL.value else \
-                     last_order.clinch_number * (last_order.price - price)
-            return last_order.id, profit
-        
-        return None, 0.0
+        """
+        # 请实现你自己的估值计算逻辑
+        raise NotImplementedError("请实现 get_token_valuation 方法")
