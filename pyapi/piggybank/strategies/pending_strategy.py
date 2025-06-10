@@ -4,10 +4,10 @@ from typing import Dict, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 from pyapi.piggybank.db.models import Piggybank
-from pyapi.piggybank.strategies.balance_strategy import BalanceStrategy
 from .base_strategy import BaseStrategy
-from config.constants import OrderType, OrderSide, OrderStatus
+from config.constants import OrderType, OrderSide
 from utils.helpers import generate_client_order_id
+
 
 class PendingStrategy(BaseStrategy):
     def __init__(self, exchange, db_session, config):
@@ -180,7 +180,3 @@ class PendingStrategy(BaseStrategy):
         if last_record:
             return Decimal(last_record)
         return None
-
-    # 复用 BalanceStrategy 中的 _get_valuation 和 _get_pair_info 方法
-    _get_valuation = BalanceStrategy._get_valuation
-    _get_pair_info = BalanceStrategy._get_pair_info

@@ -7,41 +7,52 @@ from pyapi.piggybank.strategies.init import safe_float
 from .base_strategy import BaseStrategy
 from config.constants import OrderType, OrderSide
 from utils.helpers import generate_client_order_id
+from pyapi.piggybank.strategies.pending_strategy import PendingStrategy
 
-
-class BalanceStrategy:
-    def __init__(self, config, exchange):
+class BalanceStrategy(BaseStrategy):
+    def __init__(self, exchange, db_session, config):
+        super().__init__(exchange, db_session)
         self.config = config
-        self.exchange = exchange
         self.balances = {}
 
     def execute(self, symbol):
         # symbol = self.config.symbol
-        base_token, quote_token = symbol.split('/')
-
+        base_token, quote_token = symbol.split('-')
         # Step 1: 获取估值
-        valuation = self.get_token_valuation()
-        base_valuation = valuation.get(base_token, {}).get('usdt_value', 0)
-        quote_valuation = valuation.get(quote_token, {}).get('usdt_value', 0)
-
-        if base_valuation == 0 or quote_valuation == 0:
+        valuation = self._get_valuation(symbol)
+        btc_valuation = Decimal(valuation['btc_valuation'])
+        usdt_valuation = Decimal(valuation['usdt_valuation'])
+        print(f"[估值] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
+        if btc_valuation == 0 or usdt_valuation == 0:
             print("估值数据异常，跳过本轮")
             return
 
-        valuation_diff = abs(base_valuation - quote_valuation)
-        valuation_ratio = valuation_diff / max(base_valuation, quote_valuation)
-
-        if valuation_ratio >= Decimal('0.02'):
-            print(f"[估值不平衡] {base_token}:{base_valuation}, {quote_token}:{quote_valuation}, 差异比: {valuation_ratio:.2%}")
+        # 比较两个估值的大小（相当于PHP的bccomp）
+        min_max_res = 1 if usdt_valuation > btc_valuation else -1 if usdt_valuation < btc_valuation else 0            
+        # 计算百分比差异（保持与PHP相同的逻辑）
+        if min_max_res == 1:  # usdt估值更大
+            valuation_ratio = (usdt_valuation - btc_valuation) / btc_valuation * 100
+        else:  # btc估值更大或相等
+            valuation_ratio = (btc_valuation - usdt_valuation) / usdt_valuation * 100
+        
+        # 如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
+        if valuation_ratio > self.config.CHANGE_RATIO:
+            print(f"[估值不平衡] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}, 差异比: {valuation_ratio:.2%}")
             self._cancel_open_orders(symbol)
-            self._market_eat_order(base_token, quote_token, valuation)
+            strategy = PendingStrategy(self.exchange, self.db_session, self.config)
+            success = strategy.execute('BTC-USDT')
+            print("吃单结果", success)
+            if not success:
+                print("吃单失败，跳过本轮")
+                return
 
             # 重新挂单
             market_info = self.exchange.get_market_info(symbol)
             self._place_balancing_orders(market_info, valuation)
         else:
             print(f"[估值平衡] 差异比: {valuation_ratio:.2%}，无需调整")
-
+        print("估值检测完成，开始成交检测")
+        return
         # Step 2: 获取当前挂单信息
         open_orders = self.exchange.fetch_open_orders(symbol)
         has_filled = any(order['filled'] > 0 for order in open_orders)
@@ -59,7 +70,11 @@ class BalanceStrategy:
 
     def _cancel_open_orders(self, symbol):
         print(f"[撤单] 撤销 {symbol} 所有挂单")
-        self.exchange.cancel_all_orders(symbol)
+        open_orders = self.exchange.fetch_open_orders(symbol)
+        for order in open_orders:
+            client_order_id = order['clientOrderId']
+            print(f"[撤单] 撤销订单 {client_order_id}")
+            self.exchange.cancel_order(client_order_id, symbol)
 
     def _market_eat_order(self, base_token, quote_token, valuation):
         """市价吃掉多的币种"""
@@ -152,13 +167,3 @@ class BalanceStrategy:
         """盈亏配对逻辑（你自己已有实现）"""
         # 请在此处填入你已有的盈亏配对逻辑
         pass
-
-    def get_token_valuation(self):
-        """返回格式：
-        {
-            "BTC": {"balance": 0.1, "usdt_value": 5000},
-            "USDT": {"balance": 5000, "usdt_value": 5000}
-        }
-        """
-        # 请实现你自己的估值计算逻辑
-        raise NotImplementedError("请实现 get_token_valuation 方法")
