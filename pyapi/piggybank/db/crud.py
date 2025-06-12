@@ -18,7 +18,7 @@ class CRUD:
     def get_last_piggybank(self, exchange: str, symbol: str) -> Optional[Piggybank]:
         return self.db.query(Piggybank)\
             .filter(Piggybank.exchange == exchange, Piggybank.product_name == symbol)\
-            .order_by(Piggybank.id.desc())\
+            .order_by(Piggybank.id.desc(), Piggybank.time.desc())\
             .first()
     
     # PiggybankPendord 操作

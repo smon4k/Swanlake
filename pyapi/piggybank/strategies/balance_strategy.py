@@ -26,6 +26,22 @@ class BalanceStrategy(BaseStrategy):
         if btc_valuation == 0 or usdt_valuation == 0:
             print("估值数据异常，跳过本轮")
             return
+        
+        balance_ratio = self.config.BALANCE_RATIO #平衡比例
+        market_info = self.exchange.get_market_info(symbol)
+        lest_res = self.crud.get_last_piggybank(self.get_exchange_name(), symbol)
+        lest_price = lest_res.price if lest_res else 0 # 上次成交价
+        price = market_info.get('best_bid', 0) # 现价
+        lest_price = min(lest_price, price)
+        sellPropr = (balance_ratio / balance_ratio) + (balance_ratio / 100) #出售比例
+        buyPropr = (balance_ratio / balance_ratio) - (balance_ratio / 100) #购买比例
+
+        selling_price = lest_price * sellPropr  # 出售价格
+        buying_price = lest_price * buyPropr  # 购买价格
+        btc_balance = valuation['btc_balance']  # BTC余额
+        usdt_balance = valuation['usdt_balance']  # BUSD余额
+        sell_valuation = selling_price * btc_balance  # 出售估值
+        buy_valuation = buying_price * btc_balance  # 购买估值
 
         # 比较两个估值的大小（相当于PHP的bccomp）
         min_max_res = 1 if usdt_valuation > btc_valuation else -1 if usdt_valuation < btc_valuation else 0            
@@ -36,38 +52,22 @@ class BalanceStrategy(BaseStrategy):
             valuation_ratio = (btc_valuation - usdt_valuation) / usdt_valuation * 100
 
         # 如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
-        if valuation_ratio > self.config.CHANGE_RATIO:
+        if valuation_ratio > balance_ratio:
             print(f"[估值不平衡] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}, 差异比: {valuation_ratio}")
-            self._cancel_open_orders(symbol)
+            self._cancel_open_orders(symbol) # 撤单
             strategy = PendingStrategy(self.exchange, self.db_session, self.config)
             success = strategy.execute('BTC-USDT')
             print("吃单结果", success)
-            if not success:
+            if success:
+                # 重新挂单
+                self.execute(symbol)  # 重新挂单
+            else:
                 print("吃单失败，跳过本轮")
                 return
-
-            # 重新挂单
-            market_info = self.exchange.get_market_info(symbol)
-            print("market_info", market_info)
-            self._place_balancing_orders(market_info, valuation, symbol)
-        else:
-            print(f"[估值平衡] 差异比: {valuation_ratio:.2%}，无需调整")
-        print("估值检测完成，开始成交检测")
+            return
         
-        # Step 2: 获取当前挂单信息
-        open_orders = self.exchange.fetch_open_orders(symbol)
-        has_filled = any(order['filled'] > 0 for order in open_orders)
-
-        if has_filled:
-            print("[成交检测] 有订单已成交，开始盈亏配对处理")
-            self._process_filled_orders(open_orders)
-        else:
-            balance_changed = self._check_balance_changed()
-            if balance_changed:
-                print("[余额变化] 有成交但未记录，撤单并重新下单")
-                self._cancel_open_orders(symbol)
-                market_info = self.exchange.get_market_info(symbol)
-                self._place_balancing_orders(market_info, valuation, symbol)
+        # Step 2: 开始挂单
+        self._place_balancing_orders(market_info, valuation, symbol)
 
     def _cancel_open_orders(self, symbol):
         print(f"[撤单] 撤销 {symbol} 所有挂单")
@@ -100,6 +100,7 @@ class BalanceStrategy(BaseStrategy):
             params={'tdMode': 'cross'}
         )
 
+    # 根据估值重挂买卖单
     def _place_balancing_orders(self, market_info, valuation, symbol):
         """根据估值重挂买卖单"""
         print("valuation", valuation)
@@ -108,8 +109,10 @@ class BalanceStrategy(BaseStrategy):
         usdt_valuation = Decimal(valuation['usdt_valuation'])
         print(f"[估值] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
         if usdt_valuation > btc_valuation:
+            self._place_buy_order(market_info, valuation, symbol)
             self._place_sell_order(market_info, valuation, symbol)
         else:
+            self._place_sell_order(market_info, valuation, symbol)
             self._place_buy_order(market_info, valuation, symbol)
 
     def _place_sell_order(self, market_info, valuation, symbol):
