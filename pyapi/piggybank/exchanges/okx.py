@@ -11,10 +11,10 @@ class OkxExchange(BaseExchange):
             'secret': self.config.SECRET_KEY,
             'password': self.config.PASSPHRASE,
             'enableRateLimit': True,
-            'proxies': {
-                'http': 'http://127.0.0.1:7890',
-                'https': 'http://127.0.0.1:7890',
-            }
+            # 'proxies': {
+            #     'http': 'http://127.0.0.1:7890',
+            #     'https': 'http://127.0.0.1:7890',
+            # }
         })
         is_simulation =self.config.IS_SIMULATION
         if is_simulation == '1': # 1表示模拟环境
