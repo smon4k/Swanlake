@@ -21,8 +21,19 @@ class CRUD:
             .order_by(Piggybank.id.desc(), Piggybank.time.desc())\
             .first()
     
-    # PiggybankPendord 操作
-    def create_pendord(self, data: Dict) -> PiggybankPendord:
+    # 获取上一次平衡估值
+    def get_last_balanced_valuation(self, exchange: str, symbol: str) -> float:
+        """Get the last balanced valuation"""
+        data = self.db.query(Piggybank)\
+            .filter(Piggybank.exchange == exchange, Piggybank.product_name == symbol)\
+            .order_by(Piggybank.id.desc(), Piggybank.time.desc())\
+            .first()
+        if data:
+            return data.balanced_valuation
+        return 0
+    
+    # 创建新的 PiggybankPendord 操作
+    def create_piggybank_pendord(self, data: Dict) -> PiggybankPendord:
         pendord = PiggybankPendord(**data)
         self.db.add(pendord)
         self.db.commit()
@@ -106,6 +117,8 @@ class CRUD:
             self.db.rollback()
             print(f"Error updating pair and profit: {e}")
             return False
+        finally:
+            self.db.close()
     
     # PiggybankDate 操作
     def create_or_update_piggybank_date(self, data: Dict) -> PiggybankDate:

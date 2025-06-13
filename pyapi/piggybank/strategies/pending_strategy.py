@@ -32,6 +32,8 @@ class PendingStrategy(BaseStrategy):
     def _place_market_order(self, symbol: str) -> bool:
         # 1. 获取账户估值（btc_balance, usdt_balance, btc_valuation, usdt_valuation, btc_price）
         valuation = self._get_valuation(symbol)
+        exchange = self.get_exchange_name()
+        change_ratio = self.config.CHANGE_RATIO #涨跌比例
         btc_balance = Decimal(valuation['btc_balance'])
         usdt_balance = Decimal(valuation['usdt_balance'])
         btc_valuation = Decimal(valuation['btc_valuation'])
@@ -39,18 +41,20 @@ class PendingStrategy(BaseStrategy):
         btc_price = Decimal(valuation['btc_price'])
         print("btc_valuation", btc_valuation, "usdt_valuation", usdt_valuation)
         # 2. 获取上次平衡状态下的估值（这里要求开发者自行实现该方法，若无则采用 usdt_valuation 作为基准）
-        last_balanced = self._get_last_balanced_valuation(symbol)
-        if last_balanced is None or Decimal(last_balanced) <= 0:
-            # 如果没有历史平衡估值，则使用当前 USDT 估值作为基准
-            last_balanced = usdt_valuation
-        # 计算涨跌幅比例（%）
-        change_ratio = (abs(btc_valuation - usdt_valuation) / Decimal(last_balanced)) * 100
+        last_balanced_valuation = self.crud.get_last_balanced_valuation(exchange, symbol)  # 获取上次平衡状态下的估值
+        print("last_balanced_valuation", last_balanced_valuation)
+        if last_balanced_valuation > 0:
+            # 如果有历史平衡估值，计算涨跌幅比例（%）
+            change_ratio_num = abs(btc_valuation - usdt_valuation) / Decimal(last_balanced_valuation) * Decimal('100')
+        else:
+            # 如果没有历史平衡估值，计算涨跌幅比例（%）
+            change_ratio_num = abs(btc_valuation / usdt_valuation)
         print("change_ratio", change_ratio)
-        if change_ratio <= Decimal(self.config.CHANGE_RATIO):
-            print(f"[{self.get_exchange_name()}] 涨跌幅度 {change_ratio:.2f}% 未超过阈值 {self.config.CHANGE_RATIO}%，停止下单")
+        if change_ratio_num <= change_ratio:
+            print(f"[{exchange}] 涨跌幅度 {change_ratio}% 未超过阈值 {self.config.CHANGE_RATIO}%，停止下单")
             return False
 
-        print(f"[{self.get_exchange_name()}] 涨跌幅度 {change_ratio:.2f}% 超过阈值，开始下单")
+        print(f"[{exchange}] 涨跌幅度 {change_ratio}% 超过阈值，开始下单")
 
         # 3. 生成客户订单号（格式参考 PHP：Zx + 日期 + 随机数）
         client_order_id = generate_client_order_id('Zx')
@@ -97,9 +101,9 @@ class PendingStrategy(BaseStrategy):
             buy_amount = buy_value  # 买入时金额直接为 USDT 数量
             order_side = OrderSide.BUY.value
             order_type_num = 1
-            print(f"[{self.get_exchange_name()}] 准备买入 BTC, 金额: {buy_amount}, 最小下单量: {min_size}")
+            print(f"[{exchange}] 准备买入 BTC, 金额: {buy_amount}, 最小下单量: {min_size}")
             if buy_amount < min_size:
-                print(f"[{self.get_exchange_name()}] 买单金额 {buy_amount} 小于最小下单量 {min_size}，停止下单")
+                print(f"[{exchange}] 买单金额 {buy_amount} 小于最小下单量 {min_size}，停止下单")
                 return False
             # 下单：市场买单
             result = self.exchange.create_order(
@@ -113,13 +117,13 @@ class PendingStrategy(BaseStrategy):
             order_amount = buy_amount
         # 7. 判断下单结果
         sCode = int(result.get('info', {}).get('sCode', -1))
-        print(f"[{self.get_exchange_name()}] 下单响应 sCode: {sCode}")
+        print(f"[{exchange}] 下单响应 sCode: {sCode}")
         if sCode != 0:
-            print(f"[{self.get_exchange_name()}] 下单失败, 响应111: {result}")
+            print(f"[{exchange}] 下单失败, 响应111: {result}")
             return False
 
         order_id = result.get('info', {}).get('ordId')
-        print(f"[{self.get_exchange_name()}] 下单成功, 订单号: {order_id}")
+        print(f"[{exchange}] 下单成功, 订单号: {order_id}")
 
         # 8. 获取订单详情，参照 PHP 用 fetch_trade_order 获取成交信息
         order_details = self.exchange.fetch_order(order_id, symbol)
@@ -137,7 +141,7 @@ class PendingStrategy(BaseStrategy):
 
         # 11. 构建订单数据，写入数据库（字段参考 PHP 代码，包含余额、成交均价、配对等信息）
         order_data = {
-            'exchange': self.get_exchange_name(),
+            'exchange': exchange,
             'product_name': symbol,
             'order_id': order_id,
             'order_number': client_order_id,
@@ -158,7 +162,7 @@ class PendingStrategy(BaseStrategy):
             'time': datetime.now()
         }
         self.crud.create_piggybank(order_data)
-        print(f"[{self.get_exchange_name()}] 写入订单数据成功")
+        print(f"[{exchange}] 写入订单数据成功")
 
         # 12. 若找到配对订单，则更新其状态
         if pair_id:
@@ -167,16 +171,5 @@ class PendingStrategy(BaseStrategy):
                 'profit': profit
             })
             self.crud.db.commit()
-            print(f"[{self.get_exchange_name()}] 配对更新成功")
+            print(f"[{exchange}] 配对更新成功")
         return True
-
-    def _get_last_balanced_valuation(self, symbol: str) -> Optional[Decimal]:
-        """
-        获取上一次平衡状态下的估值，具体实现依赖业务逻辑。
-        可查询数据库中上一次记录的 balanced_valuation 字段。
-        若没有历史记录，返回 None
-        """
-        last_record = self.crud.get_last_balanced_valuation(self.get_exchange_name(), symbol)
-        if last_record:
-            return Decimal(last_record)
-        return None
