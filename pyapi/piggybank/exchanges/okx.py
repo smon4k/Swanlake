@@ -50,3 +50,5 @@ class OkxExchange(BaseExchange):
     def normalize_symbol(self, symbol: str) -> str:
         """将BTC-USDT格式化为OKX的标准格式"""
         return symbol.replace('/', '-')
+    
+    

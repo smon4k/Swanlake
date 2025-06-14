@@ -19,7 +19,6 @@ class BalanceStrategy(BaseStrategy):
         try:
             # symbol = self.config.symbol
             base_token, quote_token = symbol.split('-')
-            balance_ratio = self.config.BALANCE_RATIO #平衡比例
             exchange = self.get_exchange_name()
             # 获取挂单数据
             pening_order_list = self.crud.get_open_pending_orders(exchange)
@@ -29,18 +28,22 @@ class BalanceStrategy(BaseStrategy):
                 # Step 1: 获取估值
                 btc_valuation = Decimal(valuation['btc_valuation'])
                 usdt_valuation = Decimal(valuation['usdt_valuation'])
-                print(f"[估值] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
+                print(f"[估值1] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
                 if btc_valuation == 0 or usdt_valuation == 0:
                     print("估值数据异常，跳过本轮")
                     return
-                
                 # 比较两个估值的大小（相当于PHP的bccomp）
                 min_max_res = 1 if usdt_valuation > btc_valuation else -1 if usdt_valuation < btc_valuation else 0            
                 # 计算百分比差异（保持与PHP相同的逻辑）
-                if min_max_res == 1:  # usdt估值更大
-                    valuation_ratio = (usdt_valuation - btc_valuation) / btc_valuation * 100
-                else:  # btc估值更大或相等
-                    valuation_ratio = (btc_valuation - usdt_valuation) / usdt_valuation * 100      
+                if min_max_res == 1 and btc_valuation != 0:
+                    valuation_ratio = (usdt_valuation - btc_valuation) / btc_valuation * Decimal('100')
+                elif min_max_res == -1 and usdt_valuation != 0:
+                    valuation_ratio = (btc_valuation - usdt_valuation) / usdt_valuation * Decimal('100')
+                else:
+                    valuation_ratio = Decimal('0')
+                
+                balance_ratio = Decimal(str(self.config.CHANGE_RATIO))
+
                 # 如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
                 if valuation_ratio > balance_ratio:
                     print(f"[估值不平衡] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}, 差异比: {valuation_ratio}")
@@ -65,33 +68,32 @@ class BalanceStrategy(BaseStrategy):
                 deal_price = Decimal(0)  # 成交均价
 
                 # 首先获取挂买信息
-                buy_clinch_info = self.exchange.fetch_trade_order(
-                    buy_order_data['order_id'], buy_order_data['order_number'], symbol
-                )  # 获取挂买数据
+                buy_clinch_info = self.exchange.fetch_order(buy_order_data.order_id, symbol)  # 获取挂买数据
+                print(buy_clinch_info)
                 if buy_clinch_info:
-                    order_amount = Decimal(buy_clinch_info['sz'])  # 订单数量
-                    deal_amount = Decimal(buy_clinch_info['accFillSz'])  # 成交数量
-                    side_type = buy_clinch_info['side']  # 订单方向
+                    order_amount = Decimal(buy_clinch_info['info']['sz'])  # 订单数量
+                    deal_amount = Decimal(buy_clinch_info['info']['accFillSz'])  # 成交数量
+                    side_type = buy_clinch_info['info']['side']  # 订单方向
                     min_order_amount = order_amount * Decimal(0.5)  # 最小成交数量
                     print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】")
                     if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
                         make_side = 1
                         make_array = buy_order_data
-
+                print("333")
                 # 然后获取挂卖信息
-                sell_clinch_info = self.exchange.fetch_trade_order(
-                    sell_order_data['order_id'], sell_order_data['order_number'], symbol
-                )  # 获取挂卖数据
+                sell_clinch_info = self.exchange.fetch_order(sell_order_data.order_id, symbol)  # 获取挂卖数据
                 if sell_clinch_info:
-                    order_amount = Decimal(sell_clinch_info['sz'])  # 订单数量
-                    deal_amount = Decimal(sell_clinch_info['accFillSz'])  # 成交数量
-                    side_type = sell_clinch_info['side']  # 订单方向
+                    order_amount = Decimal(sell_clinch_info['info']['sz'])  # 订单数量
+                    deal_amount = Decimal(sell_clinch_info['info']['accFillSz'])  # 成交数量
+                    side_type = sell_clinch_info['info']['side']  # 订单方向
                     min_order_amount = order_amount * Decimal(0.5)  # 最小成交数量
                     print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】")
                     if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
                         make_side = 2
                         make_array = sell_order_data
-                if make_array:
+                print(make_array)
+                
+                if make_side > 0: # 如果有成交
                     # 如果有成交数据
                     print(f"[成交] 成交方向: {make_side}, 成交数据: {make_array}")
                     deal_price = Decimal(make_array['price'])  # 成交价格
@@ -258,17 +260,24 @@ class BalanceStrategy(BaseStrategy):
             if not open_orders:
                 print(f"[撤单] 无挂单需要撤销: {symbol}")
                 return True
-
+            cancel_num = 0
             for order in open_orders:
-                client_order_id = order.get('clientOrderId')
-                if not client_order_id:
-                    print(f"[撤单异常] 订单缺少 clientOrderId: {order}")
+                order_id = order.get('id')
+                if not order_id:
+                    print(f"[撤单异常] 订单缺少 orderId: {order}")
                     continue
-
-                print(f"[撤单] 撤销订单 {client_order_id}")
-                self.exchange.cancel_order(client_order_id, symbol)
-            print(f"[撤单完成] 所有挂单已撤销: {symbol}")
-            return True
+                print(f"[撤单] 撤销订单 {order_id}")
+                cancel_order = self.exchange.cancel_order(order_id, symbol)
+                print(f"[撤单] 撤销结果: {cancel_order}")
+                if cancel_order:
+                    cancel_num += 1
+            if cancel_num == cancel_num:
+                print(f"[撤单完成] 所有挂单已撤销: {symbol}")
+                self.crud.revoke_all_pending_orders(exchange=self.get_exchange_name())
+                return True
+            else:
+                print(f"[撤单失败] 无法撤销 {symbol} 的所有挂单")
+                return False
         except Exception as e:
             print(f"[撤单失败] 撤销 {symbol} 挂单时发生异常: {e}")
             return False
@@ -284,18 +293,15 @@ class BalanceStrategy(BaseStrategy):
         balance_ratio = self.config.BALANCE_RATIO #平衡比例
         balance_ratio_arr = list(map(Decimal, balance_ratio.split(':')))
 
-        last_res = self.crud.get_last_balanced_valuation(exchange, symbol)
-        print("last_res", last_res)
-        btc_valuation = Decimal(valuation['btc_valuation'])
-        usdt_valuation = Decimal(valuation['usdt_valuation'])
-        print(f"[估值] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
-
-        buy_last_price = Decimal(last_res)  # 上次成交价格
-        sell_last_price = Decimal(last_res)  # 上次成交价格
-        if buy_last_price > btc_valuation:
-            buy_last_price = btc_valuation
-        if sell_last_price < btc_valuation:
-            sell_last_price = btc_valuation
+        last_res_price = Decimal(str(self.crud.get_last_deal_price(exchange, symbol) or '0'))
+        print("last_res_price", last_res_price)
+        btc_valuation = Decimal(str(valuation.get('btc_valuation', '0')))
+        usdt_valuation = Decimal(str(valuation.get('usdt_valuation', '0')))
+        print(f"[估值2] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
+        buy_last_price = Decimal(last_res_price)  # 上次成交价格
+        sell_last_price = Decimal(last_res_price)  # 上次成交价格
+        buy_last_price = min(last_res_price, btc_valuation)
+        sell_last_price = max(last_res_price, btc_valuation)
         sell_propr = (Decimal('1') + (change_ratio / Decimal('100')))  # 出售比例
         buy_propr = (Decimal('1') - (change_ratio / Decimal('100')))  # 购买比例
         selling_price = sell_last_price * sell_propr  # 出售价格
@@ -333,52 +339,64 @@ class BalanceStrategy(BaseStrategy):
         
         per_diff_res = 0
         if usdt_valuation > btc_valuation:  # busd大
+            print("""usdt大""")
             per_diff_res = (usdt_valuation - btc_valuation) / btc_valuation * 100
         else:
+            print("""btc大""")
             per_diff_res = (btc_valuation - usdt_valuation) / usdt_valuation * 100
-
-        # if per_diff_res > change_ratio:  # 如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
-        #     print("两个币种估值差大于2% 开始全部撤单")
-        #     is_cancel_order = self._cancel_open_orders(symbol)
-        #     if is_cancel_order:
-        #         print("撤单成功 开始吃单")
-        #         strategy = PendingStrategy(self.exchange, self.db_session, self.config)
-        #         is_position_order = strategy.execute(symbol)  # 开始吃单平衡
-        #         if is_position_order:
-        #             print("吃单成功 重新挂单")
-        #             is_pending_order = self._place_balancing_orders(market_info, valuation, symbol)
-        #             if is_pending_order:
-        #                 print("已重新挂单")
-        #                 return True
-        #     return True
+        print("per_diff_res", per_diff_res, change_ratio)
+        if per_diff_res > change_ratio:  # 如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
+            print("两个币种估值差大于2% 开始全部撤单")
+            is_cancel_order = self._cancel_open_orders(symbol)
+            if is_cancel_order:
+                print("撤单成功 开始吃单")
+                strategy = PendingStrategy(self.exchange, self.db_session, self.config)
+                is_position_order = strategy.execute(symbol)  # 开始吃单平衡
+                if is_position_order:
+                    print("吃单成功 重新挂单")
+                    is_pending_order = self._place_balancing_orders(market_info, valuation, symbol)
+                    if is_pending_order:
+                        print("已重新挂单")
+                        return True
+            return True
         
         buy_order_details_arr = []
         sell_order_details_arr = []
+        buy_order_id = generate_client_order_id('Zx1')
+        sell_order_id = generate_client_order_id('Zx2')
         if btc_valuation > usdt_valuation:
             print("btc大于usdt,开始出售")
-            sell_orders_detais = self._place_sell_order(symbol, sell_orders_number, selling_price)
+            sell_orders_detais = self._place_sell_order(symbol, sell_orders_number, selling_price, sell_order_id)
             if sell_orders_detais:
                 sell_order_details_arr = sell_orders_detais
                 sell_order_details_arr['amount'] = sell_orders_number
                 sell_order_details_arr['price'] = selling_price
-                buy_orders_detais = self._place_buy_order(symbol, buy_orders_number, buying_price)
+                sell_order_details_arr['order_id'] = sell_orders_detais['id']
+                sell_order_details_arr['client_order_id'] = sell_order_id
+                buy_orders_detais = self._place_buy_order(symbol, buy_orders_number, buying_price, buy_order_id)
                 if buy_orders_detais:
                     buy_order_details_arr = buy_orders_detais
                     buy_order_details_arr['amount'] = buy_orders_number
                     buy_order_details_arr['price'] = buying_price
+                    buy_order_details_arr['order_id'] = buy_orders_detais['id']
+                    buy_order_details_arr['client_order_id'] = buy_order_id
 
         if btc_valuation < usdt_valuation:
             print("btc小于usdt,开始购买")
-            buy_orders_detais = self._place_buy_order(symbol, buy_orders_number, buying_price)
+            buy_orders_detais = self._place_buy_order(symbol, buy_orders_number, buying_price, buy_order_id)
             if buy_orders_detais:
                 buy_order_details_arr = buy_orders_detais
                 buy_order_details_arr['amount'] = buy_orders_number
                 buy_order_details_arr['price'] = buying_price
-                sell_orders_detais = self._place_sell_order(symbol, sell_orders_number, selling_price)
+                buy_order_details_arr['order_id'] = buy_orders_detais['id']
+                buy_order_details_arr['client_order_id'] = buy_order_id
+                sell_orders_detais = self._place_sell_order(symbol, sell_orders_number, selling_price, sell_order_id)
                 if sell_orders_detais:
                     sell_order_details_arr = sell_orders_detais
                     sell_order_details_arr['amount'] = sell_orders_number
                     sell_order_details_arr['price'] = selling_price
+                    sell_order_details_arr['order_id'] = sell_orders_detais['id']
+                    sell_order_details_arr['client_order_id'] = sell_order_id
 
         if buy_order_details_arr and sell_order_details_arr and len(buy_order_details_arr) > 0 and len(sell_order_details_arr) > 0:
             print("下单成功")
@@ -389,8 +407,8 @@ class BalanceStrategy(BaseStrategy):
                 'exchange': exchange,
                 'product_name': symbol,
                 'symbol': symbol,
-                'order_id': buy_order_details_arr['orderId'],
-                'order_number': buy_order_details_arr['clientOrderId'],
+                'order_id': buy_order_details_arr['order_id'],
+                'order_number': buy_order_details_arr['client_order_id'],
                 'type': 1,
                 'order_type': 'limit',
                 'amount': buy_order_details_arr['amount'],
@@ -411,8 +429,8 @@ class BalanceStrategy(BaseStrategy):
                     'exchange': exchange,
                     'product_name': symbol,
                     'symbol': symbol,
-                    'order_id': sell_order_details_arr['orderId'],
-                    'order_number': sell_order_details_arr['clientOrderId'],
+                    'order_id': sell_order_details_arr['order_id'],
+                    'order_number': sell_order_details_arr['client_order_id'],
                     'type': 2,
                     'order_type': 'limit',
                     'amount': sell_order_details_arr['amount'],
@@ -429,7 +447,7 @@ class BalanceStrategy(BaseStrategy):
                 if is_set_sell_res:
                     return True
 
-    def _place_sell_order(self, symbol, amount=None, price=None):
+    def _place_sell_order(self, symbol, amount=None, price=None, clorder_id=None):
         """下限价卖单"""
         print(f"[挂限价卖单] 数量: {amount}, 价格: {price}")
         result = self.exchange.create_order(
@@ -438,11 +456,11 @@ class BalanceStrategy(BaseStrategy):
             side=OrderSide.SELL.value,
             price=float(price),
             amount=float(amount),
-            params={'tdMode': 'cross'}
+            params={'tdMode': 'cross', 'clOrdId': clorder_id}
         )
         return result
 
-    def _place_buy_order(self, symbol, amount=None, price=None):
+    def _place_buy_order(self, symbol, amount=None, price=None, clorder_id=None):
         """下限价买单"""
         print(f"[挂限价买单] 数量: {amount}, 价格: {price}")
         result = self.exchange.create_order(
@@ -451,6 +469,6 @@ class BalanceStrategy(BaseStrategy):
             side=OrderSide.BUY.value,
             price=float(price),
             amount=float(amount),
-            params={'tdMode': 'cross'}
+            params={'tdMode': 'cross', 'clOrdId': clorder_id}
         )
         return result

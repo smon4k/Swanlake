@@ -102,6 +102,20 @@ class CRUD:
 
         return None
     
+    def revoke_all_pending_orders(self, exchange: str) -> bool:
+        """Revoke all pending orders by setting their status to 3"""
+        try:
+            result = self.db.query(PiggybankPendord)\
+                .filter(PiggybankPendord.exchange == exchange, PiggybankPendord.status == 1)\
+                .update({'status': 3, 'up_time': datetime.now()})
+            self.db.commit()
+            return result > 0
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error revoking pending orders: {e}")
+            return False
+
+    
     # 更新配对和利润
     def update_pair_and_profit(self, pair_id: int, profit: float) -> bool:
         """Update pair and profit for a specific Piggybank entry"""
@@ -144,12 +158,12 @@ class CRUD:
         self.db.refresh(piggybank_date)
         return piggybank_date
     
-    def get_last_balanced_valuation(self, exchange: str, symbol: str) -> float:
+    def get_last_deal_price(self, exchange: str, symbol: str) -> float:
         """Get the last balanced valuation"""
         data = self.db.query(Piggybank)\
             .filter(Piggybank.exchange == exchange, Piggybank.product_name == symbol)\
             .order_by(Piggybank.id.desc(), Piggybank.time.desc())\
             .first()
         if data:
-            return data.balanced_valuation
+            return data.price
         return 0

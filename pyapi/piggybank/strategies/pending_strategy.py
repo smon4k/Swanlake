@@ -49,12 +49,11 @@ class PendingStrategy(BaseStrategy):
         else:
             # 如果没有历史平衡估值，计算涨跌幅比例（%）
             change_ratio_num = abs(btc_valuation / usdt_valuation)
-        print("change_ratio", change_ratio)
         if change_ratio_num <= change_ratio:
-            print(f"[{exchange}] 涨跌幅度 {change_ratio}% 未超过阈值 {self.config.CHANGE_RATIO}%，停止下单")
+            print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 未超过阈值 {self.config.CHANGE_RATIO}%，停止下单")
             return False
 
-        print(f"[{exchange}] 涨跌幅度 {change_ratio}% 超过阈值，开始下单")
+        print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 超过阈值，开始下单")
 
         # 3. 生成客户订单号（格式参考 PHP：Zx + 日期 + 随机数）
         client_order_id = generate_client_order_id('Zx')

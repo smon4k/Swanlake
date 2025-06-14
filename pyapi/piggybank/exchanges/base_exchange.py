@@ -38,6 +38,7 @@ class BaseExchange(ABC):
         """获取未成交订单列表"""
         pass
     
+    
     @abstractmethod
     def get_exchange_name(self) -> str:
         """获取交易所名称"""
