@@ -69,7 +69,7 @@ class BalanceStrategy(BaseStrategy):
 
                 # 首先获取挂买信息
                 buy_clinch_info = self.exchange.fetch_order(buy_order_data.order_id, symbol)  # 获取挂买数据
-                print(buy_clinch_info)
+                # print("挂买数据", buy_clinch_info)
                 if buy_clinch_info:
                     order_amount = Decimal(buy_clinch_info['info']['sz'])  # 订单数量
                     deal_amount = Decimal(buy_clinch_info['info']['accFillSz'])  # 成交数量
@@ -79,9 +79,9 @@ class BalanceStrategy(BaseStrategy):
                     if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
                         make_side = 1
                         make_array = buy_order_data
-                print("333")
                 # 然后获取挂卖信息
                 sell_clinch_info = self.exchange.fetch_order(sell_order_data.order_id, symbol)  # 获取挂卖数据
+                # print("挂卖数据", sell_clinch_info)
                 if sell_clinch_info:
                     order_amount = Decimal(sell_clinch_info['info']['sz'])  # 订单数量
                     deal_amount = Decimal(sell_clinch_info['info']['accFillSz'])  # 成交数量
@@ -91,8 +91,8 @@ class BalanceStrategy(BaseStrategy):
                     if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
                         make_side = 2
                         make_array = sell_order_data
-                print(make_array)
                 
+                print("是否成交", make_array, make_side)
                 if make_side > 0: # 如果有成交
                     # 如果有成交数据
                     print(f"[成交] 成交方向: {make_side}, 成交数据: {make_array}")
@@ -232,9 +232,11 @@ class BalanceStrategy(BaseStrategy):
                                 if is_pending_order:
                                     print("已重新挂单")
                                     return True
+                else:
+                    print("[无成交] 挂单进行中")
+                    return True
             else:
-                print("[无成交] 无有效成交数据")
-                print(market_info)
+                print("[无成交] 无有效成交数据，开始重新挂单")
                 is_pending_order = self._place_balancing_orders(market_info, valuation, symbol)  # 开始挂单
                 if is_pending_order:
                     print("已重新挂单")
@@ -292,18 +294,21 @@ class BalanceStrategy(BaseStrategy):
         change_ratio = self.config.CHANGE_RATIO #涨跌比例
         balance_ratio = self.config.BALANCE_RATIO #平衡比例
         balance_ratio_arr = list(map(Decimal, balance_ratio.split(':')))
-
-        last_res_price = Decimal(str(self.crud.get_last_deal_price(exchange, symbol) or '0'))
-        print("last_res_price", last_res_price)
+        print("balance_ratio_arr", balance_ratio_arr)
+        last_res_price = Decimal(str(self.crud.get_last_deal_price(exchange, symbol) or '0'))  # 上次成交价格
+        trading_price = Decimal(valuation['btc_price'])  # BTC价格
+        print("last_res_price", last_res_price, "trading_price", trading_price)
         btc_valuation = Decimal(str(valuation.get('btc_valuation', '0')))
         usdt_valuation = Decimal(str(valuation.get('usdt_valuation', '0')))
         print(f"[估值2] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
-        buy_last_price = Decimal(last_res_price)  # 上次成交价格
-        sell_last_price = Decimal(last_res_price)  # 上次成交价格
-        buy_last_price = min(last_res_price, btc_valuation)
-        sell_last_price = max(last_res_price, btc_valuation)
-        sell_propr = (Decimal('1') + (change_ratio / Decimal('100')))  # 出售比例
-        buy_propr = (Decimal('1') - (change_ratio / Decimal('100')))  # 购买比例
+        buy_last_price = last_res_price
+        sell_last_price = last_res_price
+        if buy_last_price > trading_price:
+            buy_last_price = trading_price
+        if sell_last_price < trading_price:
+            sell_last_price = trading_price
+        sell_propr = (Decimal(change_ratio) / Decimal(change_ratio)) + (change_ratio / Decimal('100'))  # 出售比例
+        buy_propr = (Decimal(change_ratio) / Decimal(change_ratio)) - (change_ratio / Decimal('100'))  # 购买比例
         selling_price = sell_last_price * sell_propr  # 出售价格
         buying_price = buy_last_price * buy_propr  # 购买价格
         btc_balance = Decimal(valuation['btc_balance'])  # BTC余额
@@ -312,7 +317,7 @@ class BalanceStrategy(BaseStrategy):
         buy_valuation = buying_price * btc_balance  # BTC 购买估值
 
         buy_num = balance_ratio_arr[1] * ((usdt_valuation - buy_valuation) / (balance_ratio_arr[0] + balance_ratio_arr[1]))
-        print("buy_num", buy_num)
+        print("buy_num", buy_num, balance_ratio_arr[1], usdt_valuation, buy_valuation)
         buy_orders_number = buy_num / buying_price
         print(f"[计算] 购买数量: {buy_orders_number}")
 
@@ -325,17 +330,17 @@ class BalanceStrategy(BaseStrategy):
 
         market_info = self.exchange.get_market_info(symbol)
         min_size = Decimal(market_info['info'].get('minSz', 0))
-        # if buy_orders_number < min_size or sell_orders_number < min_size:
-        #     print(f"[判断] 购买或出售出现负数或者小于最小下单量 {min_size},撤单 开始吃单")
-        #     strategy = PendingStrategy(self.exchange, self.db_session, self.config)
-        #     is_position_order = strategy.execute(symbol)  # 开始吃单平衡
-        #     if is_position_order:
-        #         print("吃单成功 开始重新挂单")
-        #         is_pending_order = self._place_balancing_orders(market_info, valuation, symbol)
-        #         if is_pending_order:
-        #             print("已重新挂单")
-        #             return True
-        #     return True
+        if buy_orders_number < min_size or sell_orders_number < min_size:
+            print(f"[判断] 购买或出售出现负数或者小于最小下单量 {min_size},撤单 开始吃单")
+            strategy = PendingStrategy(self.exchange, self.db_session, self.config)
+            is_position_order = strategy.execute(symbol)  # 开始吃单平衡
+            if is_position_order:
+                print("吃单成功 开始重新挂单")
+                is_pending_order = self._place_balancing_orders(market_info, valuation, symbol)
+                if is_pending_order:
+                    print("已重新挂单")
+                    return True
+            return True
         
         per_diff_res = 0
         if usdt_valuation > btc_valuation:  # busd大
