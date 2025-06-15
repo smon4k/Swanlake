@@ -22,9 +22,10 @@ class BalanceStrategy(BaseStrategy):
             exchange = self.get_exchange_name()
             # 获取挂单数据
             pening_order_list = self.crud.get_open_pending_orders(exchange)
+            # print("pening_order_list", pening_order_list)
             market_info = self.exchange.get_market_info(symbol)
             valuation = self._get_valuation(symbol)
-            if pening_order_list['buy'] or pening_order_list['sell']:
+            if 'buy' in pening_order_list and pening_order_list['buy'] or 'sell' in pening_order_list and pening_order_list['sell']:
                 # Step 1: 获取估值
                 btc_valuation = Decimal(valuation['btc_valuation'])
                 usdt_valuation = Decimal(valuation['usdt_valuation'])
@@ -92,14 +93,18 @@ class BalanceStrategy(BaseStrategy):
                         make_side = 2
                         make_array = sell_order_data
                 
-                print("是否成交", make_array, make_side)
-                if make_side > 0: # 如果有成交
+                print("是否成交", make_array, make_side, buy_order_data, sell_order_data)
+                if make_side == 1: # 如果buy成交
                     # 如果有成交数据
-                    print(f"[成交] 成交方向: {make_side}, 成交数据: {make_array}")
-                    deal_price = Decimal(make_array['price'])  # 成交价格
-                    deal_amount = Decimal(make_array['clinch_amount'])  # 成交数量
-                    order_id = make_array['order_id']  # 挂单ID
+                    print(f"[成交] 成交方向: {make_side}")
+                    deal_price = make_array.price  # 成交价格
+                    deal_amount = make_array.clinch_amount  # 成交数量
+                    print("成交价格", deal_price, "成交数量", deal_amount)
+                    order_id = make_array.order_id  # 挂单ID
                     order_status = 2 if make_side == 1 else 3  # 买单已成交为2，卖单撤销为3
+                    is_pair = False
+                    profit = Decimal(0)
+                    pair_id = 0  # 配对ID
                     if make_side == 1:
                         # 如果是买单成交
                         update_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -108,7 +113,7 @@ class BalanceStrategy(BaseStrategy):
                         set_buy_clinch_res = self.crud.update_clinch_amount(
                             exchange=exchange,
                             order_id=order_id,
-                            deal_amount=float(deal_amount),
+                            deal_amount=deal_amount,
                             status=2  # 买单已成交状态
                         )
                         if not set_buy_clinch_res:
@@ -116,12 +121,12 @@ class BalanceStrategy(BaseStrategy):
                             return
                         set_sell_clinch_res = self.crud.update_pendord_status(
                             exchange=exchange,
-                            order_id=sell_order_data['order_id'],
-                            deal_amount=float(0),
+                            order_id=sell_order_data.order_id,
+                            deal_amount=0,
                             status=3  # 卖单撤销状态
                         )
                         if not set_sell_clinch_res:
-                            print(f"更新卖单撤销状态失败: {sell_order_data['order_id']}")
+                            print(f"更新卖单撤销状态失败: {sell_order_data.order_id}")
                             return
                         
                         # 撤销所有订单
@@ -134,6 +139,11 @@ class BalanceStrategy(BaseStrategy):
                             type=2,  # 买单类型
                             deal_price=float(deal_price)
                         )
+                        print("pair_arr", pair_arr)
+                        if pair_arr:
+                            pair_id = pair_arr['pair_id']
+                            is_pair = True
+                            profit = pair_arr['clinch_number'] * (pair_arr['price'] - float(deal_price))
                     elif make_side == 2:
                         # 如果是卖单成交
                         update_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -142,7 +152,7 @@ class BalanceStrategy(BaseStrategy):
                         set_sell_clinch_res = self.crud.update_clinch_amount(
                             exchange=exchange,
                             order_id=order_id,
-                            deal_amount=float(deal_amount),
+                            deal_amount=deal_amount,
                             status=2  # 卖单已成交状态
                         )
                         if not set_sell_clinch_res:
@@ -150,12 +160,12 @@ class BalanceStrategy(BaseStrategy):
                             return
                         set_buy_clinch_res = self.crud.update_pendord_status(
                             exchange=exchange,
-                            order_id=buy_order_data['order_id'],
-                            deal_amount=float(0),
+                            order_id=buy_order_data.order_id,
+                            deal_amount=0,
                             status=3  # 买单撤销状态
                         )
                         if not set_buy_clinch_res:
-                            print(f"更新买单撤销状态失败: {buy_order_data['order_id']}")
+                            print(f"更新买单撤销状态失败: {buy_order_data.order_id}")
                             return
                         
                         # 撤销所有订单
@@ -168,6 +178,10 @@ class BalanceStrategy(BaseStrategy):
                             type=1,  # 卖单类型
                             deal_price=float(deal_price)
                         )
+                        if pair_arr:
+                            pair_id = pair_arr['pair_id']
+                            is_pair = True
+                            profit = pair_arr['clinch_number'] * (pair_arr['price'] - float(deal_price))
                     else: # 如果两笔挂单都没有成交
                         print("[无成交] 无有效成交数据")
                         # 获取最新交易估值及余额
@@ -176,9 +190,9 @@ class BalanceStrategy(BaseStrategy):
                         usdt_balance_new = Decimal(trade_valuation_new['usdt_balance'])  # 最新USDT余额
 
                         # 检查余额是否有变化
-                        if Decimal(buy_order_data['currency1']) != btc_balance_new or Decimal(buy_order_data['currency2']) != usdt_balance_new:
+                        if Decimal(buy_order_data.currency1) != btc_balance_new or Decimal(buy_order_data.currency2) != usdt_balance_new:
                             print("余额有变化，撤单重新挂单")
-                            print(f"变化前 BTC余额: {buy_order_data['currency1']}, USDT余额: {buy_order_data['currency2']}")
+                            print(f"变化前 BTC余额: {buy_order_data.currency1}, USDT余额: {buy_order_data.currency2}")
                             print(f"最新 BTC余额: {btc_balance_new}, USDT余额: {usdt_balance_new}")
 
                             # 撤销所有挂单
@@ -197,31 +211,30 @@ class BalanceStrategy(BaseStrategy):
                         # 开始下单 写入下单表
                         trade_valuation_new = self._get_valuation(symbol)
                         insert_order_data = {
-                            'product_name': make_array['product_name'],
-                            'order_id': make_array['order_id'],
-                            'order_number': make_array['order_number'],
+                            'product_name': make_array.product_name,
+                            'order_id': make_array.order_id,
+                            'order_number': make_array.order_number,
                             'td_mode': 'cross',
                             'base_ccy': base_ccy,
                             'quote_ccy': quote_ccy,
                             'type': make_side,
                             'order_type': 'LIMIT',
-                            'amount': float(order_amount),
-                            'clinch_number': float(deal_amount),
-                            'price': float(deal_price),
-                            'make_deal_price': float(deal_price),
-                            'profit': float(pair_arr.get('profit', 0)),
+                            'amount': order_amount,
+                            'clinch_number': deal_amount,
+                            'price': deal_price,
+                            'make_deal_price': deal_price,
+                            'profit': profit,
                             'currency1': trade_valuation_new['btc_balance'],
                             'currency2': trade_valuation_new['usdt_balance'],
                             'balanced_valuation': trade_valuation_new['usdt_balance'],
-                            'pair': pair_arr.get('pair_id', 0),
+                            'pair': pair_id,
                             'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                         }
                         insert_id = self.crud.create_piggybank(insert_order_data)
                         if insert_id:
                             print("记录订单成交数据成功")
-                            pair_id = pair_arr.get('pair_id', 0)
                             if pair_id > 0:
-                                is_pair = self.crud.update_pair_and_profit(pair_id, float(pair_arr.get('profit', 0)))
+                                is_pair = self.crud.update_pair_and_profit(pair_id, float(profit))
                                 if is_pair:
                                     is_pending_order = self._place_balancing_orders(market_info, valuation, symbol)  # 重新limit挂单
                                     if is_pending_order:

@@ -21,16 +21,16 @@ async def run_strategy_loop(args, db_session):
     else:
         raise ValueError(f"未知策略: {args.strategy}")
 
-    while True:
-        try:
-            print(f"\n[运行策略] {args.strategy} @ {args.symbol}")
-            success = strategy.execute(args.symbol)
-            exchange_name = exchange.get_exchange_name()
-            print(f"[{exchange_name}] 策略执行{'成功' if success else '失败'}")
-        except Exception as e:
-            print(f"[错误] 策略执行出错: {str(e)}")
+    # while True:
+    try:
+        print(f"\n[运行策略] {args.strategy} @ {args.symbol}")
+        success = strategy.execute(args.symbol)
+        exchange_name = exchange.get_exchange_name()
+        print(f"[{exchange_name}] 策略执行{'成功' if success else '失败'}")
+    except Exception as e:
+        print(f"[错误] 策略执行出错: {str(e)}")
 
-        await asyncio.sleep(10)  # 每10秒执行一次，可以调整
+    await asyncio.sleep(10)  # 每10秒执行一次，可以调整
 
 def main():
     parser = argparse.ArgumentParser(description='量化交易系统')

@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from .models import Piggybank, PiggybankPendord, PiggybankDate
 from typing import Optional, Dict, List
+from sqlalchemy import func
 
 class CRUD:
     def __init__(self, db: Session):
@@ -48,17 +49,13 @@ class CRUD:
             .order_by(PiggybankPendord.id.desc(), PiggybankPendord.time.desc())\
             .limit(2)\
             .all()
-        
-        buy_order = None
-        sell_order = None
-        
+        pending_order_list = {}
         for order in data:
             if order.type == 1:
-                buy_order = order
+                pending_order_list['buy'] = order
             elif order.type == 2:
-                sell_order = order
-        
-        return {'buy': buy_order, 'sell': sell_order}
+                pending_order_list['sell'] = order
+        return pending_order_list
     
     # 更新挂单的成交金额和状态
     def update_clinch_amount(self, exchange: str, order_id: str, deal_amount: float, status: int) -> bool:
@@ -70,11 +67,11 @@ class CRUD:
         return True
     
     # 更新挂单的状态
-    def update_pendord_status(self, exchange: str, order_id: str, status: int) -> bool:
+    def update_pendord_status(self, exchange: str, order_id: str, deal_amount: float, status: int) -> bool:
         try:
             result = self.db.query(PiggybankPendord)\
                 .filter(PiggybankPendord.exchange == exchange, PiggybankPendord.order_id == order_id)\
-                .update({'status': status, 'up_time': datetime.now()})
+                .update({'status': status, 'clinch_amount': deal_amount, 'up_time': datetime.now()})
             if result == 0:
                 raise ValueError(f"No pending order found with exchange '{exchange}' and order_id '{order_id}'")
             self.db.commit()
@@ -89,11 +86,11 @@ class CRUD:
         """Get pair ID and calculate profit based on deal price"""
         query = self.db.query(Piggybank.id, Piggybank.price, Piggybank.clinch_number)\
             .filter(Piggybank.type == type, Piggybank.pair == 0, Piggybank.exchange == exchange)\
-            .order_by(Piggybank.time.desc(), abs(deal_price - Piggybank.price))\
+            .order_by(Piggybank.time.desc(), func.abs(deal_price - Piggybank.price))\
             .limit(1)\
             .all()
 
-        if query and len(query) > 0:
+        if query:
             first_entry = query[0]
             if deal_price < first_entry.price:
                 pair_id = first_entry.id
