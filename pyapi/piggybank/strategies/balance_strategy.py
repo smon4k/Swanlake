@@ -93,7 +93,7 @@ class BalanceStrategy(BaseStrategy):
                         make_side = 2
                         make_array = sell_order_data
                 
-                print("是否成交", make_array, make_side, buy_order_data, sell_order_data)
+                print("是否成交", make_array, make_side)
                 if make_side == 1: # 如果buy成交
                     # 如果有成交数据
                     print(f"[成交] 成交方向: {make_side}")

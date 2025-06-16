@@ -50,7 +50,7 @@ class PendingStrategy(BaseStrategy):
             # 如果没有历史平衡估值，计算涨跌幅比例（%）
             change_ratio_num = abs(btc_valuation / usdt_valuation)
         if change_ratio_num <= change_ratio:
-            print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 未超过阈值 {self.config.CHANGE_RATIO}%，停止下单")
+            print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 未超过阈值 {change_ratio}%，停止下单")
             return False
 
         print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 超过阈值，开始下单")
