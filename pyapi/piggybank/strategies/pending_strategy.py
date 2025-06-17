@@ -16,7 +16,7 @@ class PendingStrategy(BaseStrategy):
 
     def execute(self, symbol: str) -> bool:
         """
-        执行下单策略：
+        执行平衡仓位策略：
          1. 获取估值信息
          2. 计算涨跌幅比率，若低于阈值，则停止下单
          3. 根据 BTC 与 USDT 估值差异判断下单方向（卖出或买入市场单）
@@ -49,7 +49,9 @@ class PendingStrategy(BaseStrategy):
         else:
             # 如果没有历史平衡估值，计算涨跌幅比例（%）
             change_ratio_num = abs(btc_valuation / usdt_valuation)
-        if change_ratio_num <= change_ratio:
+        
+        VALUATION_THRESHOLD = Decimal(str(self.config.VALUATION_THRESHOLD))
+        if change_ratio_num <= VALUATION_THRESHOLD:
             print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 未超过阈值 {change_ratio}%，停止下单")
             return False
 
@@ -97,7 +99,9 @@ class PendingStrategy(BaseStrategy):
             # 买单：按比例计算买入金额（与 PHP 中 $usdtBuyNum 类似）
             diff = usdt_valuation - btc_valuation
             buy_value = ratio_parts[1] * (diff / (ratio_parts[0] + ratio_parts[1]))
-            buy_amount = buy_value  # 买入时金额直接为 USDT 数量
+            buy_amount_number = Decimal(buy_value) / Decimal(btc_price)
+            buy_amount = format(buy_amount_number, '.8f')
+            print(f"[{exchange}] 计算买入金额: {buy_amount_number}, BTC 价格: {btc_price}")
             order_side = OrderSide.BUY.value
             order_type_num = 1
             print(f"[{exchange}] 准备买入 BTC, 金额: {buy_amount}, 最小下单量: {min_size}")
@@ -149,26 +153,24 @@ class PendingStrategy(BaseStrategy):
             'quote_ccy': quote_ccy,
             'type': order_type_num,  # 1 为买单，2 为卖单
             'order_type': 'market',
-            'amount': float(order_amount),
-            'clinch_number': float(filled_amount),
-            'price': float(deal_price),
-            'profit': float(profit),
+            'amount': order_amount,
+            'clinch_number': filled_amount,
+            'price': deal_price,
+            'profit': profit,
             'pair': pair_id,
             'currency1': new_valuation['btc_balance'],
             'currency2': new_valuation['usdt_balance'],
             'balanced_valuation': new_valuation['usdt_valuation'],
             'make_deal_price': float(avg_price),
-            'time': datetime.now()
+            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         self.crud.create_piggybank(order_data)
         print(f"[{exchange}] 写入订单数据成功")
 
         # 12. 若找到配对订单，则更新其状态
         if pair_id:
-            self.crud.db.query(Piggybank).filter(Piggybank.id == pair_id).update({
-                'pair': order_id,
-                'profit': profit
-            })
-            self.crud.db.commit()
+            is_pair = self.crud.update_pair_and_profit(pair_id, float(profit))
+            if is_pair:
+                self.crud.db.commit()
             print(f"[{exchange}] 配对更新成功")
         return True
