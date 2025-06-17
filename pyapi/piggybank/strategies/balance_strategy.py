@@ -43,10 +43,10 @@ class BalanceStrategy(BaseStrategy):
                 else:
                     valuation_ratio = Decimal('0')
                 
-                balance_ratio = Decimal(str(self.config.CHANGE_RATIO))
+                VALUATION_THRESHOLD = Decimal(str(self.config.VALUATION_THRESHOLD))
 
                 # 如果两个币种估值差大于2%的话 撤单->吃单->重新挂单
-                if valuation_ratio > balance_ratio:
+                if valuation_ratio > VALUATION_THRESHOLD:
                     print(f"[估值不平衡] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}, 差异比: {valuation_ratio}")
                     self._cancel_open_orders(symbol) # 撤单
                     strategy = PendingStrategy(self.exchange, self.db_session, self.config)
@@ -58,8 +58,8 @@ class BalanceStrategy(BaseStrategy):
                         print("吃单失败，跳过本轮")
                         return
                     return  
-                buy_order_data = pening_order_list['buy']
-                sell_order_data = pening_order_list['sell']
+                buy_order_data = pening_order_list['buy'] if 'buy' in pening_order_list else None
+                sell_order_data = pening_order_list['sell'] if 'sell' in pening_order_list else None
                 make_array = [] # 成交数据
                 order_amount = Decimal(0)
                 deal_amount = Decimal(0)
@@ -69,32 +69,57 @@ class BalanceStrategy(BaseStrategy):
                 deal_price = Decimal(0)  # 成交均价
 
                 # 首先获取挂买信息
-                buy_clinch_info = self.exchange.fetch_order(buy_order_data.order_id, symbol)  # 获取挂买数据
-                # print("挂买数据", buy_clinch_info)
-                if buy_clinch_info:
-                    order_amount = Decimal(buy_clinch_info['info']['sz'])  # 订单数量
-                    deal_amount = Decimal(buy_clinch_info['info']['accFillSz'])  # 成交数量
-                    side_type = buy_clinch_info['info']['side']  # 订单方向
-                    min_order_amount = order_amount * Decimal(0.5)  # 最小成交数量
-                    print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】")
-                    if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
-                        make_side = 1
-                        make_array = buy_order_data
-                # 然后获取挂卖信息
-                sell_clinch_info = self.exchange.fetch_order(sell_order_data.order_id, symbol)  # 获取挂卖数据
-                # print("挂卖数据", sell_clinch_info)
-                if sell_clinch_info:
-                    order_amount = Decimal(sell_clinch_info['info']['sz'])  # 订单数量
-                    deal_amount = Decimal(sell_clinch_info['info']['accFillSz'])  # 成交数量
-                    side_type = sell_clinch_info['info']['side']  # 订单方向
-                    min_order_amount = order_amount * Decimal(0.5)  # 最小成交数量
-                    print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】")
-                    if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
-                        make_side = 2
-                        make_array = sell_order_data
+                if buy_order_data:
+                    buy_clinch_info = self.exchange.fetch_order(buy_order_data.order_id, symbol)  # 获取挂买数据
+                    # print("挂买数据", buy_clinch_info)
+                    if buy_clinch_info:
+                        order_amount = Decimal(buy_clinch_info['info']['sz'])  # 订单数量
+                        deal_amount = Decimal(buy_clinch_info['info']['accFillSz'])  # 成交数量
+                        side_type = buy_clinch_info['info']['side']  # 订单方向
+                        min_order_amount = order_amount * Decimal(0.5)  # 最小成交数量
+                        buy_order_status = buy_clinch_info['info']['state']  # 订单状态
+                        print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】 状态【{buy_order_status}】")
+                        if buy_order_status == 'filled':
+                            if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
+                                make_side = 1
+                                make_array = buy_order_data
+                        if(buy_order_status == 'canceled'):
+                            print(f"买单已撤销: {buy_order_data.order_id}")
+                            self.crud.update_clinch_amount(
+                                exchange=exchange,
+                                order_id=buy_order_data.order_id,
+                                deal_amount=0,
+                                status=3  # 买单撤销状态  
+                            )
+                            return True  # 买单已撤销，直接返回
+                        
+                if sell_order_data:
+                    # 然后获取挂卖信息
+                    sell_clinch_info = self.exchange.fetch_order(sell_order_data.order_id, symbol)  # 获取挂卖数据
+                    # print("挂卖数据", sell_clinch_info)
+                    if sell_clinch_info:
+                        order_amount = Decimal(sell_clinch_info['info']['sz'])  # 订单数量
+                        deal_amount = Decimal(sell_clinch_info['info']['accFillSz'])  # 成交数量
+                        side_type = sell_clinch_info['info']['side']  # 订单方向
+                        min_order_amount = order_amount * Decimal(0.5)  # 最小成交数量
+                        sell_order_status = sell_clinch_info['info']['state']  # 订单状态
+                        print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】 状态【{sell_order_status}】")
+                        if sell_order_status == 'filled':
+                            if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
+                                make_side = 2
+                                make_array = sell_order_data
+                        if(sell_order_status == 'canceled'):
+                            print(f"卖单已撤销: {sell_order_data.order_id}")
+                            self.crud.update_clinch_amount(
+                                exchange=exchange,
+                                order_id=sell_order_data.order_id,
+                                deal_amount=0,
+                                status=3  # 卖单撤销状态  
+                            )
+                            return True  # 卖单已撤销，直接返回
                 
                 print("是否成交", make_array, make_side)
-                if make_side == 1: # 如果buy成交
+                if make_side > 0: # 如果buy成交
                     # 如果有成交数据
                     print(f"[成交] 成交方向: {make_side}")
                     deal_price = make_array.price  # 成交价格
@@ -211,6 +236,7 @@ class BalanceStrategy(BaseStrategy):
                         # 开始下单 写入下单表
                         trade_valuation_new = self._get_valuation(symbol)
                         insert_order_data = {
+                            'exchange': exchange,
                             'product_name': make_array.product_name,
                             'order_id': make_array.order_id,
                             'order_number': make_array.order_number,
@@ -309,6 +335,7 @@ class BalanceStrategy(BaseStrategy):
         balance_ratio_arr = list(map(Decimal, balance_ratio.split(':')))
         print("balance_ratio_arr", balance_ratio_arr)
         last_res_price = Decimal(str(self.crud.get_last_deal_price(exchange, symbol) or '0'))  # 上次成交价格
+        # last_res_price = Decimal("106546")  # 上次成交价格
         trading_price = Decimal(valuation['btc_price'])  # BTC价格
         print("last_res_price", last_res_price, "trading_price", trading_price)
         btc_valuation = Decimal(str(valuation.get('btc_valuation', '0')))
