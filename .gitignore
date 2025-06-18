@@ -29,3 +29,4 @@ database_hp*.php
 /pyapi/grid2/log
 __pycache__/
 .env
+/pyapi/piggybank/logs
