@@ -1,8 +1,9 @@
 import logging
 from datetime import datetime
 from pathlib import Path
+import sys
 
-def setup_logger(name: str, log_dir: str = "logs") -> logging.Logger:
+def setup_logger(name: str, log_dir: str = "logs", capture_print: bool = False) -> logging.Logger:
     """设置并返回一个日志记录器"""
     Path(log_dir).mkdir(exist_ok=True)
     
@@ -20,7 +21,25 @@ def setup_logger(name: str, log_dir: str = "logs") -> logging.Logger:
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     
+    # 先移除所有现有处理器，避免重复添加
+    logger.handlers = []
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+    
+    if capture_print:
+        class PrintToLogger:
+            def __init__(self, logger, level=logging.INFO):
+                self.logger = logger
+                self.level = level
+                
+            def write(self, msg):
+                if msg.strip():
+                    self.logger.log(self.level, msg.strip())
+                    
+            def flush(self):
+                pass
+                
+        sys.stdout = PrintToLogger(logger)
+        sys.stderr = PrintToLogger(logger, logging.ERROR)
     
     return logger

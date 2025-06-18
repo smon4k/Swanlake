@@ -39,7 +39,7 @@ class PendingStrategy(BaseStrategy):
         btc_valuation = Decimal(valuation['btc_valuation'])
         usdt_valuation = Decimal(valuation['usdt_valuation'])
         btc_price = Decimal(valuation['btc_price'])
-        print("btc_valuation", btc_valuation, "usdt_valuation", usdt_valuation)
+        print("btc_valuation", btc_valuation, "usdt_valuation", usdt_valuation, "btc_price", btc_price)
         # 2. 获取上次平衡状态下的估值（这里要求开发者自行实现该方法，若无则采用 usdt_valuation 作为基准）
         last_balanced_valuation = self.crud.get_last_balanced_valuation(exchange, symbol)  # 获取上次平衡状态下的估值
         print("last_balanced_valuation", last_balanced_valuation)
@@ -87,12 +87,13 @@ class PendingStrategy(BaseStrategy):
                 print(f"[{self.get_exchange_name()}] 卖单数量 {sell_amount} 小于最小下单量 {min_size}，停止下单")
                 return False
             # 下单：市场卖单
+            sell_price = Decimal(btc_price) - Decimal('60')  # 假设卖出价格比当前价格高60美元
             result = self.exchange.create_order(
                 symbol=symbol,
-                order_type=OrderType.MARKET.value,
+                order_type=OrderType.LIMIT.value,
                 side=OrderSide.SELL.value,
                 amount=float(sell_amount),
-                price=None,
+                price=sell_price,
                 params={'clOrdId': client_order_id, 'tdMode': 'cross'}
             )
             order_amount = Decimal(sell_amount)
@@ -100,9 +101,9 @@ class PendingStrategy(BaseStrategy):
             # 买单：按比例计算买入金额（与 PHP 中 $usdtBuyNum 类似）
             diff = usdt_valuation - btc_valuation
             buy_value = ratio_parts[1] * (diff / (ratio_parts[0] + ratio_parts[1]))
-            # buy_amount_number = Decimal(buy_value) / Decimal(btc_price)
-            buy_amount = Decimal(buy_value)
-            # buy_amount = buy_amount_number, '.8f')
+            buy_amount_number = Decimal(buy_value) / Decimal(btc_price)
+            # buy_amount = Decimal(buy_value)
+            buy_amount = buy_amount_number
             print(f"[{exchange}] 计算买入金额: {buy_amount}, BTC 价格: {btc_price}")
             order_side = OrderSide.BUY.value
             order_type_num = 1
@@ -111,12 +112,14 @@ class PendingStrategy(BaseStrategy):
                 print(f"[{exchange}] 买单金额 {buy_amount} 小于最小下单量 {min_size}，停止下单")
                 return False
             # 下单：市场买单
+            buy_price = Decimal(btc_price) + Decimal('60')  # 假设买入价格比当前价格低60美元
             result = self.exchange.create_order(
                 symbol=symbol,
-                order_type=OrderType.MARKET.value,
+                # order_type=OrderType.MARKET.value,
+                order_type=OrderType.LIMIT.value,
                 side=OrderSide.BUY.value,
                 amount=float(buy_amount),
-                price=None,
+                price=buy_price,
                 params={'clOrdId': client_order_id, 'tdMode': 'cross'}
             )
             order_amount = Decimal(buy_amount)

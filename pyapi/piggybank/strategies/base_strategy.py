@@ -22,7 +22,6 @@ class BaseStrategy(ABC):
     def _get_valuation(self, symbol: str) -> Dict:
         balance = self.exchange.get_balance()
         ticker = self.exchange.get_ticker(symbol)
-
         currency1, currency2 = symbol.split('-') if '-' in symbol else symbol.split('/')
 
         details = balance['info']['data'][0].get('details', [])

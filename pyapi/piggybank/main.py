@@ -1,8 +1,9 @@
 import asyncio
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent.parent))  # 调整到 pyapi 目录
 
+sys.path.append(str(Path(__file__).parent.parent.parent))  # 调整到 pyapi 目录
+from pyapi.piggybank.utils.logger import setup_logger
 from db import SessionLocal
 from exchanges.factory import ExchangeFactory
 from strategies.balance_strategy import BalanceStrategy
@@ -33,6 +34,7 @@ async def run_strategy_loop(args, db_session):
 
 def main():
     args = Args()
+    setup_logger("my_app", capture_print=True)
     db_session = SessionLocal()
     asyncio.run(run_strategy_loop(args, db_session))
 
