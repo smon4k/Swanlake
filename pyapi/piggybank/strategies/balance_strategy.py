@@ -356,12 +356,24 @@ class BalanceStrategy(BaseStrategy):
         sell_valuation = selling_price * btc_balance  # GBTC 出售估值
         buy_valuation = buying_price * btc_balance  # BTC 购买估值
 
-        buy_num = balance_ratio_arr[1] * ((usdt_valuation - buy_valuation) / (balance_ratio_arr[0] + balance_ratio_arr[1]))
+        buy_diff = 0
+        if usdt_valuation > buy_valuation:
+            buy_diff = usdt_valuation - buy_valuation
+        else:
+            buy_diff = buy_valuation - usdt_valuation
+        
+        sell_diff = 0
+        if usdt_valuation > sell_valuation:
+            sell_diff = usdt_valuation - sell_valuation
+        else:
+            sell_diff = sell_valuation - usdt_valuation
+
+        buy_num = balance_ratio_arr[1] * (buy_diff / (balance_ratio_arr[0] + balance_ratio_arr[1]))
         print("buy_num", buy_num, balance_ratio_arr[1], usdt_valuation, buy_valuation)
         buy_orders_number = buy_num / buying_price
         print(f"[计算] 购买数量: {buy_orders_number}")
 
-        sell_num = balance_ratio_arr[0] * ((sell_valuation - usdt_valuation) / (balance_ratio_arr[0] + balance_ratio_arr[1]))
+        sell_num = balance_ratio_arr[0] * (sell_diff / (balance_ratio_arr[0] + balance_ratio_arr[1]))
         print("sell_num", sell_num)
         sell_orders_number = sell_num / selling_price
         print(f"[计算] 出售数量: {sell_orders_number}")

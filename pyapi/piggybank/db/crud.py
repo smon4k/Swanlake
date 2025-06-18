@@ -83,20 +83,24 @@ class CRUD:
     
     # 获取挂单并计算利润
     def get_pair_and_calculate_profit(self, exchange: str, type: int, deal_price: float) -> Optional[Dict]:
-        """Get pair ID and calculate profit based on deal price"""
-        query = self.db.query(Piggybank.id, Piggybank.price, Piggybank.clinch_number)\
+        """
+        获取配对id和利润，逻辑与原PHP一致:
+        查询type=2且pair=0的记录，按time倒序和价格差绝对值排序，取第一条，
+        如果deal_price < price，则计算利润
+        """
+        result = self.db.query(Piggybank.id, Piggybank.price, Piggybank.clinch_number)\
             .filter(Piggybank.type == type, Piggybank.pair == 0, Piggybank.exchange == exchange)\
             .order_by(Piggybank.time.desc(), func.abs(deal_price - Piggybank.price))\
-            .limit(1)\
-            .all()
-
-        if query:
-            first_entry = query[0]
-            if deal_price < first_entry.price:
-                pair_id = first_entry.id
-                profit = first_entry.clinch_number * (first_entry.price - deal_price)
-                return {"pair_id": pair_id, "profit": profit}
-
+            .first()
+        if (
+            result
+            and result.price is not None
+            and result.clinch_number is not None
+            and deal_price < result.price
+        ):
+            pair_id = result.id
+            profit = float(result.clinch_number) * (float(result.price) - deal_price)
+            return {"pair_id": pair_id, "profit": profit}
         return None
     
     def revoke_all_pending_orders(self, exchange: str) -> bool:

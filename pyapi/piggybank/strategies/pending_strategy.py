@@ -52,7 +52,7 @@ class PendingStrategy(BaseStrategy):
         
         VALUATION_THRESHOLD = Decimal(str(self.config.VALUATION_THRESHOLD))
         if change_ratio_num <= VALUATION_THRESHOLD:
-            print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 未超过阈值 {change_ratio}%，停止下单")
+            print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 未超过阈值 {VALUATION_THRESHOLD}%，停止下单")
             return False
 
         print(f"[{exchange}] 涨跌幅度 {change_ratio_num}% 超过阈值，开始下单")
@@ -71,6 +71,7 @@ class PendingStrategy(BaseStrategy):
 
         # 6. 根据 BTC 与 USDT 估值差异确定下单方向
         # 若 BTC 估值 > USDT，则进行卖出 BTC ；否则买入 BTC
+        order_amount = 0
         if btc_valuation > usdt_valuation:
             # 卖单：按比例计算卖出额（与 PHP 中 $btcSellNum 类似）
             diff = btc_valuation - usdt_valuation
@@ -94,18 +95,19 @@ class PendingStrategy(BaseStrategy):
                 price=None,
                 params={'clOrdId': client_order_id, 'tdMode': 'cross'}
             )
-            order_amount = sell_amount
+            order_amount = Decimal(sell_amount)
         else:
             # 买单：按比例计算买入金额（与 PHP 中 $usdtBuyNum 类似）
             diff = usdt_valuation - btc_valuation
             buy_value = ratio_parts[1] * (diff / (ratio_parts[0] + ratio_parts[1]))
-            buy_amount_number = Decimal(buy_value) / Decimal(btc_price)
-            buy_amount = format(buy_amount_number, '.8f')
-            print(f"[{exchange}] 计算买入金额: {buy_amount_number}, BTC 价格: {btc_price}")
+            # buy_amount_number = Decimal(buy_value) / Decimal(btc_price)
+            buy_amount = Decimal(buy_value)
+            # buy_amount = buy_amount_number, '.8f')
+            print(f"[{exchange}] 计算买入金额: {buy_amount}, BTC 价格: {btc_price}")
             order_side = OrderSide.BUY.value
             order_type_num = 1
             print(f"[{exchange}] 准备买入 BTC, 金额: {buy_amount}, 最小下单量: {min_size}")
-            if buy_amount < min_size:
+            if Decimal(buy_amount) < min_size:
                 print(f"[{exchange}] 买单金额 {buy_amount} 小于最小下单量 {min_size}，停止下单")
                 return False
             # 下单：市场买单
@@ -117,7 +119,7 @@ class PendingStrategy(BaseStrategy):
                 price=None,
                 params={'clOrdId': client_order_id, 'tdMode': 'cross'}
             )
-            order_amount = buy_amount
+            order_amount = Decimal(buy_amount)
         # 7. 判断下单结果
         sCode = int(result.get('info', {}).get('sCode', -1))
         print(f"[{exchange}] 下单响应 sCode: {sCode}")
@@ -135,9 +137,13 @@ class PendingStrategy(BaseStrategy):
         avg_price = Decimal(order_details.get('avgPx', btc_price))
         # 若 fillPx 存在则作为最新成交价，否则使用成交均价
         deal_price = Decimal(order_details.get('fillPx', avg_price))
-
         # 9. 配对信息（调用 BalanceStrategy 中已有方法）
-        pair_id, profit = self._get_pair_info(order_side, avg_price, filled_amount, symbol)
+
+        pair_arr = self.crud.get_pair_and_calculate_profit(
+            exchange=exchange,
+            type=1,  # 卖单类型
+            deal_price=float(deal_price)
+        )
 
         # 10. 获取下单后新的估值
         new_valuation = self._get_valuation(symbol)
@@ -156,8 +162,8 @@ class PendingStrategy(BaseStrategy):
             'amount': order_amount,
             'clinch_number': filled_amount,
             'price': deal_price,
-            'profit': profit,
-            'pair': pair_id,
+            'profit': pair_arr['profit'] if pair_arr and pair_arr['profit'] else 0,
+            'pair': pair_arr['pair_id'] if pair_arr and pair_arr['pair_id'] else 0,
             'currency1': new_valuation['btc_balance'],
             'currency2': new_valuation['usdt_balance'],
             'balanced_valuation': new_valuation['usdt_valuation'],
@@ -168,8 +174,8 @@ class PendingStrategy(BaseStrategy):
         print(f"[{exchange}] 写入订单数据成功")
 
         # 12. 若找到配对订单，则更新其状态
-        if pair_id:
-            is_pair = self.crud.update_pair_and_profit(pair_id, float(profit))
+        if pair_arr:
+            is_pair = self.crud.update_pair_and_profit(pair_arr['pair_id'], float(pair_arr['profit']))
             if is_pair:
                 self.crud.db.commit()
             print(f"[{exchange}] 配对更新成功")
