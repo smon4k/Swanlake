@@ -19,7 +19,7 @@ async def run_strategy_loop(args, db_session):
     exchange = ExchangeFactory.create_exchange(exchange_type)
     config = Config()
 
-    strategy = PendingStrategy(exchange, db_session, config)
+    strategy = BalanceStrategy(exchange, db_session, config)
     while True:
         try:
             print(f"\n[运行策略] {args.strategy} @ {args.symbol}")

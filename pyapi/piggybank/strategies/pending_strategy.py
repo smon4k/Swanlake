@@ -168,7 +168,8 @@ class PendingStrategy(BaseStrategy):
             'currency2': new_valuation['usdt_balance'],
             'balanced_valuation': new_valuation['usdt_valuation'],
             'make_deal_price': float(avg_price),
-            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'up_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         self.crud.create_piggybank(order_data)
         print(f"[{exchange}] 写入订单数据成功")

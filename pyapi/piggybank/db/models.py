@@ -24,6 +24,7 @@ class Piggybank(Base):
     balanced_valuation = Column(Float)
     make_deal_price = Column(Float)
     time = Column(DateTime)
+    up_time = Column(DateTime)
 
 class PiggybankPendord(Base):
     __tablename__ = 'p_piggybank_pendord'

@@ -255,6 +255,7 @@ class BalanceStrategy(BaseStrategy):
                             'balanced_valuation': trade_valuation_new['usdt_balance'],
                             'pair': pair_id,
                             'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                            'up_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                         }
                         insert_id = self.crud.create_piggybank(insert_order_data)
                         if insert_id:
