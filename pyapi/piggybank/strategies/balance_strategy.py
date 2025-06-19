@@ -78,7 +78,7 @@ class BalanceStrategy(BaseStrategy):
                         side_type = buy_clinch_info['info']['side']  # 订单方向
                         min_order_amount = order_amount * Decimal(0.5)  # 最小成交数量
                         buy_order_status = buy_clinch_info['info']['state']  # 订单状态
-                        print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】 状态【{buy_order_status}】")
+                        # print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】 状态【{buy_order_status}】")
                         if buy_order_status == 'filled':
                             if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
                                 make_side = 1
