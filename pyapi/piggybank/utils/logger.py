@@ -14,7 +14,7 @@ def setup_logger(name: str, log_dir: str = "logs", capture_print: bool = False) 
     
     # 文件处理器
     log_file = Path(log_dir) / f"{datetime.now().strftime('%Y%m%d')}.log"
-    file_handler = logging.FileHandler(log_file)
+    file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
     file_handler.setFormatter(formatter)
     
     # 控制台处理器
@@ -34,7 +34,9 @@ def setup_logger(name: str, log_dir: str = "logs", capture_print: bool = False) 
                 
             def write(self, msg):
                 if msg.strip():
-                    self.logger.log(self.level, msg.strip())
+                    if msg and len(msg) > 1 and msg != "^":
+                        self.logger.log(self.level, msg)
+
                     
             def flush(self):
                 pass
