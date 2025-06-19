@@ -29,7 +29,7 @@ class BalanceStrategy(BaseStrategy):
                 # Step 1: 获取估值
                 btc_valuation = Decimal(valuation['btc_valuation'])
                 usdt_valuation = Decimal(valuation['usdt_valuation'])
-                print(f"[估值1] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
+                # print(f"[估值1] {base_token}:{btc_valuation}, {quote_token}:{usdt_valuation}")
                 if btc_valuation == 0 or usdt_valuation == 0:
                     print("估值数据异常，跳过本轮")
                     return
@@ -103,7 +103,7 @@ class BalanceStrategy(BaseStrategy):
                         side_type = sell_clinch_info['info']['side']  # 订单方向
                         min_order_amount = order_amount * Decimal(0.5)  # 最小成交数量
                         sell_order_status = sell_clinch_info['info']['state']  # 订单状态
-                        print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】 状态【{sell_order_status}】")
+                        # print(f"{side_type}订单数量【{order_amount}】成交数量【{deal_amount}】 状态【{sell_order_status}】")
                         if sell_order_status == 'filled':
                             if deal_amount >= min_order_amount:  # 如果已成交数量大于等于订单数量的50% 设置为已下单 撤销另一个订单
                                 make_side = 2
@@ -118,7 +118,7 @@ class BalanceStrategy(BaseStrategy):
                             )
                             return True  # 卖单已撤销，直接返回
                 
-                print("是否成交", make_array, make_side)
+                # print("是否成交", make_array, make_side)
                 if make_side > 0: # 如果buy成交
                     # 如果有成交数据
                     print(f"[成交] 成交方向: {make_side}")
