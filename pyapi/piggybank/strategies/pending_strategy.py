@@ -87,13 +87,13 @@ class PendingStrategy(BaseStrategy):
                 print(f"[{self.get_exchange_name()}] 卖单数量 {sell_amount} 小于最小下单量 {min_size}，停止下单")
                 return False
             # 下单：市场卖单
-            sell_price = Decimal(btc_price) - Decimal('60')  # 假设卖出价格比当前价格高60美元
+            # sell_price = Decimal(btc_price) - Decimal('60')  # 假设卖出价格比当前价格高60美元
             result = self.exchange.create_order(
                 symbol=symbol,
-                order_type=OrderType.LIMIT.value,
+                order_type=OrderType.MARKET.value,
                 side=OrderSide.SELL.value,
                 amount=float(sell_amount),
-                price=sell_price,
+                price=None,
                 params={'clOrdId': client_order_id, 'tdMode': 'cross'}
             )
             order_amount = Decimal(sell_amount)
