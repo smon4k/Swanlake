@@ -25,16 +25,15 @@ class BaseStrategy(ABC):
         currency1, currency2 = symbol.split('-') if '-' in symbol else symbol.split('/')
 
         details = balance['info']['data'][0].get('details', [])
-
         btc_balance = sum(
-            Decimal(asset.get('availBal', '0')) for asset in details if asset.get('ccy') == currency1
+            Decimal(asset.get('eq', '0')) for asset in details if asset.get('ccy') == currency1
         )
-        print("valuation btc_balance", btc_balance, currency1)
+        # print("valuation btc_balance", btc_balance, currency1)
 
         usdt_balance = sum(
-            Decimal(asset.get('availBal', '0')) for asset in details if asset.get('ccy') == currency2
+            Decimal(asset.get('eq', '0')) for asset in details if asset.get('ccy') == currency2
         )
-        print("valuation usdt_balance", usdt_balance, currency2)
+        # print("valuation usdt_balance", usdt_balance, currency2)
 
         btc_price = Decimal(str(ticker['last']))
         btc_valuation = btc_balance * btc_price
