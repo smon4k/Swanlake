@@ -26,6 +26,10 @@ class OkxExchange(BaseExchange):
     def get_ticker(self, symbol: str) -> Dict:
         return self.client.fetch_ticker(symbol)
     
+    def is_spot_market(self, symbol: str) -> bool:
+        market = self.client.market(symbol)
+        return market.get('type') == 'spot'
+    
     def get_market_info(self, symbol: str) -> Dict:
         markets = self.client.fetch_markets_by_type('SPOT', {'instId': symbol})
         return markets[0] if markets else None
