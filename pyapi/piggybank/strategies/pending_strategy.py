@@ -1,219 +1,178 @@
+# 挂单 策略
 from datetime import datetime
 from decimal import Decimal
-from typing import Dict, Optional, Tuple
-
-from pyapi.piggybank.db.models import Piggybank
-from .base_strategy import BaseStrategy
-from config.constants import OrderType, OrderSide
+from config.constants import OrderStatus, OrderType, OrderSide
+from pyapi.piggybank.strategies.balanced_strategy import BalancedStrategy
 from utils.helpers import generate_client_order_id
-
+from pyapi.piggybank.strategies.base_strategy import BaseStrategy
 
 class PendingStrategy(BaseStrategy):
     def __init__(self, exchange, db_session, config):
         super().__init__(exchange, db_session)
         self.config = config
 
-    def execute(self, symbol: str) -> bool:
+    def execute(self, symbol):
+        """
+        执行策略主流程：
+        1. 获取市场信息与估值
+        2. 根据当前估值与配置执行挂单逻辑
+        """
         try:
-            normalized_symbol = self.exchange.normalize_symbol(symbol)
-            return self._place_market_order(normalized_symbol)
+            base_token, quote_token = symbol.split('-')
+            exchange = self.get_exchange_name()
+            market_info = self.exchange.get_market_info(symbol)
+            valuation = self._get_valuation(symbol)
+            return self._place_balancing_orders(market_info, valuation, symbol)
         except Exception as e:
-            print(f"[{self.get_exchange_name()}] 市场下单策略执行错误: {str(e)}")
+            print(f"[{exchange}] 策略执行异常: {e}")
             return False
 
-    def _place_market_order(self, symbol: str) -> bool:
+    def _place_balancing_orders(self, market_info, valuation, symbol):
         """
-        下单主流程：拆分为估值检查 -> 参数构造 -> 下单 -> 结果解析 -> 入库处理。
-        """
-        valuation = self._get_valuation(symbol)
-        if not self._should_place_order(symbol, valuation):
-            return False
-
-        # 2. 获取市场信息（最小下单量、币对基础/计价币种）
-        market_info, base_ccy, quote_ccy, min_size = self._get_market_info(symbol)
-
-        # 3. 构建订单参数（方向、数量、价格）
-        order_params = self._build_order_parameters(symbol, valuation, min_size)
-        if not order_params:
-            return False
-
-        # 4. 提交订单
-        result = self._submit_order(symbol, order_params)
-        if not result:
-            return False
-
-        # 5. 获取成交详情
-        order_id = result.get('info', {}).get('ordId')
-        order_details = self.exchange.fetch_order(order_id, symbol)
-        filled_amount, avg_price, deal_price = self._parse_order_details(order_details, valuation)
-
-        # 6. 最终处理：写入数据库 + 利润配对处理
-        self._finalize_order(symbol, valuation, market_info, order_params, order_id, filled_amount, avg_price, deal_price)
-        return True
-
-    def _should_place_order(self, symbol, valuation: Dict[str, Decimal]) -> bool:
-        """
-        判断当前 BTC 与 USDT 估值差异是否超过阈值，决定是否下单。
+        挂单主逻辑：
+        - 根据估值与配置计算买卖价格和数量
+        - 判断是否吃单或强制重新挂单
+        - 发出限价挂单
         """
         exchange = self.get_exchange_name()
+        change_ratio = Decimal(str(self.config.CHANGE_RATIO))
+        balance_ratio_arr = list(map(Decimal, self.config.BALANCE_RATIO.split(':')))
+
+        last_price = self._get_last_price(exchange, symbol, valuation)
+        buy_price, sell_price = self._calculate_trade_prices(last_price, change_ratio)
+
+        btc_balance = Decimal(valuation['btc_balance'])
+        usdt_balance = Decimal(valuation['usdt_balance'])
         btc_valuation = Decimal(valuation['btc_valuation'])
         usdt_valuation = Decimal(valuation['usdt_valuation'])
 
-        # 计算估值总额（用于归一化）
-        total_valuation = btc_valuation + usdt_valuation
-        if total_valuation == 0:
-            print(f"[{exchange}] 当前估值为 0，跳过下单判断")
-            return False
-
-        # 计算估值差异占总估值的百分比
-        delta = abs(btc_valuation - usdt_valuation)
-        change_ratio = (delta / usdt_valuation) * Decimal('100')
-
-        # 获取配置中的阈值
-        threshold = Decimal(str(self.config.VALUATION_THRESHOLD))
-
-        if change_ratio <= threshold:
-            print(f"[{exchange}] 涨跌幅 {change_ratio:.2f}% 未超过阈值 {threshold}%，不下单")
-            return False
-
-        print(f"[{exchange}] 涨跌幅 {change_ratio:.2f}% 超过阈值 {threshold}%，准备下单")
-        return True
-
-
-    def _get_market_info(self, symbol: str):
-        """
-        获取币对的市场信息，如最小下单量、基础币种等。
-        """
-        market_info = self.exchange.get_market_info(symbol)
-        base_ccy = market_info['info'].get('baseCcy', symbol.split('-')[0])
-        quote_ccy = market_info['info'].get('quoteCcy', symbol.split('-')[1])
-        min_size = Decimal(market_info['info'].get('minSz', 0))
-        return market_info, base_ccy, quote_ccy, min_size
-
-    def _build_order_parameters(self, symbol: str, valuation: Dict[str, Decimal], min_size: Decimal):
-        """
-        构建下单请求的参数，包括方向、下单数量、类型等。
-        """
-        btc_valuation = Decimal(valuation['btc_valuation'])
-        usdt_valuation = Decimal(valuation['usdt_valuation'])
-        btc_price = Decimal(valuation['btc_price'])
-        ratio = [Decimal(x) for x in self.config.BALANCE_RATIO.split(':')]
-        client_order_id = generate_client_order_id('Zx')
-
-        if btc_valuation > usdt_valuation:
-            diff = btc_valuation - usdt_valuation
-            sell_value = ratio[0] * diff / sum(ratio)
-            amount = sell_value / btc_price
-            if amount < min_size:
-                print(f"[{self.get_exchange_name()}] 卖单数量 {amount} < 最小下单量 {min_size}")
-                return None
-            return {
-                'side': OrderSide.SELL,
-                'order_type': OrderType.MARKET,
-                'amount': amount,
-                'price': None,
-                'client_order_id': client_order_id,
-                'order_type_num': 2
-            }
-        else:
-            diff = usdt_valuation - btc_valuation
-            buy_value = ratio[1] * diff / sum(ratio)
-            amount = buy_value / btc_price
-            if amount < min_size:
-                print(f"[{self.get_exchange_name()}] 买单金额 {amount} < 最小下单量 {min_size}")
-                return None
-            return {
-                'side': OrderSide.BUY,
-                'order_type': OrderType.MARKET,
-                'amount': amount,
-                'price': None,
-                'client_order_id': client_order_id,
-                'order_type_num': 1
-            }
-
-    def _submit_order(self, symbol: str, params: Dict) -> Optional[Dict]:
-        """
-        提交订单并判断下单是否成功。
-        根据市场类型现货模式。
-        """
-        
-        order_params = {
-            'clOrdId': params['client_order_id'],
-        }
-
-        # 调用交易所下单接口
-        result = self.exchange.create_order(
-            symbol=symbol,
-            order_type=params['order_type'].value,
-            side=params['side'].value,
-            amount=float(params['amount']),
-            price=float(params['price']) if params['price'] else None,
-            params=order_params
+        buy_amount, sell_amount = self._calculate_order_amounts(
+            btc_balance, usdt_valuation, buy_price, sell_price, balance_ratio_arr
         )
 
-        if int(result.get('info', {}).get('sCode', -1)) != 0:
-            print(f"[{self.get_exchange_name()}] 下单失败: {result}")
-            return None
+        # 判断是否触发吃单条件（数量过小）
+        min_size = Decimal(market_info['info'].get('minSz', '0'))
+        if self._should_market_fill(buy_amount, sell_amount, min_size):
+            print(f"[判断] 下单数量过小 (min: {min_size})，执行吃单逻辑")
+            return self._re_place_orders(symbol, BalancedStrategy)
 
-        return result
+        # 判断是否触发强制重平衡（估值偏离）
+        if self._should_force_rebalance(btc_valuation, usdt_valuation, change_ratio):
+            print(f"[估值过大] 执行吃单逻辑")
+            self._cancel_open_orders(symbol)
+            return self._re_place_orders(symbol, BalancedStrategy)
 
-
-    def _parse_order_details(self, order_details, valuation) -> Tuple[Decimal, Decimal, Decimal]:
+        # 执行限价挂单
+        return self._place_pending_orders(symbol, buy_price, buy_amount, sell_price, sell_amount, valuation)
+    
+    def _get_last_price(self, exchange, symbol, valuation):
         """
-        获取订单成交详情，包括成交数量、均价、最新成交价。
+        获取参考价格：
+        - 优先使用上次成交价
+        - 若无成交价则使用当前市价
         """
-        filled_amount = Decimal(order_details.get('accFillSz', 0))
-        avg_price = Decimal(order_details.get('avgPx', valuation['btc_price']))
-        deal_price = Decimal(order_details.get('fillPx', avg_price))
-        return filled_amount, avg_price, deal_price
+        last_price = Decimal(str(self.crud.get_last_deal_price(exchange, symbol) or '0'))
+        market_price = Decimal(valuation['btc_price'])
+        return min(last_price, market_price) if last_price > 0 else market_price
 
-    def _finalize_order(self, symbol, valuation, market_info, order_params, order_id, filled_amount, avg_price, deal_price):
+    def _calculate_trade_prices(self, last_price, change_ratio):
         """
-        处理订单入库、配对匹配与利润计算逻辑。
+        根据变动比率计算买入价与卖出价
+        """
+        sell_price = last_price * (1 + change_ratio / Decimal('100'))
+        buy_price = last_price * (1 - change_ratio / Decimal('100'))
+        return buy_price, sell_price
+
+    def _calculate_order_amounts(self, btc_balance, usdt_valuation, buy_price, sell_price, ratio_arr):
+        """
+        根据估值差和配置比例计算挂单数量
+        """
+        buy_valuation = buy_price * btc_balance
+        sell_valuation = sell_price * btc_balance
+        buy_diff = abs(usdt_valuation - buy_valuation)
+        sell_diff = abs(usdt_valuation - sell_valuation)
+        total_ratio = ratio_arr[0] + ratio_arr[1]
+        buy_amount = (ratio_arr[1] * buy_diff / total_ratio) / buy_price
+        sell_amount = (ratio_arr[0] * sell_diff / total_ratio) / sell_price
+        return buy_amount, sell_amount
+
+    def _should_market_fill(self, buy_amount, sell_amount, min_size):
+        """
+        判断是否因为挂单量过小而改为吃单
+        """
+        return buy_amount < min_size or sell_amount < min_size
+
+    def _should_force_rebalance(self, btc_valuation, usdt_valuation, change_ratio):
+        """
+        判断两个币种估值差是否超过配置阈值，决定是否强制重平衡
+        """
+        diff_percent = abs(btc_valuation - usdt_valuation) / min(btc_valuation, usdt_valuation) * 100
+        return diff_percent > change_ratio
+
+    def _place_pending_orders(self, symbol, buy_price, buy_amount, sell_price, sell_amount, old_valuation):
+        """
+        实际执行限价挂单，并记录挂单信息至数据库
         """
         exchange = self.get_exchange_name()
+        buy_id = generate_client_order_id('Zx1')
+        sell_id = generate_client_order_id('Zx2')
 
-        # 获取下单后的估值
+        # 下买单
+        buy_result = self._place_buy_order(symbol, buy_amount, buy_price, buy_id)
+        if not buy_result:
+            return False
+        # 下卖单
+        sell_result = self._place_sell_order(symbol, sell_amount, sell_price, sell_id)
+        if not sell_result:
+            return False
+
         new_valuation = self._get_valuation(symbol)
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # 获取配对信息（对冲、盈利）
-        pair = self.crud.get_pair_and_calculate_profit(
-            exchange=exchange,
-            type=order_params['order_type_num'],
-            deal_price=float(deal_price)
-        )
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-        order_data = {
-            'exchange': exchange,
-            'product_name': symbol,
-            'order_id': order_id,
-            'order_number': order_params['client_order_id'],
-            'td_mode': 'cross',
-            'base_ccy': market_info['info'].get('baseCcy'),
-            'quote_ccy': market_info['info'].get('quoteCcy'),
-            'type': order_params['order_type_num'],
-            'order_type': order_params['order_type'].value,
-            'amount': order_params['amount'],
-            'clinch_number': filled_amount,
-            'price': deal_price,
-            'profit': pair['profit'] if pair else 0,
-            'pair': pair['pair_id'] if pair else 0,
-            'currency1': new_valuation['btc_balance'],
-            'currency2': new_valuation['usdt_balance'],
-            'balanced_valuation': new_valuation['usdt_valuation'],
-            'make_deal_price': float(avg_price),
-            'time': now,
-            'up_time': now
+        # 构造买单记录
+        buy_data = {
+            'exchange': exchange, 'product_name': symbol, 'symbol': symbol,
+            'order_id': buy_result['id'], 'order_number': buy_id,
+            'type': 1, 'order_type': 'limit', 'amount': buy_amount, 'price': buy_price,
+            'currency1': new_valuation['btc_balance'], 'currency2': new_valuation['usdt_balance'],
+            'clinch_currency1': old_valuation['btc_balance'] + buy_amount,
+            'clinch_currency2': old_valuation['usdt_balance'] - buy_amount * buy_price,
+            'status': OrderStatus.PENDING.value, 'time': timestamp, 'up_time': timestamp
         }
 
-        # 保存订单
-        self.crud.create_piggybank(order_data)
-        print(f"[{exchange}] 写入订单数据成功")
-        
-        # 如果有配对记录，更新配对状态
-        if pair:
-            is_pair = self.crud.update_pair_and_profit(pair['pair_id'], float(pair['profit']))
-            if is_pair:
-                self.crud.db.commit()
-                print(f"[{exchange}] 配对记录已更新")
+        # 构造卖单记录
+        sell_data = {
+            'exchange': exchange, 'product_name': symbol, 'symbol': symbol,
+            'order_id': sell_result['id'], 'order_number': sell_id,
+            'type': 2, 'order_type': 'limit', 'amount': sell_amount, 'price': sell_price,
+            'currency1': new_valuation['btc_balance'], 'currency2': new_valuation['usdt_balance'],
+            'clinch_currency1': old_valuation['btc_balance'] - sell_amount,
+            'clinch_currency2': old_valuation['usdt_balance'] + sell_amount * sell_price,
+            'status': OrderStatus.PENDING.value, 'time': timestamp, 'up_time': timestamp
+        }
+
+        return self.crud.create_piggybank_pendord(buy_data) and self.crud.create_piggybank_pendord(sell_data)
+
+    def _place_sell_order(self, symbol, amount=None, price=None, clorder_id=None):
+        """发送限价卖单"""
+        print(f"[挂限价卖单] 数量: {amount}, 价格: {price}")
+        return self.exchange.create_order(
+            symbol=symbol,
+            order_type=OrderType.LIMIT.value,
+            side=OrderSide.SELL.value,
+            price=float(price),
+            amount=float(amount),
+            params={'clOrdId': clorder_id}
+        )
+
+    def _place_buy_order(self, symbol, amount=None, price=None, clorder_id=None):
+        """发送限价买单"""
+        print(f"[挂限价买单] 数量: {amount}, 价格: {price}")
+        return self.exchange.create_order(
+            symbol=symbol,
+            order_type=OrderType.LIMIT.value,
+            side=OrderSide.BUY.value,
+            price=float(price),
+            amount=float(amount),
+            params={'clOrdId': clorder_id}
+        )

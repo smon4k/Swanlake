@@ -6,8 +6,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))  # 调整到 pyapi 目
 from pyapi.piggybank.utils.logger import setup_logger
 from db import SessionLocal
 from exchanges.factory import ExchangeFactory
-from strategies.balance_strategy import BalanceStrategy
-from strategies.pending_strategy import PendingStrategy
+from pyapi.piggybank.strategies.main_strategy import MainStrategy
 from config.config import Config, ExchangeType
 
 class Args:
@@ -20,7 +19,7 @@ async def run_strategy_loop(args, db_session):
     exchange = ExchangeFactory.create_exchange(exchange_type)
     config = Config()
 
-    strategy = PendingStrategy(exchange, db_session, config)
+    strategy = MainStrategy(exchange, db_session, config)
     while True:
         try:
             print(f"\n[运行策略] {args.strategy} @ {args.symbol}")

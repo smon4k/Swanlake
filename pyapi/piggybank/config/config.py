@@ -12,7 +12,6 @@ class ExchangeType(Enum):
 class Config:
     # 通用配置
     CHANGE_RATIO = Decimal(os.getenv('CHANGE_RATIO', '0.5'))  # 涨跌比例 2%
-    VALUATION_THRESHOLD = Decimal(os.getenv('VALUATION_THRESHOLD', '0.5'))  # 两个币种估值大于多少
     BALANCE_RATIO = os.getenv('BALANCE_RATIO', '1:1')  # 平衡比例
     
     # 数据库配置

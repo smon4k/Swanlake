@@ -62,3 +62,27 @@ class BaseStrategy(ABC):
             return last_order.id, profit
 
         return None, 0.0
+    
+    def _cancel_open_orders(self, symbol):
+        """撤销当前交易对的所有挂单"""
+        try:
+            open_orders = self.exchange.fetch_open_orders(symbol)
+            if not open_orders:
+                return True
+            for order in open_orders:
+                order_id = order.get('id')
+                if order_id:
+                    self.exchange.cancel_order(order_id, symbol)
+            self.crud.revoke_all_pending_orders(exchange=self.get_exchange_name())
+            return True
+        except Exception as e:
+            print(f"[撤单失败] {e}")
+            return False
+    
+    # 重新执行挂单或者平衡策略
+    def _re_place_orders(self, symbol, strategy_cls):
+        """处理估值不平衡逻辑：撤单 -> 吃单、挂单"""
+        print("[估值不平衡] 撤单->吃单、挂单", strategy_cls.__name__)
+        self._cancel_open_orders(symbol)
+        strategy = strategy_cls(self.exchange, self.db_session, self.config)
+        return strategy.execute(symbol)

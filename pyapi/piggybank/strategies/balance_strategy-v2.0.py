@@ -3,7 +3,6 @@ from decimal import Decimal
 from typing import Dict, Optional, Tuple
 
 from pyapi.piggybank.db.models import Piggybank
-from pyapi.piggybank.strategies.init import safe_float
 from .base_strategy import BaseStrategy
 from config.constants import OrderStatus, OrderType, OrderSide
 from utils.helpers import generate_client_order_id
