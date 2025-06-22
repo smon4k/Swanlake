@@ -6,18 +6,26 @@ from config.okx_config import OkxConfig
 class OkxExchange(BaseExchange):
     def __init__(self):
         self.config = OkxConfig()
-        self.client = ccxt.okx({
+        client_config = {
             'apiKey': self.config.API_KEY,
             'secret': self.config.SECRET_KEY,
             'password': self.config.PASSPHRASE,
             'enableRateLimit': True,
-        })
-        is_simulation =self.config.IS_SIMULATION
-        if is_simulation == '1': # 1表示模拟环境
-            self.client.options['proxies'] = {
+            'options': {
+                'defaultType': 'spot',  # 默认市场类型为现货
+                'adjustForTimeDifference': True,
+            }
+        }
+
+        # ✅ 如果是本地运行环境，添加代理
+        if getattr(self.config, 'IS_LOCAL', False):
+            client_config['proxies'] = {
                 'http': 'http://127.0.0.1:7890',
                 'https': 'http://127.0.0.1:7890',
             }
+
+        self.client = ccxt.okx(client_config)
+        is_simulation =self.config.IS_SIMULATION
         if is_simulation == '1': # 1表示模拟环境
             self.client.set_sandbox_mode(True)
     
