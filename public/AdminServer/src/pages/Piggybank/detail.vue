@@ -2,7 +2,7 @@
   <div>
     <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item to="">{{ tradingPairData.transaction_currency }} 存钱罐管理</el-breadcrumb-item>
+        <el-breadcrumb-item to="">存钱罐管理</el-breadcrumb-item>
         <el-breadcrumb-item to="">项目详情</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="mian" v-loading="loading">
@@ -126,6 +126,7 @@ export default {
         detailData: {},
         tradingPairData: {},
         loading: true,
+        currency_id: 0,
     };
   },
   mounted() {
@@ -136,7 +137,9 @@ export default {
 },
   methods: {
     getTradingPairData() { //获取交易币种信息
-      get("/Admin/Piggybank/getTradingPairData", {}, json => {
+      get("/Piggybank/index/getTradingPairData", {
+        currency_id: this.currency_id,
+      }, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.tradingPairData = json.data.data;
@@ -147,7 +150,9 @@ export default {
     },
     getListData() { //获取U本位数据
         this.loading = true;
-        get("/Admin/Piggybank/testBalancePosition", {}, json => {
+        get("/Piggybank/index/testBalancePosition", {
+            currency_id: this.currency_id,
+        }, json => {
             console.log(json);
             if (json.data.code == 10000) {
                 this.detailData = json.data.data;
@@ -160,7 +165,7 @@ export default {
 
   },
   created() {
-
+    this.currency_id = this.$route.query.currency_id;
   },
   components: {
   }

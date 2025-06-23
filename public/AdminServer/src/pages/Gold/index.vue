@@ -81,6 +81,7 @@ import { get, post, upload } from "@/common/axios.js";
 export default {
   data() {
     return {
+        currency_id: 0,
         currPage: 1, //当前页
         pageSize: 20, //每页显示条数
         total: 100, //总条数
@@ -127,7 +128,9 @@ export default {
   },
   methods: {
     getTradingPairData() { //获取交易币种信息
-      get("/Admin/Piggybank/getTradingPairData", {}, json => {
+      get("/Piggybank/index/getTradingPairData", {
+        currency_id: this.currency_id,
+      }, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.tradingPairData = json.data.data;
@@ -143,9 +146,10 @@ export default {
         ServerWhere = {
           limit: that.pageSize,
           page: that.currPage,
+          currency_id: that.currency_id,
         };
       }
-      get("/Admin/Piggybank/getInoutGoldList", ServerWhere, json => {
+      get("/Piggybank/index/getInoutGoldList", ServerWhere, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.tableData = json.data.data.data;
@@ -201,7 +205,7 @@ export default {
                 const loading = this.$loading({
                   target: '.el-dialog',
                 });
-                get('/Admin/Piggybank/calcDepositAndWithdrawal', {
+                get('/Piggybank/index/calcDepositAndWithdrawal', {
                     product_name: this.product_name,
                     direction: this.ruleForm.direction,
                     amount: this.ruleForm.amount,
@@ -236,6 +240,7 @@ export default {
 
   },
   created() {
+    this.currency_id = this.$route.query.currency_id;
     this.getTradingPairData();
     this.getListData();
   },

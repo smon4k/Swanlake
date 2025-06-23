@@ -15,7 +15,8 @@ const FillingH2oList = () => import('@/pages/Filling/h2olist.vue')
 const FillingUsdtList = () => import('@/pages/Filling/usdtlist.vue')
 
 // BTC存钱罐
-const PiggybankBtcDetail = () => import('@/pages/Piggybank/detail.vue')
+const PiggybankList = () => import('@/pages/Piggybank/currency_list.vue')
+const PiggybankDetail = () => import('@/pages/Piggybank/detail.vue')
 const PiggybankOrder = () => import('@/pages/Piggybank/list.vue')
 const PiggybankDate = () => import('@/pages/Piggybank/date.vue')
 const GoldIndex = () => import('@/pages/Gold/index.vue')
@@ -112,9 +113,9 @@ const router = new Router({
         },
         // BTC-存钱罐管理
         {
-          path: 'piggybank/btc/detail',
-          name: 'PiggybankBtcDetail',
-          component: PiggybankBtcDetail,
+          path: 'piggybank/detail',
+          name: 'PiggybankDetail',
+          component: PiggybankDetail,
           meta: {
             name: '项目详情',
             notKeepAlive: true
@@ -148,6 +149,15 @@ const router = new Router({
           }
         },
          // BIFI-存钱罐管理
+        {
+          path: 'piggybank/currency',
+          name: 'PiggyList',
+          component: PiggybankList,
+          meta: {
+            name: '币种列表',
+            notKeepAlive: true
+          }
+        },
         {
           path: 'piggybank/bifi/detail',
           name: 'PiggybankBifiDetail',

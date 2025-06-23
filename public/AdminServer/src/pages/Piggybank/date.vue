@@ -304,7 +304,7 @@ export default {
   },
   methods: {
     getTradingPairData() { //获取交易币种信息
-      get("/Admin/Piggybank/getTradingPairData", {}, json => {
+      get("/Piggybank/index/getTradingPairData", {}, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.tradingPairData = json.data.data;
@@ -331,7 +331,7 @@ export default {
           page: that.currPage,
         };
       }
-      get("/Admin/Piggybank/getPiggybankOrderDateList", ServerWhere, json => {
+      get("/Piggybank/index/getPiggybankOrderDateList", ServerWhere, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.tableData = json.data.data.data;
@@ -350,7 +350,7 @@ export default {
           standard: 1,
         };
       }
-      get("/Admin/Piggybank/getUBPiggybankOrderDateList", ServerWhere, json => {
+      get("/Piggybank/index/getUBPiggybankOrderDateList", ServerWhere, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.UtableData = json.data.data.data;
@@ -369,7 +369,7 @@ export default {
           standard: 2,
         };
       }
-      get("/Admin/Piggybank/getUBPiggybankOrderDateList", ServerWhere, json => {
+      get("/Piggybank/index/getUBPiggybankOrderDateList", ServerWhere, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.BtableData = json.data.data.data;
@@ -466,7 +466,7 @@ export default {
     submitForm(formName) {
         this.$refs[formName].validate((valid) => {
             if (valid) {
-                get('/Admin/Piggybank/calcDepositAndWithdrawal', {
+                get('/Piggybank/index/calcDepositAndWithdrawal', {
                     product_name: this.product_name,
                     direction: this.ruleForm.direction,
                     amount: this.ruleForm.amount,

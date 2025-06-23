@@ -206,7 +206,7 @@ export default {
   },
   methods: {
     getTradingPairData() { //获取交易币种信息
-      get("/Admin/Piggybank/getTradingPairData", {}, json => {
+      get("/Piggybank/index/getTradingPairData", {}, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.tradingPairData = json.data.data;
@@ -223,7 +223,7 @@ export default {
           page: that.currPage,
         };
       }
-      get("/Admin/Piggybank/getPiggybankOrderList", ServerWhere, json => {
+      get("/Piggybank/index/getPiggybankOrderList", ServerWhere, json => {
           console.log(json);
         if (json.data.code == 10000) {
           this.tableData = json.data.data.data;
@@ -283,51 +283,10 @@ export default {
       }
       this.getListData(this.PageSearchWhere); //刷新列表
     },
-    DelData(row) { //删除管理员
-        this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-        }).then(() => {
-            get('/Admin/Notes/delNotesRow', {id: row.id}, (json) => {
-                if (json && json.data.code == 10000) {
-                    this.getListData();
-                    this.$message({
-                        type: 'success',
-                        message: '删除成功!'
-                    });
-                } else if(json.data.code == 10007) {
-                  this.$message.error(json.data.msg);
-                } else {
-                    this.$message.error(json.data.msg);
-                }
-            })
-        }).catch(() => {
-            this.$message({
-                type: 'info',
-                message: '已取消删除'
-            });
-        });
-    },
     resetForm(formName) {
       // console.log(this.$refs[formName])
       this.$refs[formName].resetFields();
       this.dialogVisibleShow = false;
-    },
-    rackUpStart(row, status) { //审批 修改状态
-        get('/Admin/Notes/rackUpStart', {id: row.id, status: status}, (json) => {
-            if(json.data.code == 10000) {
-                this.$message({
-                    message: '操作成功',
-                    type: 'success'
-                });
-                this.getListData();
-            } else if(json.data.code == 10007) {
-                this.$message.error(json.data.msg);
-            } else {
-                this.$message.error('修改失败');
-            }
-        })
     },
     previewFilesShowClose() {
       if(this.fileTempType == 2) {

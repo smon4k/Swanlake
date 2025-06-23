@@ -16,7 +16,7 @@ use app\api\model\QuantifyAccount;
 use app\grid\model\QuantifyAccount as QuantifyAccountGrid;
 use app\admin\model\LlpFinance;
 use app\answer\model\DayNetworth as DayNetworthAnswer;
-use app\admin\model\Piggybank;
+use app\piggybank\model\Piggybank;
 use app\admin\model\BinancePiggybank;
 use app\power\model\PowerUser;
 use ClassLibrary\ClFieldVerify;
@@ -86,6 +86,19 @@ class TaskController extends ToolsBaseController
         // p($id);
         //处理数据
         TaskContract::deal($id);
+
+        return (time() - $begin_time) . "s\n";
+    }
+
+    /**
+     * 存钱罐每日数据统计
+     * @author qinlh
+     * @since 2025-06-23
+     */
+    public function piggybankDailyStatisticsDate() {
+        $begin_time = time();
+
+        Piggybank::piggybankDate();
 
         return (time() - $begin_time) . "s\n";
     }
