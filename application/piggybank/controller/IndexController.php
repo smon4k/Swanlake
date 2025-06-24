@@ -152,7 +152,9 @@ class IndexController extends BaseController
      * @since 2025-06-23
      */
     public function getCurrencyList() {
-        $result = Piggybank::getCurrencyList();
+        $where = [];
+        $where['state'] = 1;
+        $result = Piggybank::getCurrencyList($where);
         return $this->as_json($result);
     }
 
