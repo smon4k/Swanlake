@@ -97,8 +97,10 @@ class TaskController extends ToolsBaseController
      */
     public function piggybankDailyStatisticsDate() {
         $begin_time = time();
-
-        Piggybank::piggybankDate();
+        $currencyList = Piggybank::getCurrencyAllList();
+        foreach($currencyList as $item) {
+            Piggybank::piggybankDate($item['name']);
+        }
 
         return (time() - $begin_time) . "s\n";
     }

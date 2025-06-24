@@ -210,6 +210,7 @@ export default {
                     direction: this.ruleForm.direction,
                     amount: this.ruleForm.amount,
                     remark: this.ruleForm.remark,
+                    currency_id: this.currency_id,
                 }, (json) => {
                     if (json && json.data.code == 10000) {
                         this.$message.success('更新成功');

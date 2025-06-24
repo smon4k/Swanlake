@@ -299,7 +299,8 @@ export default {
             { required: true, message: '请选择方向', trigger: 'change' }
           ],
         },
-        tradingPairData: {}
+        tradingPairData: {},
+        currency_id: 0,
     };
   },
   methods: {
@@ -471,6 +472,7 @@ export default {
                     direction: this.ruleForm.direction,
                     amount: this.ruleForm.amount,
                     remark: this.ruleForm.remark,
+                    currency_id: this.currency_id,
                 }, (json) => {
                     if (json && json.data.code == 10000) {
                         this.$message.success('更新成功');

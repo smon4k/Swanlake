@@ -101,10 +101,14 @@ class IndexController extends BaseController
         $direction = $request->request('direction', 0, 'intval');
         $amount = $request->request('amount', '', 'trim');
         $remark = $request->request('remark', '', '');
+        $currency_id = $request->request('currency_id', 0, 'intval');
+        if($currency_id <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
         if($direction <= 0 || $amount == '') {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = Piggybank::calcDepositAndWithdrawal($product_name, $direction, $amount, $remark);
+        $result = Piggybank::calcDepositAndWithdrawal($product_name, $direction, $amount, $remark, $currency_id);
         if($result) {
             return $this->as_json('ok');
         } else {
@@ -136,8 +140,9 @@ class IndexController extends BaseController
      * @author qinlh
      * @since 2022-11-24
      */
-    public function testBalancePosition() {
-        $data = Piggybank::testBalancePosition();
+    public function testBalancePosition(Request $request) {
+        $currency_id = $request->request('currency_id', 0, 'intval');
+        $data = Piggybank::testBalancePosition($currency_id);
         return $this->as_json($data);
     }
 

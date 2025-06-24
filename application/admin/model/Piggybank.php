@@ -442,9 +442,8 @@ class Piggybank extends Base
      * @author qinlh
      * @since 2022-08-20
      */
-    public static function getInoutGoldDepositToday()
+    public static function getInoutGoldDepositToday($pig_id=0)
     {
-        $pig_id = Okx::gettTradingPairId('Okx');
         $amount = self::name('okx_inout_gold')->whereTime('time', 'today')->where(['pig_id' => $pig_id])->sum('amount');
         if ($amount !== 0) {
             return $amount;
