@@ -2,6 +2,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Dict, Optional, Tuple
+from pyapi.piggybank.db.models import Config
 from pyapi.piggybank.strategies.base_strategy import BaseStrategy
 from config.constants import OrderType, OrderSide
 from utils.helpers import generate_client_order_id
@@ -25,14 +26,15 @@ class BalancedStrategy(BaseStrategy):
         下单主流程：拆分为估值检查 -> 参数构造 -> 下单 -> 结果解析 -> 入库处理。
         """
         valuation = self._get_valuation(symbol)
-        if not self._should_place_order(symbol, valuation):
+        config = self.crud.get_config()
+        if not self._should_place_order(symbol, valuation, config):
             return False
 
         # 2. 获取市场信息（最小下单量、币对基础/计价币种）
         market_info, base_ccy, quote_ccy, min_size = self._get_market_info(symbol)
 
         # 3. 构建订单参数（方向、数量、价格）
-        order_params = self._build_order_parameters(symbol, valuation, min_size)
+        order_params = self._build_order_parameters(symbol, valuation, min_size, config)
         if not order_params:
             return False
 
@@ -50,7 +52,7 @@ class BalancedStrategy(BaseStrategy):
         self._finalize_order(symbol, valuation, market_info, order_params, order_id, filled_amount, avg_price, deal_price)
         return True
 
-    def _should_place_order(self, symbol, valuation: Dict[str, Decimal]) -> bool:
+    def _should_place_order(self, symbol, valuation: Dict[str, Decimal], config: Config) -> bool:
         """
         判断当前 BTC 与 USDT 估值差异是否超过阈值，决定是否下单。
         """
@@ -69,7 +71,7 @@ class BalancedStrategy(BaseStrategy):
         change_ratio = (delta / min(usdt_valuation, btc_valuation)) * Decimal('100')
 
         # 获取配置中的阈值
-        threshold = Decimal(str(self.config.CHANGE_RATIO))
+        threshold = Decimal(str(config.change_ratio))
 
         if change_ratio <= threshold:
             print(f"[{exchange}] 涨跌幅 {change_ratio:.2f}% 未超过阈值 {threshold}%，不下单")
@@ -89,14 +91,15 @@ class BalancedStrategy(BaseStrategy):
         min_size = Decimal(market_info['info'].get('minSz', 0))
         return market_info, base_ccy, quote_ccy, min_size
 
-    def _build_order_parameters(self, symbol: str, valuation: Dict[str, Decimal], min_size: Decimal):
+    def _build_order_parameters(self, symbol: str, valuation: Dict[str, Decimal], min_size: Decimal, config: Config):
+
         """
         构建下单请求的参数，包括方向、下单数量、类型等。
         """
         btc_valuation = Decimal(valuation['btc_valuation'])
         usdt_valuation = Decimal(valuation['usdt_valuation'])
         btc_price = Decimal(valuation['btc_price'])
-        ratio = [Decimal(x) for x in self.config.BALANCE_RATIO.split(':')]
+        ratio = [Decimal(x) for x in config.balance_ratio.split(':')]
         client_order_id = generate_client_order_id('Zx')
 
         if btc_valuation > usdt_valuation:

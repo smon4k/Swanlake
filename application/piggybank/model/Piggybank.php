@@ -678,9 +678,9 @@ class Piggybank extends Base
         $symbolInfo = self::getSymbolInfo($currencyData['name']);
         $currency1 = $symbolInfo['base_currency'];
         $currency2 = $symbolInfo['quote_currency'];
-
-        $changeRatioNum = 2; //涨跌比例 2%
-        $balanceRatio = '1:1'; //平衡比例
+        $configData = self::getConfig();
+        $changeRatioNum = $configData['change_ratio']; //涨跌比例 2%
+        $balanceRatio = $configData['balance_ratio']; //平衡比例
         $balanceRatioArr = explode(':', $balanceRatio);
         $sellPropr = ($changeRatioNum / $changeRatioNum) + ($changeRatioNum / 100); //出售比例
         $buyPropr = ($changeRatioNum / $changeRatioNum) - ($changeRatioNum / 100); //购买比例
@@ -818,6 +818,35 @@ class Piggybank extends Base
             return $amount;
         }
         return 0;
+    }
+
+    /**
+     * 获取配置表数据，只获取第一条
+     * @author qinlh
+     * @since 2022-08-20
+     */
+    public static function getConfig()
+    {
+        $data = self::name('config')->order('id desc')->find();
+        if($data && count((array)$data) > 0) {
+            return $data;
+        }
+        return [];
+    }
+
+    /**
+    * 修改配置
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public static function savePiggybankConfig($change_ratio, $balance_ratio) {
+        $res = self::name('config')->where("id", 1)->update(['change_ratio'=>$change_ratio, 'balance_ratio'=>$balance_ratio]);
+        if(false !== $res) {
+            return ['code'=>1, 'msg'=>'修改成功'];
+        } else {
+            return ['code'=>0, 'msg'=>'修改失败'];
+        } 
     }
     
 }

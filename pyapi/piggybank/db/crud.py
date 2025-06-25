@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
-from .models import Piggybank, PiggybankPendord, PiggybankDate
+from .models import Config, Piggybank, PiggybankPendord, PiggybankDate
 from typing import Optional, Dict, List
 from sqlalchemy import func
 
@@ -168,3 +168,13 @@ class CRUD:
         if data:
             return data.price
         return 0
+    
+    # 获取配置表数据
+    def get_config(self) -> Config:
+        """Get the last balanced valuation"""
+        data = self.db.query(Config)\
+            .order_by(Config.id.desc())\
+            .first()
+        if data:
+            return data
+        return Config()

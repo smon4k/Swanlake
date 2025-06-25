@@ -35,8 +35,9 @@ class PendingStrategy(BaseStrategy):
         - 发出限价挂单
         """
         exchange = self.get_exchange_name()
-        change_ratio = Decimal(str(self.config.CHANGE_RATIO))
-        balance_ratio_arr = list(map(Decimal, self.config.BALANCE_RATIO.split(':')))
+        config = self.crud.get_config()
+        change_ratio = Decimal(str(config.change_ratio))
+        balance_ratio_arr = list(map(Decimal, config.balance_ratio.split(':')))
 
         last_price = self._get_last_price(exchange, symbol, valuation)
         buy_price, sell_price = self._calculate_trade_prices(last_price, change_ratio)

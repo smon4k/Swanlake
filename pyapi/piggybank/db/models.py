@@ -63,3 +63,11 @@ class PiggybankDate(Base):
     average_day_rate = Column(Float)
     average_year_rate = Column(Float)
     up_time = Column(DateTime)
+
+class Config(Base):
+    __tablename__ = 'p_config'
+    id = Column(Integer, primary_key=True)
+    change_ratio = Column(Float)
+    balance_ratio = Column(String(20))
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)

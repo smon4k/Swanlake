@@ -20,6 +20,7 @@ const PiggybankDetail = () => import('@/pages/Piggybank/detail.vue')
 const PiggybankOrder = () => import('@/pages/Piggybank/list.vue')
 const PiggybankDate = () => import('@/pages/Piggybank/date.vue')
 const GoldIndex = () => import('@/pages/Gold/index.vue')
+const PiggybankConfig = () => import('@/pages/Piggybank/config.vue')
 
 // BIFI存钱罐
 const PiggybankBifiDetail = () => import('@/pages/PiggybankBifi/detail.vue')
@@ -185,6 +186,16 @@ const router = new Router({
             notKeepAlive: true
           }
         },
+        {
+          path: 'piggybank/config',
+          name: 'PiggybankConfig',
+          component: PiggybankConfig,
+          meta: {
+            name: '配置管理',
+            notKeepAlive: true
+          }
+        },
+
         {
           path: 'gold/bifis',
           name: 'GoldBifis',

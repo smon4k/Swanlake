@@ -169,4 +169,29 @@ class IndexController extends BaseController
         return $this->as_json($result);
     }
     
+    /**
+     * 获取存钱罐配置
+     * @author qinlh
+     * @since 2025-06-23
+     */
+    public function getPiggybankConfig() {
+        $result = Piggybank::getConfig();
+        return $this->as_json($result);
+    }
+
+    /**
+     * 修改配置
+     * @author qinlh
+     * @since 2025-06-25
+     */
+    public function savePiggybankConfig(Request $request) {
+        $change_ratio = $request->post('change_ratio', '', 'trim');
+        $balance_ratio = $request->post('balance_ratio', '', 'trim');
+        $res = Piggybank::savePiggybankConfig($change_ratio, $balance_ratio);
+        if($res['code'] == 1) {
+            return $this->as_json($res); 
+        } else {
+            return $this->as_json(70001, $res['msg']); 
+        }
+    }
 }
