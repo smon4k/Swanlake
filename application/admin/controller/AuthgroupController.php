@@ -50,7 +50,7 @@ class AuthgroupController extends BaseController
     * @author [qinlh] [WeChat QinLinHui0706]
     */
     public function addAuthGroupInfo(Request $request) {
-        $title = $request->request('title', '', 'trim');
+        $title = $request->post('title', '', 'trim');
         $rules = input('post.rules/a');
         $menu_rules = input('post.menu_rules/a');
         $rules_arr = [];
@@ -89,8 +89,8 @@ class AuthgroupController extends BaseController
     * @author [qinlh] [WeChat QinLinHui0706]
     */
     public function sevaAuthGroupInfo(Request $request) {
-        $id = $request->request('id', 0, 'intval');
-        $title = $request->request('title', '', 'trim');
+        $id = $request->post('id', 0, 'intval');
+        $title = $request->post('title', '', 'trim');
         $rules = input('post.rules/a');
         $menu_rules = input('post.menu_rules/a');
         $rules_arr = [];
