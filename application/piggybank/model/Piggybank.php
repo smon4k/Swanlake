@@ -148,6 +148,8 @@ class Piggybank extends Base
         $date = date('Y-m-d');
         //总结余
         $balanceDetails = self::getTradeValuation($product_name);
+        $currencyData = self::getTradingPairId($product_name);
+        $currency_id = $currencyData['id'];
         $btcPrice = $balanceDetails['btcPrice'];
         $countUstandardPrincipal = 0;
         $countBstandardPrincipal = 0;
@@ -334,24 +336,6 @@ class Piggybank extends Base
     }
 
     /**
-     * 获取U本位币本位累计本金
-     * @author qinlh
-     * @since 2022-08-20
-     */
-    public static function getPiggybankStandard($standard=0)
-    {
-        if ($standard > 0) {
-            $date = date('Y-m-d');
-            $pig_name = self::gettTradingPairName('Okx');
-            $total = self::name('piggybank_currency_date')->where(['product_name' => $pig_name, 'standard' => $standard, 'date' => ['<>', $date]])->sum('principal');
-            if ($total) {
-                return $total;
-            }
-        }
-        return 0;
-    }
-
-    /**
      * 获取总的利润或者今日利润
      * @author qinlh
      * @since 2022-08-20
@@ -443,19 +427,6 @@ class Piggybank extends Base
     }
 
     /**
-     * 获取交易对名称
-     * @author qinlh
-     * @since 2023-01-10
-     */
-    public static function gettTradingPairName($exchange='') {
-        $data = self::name('currency_list')->where(['exchange' => $exchange, 'state' => 1])->find();
-        if($data && count((array)$data) > 0) {
-            return $data['name'];
-        }
-        return [];
-    }
-
-    /**
      * 获取昨天累计本金
      * @author qinlh
      * @since 2022-08-20
@@ -512,7 +483,6 @@ class Piggybank extends Base
         }
         try { 
             $balanceDetails = self::getSymbolInfo($symbol);
-            // p($balanceDetails);
             $btcBalance = 0;
             $usdtBalance = 0;
             if($balanceDetails && count((array)$balanceDetails) > 0) {
@@ -521,22 +491,22 @@ class Piggybank extends Base
             }
             
             $totalAssets = 0;//总资产
-            if($marketIndexTickers && isset($balanceDetails['valuation']['btc_price']) && (float)$balanceDetails['valuation']['btc_price'] > 0) {
+            $btcValuation = 0;
+            if(isset($balanceDetails['valuation']['btc_price']) && (float)$balanceDetails['valuation']['btc_price'] > 0) {
                 $btcValuation = $btcBalance * (float)$balanceDetails['valuation']['btc_price'];
                 $usdtValuation = $usdtBalance;
             }
             $totalAssets = $btcValuation + $usdtValuation;
             
             $date = date('Y-m-d');
-
             //获取总的利润
-            $countProfit = Piggybank::getUStandardProfit($transactionCurrency); //获取总的利润 网格利润
+            $countProfit = Piggybank::getUStandardProfit($symbol); //获取总的利润 网格利润
             $countProfitRate = $countProfit / $totalAssets * 100; //网格总利润率 = 总利润 / 总市值
-            $dayProfit = Piggybank::getUStandardProfit($transactionCurrency, $date); //获取总的利润 网格利润
+            $dayProfit = Piggybank::getUStandardProfit($symbol, $date); //获取总的利润 网格利润
             $dayProfitRate = $dayProfit / $totalAssets * 100; //网格日利润率 = 日利润 / 总市值
             $averageDayRate = self::name('piggybank_date')->whereNotIn('date', $date)->avg('grid_day_spread_rate'); //获取平均日利润率
             $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
-            $data = self::name('piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->find();
+            $data = self::name('piggybank_date')->where(['product_name' => $symbol, 'date' => $date])->find();
             if($data && count((array)$data) > 0) {
                 $upData = [
                     'count_market_value'=>$totalAssets, 
@@ -548,10 +518,11 @@ class Piggybank extends Base
                     'average_year_rate' => $averageYearRate,
                     'up_time' => date('Y-m-d H:i:s')
                 ];
-                $res = self::name('piggybank_date')->where(['product_name' => $transactionCurrency, 'date' => $date])->update($upData);
+                $res = self::name('piggybank_date')->where(['product_name' => $symbol, 'date' => $date])->update($upData);
             } else {
                 $insertData = [
-                    'product_name' => $transactionCurrency, 
+                    'exchange' => $balanceDetails['base_currency'],
+                    'product_name' => $symbol, 
                     'date'=>$date, 
                     'count_market_value'=>$totalAssets, 
                     'grid_spread' => $countProfit,
@@ -569,7 +540,7 @@ class Piggybank extends Base
             }
             return false;
         } catch (\Exception $e) {
-            // p($e);
+            p($e->getMessage());
             logger("GMX-USDT 每日存钱罐数据统计 Error \r\n".$e);
             return array(0, $e->getMessage());
         }
@@ -616,6 +587,19 @@ class Piggybank extends Base
      */
     public static function getTradingPairData($currency_id=0) {
         $data = self::name('currency_list')->where(['id' => $currency_id, 'state' => 1])->find();
+        if($data && count((array)$data) > 0) {
+            return $data->toArray();
+        }
+        return [];
+    }
+
+    /**
+     * 获取交易对id
+     * @author qinlh
+     * @since 2025-06-26
+     */
+    public static function getTradingPairId($name='') {
+        $data = self::name('currency_list')->where(['name' => $name])->find();
         if($data && count((array)$data) > 0) {
             return $data->toArray();
         }

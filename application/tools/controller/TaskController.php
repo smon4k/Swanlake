@@ -100,6 +100,7 @@ class TaskController extends ToolsBaseController
         $currencyList = Piggybank::getCurrencyAllList();
         foreach($currencyList as $item) {
             Piggybank::piggybankDate($item['name']);
+            Piggybank::calcDepositAndWithdrawal($item['name'], 1, 0);
         }
 
         return (time() - $begin_time) . "s\n";
