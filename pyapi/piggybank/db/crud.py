@@ -88,8 +88,9 @@ class CRUD:
         查询type=2且pair=0的记录，按time倒序和价格差绝对值排序，取第一条，
         如果deal_price < price，则计算利润
         """
+        opposite_type = 2 if type == 1 else 1
         result = self.db.query(Piggybank.id, Piggybank.price, Piggybank.clinch_number)\
-            .filter(Piggybank.type == type, Piggybank.pair == 0, Piggybank.exchange == exchange)\
+            .filter(Piggybank.type == opposite_type, Piggybank.pair == 0, Piggybank.exchange == exchange)\
             .order_by(Piggybank.time.desc(), func.abs(deal_price - Piggybank.price))\
             .first()
         if (

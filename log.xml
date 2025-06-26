@@ -24,3 +24,146 @@
 测试爬虫2021-07-14 09:58:54
 2021-07-14 09:58:55 R 
 测试爬虫2021-07-14 09:58:55
+2025-06-26 09:52:07 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('BIFI-BUSD')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 09:52:08 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('GMX-USDT')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 09:52:09 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('BTC-USDT')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 09:53:43 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('BIFI-BUSD')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 09:53:44 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('GMX-USDT')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 09:53:45 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('BTC-USDT')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 09:54:38 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('BIFI-BUSD')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 09:54:38 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('GMX-USDT')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 09:54:38 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:524
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(524): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 524, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('BTC-USDT')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 10:00:36 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:523
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(523): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 523, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('BTC-USDT')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
+2025-06-26 10:00:54 GMX-USDT 每日存钱罐数据统计 Error 
+think\exception\ErrorException: Undefined variable: marketIndexTickers in C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php:523
+Stack trace:
+#0 C:\Users\v-linhuiqin\www\Swanlake\application\piggybank\model\Piggybank.php(523): think\Error::appError(8, 'Undefined varia...', 'C:\\Users\\v-linh...', 523, Array)
+#1 C:\Users\v-linhuiqin\www\Swanlake\application\tools\controller\TaskController.php(102): app\piggybank\model\Piggybank::piggybankDate('BTC-USDT')
+#2 [internal function]: app\tools\controller\TaskController->piggybankDailyStatisticsDate()
+#3 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(343): ReflectionMethod->invokeArgs(Object(app\tools\controller\TaskController), Array)
+#4 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(611): think\App::invokeMethod(Array, Array)
+#5 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(456): think\App::module(Array, Array, true)
+#6 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\library\think\App.php(139): think\App::exec(Array, Array)
+#7 C:\Users\v-linhuiqin\www\Swanlake\thinkphp\start.php(19): think\App::run()
+#8 C:\Users\v-linhuiqin\www\Swanlake\public\index.php(32): require('C:\\Users\\v-linh...')
+#9 {main}
