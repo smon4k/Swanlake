@@ -337,7 +337,8 @@ class QuantifyaccountController extends BaseController
         if ($account_id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
-        $result = QuantifyAccount::deleteQuantityAccount($account_id);
+        // $result = QuantifyAccount::deleteQuantityAccount($account_id);
+        $result = Accounts::delAccount($account_id);
         if ($result) {
             return $this->as_json('ok');
         } else {

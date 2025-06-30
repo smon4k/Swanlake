@@ -143,7 +143,8 @@ class QuantifyAccount extends Base
                 $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
                 $hasOnlyTodayData = self::hasOnlyTodayData($account_id); //获取是否只第一天
                 if(!$hasOnlyTodayData) {
-                    $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
+                    $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
+                    $dailyProfit = $totalBalance - $yestTotalBalance - $depositTodayNum + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
                 } else {
                     $dailyProfit = $totalBalance - $countStandardPrincipal; //日利润 = 总结余-累计本金
                 }
@@ -216,6 +217,9 @@ class QuantifyAccount extends Base
                 $isTrue = false;
                 if ($saveUres !== false) {
                     if ($amount > 0) {
+                        if ($direction == 1) {
+                            $amount = -abs($amount);
+                        }
                         $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
                         if ($isIntOut) {
                             $isTrue = true;
@@ -1069,15 +1073,15 @@ class QuantifyAccount extends Base
         if ($account_id && $amount !== 0 && $type > 0) {
             $total_balance = 0;
             if($type == 1) {
-                $amount_num = $amount;
+                // $amount_num = $amount;
                 $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount;
             } else {
-                $amount_num = $amount *= -1;
+                // $amount_num = $amount *= -1;
                 $total_balance = self::getInoutGoldTotalBalance($account_id) - (float)$amount;
             }
             $insertData = [
                 'account_id' => $account_id,
-                'amount' => $amount_num,
+                'amount' => $amount,
                 // 'price' => $price,
                 'type' => $type,
                 'total_balance' => $total_balance,
@@ -1546,15 +1550,15 @@ class QuantifyAccount extends Base
                 return true;
             }
             if($type == 1) {
-                $amount_num = $amount;
+                // $amount_num = $amount;
                 $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount;
             } else {
-                $amount_num = $amount *= -1;
+                // $amount_num = $amount *= -1;
                 $total_balance = self::getInoutGoldTotalBalance($account_id) - (float)$amount;
             }
             $insertData = [
                 'account_id' => $account_id,
-                'amount' => $amount_num,
+                'amount' => $amount,
                 'type' => $type,
                 'total_balance' => $total_balance,
                 'remark' => $remark,

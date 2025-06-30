@@ -2,9 +2,6 @@ import asyncio
 from decimal import Decimal
 import logging
 import uuid
-
-import ccxt
-
 from database import Database
 from trading_bot_config import TradingBotConfig
 from common_functions import cancel_all_orders, get_account_balance, get_exchange, get_market_price, get_market_precision, get_max_position_value, get_total_positions, open_position, get_client_order_id

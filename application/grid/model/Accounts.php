@@ -77,4 +77,18 @@ class Accounts extends Base
             return false;
         }
     }
+
+
+    /**
+     * 删除账户 修改账户状态
+     * @since 2024-10-14
+     */
+    public static function delAccount($id) {
+        $res = self::where('id', $id)->update(['status' => 0]);
+        if($res) {
+            return true;
+        }
+        return false;
+    }
+    
 }
