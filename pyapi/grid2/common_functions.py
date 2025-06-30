@@ -8,26 +8,48 @@ import asyncio
 from datetime import datetime, timezone
 import uuid
 import logging
+import ccxt.async_support as ccxt  # 注意 async 模式
+from typing import Optional
 
-async def get_exchange(self, account_id: int) -> ccxt.Exchange:
-    """获取交易所实例（通过account_id）"""
+async def get_exchange(self, account_id: int) -> Optional[ccxt.Exchange]:
+    """根据账户ID获取对应交易所实例，支持模拟盘配置"""
+
     account_info = await self.db.get_account_info(account_id)
-    if account_info:
-        exchange_id = account_info['exchange']
-        exchange_class = getattr(ccxt, exchange_id)
-        exchange = exchange_class({
-            'apiKey': account_info['api_key'],
-            'secret': account_info['api_secret'],
-            'password': account_info.get('api_passphrase', None),
-            "options": {"defaultType": "swap"},
-            "timeout": 30000,
-            # 'enableRateLimit': True,
-        })
-        is_simulation = os.getenv("IS_SIMULATION", '1')
-        if is_simulation == '1': # 1表示模拟环境
+    if not account_info:
+        return None
+
+    exchange_id = account_info['exchange']  # 比如 'okx' 或 'binance'
+    exchange_class = getattr(ccxt, exchange_id)
+
+    exchange_config = {
+        'apiKey': account_info['api_key'],
+        'secret': account_info['api_secret'],
+        'password': account_info.get('api_passphrase'),  # OKX 专用，Binance 会自动忽略
+        'options': {
+            'defaultType': 'swap',  # 合约交易
+        },
+        'timeout': 30000,
+        # 'enableRateLimit': True,
+    }
+
+    exchange = exchange_class(exchange_config)
+
+    # 判断是否是模拟盘
+    is_simulation = os.getenv("IS_SIMULATION", '1') == '1'
+
+    if is_simulation:
+        if exchange_id == 'okx':
             exchange.set_sandbox_mode(True)
-        return exchange
-    return None
+        elif exchange_id == 'binance':
+            # Binance 需要自定义 testnet 的 URL
+            exchange.urls['api'] = {
+                'public': 'https://testnet.binancefuture.com/fapi/v1',
+                'private': 'https://testnet.binancefuture.com/fapi/v1',
+            }
+
+    await exchange.load_markets()  # 建议初始化后先加载 markets
+    return exchange
+
 
 async def get_market_price(exchange: ccxt.Exchange, symbol: str) -> Decimal:
     """获取当前市场价格"""
@@ -234,8 +256,12 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
         return None
     
     try:
-        open_orders = exchange.fetch_open_orders(symbol, None, None, {'instType': 'SWAP'}) # 获取未成交的订单
-        # print(f"未成交订单: {open_orders}")
+        params = {}
+        if exchange.id == 'okx':
+            params = {'instType': 'SWAP'}
+
+        open_orders = exchange.fetch_open_orders(symbol, None, None, params) # 获取未成交的订单
+        print(f"未成交订单: {open_orders}")
         for order in open_orders:
             order_side = order.get('side', '').lower()
 

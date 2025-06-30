@@ -36,12 +36,12 @@ class SignalProcessingTask:
                         else:
                             print("🚫 无对应账户策略信号")
                             logging.info("🚫 无对应账户策略信号")
-                        with conn.cursor() as cursor:
-                            cursor.execute(
-                                "UPDATE g_signals SET status='processed' WHERE id=%s",
-                                (signal['id'],)
-                            )
-                        conn.commit()
+                        # with conn.cursor() as cursor:
+                        #     cursor.execute(
+                        #         "UPDATE g_signals SET status='processed' WHERE id=%s",
+                        #         (signal['id'],)
+                        #     )
+                        # conn.commit()
                 await asyncio.sleep(self.config.check_interval)
             except Exception as e:
                 print(f"信号处理异常: {e}")
@@ -132,7 +132,13 @@ class SignalProcessingTask:
             return
 
         try:
-            positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+            exchange_id = exchange.id  # 'okx' or 'binance'
+            if exchange_id == 'okx':
+                positions = exchange.fetch_positions(symbol, {'instType': 'SWAP'})
+            elif exchange_id == 'binance':
+                symbols = [symbol] if symbol else None  # symbol 可以为空，表示所有
+                positions = exchange.fetch_positions(symbols, {'type': 'future'})
+
             if not positions:
                 print("无持仓信息")
                 logging.warning("无持仓信息")
@@ -152,9 +158,10 @@ class SignalProcessingTask:
                 print(f"无反向持仓需要平仓：{opposite_direction}")
                 logging.info(f"无反向持仓需要平仓：{opposite_direction}")
                 return
-
             close_side = 'sell' if opposite_direction == 'long' else 'buy'
+            print(2222)
             market_price = await get_market_price(exchange, symbol)
+            print(f"当前市价：{market_price}")
             client_order_id = await get_client_order_id()
 
             close_order = await open_position(
