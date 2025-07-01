@@ -104,8 +104,11 @@ class PriceMonitoringTask:
             if not exchange:
                 return
             print("开始匹配订单") 
+            logging.info("开始匹配订单")
             side = 'sell' if order['side'] == 'buy' else 'buy'
             get_order_by_price_diff = await self.db.get_order_by_price_diff_v2(account_id, order['info']['instId'], executed_price, side)
+            logging.info(f"获取配对订单: {get_order_by_price_diff['order_id'] if get_order_by_price_diff else '无配对订单'}")
+            logging.info(f"side: {order['side']}, executed_price: {executed_price}, symbol: {symbol}, instId: {order['info']['instId']}")
             # print("get_order_by_price_diff", get_order_by_price_diff)
             profit = 0
             group_id = ""
