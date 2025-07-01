@@ -432,7 +432,7 @@ class PriceMonitoringTask:
                         'side': close_side,
                         'status': 'filled',
                         'is_clopos': 1,
-                        'position_group_id': str(uuid.uuid4()),
+                        'position_group_id': '',
                     })
 
                     await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单

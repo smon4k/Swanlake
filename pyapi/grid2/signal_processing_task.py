@@ -184,7 +184,7 @@ class SignalProcessingTask:
                     'side': close_side,
                     'status': 'filled',
                     'is_clopos': 1,
-                    'position_group_id': str(uuid.uuid4()),
+                    'position_group_id': '',
                 })
 
                 await self.db.mark_orders_as_closed(account_id, symbol, opposite_direction)
@@ -313,7 +313,7 @@ class SignalProcessingTask:
                     'order_type': 'limit',
                     'side': side, 
                     'status': 'live',
-                    'position_group_id': str(uuid.uuid4()),
+                    'position_group_id': '',
                 })
         except Exception as e:
             print(f"开仓异常: {e}")
