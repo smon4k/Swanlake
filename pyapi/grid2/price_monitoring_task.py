@@ -113,14 +113,16 @@ class PriceMonitoringTask:
             # print(f"最新价格: {new_price}")
             if get_order_by_price_diff:
                 market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
-                if order['side'] == 'sell' and (Decimal(executed_price) >= Decimal(get_order_by_price_diff['executed_price'])):
+                # if order['side'] == 'sell' and (Decimal(executed_price) >= Decimal(get_order_by_price_diff['executed_price'])):
+                if order['side'] == 'sell':
                 # if order['side'] == 'buy':
                     # 计算利润
                     group_id = str(uuid.uuid4())
                     profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['executed_price'])) * Decimal(min(order['amount'], Decimal(get_order_by_price_diff['quantity']))) * Decimal(market_precision['contract_size']) * (Decimal('1') - Decimal('0.00002'))
                     print(f"配对订单成交，利润 buy: {profit}")
                     logging.info(f"配对订单成交，利润 buy: {profit}")
-                if order['side'] == 'buy' and (Decimal(executed_price) <= Decimal(get_order_by_price_diff['executed_price'])):
+                # if order['side'] == 'buy' and (Decimal(executed_price) <= Decimal(get_order_by_price_diff['executed_price'])):
+                if order['side'] == 'buy':
                 # if order['side'] == 'sell':
                     # 计算利润
                     group_id = str(uuid.uuid4())
