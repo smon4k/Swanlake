@@ -118,7 +118,7 @@ class PriceMonitoringTask:
                 # if order['side'] == 'buy':
                     # 计算利润
                     group_id = str(uuid.uuid4())
-                    profit = (Decimal(executed_price) - Decimal(get_order_by_price_diff['executed_price'])) * Decimal(min(order['amount'], Decimal(get_order_by_price_diff['quantity']))) * Decimal(market_precision['contract_size']) * (Decimal('1') - Decimal('0.00002'))
+                    profit = (Decimal(str(executed_price)) - Decimal(str(get_order_by_price_diff['executed_price']))) * Decimal(str(min(float(order['amount']), float(get_order_by_price_diff['quantity'])))) * Decimal(str(market_precision['contract_size'])) * (Decimal('1') - Decimal('0.00002'))
                     print(f"配对订单成交，利润 buy: {profit}")
                     logging.info(f"配对订单成交，利润 buy: {profit}")
                 # if order['side'] == 'buy' and (Decimal(executed_price) <= Decimal(get_order_by_price_diff['executed_price'])):
@@ -126,7 +126,7 @@ class PriceMonitoringTask:
                 # if order['side'] == 'sell':
                     # 计算利润
                     group_id = str(uuid.uuid4())
-                    profit = (Decimal(get_order_by_price_diff['executed_price']) - Decimal(executed_price)) * Decimal(min(order['amount'], Decimal(get_order_by_price_diff['quantity']))) * Decimal(market_precision['contract_size']) * (Decimal('1') - Decimal('0.00002'))
+                    profit = (Decimal(str(get_order_by_price_diff['executed_price'])) - Decimal(str(executed_price))) * Decimal(str(min(float(order['amount']), float(get_order_by_price_diff['quantity'])))) * Decimal(str(market_precision['contract_size'])) * (Decimal('1') - Decimal('0.00002'))
                     print(f"配对订单成交，利润 sell: {profit}")
                     logging.info(f"配对订单成交，利润 sell: {profit}")
                 if profit != 0:
@@ -308,7 +308,7 @@ class PriceMonitoringTask:
                         'order_type': 'limit',
                         'side': 'buy',
                         'status': 'live',
-                        'position_group_id': group_id,
+                        'position_group_id': '',
                     })
                     print(f"已挂买单: 价格{buy_price} 数量{buy_size}")
                     logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
@@ -340,7 +340,7 @@ class PriceMonitoringTask:
                         'order_type': 'limit',
                         'side': 'sell',
                         'status': 'live',
-                        'position_group_id': group_id,
+                        'position_group_id': '',
                     })
                     print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
                     logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
