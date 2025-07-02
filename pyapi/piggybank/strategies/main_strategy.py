@@ -77,9 +77,10 @@ class MainStrategy(BaseStrategy):
             
             order_amount = Decimal(order_info['info']['sz'])
             deal_amount = Decimal(order_info['info']['accFillSz'])
+            order_data.clinch_amount = float(deal_amount)
             status = order_info['info']['state']
 
-            if status == 'filled' and deal_amount >= order_amount * Decimal('0.5'):
+            if status == 'filled' and deal_amount >= order_amount * Decimal(self.config.CHANGE_RATIO):
                 return (1 if side == 'buy' else 2), order_data
             if status == 'canceled':
                 print(f"[{side.upper()}] 订单已撤销: {order_data.order_id}")
