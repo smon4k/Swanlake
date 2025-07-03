@@ -96,10 +96,7 @@ class Accounts extends Base
      * @since 2025-7-3
      */
     public static function getAccountStatus1List() {
-        $where = [
-            ['status', '=', 1],
-        ];
-        $data = self::where($where)->select();
+        $data = self::where('status', 1)->select();
         if($data && count((array)$data) > 0) {
             return $data->toArray();
         }
