@@ -271,7 +271,13 @@ class QuantifyAccount extends Base
         try {
             date_default_timezone_set("Etc/GMT-8");
             $date = date('Y-m-d');
-            $data = self::name('quantify_equity_monitoring')->where('date', $date)->select();
+            // 只统计状态为1的账户
+            $accountList = Accounts::getAccountStatus1List();
+            $accountIds = array_column($accountList, 'id');
+            $data = [];
+            if (!empty($accountIds)) {
+                $data = self::name('quantify_equity_monitoring')->where('date', $date)->whereIn('account_id', $accountIds)->select();
+            }
             $totalData = [
                 'principal' => 0,
                 'total_balance' => 0,

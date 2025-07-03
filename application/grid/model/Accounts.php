@@ -90,5 +90,21 @@ class Accounts extends Base
         }
         return false;
     }
+
+    /**
+     * 只获取status为1的用户数据
+     * @since 2025-7-3
+     */
+    public static function getAccountStatus1List() {
+        $where = [
+            ['status', '=', 1],
+        ];
+        $data = self::where($where)->select();
+        if($data && count((array)$data) > 0) {
+            return $data->toArray();
+        }
+        return [];
+    }
+    
     
 }
