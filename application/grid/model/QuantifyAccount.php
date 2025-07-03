@@ -115,6 +115,8 @@ class QuantifyAccount extends Base
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $countStandardPrincipal = 0; //累计本金
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
+                $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
+                $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
                 if (!$amount || $amount == 0) {
                     if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
                         if(isset($yestData['principal']) && $yestData['principal'] > 0) {
@@ -124,7 +126,7 @@ class QuantifyAccount extends Base
                             // $countStandardPrincipal = 0;
                         }
                     } else {
-                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance : (isset($dayData['principal']) ? $dayData['principal'] : $totalBalance);
+                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance : (isset($dayData['principal']) ? $dayData['principal'] + (float)$depositTodayNum : $totalBalance);
                     }
                 } else {
                     //本金
@@ -138,12 +140,10 @@ class QuantifyAccount extends Base
                 $dailyProfit = 0; //昨日利润
                 $dailyProfitRate = 0; //昨日利润率
                 $yestTotalBalance = isset($yestData['total_balance']) ? (float)$yestData['total_balance'] : 0;
-                $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // p($depositToday);
                 $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
                 $hasOnlyTodayData = self::hasOnlyTodayData($account_id); //获取是否只第一天
                 if(!$hasOnlyTodayData) {
-                    $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
                     $dailyProfit = $totalBalance - $yestTotalBalance - $depositTodayNum + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
                 } else {
                     $dailyProfit = $totalBalance - $countStandardPrincipal; //日利润 = 总结余-累计本金
