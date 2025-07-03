@@ -118,16 +118,16 @@ class QuantifyAccount extends Base
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
                 if (!$amount || $amount == 0) {
-                    if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
+                    // if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
                         if(isset($yestData['principal']) && $yestData['principal'] > 0) {
-                            $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] : 0;
+                            $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] + (float)$depositTodayNum : 0;
                         } else {
                             $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance;
                             // $countStandardPrincipal = 0;
                         }
-                    } else {
-                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance : (isset($dayData['principal']) ? (float)$dayData['principal'] + (float)$depositTodayNum : $totalBalance);
-                    }
+                    // } else {
+                    //     $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance : (isset($dayData['principal']) ? $dayData['principal'] : $totalBalance);
+                    // }
                 } else {
                     //本金
                     if ($direction == 1) { //入金
