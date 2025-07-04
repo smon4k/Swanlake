@@ -65,10 +65,10 @@ class Accounts extends Base
                 self::insert($insertData);
                 $insertId = self::getLastInsID();
                 if($insertId) {
-                    // $balanceList = QuantifyAccount::getOkxTradePairBalance($insertData);
-                    // if($balanceList && count((array)$balanceList) > 0) {
-                    //     QuantifyAccount::calcQuantifyAccountData($insertId, 1, $balanceList['usdtBalance'], '第一笔入金');
-                    // }
+                    $balanceList = QuantifyAccount::getOkxTradePairBalance($insertData);
+                    if($balanceList && count((array)$balanceList) > 0) {
+                        QuantifyAccount::calcQuantifyAccountData($insertId, 1, $balanceList['usdtBalance'], '第一笔入金');
+                    }
                     return true;
                 }
             }
