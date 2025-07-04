@@ -671,4 +671,9 @@ class TaskController extends ToolsBaseController
 
     //     return (time() - $begin_time) . "s\n";
     // }
+
+    public function testTask() {
+        $accountInfo = QuantifyAccountGrid::getAccountInfo(10);
+        QuantifyAccountGrid::getTransferHistory($accountInfo);
+    }
 }
