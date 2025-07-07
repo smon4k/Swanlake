@@ -576,5 +576,96 @@ class Database:
         finally:
             if conn:
                 conn.close()
+    
 
+    async def insert_strategy_trade(self, trade_data: Dict) -> Dict:
+        """
+        写入策略交易记录到 g_strategy_trade 表
+        :param trade_data: 包含交易记录的字典
+        :return: 写入结果
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    INSERT INTO {table('strategy_trade')}
+                    (strategy_name, open_time, open_side, open_price, close_time, close_side, close_price, profit, symbol, exchange)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    trade_data.get('strategy_name'),
+                    trade_data.get('open_time'),
+                    trade_data.get('open_side'),
+                    trade_data.get('open_price'),
+                    trade_data.get('close_time'),
+                    trade_data.get('close_side'),
+                    trade_data.get('close_price'),
+                    trade_data.get('profit'),
+                    trade_data.get('symbol'),
+                    trade_data.get('exchange')
+                ))
+                conn.commit()
+                return {"status": "success", "message": "Strategy trade inserted successfully"}
+        except Exception as e:
+            print(f"写入策略交易记录失败: {e}")
+            logging.error(f"写入策略交易记录失败: {e}")
+            return {"status": "error", "message": str(e)}
+        finally:
+            if conn:
+                conn.close()
+    
+    async def has_open_position(self, strategy_name: str, open_side: str) -> int:
+        """
+        判断指定策略名称和开仓方向是否已经存在未平仓的开仓数据
+        :param strategy_name: 策略名称
+        :param open_side: 开仓方向（如 'long' 或 'short'）
+        :return: 返回未平仓的开仓数据条数（int）
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT COUNT(*) FROM {table('strategy_trade')}
+                    WHERE strategy_name = %s AND open_side = %s AND close_time IS NULL
+                """, (strategy_name, open_side))
+                result = cursor.fetchone()
+                count = result[0] if result else 0
+                return count
+        except Exception as e:
+            print(f"查询开仓数据失败: {e}")
+            logging.error(f"查询开仓数据失败: {e}")
+            return 0
+        finally:
+            if conn:
+                conn.close()
+    
+    async def update_strategy_trade_by_id(self, trade_id: int, updates: Dict) -> bool:
+        """
+        根据id更新策略交易记录（g_strategy_trade表）
+        :param trade_id: 策略交易记录id
+        :param updates: 需要更新的字段及其值的字典
+        :return: 更新是否成功
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
+                values = list(updates.values()) + [trade_id]
+                query = f"""
+                    UPDATE {table('strategy_trade')}
+                    SET {set_clause}
+                    WHERE id=%s
+                """
+                cursor.execute(query, values)
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"更新策略交易记录失败: {e}")
+            logging.error(f"更新策略交易记录失败: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
         
