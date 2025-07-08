@@ -614,28 +614,28 @@ class Database:
             if conn:
                 conn.close()
     
-    async def has_open_position(self, strategy_name: str, open_side: str) -> int:
+    async def has_open_position(self, strategy_name: str, open_side: str) -> Optional[Dict]:
         """
         判断指定策略名称和开仓方向是否已经存在未平仓的开仓数据
         :param strategy_name: 策略名称
         :param open_side: 开仓方向（如 'long' 或 'short'）
-        :return: 返回未平仓的开仓数据条数（int）
+        :return: 返回未平仓的开仓数据（dict），如果没有则返回None
         """
         conn = None
         try:
             conn = self.get_db_connection()
-            with conn.cursor() as cursor:
+            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
                 cursor.execute(f"""
-                    SELECT COUNT(*) FROM {table('strategy_trade')}
-                    WHERE strategy_name = %s AND open_side = %s AND close_time IS NULL
+                    SELECT * FROM {table('strategy_trade')}
+                    WHERE strategy_name = %s AND open_side = %s AND status = 0
+                    ORDER BY id DESC LIMIT 1
                 """, (strategy_name, open_side))
                 result = cursor.fetchone()
-                count = result[0] if result else 0
-                return count
+                return result
         except Exception as e:
             print(f"查询开仓数据失败: {e}")
             logging.error(f"查询开仓数据失败: {e}")
-            return 0
+            return None
         finally:
             if conn:
                 conn.close()
@@ -664,6 +664,59 @@ class Database:
         except Exception as e:
             print(f"更新策略交易记录失败: {e}")
             logging.error(f"更新策略交易记录失败: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+    
+    # 获取g_config里面所有用户数据，然后根据策略名称进行筛选出对应的max_postion_list里面对应的value值，进行修改，增加5%或者减少5%
+    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True) -> bool:
+        """
+        根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
+        :param tactics_name: 策略名称
+        :param increase: True为增加5%，False为减少5%
+        :return: 是否全部更新成功
+        """
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                # 获取所有用户的max_position_list
+                cursor.execute(f"SELECT account_id, max_position_list FROM {table('config')}")
+                configs = cursor.fetchall()
+                for row in configs:
+                    account_id = row.get('account_id') if isinstance(row, dict) else row[0]
+                    max_position_list = row.get('max_position_list') if isinstance(row, dict) else row[1]
+                    if not max_position_list:
+                        continue
+                    try:
+                        max_position_arr = json.loads(max_position_list)
+                    except Exception as e:
+                        logging.error(f"解析max_position_list失败: {e}")
+                        continue
+                    updated = False
+                    for item in max_position_arr:
+                        if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
+                            try:
+                                value = float(item.get('value'))
+                                if increase:
+                                    value = round(value * 1.05, 8)
+                                else:
+                                    value = round(value * 0.95, 8)
+                                item['value'] = str(value)
+                                updated = True
+                            except Exception as e:
+                                logging.error(f"更新value失败: {e}")
+                    if updated:
+                        new_max_position_list = json.dumps(max_position_arr, ensure_ascii=False)
+                        cursor.execute(
+                            f"UPDATE {table('config')} SET max_position_list=%s WHERE account_id=%s",
+                            (new_max_position_list, account_id)
+                        )
+                conn.commit()
+            return True
+        except Exception as e:
+            print(f"批量更新max_position_list失败: {e}")
+            logging.error(f"批量更新max_position_list失败: {e}")
             return False
         finally:
             if conn:

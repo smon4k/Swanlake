@@ -254,7 +254,7 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
                         await self.db.update_order_by_id(account_id, order['id'], {
                             'status': 'canceled'
                         })
-                    # print(f"取消订单成功")
+                    print(f"取消订单成功")
             except Exception as e:
                 print(f"取消订单失败: {e}")
     except Exception as e:

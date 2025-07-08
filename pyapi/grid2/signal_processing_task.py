@@ -94,8 +94,19 @@ class SignalProcessingTask:
                 )
 
                 #1.4 处理记录开仓方向数据
-                has_open_position = await self.has_open_position(name, side)
-                if not has_open_position:
+                has_open_position = await self.db.has_open_position(name, side)
+                if has_open_position:
+                    await self.db.update_strategy_trade_by_id(has_open_position['id'], {
+                        'strategy_name': name,
+                        'close_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'close_side': side,
+                        'close_price': price,
+                        'profit': None,
+                        'symbol': symbol,
+                        'exchange': exchange,
+                        'status': 1,
+                    })
+                else:
                     await self.db.insert_strategy_trade({
                         'strategy_name': name,
                         'open_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -109,6 +120,7 @@ class SignalProcessingTask:
                         'exchange': exchange,
                         'status': 1,
                     })
+                    
             elif (side == 'buy' and size == 0) or (side == 'sell' and size == 0): # 平仓
                 # 1.4 平仓
                 # await self.handle_close_position(
@@ -125,7 +137,8 @@ class SignalProcessingTask:
                 await self.cleanup_opposite_positions(account_id, symbol, side)
 
                 # 1.7 更新数据库订单为已平仓
-                has_open_position = await self.has_open_position(name, side)
+                close_side = 'buy' if side == 'sell' else 'sell'
+                has_open_position = await self.db.has_open_position(name, close_side)
                 if has_open_position:
                     # 计算利润
                     side_profit = 0
@@ -133,7 +146,7 @@ class SignalProcessingTask:
                         side_profit = Decimal(price) - Decimal(has_open_position['open_price'])
                     else:
                         side_profit = Decimal(has_open_position['open_price']) - Decimal(price)
-                    await self.db.update_strategy_trade(has_open_position['id'], {
+                    await self.db.update_strategy_trade_by_id(has_open_position['id'], {
                         'strategy_name': name,
                         'close_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                         'close_side': side,
@@ -141,6 +154,12 @@ class SignalProcessingTask:
                         'profit': side_profit,
                         'status': 1,
                     })
+                    increase = True
+                    if(side_profit > 0):
+                        increase = False
+                    else:
+                        increase = True
+                    await self.db.update_max_position_by_tactics(name, increase)
             else:
                 print(f"❌ 无效信号: {side}{size}")
                 logging.error(f"❌ 无效信号: {side}{size}")
