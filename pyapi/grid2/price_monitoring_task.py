@@ -86,7 +86,7 @@ class PriceMonitoringTask:
                     logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
                     # print(f"订单存在: {latest_order}")
                     # 网格管理 下单
-                    executed_price = order_info['info'].get('fillPx') # 成交价格
+                    executed_price = latest_order['info']['fillPx'] # 成交价格
                     mangr_orders = await self.manage_grid_orders(latest_order, account_id) #检查网格
                     if mangr_orders:
                         await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})

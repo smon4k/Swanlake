@@ -213,7 +213,6 @@
   </template>
   <script>
   import Page from "@/components/Page.vue";
-  import sig_url from "@/utils/utils.js";
   import { get, post, upload } from "@/common/axios.js";
   export default {
     data() {
