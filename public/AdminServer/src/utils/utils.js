@@ -13,5 +13,4 @@ export default {
   basepath: 'http://' + window.location.host, //接口域名地址
 
   // sig_url: 'http://localhost:8083'
-  sig_url: 'https://sig.swanlake.club/sigadmin'
 }
