@@ -93,7 +93,7 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
                 return None
         except Exception as e:
             print(f"开仓失败: {e}")
-            raise
+            return None
 
 #获取账户余额
 async def get_account_balance(exchange: ccxt.Exchange, symbol:str) -> Decimal:

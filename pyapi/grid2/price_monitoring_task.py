@@ -73,7 +73,7 @@ class PriceMonitoringTask:
                 # print(order_info['info']['state'])
                 if order_info['info']['state'] == 'filled':
                     print(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
-                    logging.info(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    # logging.info(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                     fill_date_time = await milliseconds_to_local_datetime(fill_time) # 格式化成交时间
                     fill_time = float(fill_time)
                     if fill_time > latest_fill_time: # 找到最新的成交时间
@@ -283,7 +283,8 @@ class PriceMonitoringTask:
                     pos_side = 'short'
 
                 print("开空开多", pos_side)
-
+                buy_order = None
+                sell_order = None
                 if is_buy and buy_size and float(buy_size) > 0:
                     # await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     client_order_id = await get_client_order_id()
@@ -299,6 +300,24 @@ class PriceMonitoringTask:
                         client_order_id,
                         False
                     )
+                    
+                if sell_size and float(sell_size) > 0:
+                    # await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
+                    client_order_id = await get_client_order_id()
+                    sell_order = await open_position(
+                        self,
+                        account_id, 
+                        symbol, 
+                        'sell', 
+                        pos_side, 
+                        float(sell_size), 
+                        float(sell_price), 
+                        'limit',
+                        client_order_id,
+                        False
+                    )
+
+                if buy_order and sell_order:
                     await self.db.add_order({
                         'account_id': account_id,
                         'symbol': symbol,
@@ -315,22 +334,7 @@ class PriceMonitoringTask:
                     })
                     print(f"已挂买单: 价格{buy_price} 数量{buy_size}")
                     logging.info(f"已挂买单: 价格{buy_price} 数量{buy_size}")
-
-                if sell_size and float(sell_size) > 0:
-                    # await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
-                    client_order_id = await get_client_order_id()
-                    sell_order = await open_position(
-                        self,
-                        account_id, 
-                        symbol, 
-                        'sell', 
-                        pos_side, 
-                        float(sell_size), 
-                        float(sell_price), 
-                        'limit',
-                        client_order_id,
-                        False
-                    )
+                    
                     await self.db.add_order({
                         'account_id': account_id,
                         'symbol': symbol,
@@ -347,7 +351,12 @@ class PriceMonitoringTask:
                     })
                     print(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
                     logging.info(f"已挂卖单: 价格{sell_price} 数量{sell_size}")
-                return True
+                    return True
+                else:
+                    await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
+                    print("网格下单失败，未能成功挂买单或卖单")
+                    logging.info("网格下单失败，未能成功挂买单或卖单")
+                    return False
             else:
                 print("未获取到信号")
                 logging.info("未获取到信号")

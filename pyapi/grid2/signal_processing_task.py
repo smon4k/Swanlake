@@ -283,6 +283,7 @@ class SignalProcessingTask:
             if(total_position_value > 0):
                 total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
                 print("总持仓价值", total_position_quantity)
+                logging.info(f"总持仓价值：{total_position_quantity}")
             
             # 2. 计算开仓量
             # price = await get_market_price(exchange, symbol)
@@ -340,7 +341,6 @@ class SignalProcessingTask:
                 # print(f"最大持仓数：{max_position}")
                 logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
                 # print(f"总持仓数大于等于最大持仓，不执行挂单")
-                logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
                 return
             
             # 3. 获取市场价格
