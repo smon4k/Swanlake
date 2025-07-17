@@ -122,7 +122,7 @@ class QuantifyAccount extends Base
                         if(isset($yestData['principal']) && $yestData['principal'] > 0) {
                             $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] + (float)$depositTodayNum : 0;
                         } else {
-                            $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance;
+                            $countStandardPrincipal = $total_balance ? $total_balance *= -1 : $totalBalance;
                             // $countStandardPrincipal = 0;
                         }
                     // } else {
