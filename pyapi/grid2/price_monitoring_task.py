@@ -175,8 +175,18 @@ class PriceMonitoringTask:
             print(f"最新订单成交价: {filled_price}")
             logging.info(f"最新订单成交价: {filled_price}")
             
+            price = await get_market_price(exchange, symbol) # 获取最新市场价格
+            logging.info(f"最新市场价格: {price}")
+
             # 3. 计算新挂单价格（基于订单成交价±0.2%）
             grid_step = Decimal(str(self.db.account_config_cache[account_id].get('grid_step')))
+            price_diff_ratio = abs(filled_price - price) / price
+            # 如果价格差超过 0.3%，使用最新价格作为成交价
+            if price_diff_ratio > grid_step:
+                filled_price = price
+                print(f"价格差超过 {grid_step * 100}%，使用最新价格作为成交价: {filled_price}")
+                logging.info(f"价格差超过 {grid_step * 100}%，使用最新价格作为成交价: {filled_price}")
+                
             buy_price = filled_price * (Decimal('1') - grid_step)
             sell_price = filled_price * (Decimal('1') + grid_step)
             # print(f"计算挂单价: 卖{sell_price} 买{buy_price}")
@@ -200,7 +210,7 @@ class PriceMonitoringTask:
             print(f"账户余额: {balance}")
             logging.info(f"账户余额: {balance}")
 
-            price = await get_market_price(exchange, symbol)
+            
             # Remove '-SWAP' from the symbol if it exists
             symbol_tactics = symbol
             if symbol.endswith('-SWAP'):
