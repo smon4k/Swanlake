@@ -356,7 +356,7 @@ class PriceMonitoringTask:
                     await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     print("网格下单失败，未能成功挂买单或卖单")
                     logging.info("网格下单失败，未能成功挂买单或卖单")
-                    return False
+                    return True
             else:
                 print("未获取到信号")
                 logging.info("未获取到信号")

@@ -134,7 +134,7 @@ class SignalProcessingTask:
                 await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
 
                 # 1.6 平掉反向仓位
-                await self.cleanup_opposite_positions(account_id, symbol, side)
+                await self.cleanup_opposite_positions(account_id, symbol, pos_side)
 
                 # 1.7 更新数据库订单为已平仓
                 close_side = 'buy' if side == 'sell' else 'sell'
