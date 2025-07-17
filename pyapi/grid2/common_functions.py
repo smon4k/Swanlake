@@ -93,6 +93,7 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
                 return None
         except Exception as e:
             print(f"开仓失败: {e}")
+            logging.error(f"开仓失败: {e}")
             return None
 
 #获取账户余额
