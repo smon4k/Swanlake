@@ -137,15 +137,23 @@ class SignalProcessingTask:
                 await self.cleanup_opposite_positions(account_id, symbol, pos_side)
 
                 # 1.7 更新数据库订单为已平仓
-                close_side = 'buy' if side == 'sell' else 'sell'
-                has_open_position = await self.db.has_open_position(name, close_side)
+                open_side = 'buy' if side == 'sell' else 'sell' # 开仓方向
+                has_open_position = await self.db.has_open_position(name, open_side)
                 if has_open_position:
                     # 计算利润
                     side_profit = 0
-                    if side == 'buy':
-                        side_profit = Decimal(price) - Decimal(has_open_position['open_price'])
+                    # 获取价格并确保Decimal转换
+                    open_price = Decimal(str(has_open_position['open_price'])) # 开仓价
+                    close_price = Decimal(str(price)) # 平仓价
+
+                    if open_side == 'buy':
+                        side_profit = close_price - open_price  # 多单：平仓价 - 开仓价
                     else:
-                        side_profit = Decimal(has_open_position['open_price']) - Decimal(price)
+                        side_profit = open_price - close_price  # 空单：开仓价 - 平仓价
+                    
+                    # 明确盈亏状态
+                    is_profit = side_profit > 0
+
                     await self.db.update_strategy_trade_by_id(has_open_position['id'], {
                         'strategy_name': name,
                         'close_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -154,12 +162,9 @@ class SignalProcessingTask:
                         'profit': side_profit,
                         'status': 1,
                     })
-                    increase = True
-                    if(side_profit > 0):
-                        increase = False
-                    else:
-                        increase = True
-                    await self.db.update_max_position_by_tactics(name, increase)
+                    print(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {side_profit}, Is Profit: {is_profit}")
+                    logging.info(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {side_profit}, Is Profit: {is_profit}")
+                    await self.db.update_max_position_by_tactics(name, is_profit)
             else:
                 print(f"❌ 无效信号: {side}{size}")
                 logging.error(f"❌ 无效信号: {side}{size}")

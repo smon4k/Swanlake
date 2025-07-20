@@ -61,7 +61,7 @@ class PriceMonitoringTask:
                     symbol_tactics = order['symbol'].replace('-SWAP', '')
                 tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
                 signal = await self.db.get_latest_signal(order['symbol'], tactics)  # 获取最新信号
-                await self.check_and_close_position(exchange, account_id, order['symbol'], signal['price'])
+                # await self.check_and_close_position(exchange, account_id, order['symbol'], signal['price'])
                 # 检查订单是否存在
                 # print(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                 # logging.info(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
