@@ -21,14 +21,16 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
             'password': account_info.get('api_passphrase', None),
             "options": {"defaultType": "swap"},
             "timeout": 30000,
-            'proxies': {
-                'http': 'http://127.0.0.1:7890',
-                'https': 'http://127.0.0.1:7890',
-            },
         })
         is_simulation = os.getenv("IS_SIMULATION", '1')
         if is_simulation == '1': # 1表示模拟环境
             exchange.set_sandbox_mode(True)
+        
+        if os.getenv('IS_LOCAL', '0') == '1':  # 本地调试
+            exchange.proxies = {
+                'http': 'http://127.0.0.1:7890',
+                'https': 'http://127.0.0.1:7890',
+            }
         return exchange
     return None
 
