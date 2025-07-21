@@ -29,7 +29,7 @@
                             <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
                             <span v-if="activeName == '全部'">{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
                             <el-link v-else type="primary" @click="getTotalBalanceClick()">
-                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
+                                <span>{{ Math.floor(scope.row.total_balance) }}</span>
                             </el-link>
                             </template>
                         </el-table-column>

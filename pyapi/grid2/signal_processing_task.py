@@ -98,9 +98,12 @@ class SignalProcessingTask:
                 if has_open_position:
                     await self.db.update_strategy_trade_by_id(has_open_position['id'], {
                         'strategy_name': name,
-                        'close_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        'close_side': side,
-                        'close_price': price,
+                        'open_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'open_side': side,
+                        'open_price': price,
+                        'close_time': None,
+                        'close_side': None,
+                        'close_price': None,
                         'profit': None,
                         'symbol': symbol,
                         'exchange': exchange,
