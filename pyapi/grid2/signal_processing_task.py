@@ -104,7 +104,7 @@ class SignalProcessingTask:
                         'profit': None,
                         'symbol': symbol,
                         'exchange': exchange,
-                        'status': 1,
+                        'status': 0,
                     })
                 else:
                     await self.db.insert_strategy_trade({
@@ -118,7 +118,7 @@ class SignalProcessingTask:
                         'profit': None,
                         'symbol': symbol,
                         'exchange': exchange,
-                        'status': 1,
+                        'status': 0,
                     })
                     
             elif (side == 'buy' and size == 0) or (side == 'sell' and size == 0): # 平仓
