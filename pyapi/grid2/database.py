@@ -674,7 +674,7 @@ class Database:
         """
         根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
         :param tactics_name: 策略名称
-        :param increase: True为增加5%，False为减少5%
+        :param increase: True为减少5%，False为增加5%
         :return: 是否全部更新成功
         """
         try:
@@ -699,9 +699,9 @@ class Database:
                             try:
                                 value = float(item.get('value'))
                                 if increase:
-                                    value = round(value * 1.05, 8)
-                                else:
                                     value = round(value * 0.95, 8)
+                                else:
+                                    value = round(value * 1.05, 8)
                                 item['value'] = str(value)
                                 updated = True
                             except Exception as e:
