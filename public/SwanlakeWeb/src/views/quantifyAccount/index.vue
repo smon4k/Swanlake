@@ -24,7 +24,7 @@
                             <template slot-scope="scope">
                             <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
                             <el-link type="primary" @click="getTotalBalanceClick()">
-                                <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2, true) }}</span>
+                                <span>{{ Math.floor(scope.row.total_balance) }}</span>
                             </el-link>
                             </template>
                         </el-table-column>
@@ -93,7 +93,7 @@
                         <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                             <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
                             <!-- <el-descriptions-item label="账户名称">{{ item.account }}</el-descriptions-item> -->
-                            <el-descriptions-item label="总结余">{{ keepDecimalNotRounding(item.total_balance, 2, true) }} USDT</el-descriptions-item>
+                            <el-descriptions-item label="总结余">{{ Math.floor(item.total_balance) }} USDT</el-descriptions-item>
                             <!-- <el-descriptions-item label="币价">{{ keepDecimalNotRounding(item.price, 2, true) }} USDT</el-descriptions-item> -->
                             <el-descriptions-item label="日利润">{{ keepDecimalNotRounding(item.daily_profit, 2, true) }} USDT</el-descriptions-item>
                             <el-descriptions-item label="日利润率">{{ keepDecimalNotRounding(item.daily_profit_rate, 4, true) }}</el-descriptions-item>

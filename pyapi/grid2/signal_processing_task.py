@@ -150,14 +150,14 @@ class SignalProcessingTask:
                     close_price = Decimal(str(price)) # 平仓价
 
                     if open_side == 'buy':
-                        side_profit = close_price - open_price  # 多单：平仓价 - 开仓价
+                        side_profit = close_price - open_price  # 多单：平仓价 - 开仓价 > 0 盈利
                     else:
-                        side_profit = open_price - close_price  # 空单：开仓价 - 平仓价
+                        side_profit = open_price - close_price  # 空单：开仓价 - 平仓价 > 0 盈利
                     # 方法1：强制转为常规小数（推荐）
                     side_profit_normal = format(side_profit, 'f')  # 输出 "0.00003333"
 
-                    # 明确盈亏状态
-                    is_profit = float(side_profit_normal) > 0
+                    # 明确盈亏状态 盈利为1，亏损为0
+                    is_profit = float(side_profit_normal) > 0 
 
                     await self.db.update_strategy_trade_by_id(has_open_position['id'], {
                         'strategy_name': name,
@@ -169,7 +169,7 @@ class SignalProcessingTask:
                     })
                     print(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {side_profit_normal}, Is Profit: {is_profit}")
                     logging.info(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {side_profit_normal}, Is Profit: {is_profit}")
-                    await self.db.update_max_position_by_tactics(name, is_profit)
+                    await self.db.update_max_position_by_tactics(name, is_profit, side_profit_normal)
             else:
                 print(f"❌ 无效信号: {side}{size}") 
                 logging.error(f"❌ 无效信号: {side}{size}")
