@@ -169,7 +169,10 @@ class SignalProcessingTask:
                     })
                     print(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {side_profit_normal}, Is Profit: {is_profit}")
                     logging.info(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {side_profit_normal}, Is Profit: {is_profit}")
-                    await self.db.update_max_position_by_tactics(name, is_profit, side_profit_normal)
+                    is_save_strategy = await self.pre_update_strategy_check(account_id, symbol, is_profit, name, open_price, side_profit_normal) # 校验是否更新策略
+
+                    if is_save_strategy:
+                        await self.db.update_max_position_by_tactics(name, is_profit, side_profit_normal)
             else:
                 print(f"❌ 无效信号: {side}{size}") 
                 logging.error(f"❌ 无效信号: {side}{size}")
@@ -402,3 +405,42 @@ class SignalProcessingTask:
         except Exception as e:
             print(f"计算仓位失败: {e}")
             return Decimal('0')
+    
+    async def pre_update_strategy_check(self, account_id: int, symbol: str, increase: bool, tactics_name: str, open_price: float, side_profit_normal: str) -> bool:
+
+        """
+        更新策略前的处理逻辑判断
+        返回True表示可以继续更新，False表示不满足条件
+        """
+        try:
+            max_loss_number = 5 # 最大亏损次数
+            min_loss_ratio = 0.001 # 最小亏损比例
+
+            # 2.0 获取策略表连续几次亏损 
+            strategy_info = self.db.get_strategy_info(tactics_name)
+            # 连续亏损次数
+            loss_number = strategy_info.get('loss_number', 0)
+            if(loss_number >= max_loss_number): # 连续亏损5次，不更新
+                return True
+
+            if increase:
+                self.db.update_strategy_loss_number(tactics_name, 0) # 如果盈利，修改亏损数量为0
+            else:
+                #2.1 如果C/开仓价的绝对值小于0.1%，不增不减（可配置）。
+                loss_ratio = abs(float(side_profit_normal)) / float(open_price) #亏损/开仓价的绝对值，小于0.1%就认为可以忽略 0.1可配置
+                if loss_ratio < min_loss_ratio:
+                    return False
+                
+                # 仓位最大值不能超过仓位最大仓位数
+                add_loss_number = loss_number + 1
+                max_position = await self.db.get_max_position_value(self, account_id, symbol) # 账户对应的策略最大仓位数量
+                if add_loss_number > max_position:
+                    return False
+                self.db.update_strategy_loss_number(tactics_name, add_loss_number) # 如果亏损，修改亏损数量+1
+            # 其他自定义判断逻辑可在此添加
+
+            return True
+        except Exception as e:
+            print(f"策略更新前检查异常: {e}")
+            logging.error(f"策略更新前检查异常: {e}")
+            return False

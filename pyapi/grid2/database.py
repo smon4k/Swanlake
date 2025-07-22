@@ -670,7 +670,7 @@ class Database:
                 conn.close()
     
     # 获取g_config里面所有用户数据，然后根据策略名称进行筛选出对应的max_postion_list里面对应的value值，进行修改，增加5%或者减少5%
-    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True, profit_normal: float = 0) -> bool:
+    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True) -> bool:
         """
         根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
         :param tactics_name: 策略名称
@@ -680,19 +680,9 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                # 获取策略表连续几次亏损
-                strategy_info = self.get_strategy_info(tactics_name)
-                # 连续亏损次数
-                loss_number = strategy_info.get('loss_number', 0)
-                if(loss_number >= 5): # 连续亏损5次，不更新 5可配置
-                    return True
-
-                if increase:
-                    self.update_strategy_loss_number(tactics_name, 0) # 如果盈利，修改亏损数量为0
-                else:
-                    self.update_strategy_loss_number(tactics_name, loss_number + 1) # 如果亏损，修改亏损数量+1
-
                 # 获取所有用户的max_position_list
+                strategy_info = self.get_strategy_info(tactics_name)
+                max_position = strategy_info.get('max_position') # 最大仓位
                 cursor.execute(f"SELECT account_id, max_position_list FROM {table('config')}")
                 configs = cursor.fetchall()
                 for row in configs:
@@ -714,6 +704,10 @@ class Database:
                                     value = round(value * 0.95, 8)
                                 else: # 亏损 增加5%
                                     value = round(value * 1.05, 8)
+                                
+                                # 仓位最大值不能超过仓位最大仓位数
+                                if value > max_position:
+                                    value = max_position
                                 item['value'] = str(value)
                                 updated = True
                             except Exception as e:
