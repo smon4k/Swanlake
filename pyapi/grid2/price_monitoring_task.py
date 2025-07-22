@@ -196,7 +196,7 @@ class PriceMonitoringTask:
             if not positions:
                 print("网格下单 无持仓信息")
                 logging.info("网格下单 无持仓信息")
-                return False
+                return True
             # print("positions", positions)
             total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
             print("总持仓数", total_position_value)
@@ -204,7 +204,7 @@ class PriceMonitoringTask:
             if total_position_value <= 0:
                 print("网格下单 无持仓信息")
                 logging.info("网格下单 无持仓信息")
-                return False
+                return True
 
             balance = await get_account_balance(exchange, symbol)
             print(f"账户余额: {balance}")

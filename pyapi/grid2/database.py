@@ -590,7 +590,7 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute(f"""
                     INSERT INTO {table('strategy_trade')}
-                    (strategy_name, open_time, open_side, open_price, close_time, close_side, close_price, profit, symbol, exchange)
+                    (strategy_name, open_time, open_side, open_price, close_time, close_side, close_price, loss_profit, symbol, exchange)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     trade_data.get('strategy_name'),
@@ -600,7 +600,7 @@ class Database:
                     trade_data.get('close_time'),
                     trade_data.get('close_side'),
                     trade_data.get('close_price'),
-                    trade_data.get('profit'),
+                    trade_data.get('loss_profit'),
                     trade_data.get('symbol'),
                     trade_data.get('exchange')
                 ))
@@ -681,8 +681,13 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 获取所有用户的max_position_list
-                strategy_info = self.get_strategy_info(tactics_name)
+                strategy_info = await self.get_strategy_info(tactics_name)
                 max_position = strategy_info.get('max_position') # 最大仓位
+                min_position = strategy_info.get('min_position') # 最小仓位
+
+                #增减比例
+                increase_ratio = 5 # 盈利增加比例 5%
+                decrease_ratio = 5 # 亏损减少比例 5%
                 cursor.execute(f"SELECT account_id, max_position_list FROM {table('config')}")
                 configs = cursor.fetchall()
                 for row in configs:
@@ -700,14 +705,18 @@ class Database:
                         if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
                             try:
                                 value = float(item.get('value'))
-                                if increase: # 盈利 减少5%
-                                    value = round(value * 0.95, 8)
-                                else: # 亏损 增加5%
-                                    value = round(value * 1.05, 8)
+                                if increase: # 盈利 减少百分比
+                                    value = round(value * (1 - increase_ratio / 100), 8)
+                                else: # 亏损 增加百分比
+                                    value = round(value * (1 + decrease_ratio / 100), 8)
                                 
                                 # 仓位最大值不能超过仓位最大仓位数
                                 if value > max_position:
                                     value = max_position
+
+                                # 仓位最小值不能低于仓位最小仓位数
+                                if value < min_position:
+                                    value = min_position
                                 item['value'] = str(value)
                                 updated = True
                             except Exception as e:
@@ -737,7 +746,7 @@ class Database:
         conn = None
         try:
             conn = self.get_db_connection()
-            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            with conn.cursor() as cursor:
                 cursor.execute(f"""
                     SELECT * FROM {table('strategy')}
                     WHERE name = %s
@@ -753,7 +762,8 @@ class Database:
                 conn.close()
     
     #修改指定策略亏损记录
-    async def update_strategy_loss_number(self, strategy_name: str, loss_number: int) -> bool:
+    async def update_strategy_loss_number(self, strategy_name: str, loss_number: int, count_profit_loss: float) -> bool:
+
         """
         根据策略名称更新策略亏损次数
         :param strategy_name: 策略名称
@@ -765,8 +775,8 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
-                    f"UPDATE {table('strategy')} SET loss_number=%s WHERE name=%s",
-                    (loss_number, strategy_name)
+                    f"UPDATE {table('strategy')} SET loss_number=%s, count_profit_loss=%s WHERE name=%s",
+                    (loss_number, count_profit_loss, strategy_name)
                 )
                 conn.commit()
                 return True
