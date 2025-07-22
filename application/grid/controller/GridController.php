@@ -15,6 +15,7 @@ namespace app\grid\controller;
 use app\grid\model\Orders;
 use app\grid\model\Config;
 use app\grid\model\Accounts;
+use app\grid\model\Signals;
 use think\Request;
 use think\Controller;
 use think\Db;
@@ -191,6 +192,23 @@ class GridController extends BaseController
         $where = [];
         $where['status'] = 1;
         $result = Accounts::getAccountList($where);
+        return $this->as_json($result);
+    }
+
+    
+    /**
+     * 获取信号列表
+     * @author qinlh
+     * @since 2025-07-22
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function getSignalsList(Request $request)
+    {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 20, 'intval');
+        $where = [];
+        $result = Signals::getSignalsList($page, $where, $limits);
         return $this->as_json($result);
     }
 }
