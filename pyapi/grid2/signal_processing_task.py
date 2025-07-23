@@ -423,10 +423,6 @@ class SignalProcessingTask:
 
             # 2.0 获取策略表连续几次亏损 
             strategy_info = await self.db.get_strategy_info(tactics_name)
-            # 连续亏损次数
-            loss_number = strategy_info.get('loss_number', 0)
-            if(loss_number >= max_loss_number): # 连续亏损5次，不更新
-                return True
             #计算总盈亏
             count_profit_loss = strategy_info.get('count_profit_loss', 0)
             if float(loss_profit_normal) > 0: # 盈利
@@ -450,6 +446,10 @@ class SignalProcessingTask:
                 if loss_ratio < min_loss_ratio:
                     return False
                 
+                # 连续亏损次数
+                loss_number = strategy_info.get('loss_number', 0)
+                if(loss_number >= max_loss_number): # 连续亏损5次，不更新
+                    return True
                 add_loss_number = loss_number + 1
 
                 await self.db.update_strategy_loss_number(tactics_name, add_loss_number, count_profit_loss) # 如果亏损，修改亏损数量+1

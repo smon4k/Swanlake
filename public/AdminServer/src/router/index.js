@@ -36,6 +36,7 @@ const GridOrderConfig = () => import('@/pages/Grid/config.vue')
 const GridPositionsList = () => import('@/pages/Grid/positions.vue')
 const GridAccountsList = () => import('@/pages/Grid/accounts.vue')
 const AccountStatuement = () => import('@/pages/Grid/AccountStatuement.vue')
+const SignalList = () => import('@/pages/Grid/SignalList.vue')
 
 Vue.use(Router)
 
@@ -256,6 +257,15 @@ const router = new Router({
           component: AccountStatuement,
           meta: {
             name: '账户报表',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'grid/account/signallist',
+          name: 'SignalList',
+          component: SignalList,
+          meta: {
+            name: '信号列表',
             notKeepAlive: true
           }
         },

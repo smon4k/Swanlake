@@ -4,15 +4,22 @@
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>信号列表</el-breadcrumb-item>
     </el-breadcrumb>
-    
+    <div style="text-align:right;margin-bottom: 10px;">
+      <el-button type="primary" @click="refreshSignalList()">刷新列表</el-button>
+    </div>
     <el-table :data="signalList" style="width: 100%; margin-top: 20px;" v-loading="loading">
-      <el-table-column prop="strategy_name" label="策略名称" align="center"></el-table-column>
+      <el-table-column prop="name" label="策略名称" align="center"></el-table-column>
       <el-table-column prop="symbol" label="交易对" align="center"></el-table-column>
       <el-table-column prop="direction" label="方向" align="center">
         <template slot-scope="scope">
           <el-tag :type="scope.row.direction === 'long' ? 'success' : 'danger'">
-            {{ scope.row.direction === 'long' ? '做多' : '做空' }}
+            {{ scope.row.direction === 'long' ? 'buy' : 'sell' }}
           </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="size" label="信号类型" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.size == '1' || scope.row.size == '-1' ? '开仓' : '平仓' }}
         </template>
       </el-table-column>
       <el-table-column prop="price" label="价格" align="center">
@@ -22,32 +29,31 @@
       </el-table-column>
       <el-table-column prop="timestamp" label="时间" align="center">
         <template slot-scope="scope">
-          {{ formatTime(scope.row.timestamp) }}
+          {{ scope.row.timestamp }}
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态" align="center">
         <template slot-scope="scope">
-          <el-tag :type="getStatusTagType(scope.row.status)">
-            {{ getStatusText(scope.row.status) }}
+          <el-tag :type="scope.row.status === 'pending' ? 'warning' : (scope.row.status === 'processed' ? 'success' : 'info')">
+            {{ scope.row.status === 'pending' ? '进行中' : (scope.row.status === 'processed' ? '已完成' : scope.row.status) }}
           </el-tag>
         </template>
       </el-table-column>
     </el-table>
     
-    <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="currentPage"
-      :page-sizes="[10, 20, 50, 100]"
-      :page-size="pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="total"
-      class="pagination"
-    ></el-pagination>
+    <el-row class="pages">
+      <el-col :span="24">
+        <div style="float:right;">
+          <wbc-page :total="total" :pageSize="pageSize" :currPage="currentPage" @changeLimit="limitPaging"
+            @changeSkip="skipPaging"></wbc-page>
+        </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script>
+import Page from "@/components/Page.vue";
 import { get } from "@/common/axios.js";
 
 export default {
@@ -56,12 +62,19 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
+      PageSearchWhere: {
+        page: 1,
+        limit: 10,
+      },
       signalList: [],
       loading: false
     };
   },
   created() {
     this.getSignalList();
+  },
+  components: {
+    "wbc-page": Page, //加载分页组件
   },
   methods: {
     getSignalList() {
@@ -73,25 +86,21 @@ export default {
       
       get("/Grid/grid/getSignalsList", params, response => {
         this.loading = false;
+        console.log(response)
         if (response.data.code == 10000) {
-          this.signalList = response.data.data.list || [];
-          this.total = response.data.data.total || 0;
+          this.signalList = response.data.data.lists || [];
+          this.total = response.data.data.count || 0;
         } else {
           this.$message.error(response.data.msg || '获取信号列表失败');
         }
-      }).catch(error => {
-        this.loading = false;
-        this.$message.error(error.message || '请求失败');
       });
     },
-    
-    handleSizeChange(val) {
-      this.pageSize = val;
-      this.getSignalList();
-    },
-    
-    handleCurrentChange(val) {
-      this.currentPage = val;
+
+    async refreshSignalList() {
+      // 延迟1-2秒再继续执行
+      this.loading = true;
+      const delay = Math.random() * 1000; // 1000~2000ms
+      await new Promise(resolve => setTimeout(resolve, delay));
       this.getSignalList();
     },
     
@@ -99,24 +108,6 @@ export default {
       if (isNaN(num)) return '--';
       // Format number with 4 decimal places
       return parseFloat(num).toFixed(4);
-    },
-    
-    formatTime(timestamp) {
-      if (!timestamp) return '--';
-      try {
-        const date = new Date(timestamp * 1000);
-        return date.toLocaleString('zh-CN', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false
-        }).replace(/\//g, '-');
-      } catch (e) {
-        return timestamp;
-      }
     },
     
     getStatusTagType(status) {
@@ -137,7 +128,17 @@ export default {
         'failed': '失败'
       };
       return statusTextMap[status] || status;
-    }
+    },
+    limitPaging(limit) {
+      //赋值当前条数
+      this.pageSize = limit;
+      this.getSignalList(); //刷新列表
+    },
+    skipPaging(page) {
+      //赋值当前页数
+      this.currentPage = page;
+      this.getSignalList(); //刷新列表
+    },
   }
 };
 </script>
@@ -154,5 +155,10 @@ export default {
 
 .el-tag {
   margin: 2px;
+}
+
+.pages {
+  margin-top: 0 !important;
+  margin-bottom: 80px !important;
 }
 </style>

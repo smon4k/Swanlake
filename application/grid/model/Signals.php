@@ -41,7 +41,7 @@ class Signals extends Base
                     ->where($where)
                     ->page($page, $limits)
                     ->field('a.*')
-                    ->order("date desc")
+                    ->order("id desc")
                     ->select()
                     ->toArray();
         // p($lists);
