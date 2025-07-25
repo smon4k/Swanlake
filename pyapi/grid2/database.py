@@ -614,36 +614,36 @@ class Database:
             if conn:
                 conn.close()
     
-    async def has_open_position(self, strategy_name: str, open_side: str) -> Optional[Dict]:
+    async def get_latest_signal_by_name_and_direction(self, name: str, direction: str) -> Optional[Dict]:
         """
-        判断指定策略名称和开仓方向是否已经存在未平仓的开仓数据
-        :param strategy_name: 策略名称
-        :param open_side: 开仓方向（如 'long' 或 'short'）
-        :return: 返回未平仓的开仓数据（dict），如果没有则返回None
+        获取g_signals表中指定name和direction的最新一条数据
+        :param name: 信号名称
+        :param direction: 信号方向（如 'long' 或 'short'）
+        :return: 返回最新一条信号数据（dict），如果没有则返回None
         """
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor(pymysql.cursors.DictCursor) as cursor:
                 cursor.execute(f"""
-                    SELECT * FROM {table('strategy_trade')}
-                    WHERE strategy_name = %s AND open_side = %s AND status = 0
+                    SELECT * FROM {table('signals')}
+                    WHERE name = %s AND direction = %s
                     ORDER BY id DESC LIMIT 1
-                """, (strategy_name, open_side))
+                """, (name, direction))
                 result = cursor.fetchone()
                 return result
         except Exception as e:
-            print(f"查询开仓数据失败: {e}")
-            logging.error(f"查询开仓数据失败: {e}")
+            print(f"查询信号数据失败: {e}")
+            logging.error(f"查询信号数据失败: {e}")
             return None
         finally:
             if conn:
                 conn.close()
     
-    async def update_strategy_trade_by_id(self, trade_id: int, updates: Dict) -> bool:
+    async def update_signals_trade_by_id(self, sign_id: int, updates: Dict) -> bool:
         """
-        根据id更新策略交易记录（g_strategy_trade表）
-        :param trade_id: 策略交易记录id
+        根据id更新策略交易记录（g_signals表）
+        :param sign_id: 策略交易记录id
         :param updates: 需要更新的字段及其值的字典
         :return: 更新是否成功
         """
@@ -652,9 +652,9 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
-                values = list(updates.values()) + [trade_id]
+                values = list(updates.values()) + [sign_id]
                 query = f"""
-                    UPDATE {table('strategy_trade')}
+                    UPDATE {table('signals')}
                     SET {set_clause}
                     WHERE id=%s
                 """

@@ -58,6 +58,7 @@ class SignalProcessingTask:
         if not exchange:
             return
         # account_id = signal['account_id']
+        sign_id = signal['id']
         symbol = signal['symbol']
         name = signal['name']
         pos_side = signal['direction'] # 'long' 或 'short'
@@ -95,37 +96,13 @@ class SignalProcessingTask:
                 )
 
                 #1.4 处理记录开仓方向数据
-                has_open_position = await self.db.has_open_position(name, side)
-                if has_open_position:
-                    await self.db.update_strategy_trade_by_id(has_open_position['id'], {
-                        'strategy_name': name,
-                        'open_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        'open_side': side,
-                        'open_price': price,
-                        'close_time': None,
-                        'close_side': None,
-                        'close_price': None,
-                        'loss_profit': None,
-                        'count_profit_loss': strategy_info['count_profit_loss'],
-                        'symbol': symbol,
-                        'exchange': exchange,
-                        'status': 0,
-                    })
-                else:
-                    await self.db.insert_strategy_trade({
-                        'strategy_name': name,
-                        'open_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        'open_side': side,
-                        'open_price': price,
-                        'close_time': None,
-                        'close_side': None,
-                        'close_price': None,
-                        'loss_profit': None,
-                        'count_profit_loss': strategy_info['count_profit_loss'],
-                        'symbol': symbol,
-                        'exchange': exchange,
-                        'status': 0,
-                    })
+                # has_open_position = await self.db.has_open_position(name, side)
+                # if has_open_position:
+                await self.db.update_signals_trade_by_id(sign_id, {
+                    'pair_id': sign_id,
+                    'position_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'count_profit_loss': strategy_info['count_profit_loss'],
+                })
                     
             elif (side == 'buy' and size == 0) or (side == 'sell' and size == 0): # 平仓
                 # 1.4 平仓
@@ -143,15 +120,16 @@ class SignalProcessingTask:
                 await self.cleanup_opposite_positions(account_id, symbol, pos_side)
 
                 # 1.7 更新数据库订单为已平仓
-                open_side = 'buy' if side == 'sell' else 'sell' # 开仓方向
-                has_open_position = await self.db.has_open_position(name, open_side)
+                direction = 'long' if side == 'sell' else 'short' # 开仓方向
+                has_open_position = await self.db.get_latest_signal_by_name_and_direction(name, direction)
                 if has_open_position:
                     # 计算盈亏
                     loss_profit = 0
                     # 获取价格并确保Decimal转换
-                    open_price = Decimal(str(has_open_position['open_price'])) # 开仓价
+                    open_price = Decimal(str(has_open_position['price'])) # 开仓价
                     close_price = Decimal(str(price)) # 平仓价
 
+                    open_side = 'buy' if side == 'sell' else 'sell' # 开仓方向
                     if open_side == 'buy':
                         loss_profit = close_price - open_price  # 多单：平仓价 - 开仓价 > 0 盈利
                     else:
@@ -169,14 +147,11 @@ class SignalProcessingTask:
                         await self.db.update_max_position_by_tactics(name, is_profit) # 更新策略数据
 
                     strategy_info = await self.db.get_strategy_info(name)
-                    await self.db.update_strategy_trade_by_id(has_open_position['id'], {
-                        'strategy_name': name,
-                        'close_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        'close_side': side,
-                        'close_price': price,
+                    await self.db.update_signals_trade_by_id(sign_id, {
+                        'pair_id': has_open_position['pair_id'],
+                        'position_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                         'loss_profit':  loss_profit_normal,
-                        'count_profit_loss': strategy_info['count_profit_loss'],
-                        'status': 1,
+                        'count_profit_loss': strategy_info['count_profit_loss']
                     })
             else:
                 print(f"❌ 无效信号: {side}{size}") 
