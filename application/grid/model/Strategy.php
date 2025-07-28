@@ -53,7 +53,7 @@ class Strategy extends Base
     */
     public static function getAllStrategyList()
     {
-        $lists = self::where("status", 1)->order("id desc")->select()->toArray();
+        $lists = self::where("status", 1)->select()->toArray();
         return $lists;
     }
 
