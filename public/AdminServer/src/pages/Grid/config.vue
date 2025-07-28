@@ -255,16 +255,7 @@
         },
         accountList: [], // 账户列表
         availableSymbols: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT'],
-        strategyOptions: [
-          { name: 'Y1.1', label: 'BTC' },
-          { name: 'Q2.4', label: 'BTC' },
-          { name: 'O6.1', label: 'BTC' },
-          { name: 'O4.1', label: 'BTC' },
-          { name: 'T1.0', label: 'BTC' },
-          { name: 'T1.1', label: 'BTC' },
-          { name: 'Y1.0', label: 'ETH' },
-          { name: 'Q2.1', label: 'ETH' },
-        ],
+        strategyOptions: [],
         DialogTitle: '添加',
         is_save_add_start: 1, //1：添加 2：修改
         AuthMenuRuleData: [], //权限接口角色数据
@@ -338,6 +329,16 @@
                 this.accountList = json.data.data;
             } else {
                 this.$message.error("加载账户数据失败");
+            }
+        });
+      },
+      getAllStrategyList() {
+        get("/Grid/grid/getAllStrategyList", {}, json => {
+            console.log(json);
+            if (json.data.code == 10000) {
+                this.strategyOptions = json.data.data;
+            } else {
+                this.$message.error("加载策略数据失败");
             }
         });
       },
@@ -598,10 +599,10 @@
       }
     },
     created() {
+      this.getAllStrategyList();
       this.getListData();
       this.getAccountList();
       // this.getAuthMenuRuleData();
-      console.log(process.env.SIG_URL_NAME);
     },
     components: {
       "wbc-page": Page //加载分页组件

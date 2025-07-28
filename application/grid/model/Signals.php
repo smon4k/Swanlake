@@ -44,7 +44,18 @@ class Signals extends Base
                     ->order("id desc")
                     ->select()
                     ->toArray();
-        // p($lists);
+        // $newArrayData = [];
+        // foreach ($lists as $key => $val) {
+        //     if($val['pair_id'] <= 0) {
+        //         continue;
+        //     }
+        //     if ($val['pair_id'] !== '') {
+        //         $newArrayData[$val['pair_id']][] = $val;
+        //     } else {
+        //         $newArrayData[$val['id']][0] = $val;
+        //         $newArrayData[$val['id']][1] = [];
+        //     }
+        // }
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
 

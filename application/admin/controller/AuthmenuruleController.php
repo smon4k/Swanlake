@@ -103,11 +103,11 @@ class AuthmenuruleController extends BaseController
     * @author [qinlh] [WeChat QinLinHui0706]
     */
     public function saveAuthMenuRuleData(Request $request) {
-        $id = $request->request('id', 0, 'intval');
-        $name = $request->request('name', '', 'trim');
-        $path = $request->request('path', '', 'trim');
-        $icon = $request->request('icon', '', 'trim');
-        $sort = $request->request('sort', 1, 'intval');
+        $id = $request->post('id', 0, 'intval');
+        $name = $request->post('name', '', 'trim');
+        $path = $request->post('path', '', 'trim');
+        $icon = $request->post('icon', '', 'trim');
+        $sort = $request->post('sort', 1, 'intval');
         $pid_arr = input('post.pid/a');
         if($id <= 0 && $name == "" && $icon == "" && $sort == "" && count((array)$pid_arr) <= 0) {
             return $this->as_json(70001, "参数有误");

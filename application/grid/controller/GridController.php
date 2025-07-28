@@ -16,6 +16,7 @@ use app\grid\model\Orders;
 use app\grid\model\Config;
 use app\grid\model\Accounts;
 use app\grid\model\Signals;
+use app\grid\model\Strategy;
 use think\Request;
 use think\Controller;
 use think\Db;
@@ -208,7 +209,67 @@ class GridController extends BaseController
         $page = $request->request('page', 1, 'intval');
         $limits = $request->request('limit', 20, 'intval');
         $where = [];
+        $where['pair_id'] = ['<>', 0];
         $result = Signals::getSignalsList($page, $where, $limits);
         return $this->as_json($result);
     }
+
+    /**
+     * 获取所有策略列表
+     * @author qinlh
+     * @since 2025-07-22
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function getAllStrategyList(Request $request)
+    {
+        $result = Strategy::getAllStrategyList();
+        return $this->as_json($result);
+    }
+
+    /**
+     * 获取策略列表
+     * @author qinlh
+     * @since 2025-07-22
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function getStrategyList(Request $request)
+    {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 20, 'intval');
+        $where = [];
+        $where['status'] = 1;
+        $result = Strategy::getStrategyList($page, $where, $limits);
+        return $this->as_json($result);
+    }
+
+    /**
+     * 修改指定策略最大最小仓位数
+     * @author qinlh
+     * @since 2025-07-28
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function updateStrategyMaxMinPosition(Request $request) {
+        $id = $request->post('id', 0, 'intval');
+        $max_position = $request->post('max_position', '', 'trim');
+        $min_position = $request->post('min_position', '', 'trim');
+        if ($id <= 0 || !$max_position || !$min_position) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $data = [
+            'max_position' => $max_position,
+            'min_position' => $min_position,
+            'updated_at' => date('Y-m-d H:i:s'), 
+        ];
+        $res = Strategy::updateStrategyMaxMinPosition($id, $data);
+        if($res['code'] == 1) {
+            return $this->as_json($res); 
+        } else {
+            return $this->as_json(70001, $res['msg']); 
+        }
+        return $this->as_json(70001, 'Update failed');
+    }
+
 }

@@ -2,14 +2,33 @@
   <div>
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item to="">SIG持仓管理</el-breadcrumb-item>
       <el-breadcrumb-item>信号列表</el-breadcrumb-item>
     </el-breadcrumb>
     <div style="text-align:right;margin-bottom: 10px;">
       <el-button type="primary" @click="refreshSignalList()">刷新列表</el-button>
     </div>
-    <el-table :data="signalList" style="width: 100%; margin-top: 20px;" v-loading="loading">
-      <el-table-column prop="name" label="策略名称" align="center"></el-table-column>
-      <el-table-column prop="symbol" label="交易对" align="center"></el-table-column>
+    <el-table :span-method="objectSpanMethod" :data="signalList" border style="width: 100%; margin-top: 20px;"
+      v-loading="loading">
+      <el-table-column prop="pair_id" label="配对ID">
+      </el-table-column>
+      <!-- <el-table-column prop="id" label="ID">
+      </el-table-column> -->
+      <el-table-column prop="name" label="策略名称">
+      </el-table-column>
+      <el-table-column label="类型" align="center">
+        <template slot-scope="scope">
+          <div v-if="scope.row.direction === 'long'">
+            <span v-if="scope.row.size == '1'">{{ '多头进场' }}</span>
+            <span v-else>{{ '多头出场' }}</span>
+          </div>
+          <div v-else>
+            <span v-if="scope.row.size == '-1'">{{ '空头进场' }}</span>
+            <span v-else>{{ '空头出场' }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <!-- <el-table-column prop="symbol" label="交易对" align="center"></el-table-column> -->
       <el-table-column prop="direction" label="方向" align="center">
         <template slot-scope="scope">
           <el-tag :type="scope.row.direction === 'long' ? 'success' : 'danger'">
@@ -17,30 +36,41 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="size" label="信号类型" align="center">
+      <!-- <el-table-column prop="size" label="信号类型" align="center">
         <template slot-scope="scope">
           {{ scope.row.size == '1' || scope.row.size == '-1' ? '开仓' : '平仓' }}
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column prop="price" label="价格" align="center">
         <template slot-scope="scope">
           {{ formatNumber(scope.row.price) }}
         </template>
       </el-table-column>
-      <el-table-column prop="timestamp" label="时间" align="center">
+      <el-table-column prop="timestamp" label="日期/时间" align="center">
         <template slot-scope="scope">
-          {{ scope.row.timestamp }}
+          {{ scope.row.position_at }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="loss_profit" label="交易盈亏" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.loss_profit || 0 }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="count_profit_loss" label="总盈亏" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.count_profit_loss || 0 }}
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态" align="center">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.status === 'pending' ? 'warning' : (scope.row.status === 'processed' ? 'success' : 'info')">
+          <el-tag
+            :type="scope.row.status === 'pending' ? 'warning' : (scope.row.status === 'processed' ? 'success' : 'info')">
             {{ scope.row.status === 'pending' ? '进行中' : (scope.row.status === 'processed' ? '已完成' : scope.row.status) }}
           </el-tag>
         </template>
       </el-table-column>
     </el-table>
-    
+
     <el-row class="pages">
       <el-col :span="24">
         <div style="float:right;">
@@ -77,13 +107,34 @@ export default {
     "wbc-page": Page, //加载分页组件
   },
   methods: {
+    objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+      if (columnIndex === 0) {
+      // 获取当前行的配对ID
+      const pairId = row.pair_id;
+      // 查找与当前行相同配对ID的所有行
+      const samePairRows = this.signalList.filter(item => item.pair_id === pairId);
+      // 找到第一个出现该配对ID的行索引
+      const firstIndex = this.signalList.findIndex(item => item.pair_id === pairId);
+      if (rowIndex === firstIndex) {
+        return {
+        rowspan: samePairRows.length,
+        colspan: 1
+        };
+      } else {
+        return {
+        rowspan: 0,
+        colspan: 0
+        };
+      }
+      }
+    },
     getSignalList() {
       this.loading = true;
       const params = {
         page: this.currentPage,
         limit: this.pageSize
       };
-      
+
       get("/Grid/grid/getSignalsList", params, response => {
         this.loading = false;
         console.log(response)
@@ -103,13 +154,13 @@ export default {
       await new Promise(resolve => setTimeout(resolve, delay));
       this.getSignalList();
     },
-    
+
     formatNumber(num) {
       if (isNaN(num)) return '--';
       // Format number with 4 decimal places
       return parseFloat(num).toFixed(4);
     },
-    
+
     getStatusTagType(status) {
       const statusMap = {
         'pending': 'warning',
@@ -119,7 +170,7 @@ export default {
       };
       return statusMap[status] || 'info';
     },
-    
+
     getStatusText(status) {
       const statusTextMap = {
         'pending': '待执行',
