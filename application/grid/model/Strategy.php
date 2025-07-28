@@ -39,7 +39,7 @@ class Strategy extends Base
                     ->where($where)
                     ->page($page, $limits)
                     ->field('a.*')
-                    ->order("id desc")
+                    ->order("id asc")
                     ->select()
                     ->toArray();
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
