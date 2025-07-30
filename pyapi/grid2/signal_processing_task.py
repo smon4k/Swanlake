@@ -401,13 +401,13 @@ class SignalProcessingTask:
             #计算总盈亏
             count_profit_loss = strategy_info.get('count_profit_loss', 0)
             if float(loss_profit_normal) > 0: # 盈利
-                profit_loss = float(count_profit_loss) - float(loss_profit_normal)
+                profit_loss = float(count_profit_loss) + float(loss_profit_normal)
                 if profit_loss > 0:
                     count_profit_loss = profit_loss
                 else:
                     count_profit_loss = float(loss_profit_normal)
             else:
-                profit_loss = float(count_profit_loss) + abs(float(loss_profit_normal))
+                profit_loss = float(count_profit_loss) - abs(float(loss_profit_normal))
                 count_profit_loss = profit_loss
             
             if count_profit_loss <= 0:
