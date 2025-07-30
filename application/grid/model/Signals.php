@@ -41,7 +41,7 @@ class Signals extends Base
                     ->where($where)
                     ->page($page, $limits)
                     ->field('a.*')
-                    ->order("id desc")
+                    ->order("a.pair_id desc, a.id desc")
                     ->select()
                     ->toArray();
         // $newArrayData = [];

@@ -12,10 +12,9 @@
       v-loading="loading">
       <el-table-column prop="pair_id" label="配对ID">
       </el-table-column>
-      <!-- <el-table-column prop="id" label="ID">
+      <!-- <el-table-column prop="id" label="ID"></el-table-column> -->
+      <!-- <el-table-column prop="name" label="策略名称">
       </el-table-column> -->
-      <el-table-column prop="name" label="策略名称">
-      </el-table-column>
       <el-table-column label="类型" align="center">
         <template slot-scope="scope">
           <div v-if="scope.row.direction === 'long'">
@@ -36,11 +35,11 @@
           </el-tag>
         </template>
       </el-table-column>
-      <!-- <el-table-column prop="size" label="信号类型" align="center">
+      <el-table-column prop="size" label="信号类型" align="center">
         <template slot-scope="scope">
           {{ scope.row.size == '1' || scope.row.size == '-1' ? '开仓' : '平仓' }}
         </template>
-      </el-table-column> -->
+      </el-table-column>
       <el-table-column prop="price" label="价格" align="center">
         <template slot-scope="scope">
           {{ formatNumber(scope.row.price) }}
@@ -109,23 +108,23 @@ export default {
   methods: {
     objectSpanMethod({ row, column, rowIndex, columnIndex }) {
       if (columnIndex === 0) {
-      // 获取当前行的配对ID
-      const pairId = row.pair_id;
-      // 查找与当前行相同配对ID的所有行
-      const samePairRows = this.signalList.filter(item => item.pair_id === pairId);
-      // 找到第一个出现该配对ID的行索引
-      const firstIndex = this.signalList.findIndex(item => item.pair_id === pairId);
-      if (rowIndex === firstIndex) {
-        return {
-        rowspan: samePairRows.length,
-        colspan: 1
-        };
-      } else {
-        return {
-        rowspan: 0,
-        colspan: 0
-        };
-      }
+        const pairId = row.pair_id;
+
+        // 确保 signalList 是按 pair_id 排好序的
+        const firstIndex = this.signalList.findIndex(item => item.pair_id === pairId);
+        const count = this.signalList.filter(item => item.pair_id === pairId).length;
+
+        if (rowIndex === firstIndex) {
+          return {
+            rowspan: count,
+            colspan: 1
+          };
+        } else {
+          return {
+            rowspan: 0,
+            colspan: 0
+          };
+        }
       }
     },
     getSignalList() {
