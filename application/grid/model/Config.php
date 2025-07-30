@@ -102,4 +102,42 @@ class Config extends Base
         } 
         return ['code'=>0,'msg'=>'删除失败'];
     }
+
+    /**
+    * 根据策略名称获取对应的账户id
+    * @param  [post] [description]
+    * @return [type] [description]
+    * @author [qinlh] [WeChat QinLinHui0706]
+    */
+    public static function getAccountIdByTacticsName($tacticsName)
+    {
+        $accountIds = [];
+
+        $configs = self::select();
+        foreach ($configs as $config) {
+            $maxPositionList = json_decode($config['max_position_list'], true);
+            if (is_array($maxPositionList)) {
+                foreach ($maxPositionList as $item) {
+                    if (isset($item['tactics']) && $item['tactics'] === $tacticsName) {
+                        $accountIds[] = $config['account_id'];
+                        break; // 当前 config 命中即可跳出内层循环，避免重复加入同一个 account_id
+                    }
+                }
+            }
+        }
+
+        // 去重处理
+        $accountIds = array_unique($accountIds);
+
+        // 根据需求返回数组或单个字符串
+        if (count($accountIds) === 1) {
+            return $accountIds[0];
+        } elseif (count($accountIds) > 1) {
+            return $accountIds;
+        } else {
+            return null;
+        }
+    }
+
+
 }

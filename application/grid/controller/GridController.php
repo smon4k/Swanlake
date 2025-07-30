@@ -43,6 +43,7 @@ class GridController extends BaseController
         $limits = $request->request('limit', 1, 'intval');
         $account_id = $request->request('account_id', 0, 'intval');
         $order_number = $request->request('order_number', '', 'trim');
+        $tactics_name = $request->request('strategy_name', '', 'trim');
         $where = [];
         $where['a.status'] = ['in', ['live', 'filled']];
         if($account_id) {
@@ -50,6 +51,10 @@ class GridController extends BaseController
         } 
         if($order_number && $order_number !== "") {
             $where['a.order_id'] = ['like',"%" . $order_number . "%"];
+        }
+        if($tactics_name && $tactics_name !== "") {
+            $accountIds = Config::getAccountIdByTacticsName($tactics_name);
+            $where['a.account_id'] = ['in', $accountIds];
         }
         
         $data = Orders::getOrderList($page, $where, $limits);
