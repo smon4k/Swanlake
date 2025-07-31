@@ -213,8 +213,13 @@ class GridController extends BaseController
     {
         $page = $request->request('page', 1, 'intval');
         $limits = $request->request('limit', 20, 'intval');
+        $tactics_name = $request->request('strategy_name', '', 'trim');
+
         $where = [];
         $where['pair_id'] = ['<>', 0];
+        if($tactics_name && $tactics_name !== "") {
+            $where['name'] = $tactics_name;
+        }
         $result = Signals::getSignalsList($page, $where, $limits);
         return $this->as_json($result);
     }

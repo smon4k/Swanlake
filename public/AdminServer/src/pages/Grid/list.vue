@@ -11,13 +11,13 @@
         <el-option v-for="(item, index) in accountList" :key="index" :label="item.name" :value="item.id">
         </el-option>
       </el-select>
-      &nbsp;&nbsp;
+      <!-- &nbsp;&nbsp;
       <el-select v-model="strategy_name" clearable placeholder="选择策略" @change="strategyChange" @clear="strategyClear">
         <el-option v-for="item in strategyOptions" :key="item.name" :label="item.name" :value="item.name">
           <span style="float: left">{{ item.name }}</span>
           <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
         </el-option>
-      </el-select>
+      </el-select> -->
       <div style="margin-left: 20px;">总利润：{{ keepDecimalNotRounding(totalProfit, 4) }} USDT</div>
       <!-- <el-form :inline="true" class="demo-form-inline" size="mini">
         <el-form-item label="产品名称:">
@@ -196,7 +196,7 @@ export default {
     }, 300)
   },
   created() {
-    this.getAllStrategyList();
+    // this.getAllStrategyList();
     this.getAccountList();
     this.getListData();
   },

@@ -5,7 +5,13 @@
       <el-breadcrumb-item to="">SIG持仓管理</el-breadcrumb-item>
       <el-breadcrumb-item>信号列表</el-breadcrumb-item>
     </el-breadcrumb>
-    <div style="text-align:right;margin-bottom: 10px;">
+    <div class="project-top">
+      <el-select v-model="strategy_name" clearable placeholder="选择策略" @change="getSignalList" @clear="getSignalList">
+        <el-option v-for="item in strategyOptions" :key="item.name" :label="item.name" :value="item.name">
+          <span style="float: left">{{ item.name }}</span>
+          <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
+        </el-option>
+      </el-select>
       <el-button type="primary" @click="refreshSignalList()">刷新列表</el-button>
     </div>
     <el-table :span-method="objectSpanMethod" :data="signalList" border style="width: 100%; margin-top: 20px;"
@@ -13,8 +19,8 @@
       <el-table-column prop="pair_id" label="配对ID">
       </el-table-column>
       <!-- <el-table-column prop="id" label="ID"></el-table-column> -->
-      <!-- <el-table-column prop="name" label="策略名称">
-      </el-table-column> -->
+      <el-table-column prop="name" label="策略名称">
+      </el-table-column>
       <el-table-column label="类型" align="center">
         <template slot-scope="scope">
           <div v-if="scope.row.direction === 'long'">
@@ -96,11 +102,14 @@ export default {
         limit: 10,
       },
       signalList: [],
-      loading: false
+      loading: false,
+      strategyOptions: [],
+      strategy_name: '',
     };
   },
   created() {
     this.getSignalList();
+    this.getAllStrategyList();
   },
   components: {
     "wbc-page": Page, //加载分页组件
@@ -127,16 +136,25 @@ export default {
         }
       }
     },
+    getAllStrategyList() {
+      get("/Grid/grid/getAllStrategyList", {}, json => {
+        if (json.data.code == 10000) {
+          this.strategyOptions = json.data.data;
+        } else {
+          this.$message.error("加载策略数据失败");
+        }
+      });
+    },
     getSignalList() {
       this.loading = true;
       const params = {
         page: this.currentPage,
-        limit: this.pageSize
+        limit: this.pageSize,
+        strategy_name: this.strategy_name,
       };
 
       get("/Grid/grid/getSignalsList", params, response => {
         this.loading = false;
-        console.log(response)
         if (response.data.code == 10000) {
           this.signalList = response.data.data.lists || [];
           this.total = response.data.data.count || 0;
@@ -194,6 +212,13 @@ export default {
 </script>
 
 <style scoped>
+.project-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  justify-content: space-between;
+}
 .el-breadcrumb {
   margin-bottom: 20px;
 }
