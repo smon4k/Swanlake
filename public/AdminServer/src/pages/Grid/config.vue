@@ -49,6 +49,12 @@
             <span>{{ item.symbol }}：</span>
             <span>最大仓位：{{ item.value }}</span>&nbsp;&nbsp;
             <span>币种策略：{{ item.tactics }}</span>
+            <br>
+            <span>最大亏损次数：{{ item.max_loss_number }}</span>&nbsp;&nbsp;
+            <span>最小亏损比例：{{ item.min_loss_ratio * 100 }}%</span>
+            <br>
+            <span>盈利增加比例：{{ item.increase_ratio }}%</span>&nbsp;&nbsp;
+            <span>盈利减少比例：{{ item.decrease_ratio }}%</span>
           </div>
         </el-descriptions-item>
         <el-descriptions-item label="价格浮动比例">{{ item.commission_price_difference }}</el-descriptions-item>
