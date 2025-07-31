@@ -30,7 +30,7 @@
           <el-button size="mini" type="primary" @click="UpdateAdminUserInfo(item)">编辑</el-button>
           <el-button size="mini" type="danger" @click="DelData(item)">删除</el-button>
         </template>
-        <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item>
+        <!-- <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item> -->
         <el-descriptions-item label="API Secret">{{ item.api_secret }}</el-descriptions-item>
         <el-descriptions-item label="倍数">{{ item.multiple }}</el-descriptions-item>
         <el-descriptions-item label="开仓比例">{{ item.position_percent }}</el-descriptions-item>
@@ -45,16 +45,16 @@
           </div>
         </el-descriptions-item>
         <el-descriptions-item label="币种最大仓位数配置	">
-          <div v-for="(item, index) in item.max_position_list" :key="index">
-            <span>{{ item.symbol }}：</span>
+          <div v-for="(item, index) in item.max_position_list" :key="index" style="margin-top: 10px;width: max-content;">
+            <span>{{ index + 1 }}.{{ item.symbol }}：</span><br>
             <span>最大仓位：{{ item.value }}</span>&nbsp;&nbsp;
             <span>币种策略：{{ item.tactics }}</span>
             <br>
-            <span>最大亏损次数：{{ item.max_loss_number }}</span>&nbsp;&nbsp;
-            <span>最小亏损比例：{{ item.min_loss_ratio * 100 }}%</span>
+            <span>最大亏损次数：{{ item.max_loss_number || 0 }}</span>&nbsp;&nbsp;
+            <span>最小亏损比例：{{ item.min_loss_ratio * 100 || 0 }}%</span>
             <br>
-            <span>盈利增加比例：{{ item.increase_ratio }}%</span>&nbsp;&nbsp;
-            <span>盈利减少比例：{{ item.decrease_ratio }}%</span>
+            <span>盈利增加比例：{{ item.increase_ratio || 0 }}%</span>&nbsp;&nbsp;
+            <span>盈利减少比例：{{ item.decrease_ratio || 0 }}%</span>
           </div>
         </el-descriptions-item>
         <el-descriptions-item label="价格浮动比例">{{ item.commission_price_difference }}</el-descriptions-item>
