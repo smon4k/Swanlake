@@ -89,32 +89,52 @@
           <el-input v-model="FormData.position_percent" placeholder="如 0.8"></el-input>
         </el-form-item>
         <el-form-item label="最大仓位配置">
-          <div v-for="(item, index) in FormData.max_position_list" :key="index" style="display: flex; align-items: center; margin-bottom: 10px;">
-            <el-select v-model="item.symbol" placeholder="选择交易对" style="width: 180px; margin-right: 10px;">
-              <el-option
-                v-for="symbol in availableSymbols"
-                :key="symbol"
-                :label="symbol"
-                :value="symbol"
-                :disabled="isSymbolSelected(symbol) && item.symbol !== symbol">
-              </el-option>
-            </el-select>
-            <el-input-number
-              v-model="item.value"
-              :min="0"
-              :step="100"
-              style="width: 140px; margin-right: 10px;">
-            </el-input-number>
-            <el-select v-model="item.tactics" placeholder="选择策略" style="width: 180px; margin-right: 10px;">
-              <el-option
-                v-for="item in strategyOptions"
-                :key="item.name"
-                :label="item.name"
-                :value="item.name">
-                  <span style="float: left">{{ item.name }}</span>
-                  <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
-              </el-option>
-            </el-select>
+          <div v-for="(item, index) in FormData.max_position_list" :key="index" style="display: block; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex;">
+              <el-select v-model="item.symbol" placeholder="选择交易对" style="width: 180px; margin-right: 10px;">
+                <el-option
+                  v-for="symbol in availableSymbols"
+                  :key="symbol"
+                  :label="symbol"
+                  :value="symbol"
+                  :disabled="isSymbolSelected(symbol) && item.symbol !== symbol">
+                </el-option>
+              </el-select>
+              <el-input-number
+                v-model="item.value"
+                :min="0"
+                :step="100"
+                style="width: 140px; margin-right: 10px;">
+              </el-input-number>
+              <el-select v-model="item.tactics" placeholder="选择策略" style="width: 180px; margin-right: 10px;">
+                <el-option
+                  v-for="item in strategyOptions"
+                  :key="item.name"
+                  :label="item.name"
+                  :value="item.name">
+                    <span style="float: left">{{ item.name }}</span>
+                    <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
+                </el-option>
+              </el-select>
+            </div>
+            <div style="display: flex;margin-top: 5px;margin-bottom: 10px;">
+              <div style="display: block;margin-right: 5px;">
+                <div style="width: 180px;line-height: 20px;">最大亏损次数</div>
+                <el-input type="number" style="width:180px" v-model="item.max_loss_number" placeholder="请输入最大亏损次数"></el-input>
+              </div>
+              <div style="display: block;margin-right: 5px;">
+                <div style="width: 180px;line-height: 20px;">最小亏损比例，单位小数</div>
+                <el-input type="number" style="width:180px" v-model="item.min_loss_ratio" placeholder="请输入最小亏损比例 例如：0.001"></el-input>
+              </div>
+              <div style="display: block;margin-right: 5px;">
+                <div style="width: 180px;line-height: 20px;">盈利增加比例，单位百分比</div>
+                <el-input type="number" style="width:180px" v-model="item.increase_ratio" placeholder="请输入盈利增加比例 例如：5%"></el-input>
+              </div>
+              <div style="display: block;margin-right: 5px;">
+                <div style="width: 180px;line-height: 20px;">盈利减少比例，单位百分比</div>
+                <el-input type="number" style="width:180px" v-model="item.decrease_ratio" placeholder="请输入盈利减少比例 例如：5%"></el-input>
+              </div>
+            </div>
             <el-button type="danger" icon="el-icon-delete" @click="removeMaxPosition(index)"></el-button>
           </div>
           <el-button type="primary" icon="el-icon-plus" @click="addMaxPosition"  :disabled="FormData.max_position_list.length >= availableSymbols.length">添加</el-button>
@@ -291,7 +311,7 @@
     methods: {
       addMaxPosition() {
         console.log(this.FormData.max_position_list)
-        this.FormData.max_position_list.push({ symbol: '', value: 0 });
+        this.FormData.max_position_list.push({ symbol: '', value: 0, max_loss_number: 5, min_loss_ratio: 0.001, increase_ratio: 5, decrease_ratio: 5 });
       },
       removeMaxPosition(index) {
         this.FormData.max_position_list.splice(index, 1);
@@ -514,7 +534,6 @@
               { direction: 'short', buy: 0.05, sell: 0.04 }
             ]
         };
-        console.log(111);
         this.dialogVisibleShow = true;
       },
       startKeywordList(row) { //更改状态

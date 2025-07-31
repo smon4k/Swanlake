@@ -61,6 +61,11 @@
           {{ scope.row.loss_profit || 0 }}
         </template>
       </el-table-column>
+      <el-table-column prop="stage_profit_loss" label="阶段盈亏" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.stage_profit_loss || 0 }}
+        </template>
+      </el-table-column>
       <el-table-column prop="count_profit_loss" label="总盈亏" align="center">
         <template slot-scope="scope">
           {{ scope.row.count_profit_loss || 0 }}
