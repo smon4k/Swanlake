@@ -120,6 +120,8 @@ class Database:
         finally:
             if conn:
                 conn.close()
+    
+    #获取最近一次
 
 
     # 获取信号表中做多和做空的最新一条记录
@@ -577,6 +579,39 @@ class Database:
             if conn:
                 conn.close()
     
+    async def get_config_by_account_and_symbol(self, account_id: int, symbol: str) -> Optional[Dict]:
+        """
+        获取配置表中指定用户和指定币种的max_position_list下面对应的配置数据
+        :param account_id: 用户ID
+        :param symbol: 币种
+        :return: 对应的配置数据，如果没有则返回None
+        """
+        symbol_tactics = symbol
+        if symbol.endswith('-SWAP'):
+            symbol_tactics = symbol.replace('-SWAP', '')
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT max_position_list
+                    FROM {table('config')}
+                    WHERE account_id = %s
+                """, (account_id,))
+                result = cursor.fetchone()
+                if result and result.get('max_position_list'):
+                    max_position_list = json.loads(result['max_position_list'])
+                    for item in max_position_list:
+                        if item.get('symbol') == symbol_tactics:
+                            return item
+                return None
+        except Exception as e:
+            print(f"获取配置数据失败: {e}")
+            logging.error(f"获取配置数据失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+    
 
     async def insert_strategy_trade(self, trade_data: Dict) -> Dict:
         """
@@ -685,9 +720,6 @@ class Database:
                 max_position = strategy_info.get('max_position') # 最大仓位
                 min_position = strategy_info.get('min_position') # 最小仓位
 
-                #增减比例
-                increase_ratio = 5 # 盈利增加比例 5%
-                decrease_ratio = 5 # 亏损减少比例 5%
                 cursor.execute(f"SELECT account_id, max_position_list FROM {table('config')}")
                 configs = cursor.fetchall()
                 for row in configs:
@@ -702,6 +734,9 @@ class Database:
                         continue
                     updated = False
                     for item in max_position_arr:
+                        #增减比例
+                        increase_ratio = float(item.get('increase_ratio')) if item.get('increase_ratio') else 5 # 盈利增加比例 5%
+                        decrease_ratio = float(item.get('decrease_ratio')) if item.get('decrease_ratio') else 5 # 亏损减少比例 5%
                         if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
                             try:
                                 value = float(item.get('value'))
@@ -762,7 +797,7 @@ class Database:
                 conn.close()
     
     #修改指定策略亏损记录
-    async def update_strategy_loss_number(self, strategy_name: str, loss_number: int, count_profit_loss: float) -> bool:
+    async def update_strategy_loss_number(self, strategy_name: str, loss_number: int, count_profit_loss: float, stage_profit_loss: float) -> bool:
 
         """
         根据策略名称更新策略亏损次数
@@ -775,8 +810,8 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
-                    f"UPDATE {table('strategy')} SET loss_number=%s, count_profit_loss=%s WHERE name=%s",
-                    (loss_number, count_profit_loss, strategy_name)
+                    f"UPDATE {table('strategy')} SET loss_number=%s, count_profit_loss=%s, stage_profit_loss=%s WHERE name=%s",
+                    (loss_number, count_profit_loss, stage_profit_loss, strategy_name)
                 )
                 conn.commit()
                 return True

@@ -102,6 +102,7 @@ class SignalProcessingTask:
                     'pair_id': sign_id,
                     'position_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                     'count_profit_loss': strategy_info['count_profit_loss'],
+                    'stage_profit_loss': strategy_info['stage_profit_loss'],
                 })
                     
             elif (side == 'buy' and size == 0) or (side == 'sell' and size == 0): # 平仓
@@ -142,7 +143,7 @@ class SignalProcessingTask:
 
                     print(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}")
                     logging.info(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}")
-                    is_save_strategy = await self.pre_update_strategy_check(is_profit, name, open_price, loss_profit_normal) # 校验是否更新策略
+                    is_save_strategy = await self.pre_update_strategy_check(account_id, symbol, is_profit, name, open_price, loss_profit_normal) # 校验是否更新策略
                     if is_save_strategy:
                         await self.db.update_max_position_by_tactics(name, is_profit) # 更新策略数据
 
@@ -151,7 +152,8 @@ class SignalProcessingTask:
                         'pair_id': has_open_position['pair_id'],
                         'position_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                         'loss_profit':  loss_profit_normal,
-                        'count_profit_loss': strategy_info['count_profit_loss']
+                        'count_profit_loss': strategy_info['count_profit_loss'],
+                        'stage_profit_loss': strategy_info['stage_profit_loss'],
                     })
             else:
                 print(f"❌ 无效信号: {side}{size}") 
@@ -386,48 +388,57 @@ class SignalProcessingTask:
             print(f"计算仓位失败: {e}")
             return Decimal('0')
     
-    async def pre_update_strategy_check(self, increase: bool, tactics_name: str, open_price: float, loss_profit_normal: str) -> bool:
+    async def pre_update_strategy_check(self, account_id: int, symbol: str, increase: bool, tactics_name: str, open_price: float, loss_profit_normal: str) -> bool:
+
 
         """
         更新策略前的处理逻辑判断
         返回True表示可以继续更新，False表示不满足条件
         """
         try:
-            max_loss_number = 5 # 最大亏损次数
-            min_loss_ratio = 0.001 # 最小亏损比例
+            # 1.0 获取配置文件
+            config = await self.db.get_config_by_account_and_symbol(account_id, symbol)
+            max_loss_number = float(config.get('max_loss_number')) if config.get('max_loss_number') else 5 # 最大亏损次数
+            min_loss_ratio = float(config.get('min_loss_ratio')) if config.get('min_loss_ratio') else 0.001 # 最小亏损比例
 
             # 2.0 获取策略表连续几次亏损 
             strategy_info = await self.db.get_strategy_info(tactics_name)
             #计算总盈亏
-            count_profit_loss = strategy_info.get('count_profit_loss', 0)
+            count_profit_loss = strategy_info.get('count_profit_loss', 0) # 总盈亏
+            stage_profit_loss = strategy_info.get('stage_profit_loss', 0) # 阶段性盈亏
+
             if float(loss_profit_normal) > 0: # 盈利
+                stage_profit_loss = 0 # 阶段性盈亏清0
                 profit_loss = float(count_profit_loss) + float(loss_profit_normal)
                 if profit_loss > 0:
                     count_profit_loss = profit_loss
                 else:
                     count_profit_loss = float(loss_profit_normal)
             else:
-                profit_loss = float(count_profit_loss) - abs(float(loss_profit_normal))
+                stage_profit_loss = float(stage_profit_loss) + float(loss_profit_normal)
+                profit_loss = float(count_profit_loss) + float(loss_profit_normal)
                 count_profit_loss = profit_loss
             
-            if count_profit_loss <= 0:
-                count_profit_loss = 0
+            # if count_profit_loss <= 0:
+            #     count_profit_loss = 0
 
             if increase:
-                await self.db.update_strategy_loss_number(tactics_name, 0, count_profit_loss) # 如果盈利，修改亏损数量为0
+                await self.db.update_strategy_loss_number(tactics_name, 0, count_profit_loss, stage_profit_loss) # 如果盈利，修改亏损数量为0
             else:
+                
+                # 连续亏损次数
+                loss_number = strategy_info.get('loss_number', 0)
+                add_loss_number = loss_number + 1
+                # print("add_loss_number", add_loss_number, "count_profit_loss", count_profit_loss, "stage_profit_loss", stage_profit_loss)
+                await self.db.update_strategy_loss_number(tactics_name, add_loss_number, count_profit_loss, stage_profit_loss) # 如果亏损，修改亏损数量+1
+
                 #2.1 如果C/开仓价的绝对值小于0.1%，不增不减（可配置）。
                 loss_ratio = abs(float(loss_profit_normal)) / float(open_price) #亏损/开仓价的绝对值，小于0.1%就认为可以忽略 0.1可配置
                 if loss_ratio < min_loss_ratio:
                     return False
                 
-                # 连续亏损次数
-                loss_number = strategy_info.get('loss_number', 0)
-                if(loss_number >= max_loss_number): # 连续亏损5次，不更新
-                    return True
-                add_loss_number = loss_number + 1
-
-                await self.db.update_strategy_loss_number(tactics_name, add_loss_number, count_profit_loss) # 如果亏损，修改亏损数量+1
+                if(add_loss_number > max_loss_number): # 连续亏损5次，不更新最大仓位
+                    return False
 
             return True
         except Exception as e:
