@@ -17,6 +17,7 @@ use app\grid\model\Config;
 use app\grid\model\Accounts;
 use app\grid\model\Signals;
 use app\grid\model\Strategy;
+use app\grid\model\AccountHistorPosition;
 use think\Request;
 use think\Controller;
 use think\Db;
@@ -281,5 +282,25 @@ class GridController extends BaseController
         }
         return $this->as_json(70001, 'Update failed');
     }
+
+    /**
+     * 获取用户仓位变更历史记录列表
+     * @author qinlh
+     * @since 2025-08-01
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function getAccountHistorPositionList(Request $request) {
+        $page = $request->request('page', 1, 'intval');
+        $limits = $request->request('limit', 20, 'intval');
+        $account_id = $request->request('account_id', 0, 'intval');
+        $where = [];
+        if ($account_id) {
+            $where['a.account_id'] = $account_id;
+        }
+        $result = AccountHistorPosition::getAccountHistorPositionList($page, $where, $limits);
+        return $this->as_json($result);
+    }
+
 
 }

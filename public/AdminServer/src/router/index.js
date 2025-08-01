@@ -38,6 +38,7 @@ const GridAccountsList = () => import('@/pages/Grid/accounts.vue')
 const AccountStatuement = () => import('@/pages/Grid/AccountStatuement.vue')
 const SignalList = () => import('@/pages/Grid/SignalList.vue')
 const StrategyList = () => import('@/pages/Grid/StrategyList.vue')
+const AccountHistorPositionList = () => import('@/pages/Grid/AccountHistorPositionList.vue')
 
 Vue.use(Router)
 
@@ -276,6 +277,15 @@ const router = new Router({
           component: StrategyList,
           meta: {
             name: '策略列表',
+            notKeepAlive: true
+          }
+        },
+        {
+          path: 'grid/account/positionlist',
+          name: 'AccountHistorPositionList',
+          component: AccountHistorPositionList,
+          meta: {
+            name: '持仓列表',
             notKeepAlive: true
           }
         },

@@ -2,6 +2,7 @@ import logging
 import pymysql
 from typing import Dict, List, Optional
 import json
+from datetime import datetime
 
 TABLE_PREFIX = "g_"
 
@@ -705,7 +706,7 @@ class Database:
                 conn.close()
     
     # 获取g_config里面所有用户数据，然后根据策略名称进行筛选出对应的max_postion_list里面对应的value值，进行修改，增加5%或者减少5%
-    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True) -> bool:
+    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True, sign_id: int = 0) -> bool:
         """
         根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
         :param tactics_name: 策略名称
@@ -720,7 +721,7 @@ class Database:
                 max_position = strategy_info.get('max_position') # 最大仓位
                 min_position = strategy_info.get('min_position') # 最小仓位
 
-                cursor.execute(f"SELECT account_id, max_position_list FROM {table('config')}")
+                cursor.execute(f"SELECT account_id, max_position_list FROM {table('config')} AS c INNER JOIN {table('accounts')} AS a ON c.account_id=a.id WHERE a.status = 1")
                 configs = cursor.fetchall()
                 for row in configs:
                     account_id = row.get('account_id') if isinstance(row, dict) else row[0]
@@ -733,6 +734,7 @@ class Database:
                         logging.error(f"解析max_position_list失败: {e}")
                         continue
                     updated = False
+                    position_cache = -1
                     for item in max_position_arr:
                         #增减比例
                         increase_ratio = float(item.get('increase_ratio')) if item.get('increase_ratio') else 5 # 盈利增加比例 5%
@@ -753,6 +755,7 @@ class Database:
                                 if value < min_position:
                                     value = min_position
                                 item['value'] = str(value)
+                                position_cache = value
                                 updated = True
                             except Exception as e:
                                 logging.error(f"更新value失败: {e}")
@@ -762,6 +765,9 @@ class Database:
                             f"UPDATE {table('config')} SET max_position_list=%s WHERE account_id=%s",
                             (new_max_position_list, account_id)
                         )
+                        # 记录仓位变更记录
+                        if position_cache != -1:
+                            await self.record_account_position_change(account_id, position_cache, sign_id)
                 conn.commit()
             return True
         except Exception as e:
@@ -822,6 +828,34 @@ class Database:
         finally:
             if conn:
                 conn.close()
+    
+    # 记录每个账户仓位变更记录数据到 g_account_histor_position 表，字段包括 account_id、amount、sign_id、datetime 
+    async def record_account_position_change(self, account_id: int, amount: float, sign_id: int) -> bool:
+        """
+        记录每个账户仓位变更记录数据到 g_account_histor_position 表，字段包括 account_id、amount、sign_id
+        :param account_id: 账户ID
+        :param amount: 仓位变更金额
+        :param sign_id: 信号ID
+        :return: 记录是否成功
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"INSERT INTO {table('account_histor_position')} (account_id, amount, sign_id, datetime) VALUES (%s, %s, %s, %s)",
+                    (account_id, amount, sign_id, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                )
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"记录账户仓位变更记录失败: {e}")
+            logging.error(f"记录账户仓位变更记录失败: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+
 
 
         
