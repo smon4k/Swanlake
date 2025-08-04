@@ -100,7 +100,7 @@ class QuantifyAccount extends Base
                 $date = date('Y-m-d');
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
-                $url = Config('okx_uri') . "/api/okex/get_market_ticker?instId=" . $v['ccy'].'-USDT';
+                $url = Config('okx_uri') . "/api/okex/get_market_ticker?instId=BTC-USDT";
                 $prices = self::getOkxRequesInfo($accountInfo, $url);
                 // $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
                 $tradingPrice = $prices['last'];
