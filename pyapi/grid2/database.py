@@ -706,6 +706,7 @@ class Database:
                 conn.close()
     
     # 获取g_config里面所有用户数据，然后根据策略名称进行筛选出对应的max_postion_list里面对应的value值，进行修改，增加5%或者减少5%
+    # 暂时未使用
     async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True, sign_id: int = 0) -> bool:
         """
         根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
@@ -777,6 +778,92 @@ class Database:
         except Exception as e:
             print(f"批量更新max_position_list失败: {e}")
             logging.error(f"批量更新max_position_list失败: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+
+    # 根据指定账户和策略名称修改对应账户配置数据
+    async def update_max_position_by_account_tactics(self, account_id: int, tactics_name: str, increase: bool = True, sign_id: int = 0) -> bool:
+        """
+        根据策略名称调整指定账户的max_position_list中对应策略的value值，增加或减少5%
+        :param account_id: 账户id
+        :param tactics_name: 策略名称
+        :param increase: True为盈利 减少5%，False为亏损 增加5%
+        :param sign_id: 信号ID
+        :return: 是否更新成功
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                strategy_info = await self.get_strategy_info(tactics_name)
+                if not strategy_info:
+                    logging.error(f"未找到策略信息: {tactics_name}")
+                    return False
+                max_position = strategy_info.get('max_position')
+                min_position = strategy_info.get('min_position')
+
+                cursor.execute(
+                    f"SELECT account_id, max_position_list FROM {table('config')} WHERE account_id = %s",
+                    (account_id,)
+                )
+                config = cursor.fetchone()
+                if not config:
+                    logging.error(f"未找到账户配置: {account_id}")
+                    return False
+
+                max_position_list = config.get('max_position_list') if isinstance(config, dict) else config[1]
+                if not max_position_list:
+                    logging.error(f"账户配置 max_position_list 为空: {account_id}")
+                    return False
+
+                try:
+                    max_position_arr = json.loads(max_position_list)
+                except Exception as e:
+                    logging.error(f"解析max_position_list失败: {e}")
+                    return False
+
+                updated = False
+                position_cache = -1
+                for item in max_position_arr:
+                    if item.get('tactics') == tactics_name and item.get('value'):
+                        try:
+                            value = float(item['value'])
+                            increase_ratio = float(item.get('increase_ratio', 5))
+                            decrease_ratio = float(item.get('decrease_ratio', 5))
+                            loss_number = int(item.get('loss_number', 0))
+                            if increase:
+                                value = round(value * (1 - increase_ratio / 100), 8)
+                                loss_number = 0
+                            else:
+                                value = round(value * (1 + decrease_ratio / 100), 8)
+                                loss_number += 1
+                            value = min(max(value, min_position), max_position)
+                            item['value'] = str(value)
+                            item['loss_number'] = loss_number
+                            position_cache = value
+                            updated = True
+                        except Exception as e:
+                            logging.error(f"更新value失败: {e}")
+
+                if updated:
+                    new_max_position_list = json.dumps(max_position_arr, ensure_ascii=False)
+                    cursor.execute(
+                        f"UPDATE {table('config')} SET max_position_list=%s WHERE account_id=%s",
+                        (new_max_position_list, account_id)
+                    )
+                    if position_cache != -1:
+                        await self.record_account_position_change(account_id, position_cache, sign_id)
+                    conn.commit()
+                    return True
+                else:
+                    logging.info(f"未找到匹配策略或未更新: {account_id}, {tactics_name}")
+                    return False
+        except Exception as e:
+            print(f"更新max_position_list失败: {e}")
+            logging.error(f"更新max_position_list失败: {e}")
             return False
         finally:
             if conn:

@@ -145,7 +145,7 @@ class SignalProcessingTask:
                     logging.info(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}")
                     is_save_strategy = await self.pre_update_strategy_check(account_id, symbol, is_profit, name, open_price, loss_profit_normal) # 校验是否更新策略
                     if is_save_strategy:
-                        await self.db.update_max_position_by_tactics(name, is_profit, sign_id) # 更新策略数据
+                        await self.db.update_max_position_by_account_tactics(account_id, name, is_profit, sign_id) # 更新策略数据
 
                     strategy_info = await self.db.get_strategy_info(name)
                     await self.db.update_signals_trade_by_id(sign_id, {
