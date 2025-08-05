@@ -33,9 +33,9 @@
                             </el-link>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="币价" align="center" width="150">
+                        <el-table-column prop="" label="币价(U)" align="center" width="100">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>
+                            <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="日利润(U)" align="center">

@@ -50,7 +50,7 @@
             <span>最大仓位：{{ item.value }}</span>&nbsp;&nbsp;
             <span>币种策略：{{ item.tactics }}</span>
             <br>
-            <span>最大亏损次数：{{ item.max_loss_number || 0 }}</span>&nbsp;&nbsp;
+            <span>最大亏损次数：{{ item.max_loss_number || 0 }}/{{ item.loss_number || 0 }}</span>&nbsp;&nbsp;
             <span>最小亏损比例：{{ item.min_loss_ratio * 100 || 0 }}%</span>
             <br>
             <span>盈利增加比例：{{ item.increase_ratio || 0 }}%</span>&nbsp;&nbsp;

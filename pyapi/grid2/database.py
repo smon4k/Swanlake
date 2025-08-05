@@ -739,13 +739,16 @@ class Database:
                         #增减比例
                         increase_ratio = float(item.get('increase_ratio')) if item.get('increase_ratio') else 5 # 盈利增加比例 5%
                         decrease_ratio = float(item.get('decrease_ratio')) if item.get('decrease_ratio') else 5 # 亏损减少比例 5%
+                        loss_number = int(item.get('loss_number')) if item.get('loss_number') else 0 # 连续亏损次数
                         if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
                             try:
                                 value = float(item.get('value'))
                                 if increase: # 盈利 减少百分比
                                     value = round(value * (1 - increase_ratio / 100), 8)
+                                    loss_number = 0
                                 else: # 亏损 增加百分比
                                     value = round(value * (1 + decrease_ratio / 100), 8)
+                                    loss_number = loss_number + 1
                                 
                                 # 仓位最大值不能超过仓位最大仓位数
                                 if value > max_position:
@@ -755,6 +758,7 @@ class Database:
                                 if value < min_position:
                                     value = min_position
                                 item['value'] = str(value)
+                                item['loss_number'] = loss_number
                                 position_cache = value
                                 updated = True
                             except Exception as e:
@@ -803,12 +807,11 @@ class Database:
                 conn.close()
     
     #修改指定策略亏损记录
-    async def update_strategy_loss_number(self, strategy_name: str, loss_number: int, count_profit_loss: float, stage_profit_loss: float) -> bool:
+    async def update_strategy_loss_number(self, strategy_name: str, count_profit_loss: float, stage_profit_loss: float) -> bool:
 
         """
         根据策略名称更新策略亏损次数
         :param strategy_name: 策略名称
-        :param loss_number: 亏损次数
         :return: 更新是否成功
         """
         conn = None
@@ -816,8 +819,8 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
-                    f"UPDATE {table('strategy')} SET loss_number=%s, count_profit_loss=%s, stage_profit_loss=%s WHERE name=%s",
-                    (loss_number, count_profit_loss, stage_profit_loss, strategy_name)
+                    f"UPDATE {table('strategy')} SET count_profit_loss=%s, stage_profit_loss=%s WHERE name=%s",
+                    (count_profit_loss, stage_profit_loss, strategy_name)
                 )
                 conn.commit()
                 return True

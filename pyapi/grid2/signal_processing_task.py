@@ -399,6 +399,7 @@ class SignalProcessingTask:
             # 1.0 获取配置文件
             config = await self.db.get_config_by_account_and_symbol(account_id, symbol)
             max_loss_number = float(config.get('max_loss_number')) if config.get('max_loss_number') else 5 # 最大亏损次数
+            loss_number = float(config.get('loss_number')) if config.get('loss_number') else 0 # 已亏损次数
             min_loss_ratio = float(config.get('min_loss_ratio')) if config.get('min_loss_ratio') else 0.001 # 最小亏损比例
 
             # 2.0 获取策略表连续几次亏损 
@@ -423,21 +424,25 @@ class SignalProcessingTask:
             #     count_profit_loss = 0
 
             if increase:
-                await self.db.update_strategy_loss_number(tactics_name, 0, count_profit_loss, stage_profit_loss) # 如果盈利，修改亏损数量为0
+                await self.db.update_strategy_loss_number(tactics_name, count_profit_loss, stage_profit_loss) # 如果盈利，修改亏损数量为0
             else:
                 
                 # 连续亏损次数
-                loss_number = strategy_info.get('loss_number', 0)
+                # loss_number = strategy_info.get('loss_number', 0)
                 add_loss_number = loss_number + 1
                 # print("add_loss_number", add_loss_number, "count_profit_loss", count_profit_loss, "stage_profit_loss", stage_profit_loss)
-                await self.db.update_strategy_loss_number(tactics_name, add_loss_number, count_profit_loss, stage_profit_loss) # 如果亏损，修改亏损数量+1
+                await self.db.update_strategy_loss_number(tactics_name, count_profit_loss, stage_profit_loss) # 如果亏损，修改亏损数量+1
 
                 #2.1 如果C/开仓价的绝对值小于0.1%，不增不减（可配置）。
                 loss_ratio = abs(float(loss_profit_normal)) / float(open_price) #亏损/开仓价的绝对值，小于0.1%就认为可以忽略 0.1可配置
                 if loss_ratio < min_loss_ratio:
+                    print(f"亏损{loss_profit_normal}/开仓价{open_price}的绝对值小于{min_loss_ratio}")
+                    logging.info(f"亏损{loss_profit_normal}/开仓价{open_price}的绝对值小于{min_loss_ratio}")    
                     return False
                 
                 if(add_loss_number > max_loss_number): # 连续亏损5次，不更新最大仓位
+                    print(f"连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
+                    logging.info(f"连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
                     return False
 
             return True
