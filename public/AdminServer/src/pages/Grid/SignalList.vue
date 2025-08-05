@@ -51,24 +51,24 @@
           {{ formatNumber(scope.row.price) }}
         </template>
       </el-table-column>
-      <el-table-column prop="timestamp" label="日期/时间" align="center">
+      <el-table-column prop="timestamp" label="日期/时间" align="center" width="180">
         <template slot-scope="scope">
           {{ scope.row.position_at }}
         </template>
       </el-table-column>
       <el-table-column prop="loss_profit" label="交易盈亏" align="center">
         <template slot-scope="scope">
-          {{ scope.row.loss_profit || 0 }}
+          {{ formatNumber(scope.row.loss_profit) || 0 }}
         </template>
       </el-table-column>
       <el-table-column prop="stage_profit_loss" label="阶段盈亏" align="center">
         <template slot-scope="scope">
-          {{ scope.row.stage_profit_loss || 0 }}
+          {{ formatNumber(scope.row.stage_profit_loss) || 0 }}
         </template>
       </el-table-column>
       <el-table-column prop="count_profit_loss" label="总盈亏" align="center">
         <template slot-scope="scope">
-          {{ scope.row.count_profit_loss || 0 }}
+          {{ formatNumber(scope.row.count_profit_loss) || 0 }}
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态" align="center">
@@ -180,7 +180,7 @@ export default {
     formatNumber(num) {
       if (isNaN(num)) return '--';
       // Format number with 4 decimal places
-      return parseFloat(num).toFixed(4);
+      return parseFloat(num).toFixed(1);
     },
 
     getStatusTagType(status) {
