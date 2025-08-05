@@ -706,8 +706,7 @@ class Database:
                 conn.close()
     
     # 获取g_config里面所有用户数据，然后根据策略名称进行筛选出对应的max_postion_list里面对应的value值，进行修改，增加5%或者减少5%
-    # 暂时未使用
-    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True, sign_id: int = 0) -> bool:
+    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True, sign_id: int = 0, loss_profit_normal: str = '', open_price: str = '') -> bool:
         """
         根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
         :param tactics_name: 策略名称
@@ -741,6 +740,21 @@ class Database:
                         increase_ratio = float(item.get('increase_ratio')) if item.get('increase_ratio') else 5 # 盈利增加比例 5%
                         decrease_ratio = float(item.get('decrease_ratio')) if item.get('decrease_ratio') else 5 # 亏损减少比例 5%
                         loss_number = int(item.get('loss_number')) if item.get('loss_number') else 0 # 连续亏损次数
+                        max_loss_number = float(item.get('max_loss_number')) if item.get('max_loss_number') else 5 # 最大亏损次数
+                        min_loss_ratio = float(item.get('min_loss_ratio')) if item.get('min_loss_ratio') else 0.001 # 最小亏损比例
+                        #2.1 如果C/开仓价的绝对值小于0.1%，不增不减（可配置）。
+                        loss_ratio = abs(float(loss_profit_normal)) / float(open_price) #亏损/开仓价的绝对值，小于0.1%就认为可以忽略 0.1可配置
+                        if loss_ratio < min_loss_ratio:
+                            print(f"账户{account_id}亏损{loss_profit_normal}/开仓价{open_price}的绝对值小于{min_loss_ratio}")
+                            logging.info(f"账户{account_id}亏损{loss_profit_normal}/开仓价{open_price}的绝对值小于{min_loss_ratio}")
+                            continue
+
+                        add_loss_number = loss_number + 1
+                        if(add_loss_number > max_loss_number): # 连续亏损5次，不更新最大仓位
+                            print(f"账户{account_id}连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
+                            logging.info(f"账户{account_id}连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
+                            continue
+
                         if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
                             try:
                                 value = float(item.get('value'))
@@ -749,8 +763,8 @@ class Database:
                                     loss_number = 0
                                 else: # 亏损 增加百分比
                                     value = round(value * (1 + decrease_ratio / 100), 8)
-                                    loss_number = loss_number + 1
-                                
+                                    loss_number = add_loss_number
+                                    
                                 # 仓位最大值不能超过仓位最大仓位数
                                 if value > max_position:
                                     value = max_position
@@ -759,7 +773,7 @@ class Database:
                                 if value < min_position:
                                     value = min_position
                                 item['value'] = str(value)
-                                item['loss_number'] = loss_number
+                                item['loss_number'] = add_loss_number
                                 position_cache = value
                                 updated = True
                             except Exception as e:
@@ -785,6 +799,7 @@ class Database:
 
 
     # 根据指定账户和策略名称修改对应账户配置数据
+    # 暂时未启用
     async def update_max_position_by_account_tactics(self, account_id: int, tactics_name: str, increase: bool = True, sign_id: int = 0) -> bool:
         """
         根据策略名称调整指定账户的max_position_list中对应策略的value值，增加或减少5%
