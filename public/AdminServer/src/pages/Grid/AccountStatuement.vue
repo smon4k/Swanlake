@@ -18,7 +18,7 @@
                     <el-table
                         :data="tableData"
                         style="width: 100%">
-                        <el-table-column prop="date" label="日期" align="center"></el-table-column>
+                        <el-table-column prop="date" label="日期" align="center" width="130"></el-table-column>
                         <el-table-column prop="principal" label="累计本金(U)" align="center" width="150">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.principal, 2, true) }}</span>
