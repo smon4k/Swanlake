@@ -750,7 +750,7 @@ class Database:
                             continue
 
                         add_loss_number = loss_number + 1
-                        if(add_loss_number > max_loss_number): # 连续亏损5次，不更新最大仓位
+                        if(not increase and add_loss_number > max_loss_number): # 如果继续亏损且连续亏损5次，不更新最大仓位
                             print(f"账户{account_id}连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
                             logging.info(f"账户{account_id}连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
                             continue
