@@ -1545,7 +1545,13 @@ class QuantifyAccount extends Base
                 $amount = $transfer['balChg'];
                 $billId = $transfer['billId'];
                 $time = date('Y-m-d H:i:s', $transfer['ts'] / 1000);
-                self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, 1, '转出至交易账户',  $time);
+                $remark = "";
+                if ($transfer['type'] == '131') {
+                    $remark = "转出至交易账户";
+                } else {
+                    $remark = "转入至交易账户";
+                }
+                self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, 1, $remark,  $time);
             }
         }
         return true;

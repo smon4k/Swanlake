@@ -50,10 +50,7 @@ async def get_transfer_history(
         return CommonResponse(
             status="success",
             message="Transfer history fetched successfully",
-            data={
-                "records": combined_data,
-                "errors": errors  # 如果部分类型获取失败，这里会记录
-            }
+            data=combined_data,
         )
 
     except Exception as e:
