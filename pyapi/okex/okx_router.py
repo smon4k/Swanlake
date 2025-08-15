@@ -2,6 +2,8 @@ from typing import Optional
 import okx.Account as Account
 import okx.MarketData as MarketData
 import okx.Trade as Trade
+from typing import List
+from fastapi import Query
 import okx.Funding as Funding
 from fastapi import APIRouter
 
@@ -13,32 +15,51 @@ router = APIRouter()
 @router.post("/api/okex/get_transfer_history", response_model=CommonResponse)
 async def get_transfer_history(
     refugee: AccountBalancesModel,
-    type: str = "1",
+    types: List[str] = Query(default=["131", "130"], description="账单类型列表，例如 [131, 132]"),
 ):
     try:
         fundingAPI = Funding.FundingAPI(
             refugee.api_key, refugee.secret_key, refugee.passphrase, False, "0"
         )
-        result = fundingAPI.get_bills('USDT', 131)
-        if result["code"] == "0":
-            return CommonResponse(
-                status="success",
-                message="Transfer history fetched successfully",
-                data=result["data"],
-            )
-        else:
+
+        combined_data = []
+        errors = []
+        
+        for t in types:
+            result = fundingAPI.get_bills('USDT', t)
+            if result["code"] == "0":
+                combined_data.extend(result["data"])
+            else:
+                errors.append({
+                    "type": t,
+                    "error_code": result["code"],
+                    "error_message": result.get("msg", "Unknown error")
+                })
+
+        # 如果有错误并且完全没数据
+        if not combined_data and errors:
             return CommonResponse(
                 status="error",
                 message="Failed to fetch transfer history",
-                data={
-                    "error_code": result["code"],
-                    "error_message": result.get("msg", "Unknown error"),
-                },
+                data=errors
             )
+
+        # 按时间戳倒序排序（OKX返回的时间戳是字符串毫秒值）
+        combined_data.sort(key=lambda x: int(x["ts"]), reverse=True)
+
+        return CommonResponse(
+            status="success",
+            message="Transfer history fetched successfully",
+            data={
+                "records": combined_data,
+                "errors": errors  # 如果部分类型获取失败，这里会记录
+            }
+        )
+
     except Exception as e:
         return CommonResponse(
             status="error",
-            message="An error occurred",
+            message=f"An error occurred: {str(e)}",
         )
 
 # 获取余额
