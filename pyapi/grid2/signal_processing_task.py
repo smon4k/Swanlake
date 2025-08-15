@@ -163,23 +163,25 @@ class SignalProcessingTask:
             count_profit_loss = strategy_info.get('count_profit_loss', 0) # 总盈亏
             stage_profit_loss = strategy_info.get('stage_profit_loss', 0) # 阶段性盈亏
 
+            stage_profit_loss_num = float(stage_profit_loss) + float(loss_profit_normal) # 阶段性盈亏累加
+            if stage_profit_loss_num > 0:
+                stage_profit_loss_num = 0 # 如果阶段性盈亏大于0才清0
+
             if float(loss_profit_normal) > 0: # 盈利
-                stage_profit_loss = 0 # 阶段性盈亏清0
                 profit_loss = float(count_profit_loss) + float(loss_profit_normal)
                 if profit_loss > 0:
                     count_profit_loss = profit_loss
                 else:
                     count_profit_loss = float(loss_profit_normal)
             else:
-                stage_profit_loss = float(stage_profit_loss) + float(loss_profit_normal)
                 profit_loss = float(count_profit_loss) + float(loss_profit_normal)
                 count_profit_loss = profit_loss
 
             await self.db.update_max_position_by_tactics(name, is_profit, sign_id, loss_profit_normal, open_price) # 批量更新指定策略所有账户最大仓位数据
 
-            await self.db.update_strategy_loss_number(name, count_profit_loss, stage_profit_loss) # 更新盈亏策略记录
-            print(f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss}")
-            logging.info(f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss}")
+            await self.db.update_strategy_loss_number(name, count_profit_loss, stage_profit_loss_num) # 更新盈亏策略记录
+            print(f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss_num}")
+            logging.info(f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss_num}")
 
             strategy_info = await self.db.get_strategy_info(name)
             await self.db.update_signals_trade_by_id(sign_id, {
