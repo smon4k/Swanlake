@@ -737,11 +737,13 @@ class Database:
                     position_cache = -1
                     for item in max_position_arr:
                         #增减比例
+                        max_position = float(item.get('value')) if item.get('value') else 2000 # 最大仓位
                         increase_ratio = float(item.get('increase_ratio')) if item.get('increase_ratio') else 5 # 盈利增加比例 5%
                         decrease_ratio = float(item.get('decrease_ratio')) if item.get('decrease_ratio') else 5 # 亏损减少比例 5%
                         loss_number = int(item.get('loss_number')) if item.get('loss_number') else 0 # 连续亏损次数
                         max_loss_number = float(item.get('max_loss_number')) if item.get('max_loss_number') else 5 # 最大亏损次数
                         min_loss_ratio = float(item.get('min_loss_ratio')) if item.get('min_loss_ratio') else 0.001 # 最小亏损比例
+                        clear_value = float(item.get('clear_value')) if item.get('clear_value') else max_position # 清0值
                         #2.1 如果C/开仓价的绝对值小于0.1%，不增不减（可配置）。
                         loss_ratio = abs(float(loss_profit_normal)) / float(open_price) #亏损/开仓价的绝对值，小于0.1%就认为可以忽略 0.1可配置
                         if loss_ratio < min_loss_ratio:
@@ -760,7 +762,7 @@ class Database:
                                 value = float(item.get('value'))
                                 if increase: # 盈利 减少百分比
                                     value = round(value * (1 - increase_ratio / 100), 8)
-                                    loss_number = 0
+                                    loss_number = clear_value
                                 else: # 亏损 增加百分比
                                     value = round(value * (1 + decrease_ratio / 100), 8)
                                     loss_number = add_loss_number

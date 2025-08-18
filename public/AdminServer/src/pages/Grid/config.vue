@@ -55,6 +55,8 @@
             <br>
             <span>盈利增加比例：{{ item.increase_ratio || 0 }}%</span>&nbsp;&nbsp;
             <span>盈利减少比例：{{ item.decrease_ratio || 0 }}%</span>
+            <br>
+            <span>清0值：{{ item.clear_value || 0 }}</span>
           </div>
         </el-descriptions-item>
         <el-descriptions-item label="价格浮动比例">{{ item.commission_price_difference }}</el-descriptions-item>
@@ -139,6 +141,10 @@
               <div style="display: block;margin-right: 5px;">
                 <div style="width: 180px;line-height: 20px;">盈利减少比例，单位百分比</div>
                 <el-input type="number" style="width:180px" v-model="item.decrease_ratio" placeholder="请输入盈利减少比例 例如：5%"></el-input>
+              </div>
+              <div style="display: block;margin-right: 5px;">
+                <div style="width: 180px;line-height: 20px;">清0值</div>
+                <el-input type="number" style="width:180px" v-model="item.clear_value" placeholder="请输入清0值 例如：5000"></el-input>
               </div>
             </div>
             <el-button type="danger" icon="el-icon-delete" @click="removeMaxPosition(index)"></el-button>
@@ -317,7 +323,7 @@
     methods: {
       addMaxPosition() {
         console.log(this.FormData.max_position_list)
-        this.FormData.max_position_list.push({ symbol: '', value: 0, max_loss_number: 5, min_loss_ratio: 0.001, increase_ratio: 5, decrease_ratio: 5 });
+        this.FormData.max_position_list.push({ symbol: '', value: 0, max_loss_number: 5, min_loss_ratio: 0.001, increase_ratio: 5, decrease_ratio: 5, clear_value: 2000 });
       },
       removeMaxPosition(index) {
         this.FormData.max_position_list.splice(index, 1);
