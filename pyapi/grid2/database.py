@@ -706,7 +706,7 @@ class Database:
                 conn.close()
     
     # 获取g_config里面所有用户数据，然后根据策略名称进行筛选出对应的max_postion_list里面对应的value值，进行修改，增加5%或者减少5%
-    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True, sign_id: int = 0, loss_profit_normal: str = '', open_price: str = '', stage_profit_loss_num: float = 0) -> bool:
+    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True, sign_id: int = 0, loss_profit_normal: str = '', open_price: str = '') -> bool:
         """
         根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
         :param tactics_name: 策略名称
@@ -720,6 +720,7 @@ class Database:
                 strategy_info = await self.get_strategy_info(tactics_name)
                 max_position = strategy_info.get('max_position') # 最大仓位
                 min_position = strategy_info.get('min_position') # 最小仓位
+                stage_profit_loss = strategy_info.get('stage_profit_loss', 0) # 阶段性盈亏
 
                 cursor.execute(f"SELECT account_id, max_position_list FROM {table('config')} AS c INNER JOIN {table('accounts')} AS a ON c.account_id=a.id WHERE a.status = 1")
                 configs = cursor.fetchall()
@@ -760,12 +761,14 @@ class Database:
                         if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
                             try:
                                 value = float(item.get('value'))
-                                if stage_profit_loss_num <= 0: # 如果阶段性盈亏小于等于0 重置最大仓位
+                                if loss_profit_normal > abs(stage_profit_loss): # 如果单次盈亏超过阶段性盈亏绝对值 重置最大仓位
                                     value = clear_value
+                                    loss_number = 0
                                 else:
                                     if increase: # 盈利 减少百分比
-                                        value = round(value * (1 - increase_ratio / 100), 8)
-                                        loss_number = 0
+                                        # value = round(value * (1 - increase_ratio / 100), 8)
+                                        # 盈利时次数保持不变
+                                        pass
                                     else: # 亏损 增加百分比
                                         value = round(value * (1 + decrease_ratio / 100), 8)
                                         loss_number = add_loss_number
