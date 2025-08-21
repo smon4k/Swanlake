@@ -177,7 +177,7 @@ class SignalProcessingTask:
                 profit_loss = float(count_profit_loss) + float(loss_profit_normal)
                 count_profit_loss = profit_loss
 
-            await self.db.update_max_position_by_tactics(name, is_profit, sign_id, loss_profit_normal, open_price) # 批量更新指定策略所有账户最大仓位数据
+            await self.db.update_max_position_by_tactics(name, is_profit, sign_id, loss_profit_normal, open_price, stage_profit_loss_num) # 批量更新指定策略所有账户最大仓位数据
 
             await self.db.update_strategy_loss_number(name, count_profit_loss, stage_profit_loss_num) # 更新盈亏策略记录
             print(f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss_num}")

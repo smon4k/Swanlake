@@ -299,8 +299,16 @@ class QuantifyAccount extends Base
             $countStandardPrincipal = 0; // Initialize count for standard principal
             $totalProfit = 0; // Initialize total profit
 
-            foreach ($data as $item) {
+            foreach ($data as $index => $item) {
                 foreach ($totalData as $key => &$value) {
+                    if ($key === 'price') {
+                        // 只取第一个价格（也可以改为最后一个: $data[count($data)-1]['price']）
+                        if ($index === 0) {
+                            $value = (float)$item['price'];
+                        }
+                        // 跳过累加
+                        continue;
+                    }
                     $value += (float)$item[$key];
                 }
                 $countStandardPrincipal += (float)$item['principal']; // Accumulate standard principal count

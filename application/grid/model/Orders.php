@@ -51,7 +51,13 @@ class Orders extends Base
         $resultArray = [];
         foreach ($newArrayData as $key => $val) {
             $resultArray[$key]['timestamp'] = $val[0]['timestamp'];
-            $resultArray[$key]['profit'] = $val[0]['profit'] ? $val[0]['profit'] : 0;
+            $price = 0;
+            $profit = $val[0]['profit'];
+            if (isset($val[1]) && count((array)$val[1]) > 1) {
+                $price = abs($val[0]['price'] -  $val[1]['price']);
+            }
+            $resultArray[$key]['price'] = $price;
+            $resultArray[$key]['profit'] = $profit ? $profit : 0;
             $resultArray[$key]['account_name'] = $val[0]['account_name'];
             $resultArray[$key]['lists'] = $val;
         }
@@ -71,7 +77,6 @@ class Orders extends Base
             ->sum('profit');
         return ['count' => $total, 'allpage' => $allpage, 'lists' => $returnArr, 'totalProfit' => $totalProfit];
         // p($returnArr);
-        return ['count'=>$total,'allpage'=>$allpage,'lists'=>$returnArr];
     }
 
 }

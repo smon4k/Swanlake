@@ -33,7 +33,7 @@
       <el-collapse-item :title="item.timestamp" :name="index">
         <template slot="title">
           <div style="margin-right:20px;">{{ item.account_name }} &nbsp;&nbsp;&nbsp;&nbsp; 时间：{{ item.timestamp }}</div>
-          <!-- <div style="margin-right:100px;">价差：{{ keepDecimalNotRounding(item.price, 4, true) }} USDT</div> -->
+          <div style="margin-right:20px;">价差：{{ keepDecimalNotRounding(item.price, 4, true) }} USDT</div>
           <div style="">利润：{{ keepDecimalNotRounding(item.profit, 4, true) }} USDT</div>
         </template>
         <el-table :data="item.lists" style="width: 100%;" v-show="true">
@@ -77,6 +77,14 @@
               <div v-if="scope.row.quantity">
                 <span>{{ keepDecimalNotRounding((scope.row.quantity * Number(symbol_decimal[scope.row.symbol])) *
                   scope.row.price, 4, true) }} USDT</span>
+              </div>
+              <div v-else>——</div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="amount" label="委托价格" align="center" width="150">
+            <template slot-scope="scope">
+              <div v-if="scope.row.price">
+                <span>{{ keepDecimalNotRounding((scope.row.price), 4, true) }} USDT</span>
               </div>
               <div v-else>——</div>
             </template>
