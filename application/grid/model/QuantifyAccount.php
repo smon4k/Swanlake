@@ -120,13 +120,13 @@ class QuantifyAccount extends Base
                 $countStandardPrincipal = 0; //累计本金
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
-                $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
+                // $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
                 if (!$amount || $amount == 0) {
                     // if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
                         if(isset($yestData['principal']) && $yestData['principal'] > 0) {
-                            $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] + (float)$depositTodayNum : 0;
+                            $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] + (float)$depositToday : 0;
                         } else {
-                            $countStandardPrincipal = $total_balance ? $total_balance *= -1 : $totalBalance;
+                            $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance;
                             // $countStandardPrincipal = 0;
                         }
                     // } else {
@@ -221,9 +221,11 @@ class QuantifyAccount extends Base
                 $isTrue = false;
                 if ($saveUres !== false) {
                     if ($amount > 0) {
-                        if ($direction == 1) {
-                            $amount = -abs($amount);
-                        }
+                        // if ($direction == 1) { //入金 入金为正数
+                        //     $amount = abs($amount);
+                        // } else { //出金 出金为负数
+                        //     $amount = -abs($amount);
+                        // }
                         $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
                         if ($isIntOut) {
                             $isTrue = true;
@@ -1091,15 +1093,14 @@ class QuantifyAccount extends Base
         if ($account_id && $amount !== 0 && $type > 0) {
             $total_balance = 0;
             if($type == 1) {
-                // $amount_num = $amount;
-                $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount;
+                $amount_num = $amount;
             } else {
-                // $amount_num = $amount *= -1;
-                $total_balance = self::getInoutGoldTotalBalance($account_id) - (float)$amount;
+                $amount_num = $amount *= -1;
             }
+            $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount_num;
             $insertData = [
                 'account_id' => $account_id,
-                'amount' => $amount,
+                'amount' => $amount_num,
                 // 'price' => $price,
                 'type' => $type,
                 'total_balance' => $total_balance,
@@ -1554,12 +1555,15 @@ class QuantifyAccount extends Base
                 $billId = $transfer['billId'];
                 $time = date('Y-m-d H:i:s', $transfer['ts'] / 1000);
                 $remark = "";
+                $type = 1;
                 if ($transfer['type'] == '131') {
                     $remark = "转出至交易账户";
+                    $type = 1;
                 } else {
                     $remark = "转入至交易账户";
+                    $type = 2;
                 }
-                self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, 1, $remark,  $time);
+                self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, $type, $remark,  $time);
             }
         }
         return true;
@@ -1573,16 +1577,16 @@ class QuantifyAccount extends Base
             if ($existingRecord) {
                 return true;
             }
+            // 1：入金 2：出金
             if($type == 1) {
-                // $amount_num = $amount;
-                $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount;
+                $amount_num = $amount;
             } else {
-                // $amount_num = $amount *= -1;
-                $total_balance = self::getInoutGoldTotalBalance($account_id) - (float)$amount;
+                $amount_num = (float)$amount *= -1;
             }
+            $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount_num;
             $insertData = [
                 'account_id' => $account_id,
-                'amount' => $amount,
+                'amount' => $amount_num,
                 'type' => $type,
                 'total_balance' => $total_balance,
                 'remark' => $remark,

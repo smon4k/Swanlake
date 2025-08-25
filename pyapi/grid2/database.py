@@ -929,8 +929,8 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
-                    f"UPDATE {table('strategy')} SET count_profit_loss=%s, stage_profit_loss=%s WHERE name=%s",
-                    (count_profit_loss, stage_profit_loss, strategy_name)
+                    f"UPDATE {table('strategy')} SET count_profit_loss=%s, stage_profit_loss=%s, updated_at=%s WHERE name=%s",
+                    (count_profit_loss, stage_profit_loss, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), strategy_name)
                 )
                 conn.commit()
                 return True
