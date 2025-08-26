@@ -148,7 +148,7 @@ class QuantifyAccount extends Base
                 $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
                 $hasOnlyTodayData = self::hasOnlyTodayData($account_id); //获取是否只第一天
                 if(!$hasOnlyTodayData) {
-                    $dailyProfit = $totalBalance - $yestTotalBalance - $depositTodayNum + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
+                    $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
                 } else {
                     $dailyProfit = $totalBalance - $countStandardPrincipal; //日利润 = 总结余-累计本金
                 }
