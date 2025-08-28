@@ -16,6 +16,7 @@
             <el-table-column prop="max_position" label="最大仓位数" align="center" />
             <el-table-column prop="min_position" label="最小仓位数" align="center" />
             <el-table-column prop="count_profit_loss" label="总盈亏" align="center" />
+            <el-table-column prop="stop_loss_percent" label="止损率" align="center" />
             <el-table-column label="操作" align="center" width="100">
                 <template slot-scope="scope">
                     <el-button type="text" size="small" @click="openEditDialog(scope.row)">编辑</el-button>
@@ -43,6 +44,9 @@
                 <el-form-item label="最小仓位数">
                     <el-input-number v-model="editForm.min_position" :min="0" />
                 </el-form-item>
+                <el-form-item label="止损率(%)">
+                    <el-input-number v-model="editForm.stop_loss_percent" :min="0" />
+                </el-form-item>
             </el-form>
             <template #footer>
                 <el-button @click="dialogVisible = false">取消</el-button>
@@ -68,7 +72,8 @@ export default {
                 id: null,
                 name: '',
                 max_position: 0,
-                min_position: 0
+                min_position: 0,
+                stop_loss_percent: 0
             }
         };
     },
@@ -118,7 +123,8 @@ export default {
                 id: row.id,
                 name: row.name,
                 max_position: row.max_position,
-                min_position: row.min_position
+                min_position: row.min_position,
+                stop_loss_percent: row.stop_loss_percent
             };
             this.dialogVisible = true;
         },
@@ -128,7 +134,8 @@ export default {
                 const params = {
                     id: this.editForm.id,
                     max_position: this.editForm.max_position,
-                    min_position: this.editForm.min_position
+                    min_position: this.editForm.min_position,
+                    stop_loss_percent: this.editForm.stop_loss_percent
                 };
                 post("/Grid/grid/updateStrategyMaxMinPosition", params, response => {
                     if (response.data.code === 10000) {
