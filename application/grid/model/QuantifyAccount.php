@@ -86,7 +86,7 @@ class QuantifyAccount extends Base
     /**
      * 计算量化账户数据
      * @params [account_id 账户id]
-     * @params [direction 出金 入金]
+     * @params [direction 2：出金 1：入金]
      * @params [amount 数量]
      * @params [remark 描述]
      * @author qinlh
@@ -1557,10 +1557,10 @@ class QuantifyAccount extends Base
                 $remark = "";
                 $type = 1;
                 if ($transfer['type'] == '131') {
-                    $remark = "转出至交易账户";
+                    $remark = "转入交易账户"; //转出至交易账户 转入
                     $type = 1;
                 } else {
-                    $remark = "转入至交易账户";
+                    $remark = "转出交易账户"; // 转入至交易账户 转出
                     $type = 2;
                 }
                 self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, $type, $remark,  $time);
