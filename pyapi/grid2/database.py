@@ -761,7 +761,7 @@ class Database:
                         if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
                             try:
                                 value = float(item.get('value'))
-                                if stage_profit_loss == 0 and loss_profit_normal > abs(stage_profit_loss): # 如果阶段盈亏小于等于0或者单次盈亏超过阶段性盈亏绝对值 重置最大仓位
+                                if stage_profit_loss == 0 or abs(float(loss_profit_normal)) > abs(stage_profit_loss): # 如果阶段盈亏小于等于0或者单次盈亏超过阶段性盈亏绝对值 重置最大仓位
                                     value = clear_value
                                     loss_number = 0
                                 else:
