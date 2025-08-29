@@ -341,6 +341,32 @@ class Database:
             if conn:
                 conn.close()
 
+    # 获取未成交的委托订单数据
+    async def get_unclosed_orders(self, account_id: int, symbol: str, order_type: str) -> List[Dict]:
+        """获取未成交的委托订单数据"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT * FROM {table('orders')}
+                    WHERE account_id = %s 
+                    AND symbol = %s 
+                    AND status = 'live'
+                    AND order_type = %s
+                    ORDER BY id DESC
+                    LIMIT 1
+                """, (account_id, symbol, order_type))
+                results = cursor.fetchone()
+                return results
+        except Exception as e:
+            print(f"获取未成交的委托订单数据失败: {e}")
+            logging.error(f"获取未成交的委托订单数据失败: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
 
     # 获取未平仓的反向订单数据
     async def get_unclosed_opposite_quantity(self, account_id, symbol, direction) -> float:

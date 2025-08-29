@@ -7,6 +7,7 @@ from database import Database
 from trading_bot_config import TradingBotConfig
 from signal_processing_task import SignalProcessingTask
 from price_monitoring_task import PriceMonitoringTask
+from stop_loss_task import StopLossTask
 from common_functions import fetch_current_positions, fetch_positions_history, get_exchange
 from aiohttp import web
 from datetime import datetime, timezone
@@ -59,6 +60,7 @@ class OKXTradingBot:
         self.signal_lock = asyncio.Lock()
         self.signal_task = SignalProcessingTask(config, self.db, self.signal_lock)
         self.price_task = PriceMonitoringTask(config, self.db, self.signal_lock)
+        self.stop_loss_task = StopLossTask(config, self.db, self.signal_lock)
         # self.app = web.Application()
         # self.app.add_routes([
         #     web.post('/insert_signal', self.handle_insert_signal),  # 新增路由
@@ -198,9 +200,11 @@ class OKXTradingBot:
 
         # ✅ 添加定时刷新配置任务
         refresh_config_task = asyncio.create_task(self.refresh_config_loop())
-        # await asyncio.gather(price_task)
 
-        await asyncio.gather(signal_task, price_task, refresh_config_task)
+        stop_loss_task = asyncio.create_task(self.stop_loss_task.stop_loss_task())
+        # await asyncio.gather(stop_loss_task)
+
+        await asyncio.gather(signal_task, price_task, refresh_config_task, stop_loss_task)
 
 
 if __name__ == "__main__":

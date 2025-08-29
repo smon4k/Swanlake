@@ -240,7 +240,7 @@ class PriceMonitoringTask:
             # print('buy_percent', buy_percent)
             # print("market_precision", market_precision)
             buy_size = (total_position_value * Decimal(str(buy_percent)))
-            # print(buy_size)
+            # print('buy_size', buy_size)
             buy_size = buy_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
             if buy_size < market_precision['min_amount']:
                 print(f"买单数量小于最小下单量: {buy_size} < {market_precision['min_amount']}")

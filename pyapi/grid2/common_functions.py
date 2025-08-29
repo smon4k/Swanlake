@@ -59,8 +59,7 @@ async def get_market_precision(exchange: ccxt.Exchange, symbol: str, instType: s
         return Decimal('0.0001'), Decimal('0.0001')  # 设置默认精度值
 
 
-async def get_client_order_id():
-    prefix = 'Zx'
+async def get_client_order_id(prefix: str = 'Zx'):
     date_str = datetime.now().strftime('%Y%m%d')
     unique_str = str(uuid.uuid4()).replace('-', '')[6:19]  # 模仿 uniqid() 第7到19位
     ascii_str = ''.join(str(ord(c)) for c in unique_str)[:8]
