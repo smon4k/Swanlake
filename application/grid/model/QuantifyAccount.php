@@ -1551,7 +1551,7 @@ class QuantifyAccount extends Base
         $balanceDetails = self::getOkxRequesInfo($accountInfo, $url, true);
         if ($balanceDetails && count($balanceDetails) > 0) {
             foreach ($balanceDetails as $transfer) {
-                $amount = $transfer['balChg'];
+                $amount = abs($transfer['balChg']);
                 $billId = $transfer['billId'];
                 $time = date('Y-m-d H:i:s', $transfer['ts'] / 1000);
                 $remark = "";
