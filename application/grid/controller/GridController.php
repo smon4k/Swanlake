@@ -266,12 +266,14 @@ class GridController extends BaseController
         $id = $request->post('id', 0, 'intval');
         $max_position = $request->post('max_position', '', 'trim');
         $min_position = $request->post('min_position', '', 'trim');
-        if ($id <= 0 || !$max_position || !$min_position) {
+        $stop_loss_percent = $request->post('stop_loss_percent', '', 'trim');
+        if ($id <= 0 || !$max_position || !$min_position || !$stop_loss_percent) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $data = [
             'max_position' => $max_position,
             'min_position' => $min_position,
+            'stop_loss_percent' => $stop_loss_percent,
             'updated_at' => date('Y-m-d H:i:s'), 
         ];
         $res = Strategy::updateStrategyMaxMinPosition($id, $data);
