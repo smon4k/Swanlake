@@ -58,9 +58,9 @@ class OKXTradingBot:
         self.config = config
         self.db = Database(config.db_config)
         self.signal_lock = asyncio.Lock()
-        self.signal_task = SignalProcessingTask(config, self.db, self.signal_lock)
-        self.price_task = PriceMonitoringTask(config, self.db, self.signal_lock)
         self.stop_loss_task = StopLossTask(config, self.db, self.signal_lock)
+        self.signal_task = SignalProcessingTask(config, self.db, self.signal_lock, self.stop_loss_task)
+        self.price_task = PriceMonitoringTask(config, self.db, self.signal_lock, self.stop_loss_task)
         # self.app = web.Application()
         # self.app.add_routes([
         #     web.post('/insert_signal', self.handle_insert_signal),  # 新增路由

@@ -807,7 +807,7 @@ class Database:
                                 if value < min_position:
                                     value = min_position
                                 item['value'] = str(value)
-                                item['loss_number'] = add_loss_number
+                                item['loss_number'] = loss_number
                                 position_cache = value
                                 updated = True
                             except Exception as e:

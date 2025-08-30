@@ -6,13 +6,15 @@ import uuid
 from common_functions import get_account_balance, get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_total_positions, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
+from stop_loss_task import StopLossTask
 import traceback
 
 class PriceMonitoringTask:
-    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock):
+    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock, stop_loss_task: StopLossTask):
         self.config = config
         self.db = db
         self.signal_lock = signal_lock
+        self.stop_loss_task = stop_loss_task  # 保存引用
     
     async def price_monitoring_task(self):
         """价格监控任务"""
@@ -71,6 +73,13 @@ class PriceMonitoringTask:
                 fill_time = order_info['info'].get('fillTime')
                 executed_price = None
                 # print(order_info['info']['state'])
+                if order_info['info']['state'] == 'canceled':
+                    print(f"订单已撤销: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    logging.info(f"订单已撤销: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
+                    await cancel_all_orders(self, account_id, order['symbol']) # 取消当前账户下指定币种 所有未成交的订单
+                    continue
+
                 if order_info['info']['state'] == 'filled':
                     print(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                     # logging.info(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
@@ -91,7 +100,7 @@ class PriceMonitoringTask:
                     if mangr_orders:
                         await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                         await self.update_order_status(order_info, account_id, executed_price, fill_date_time, order['symbol']) # 更新订单状态以及进行配对订单
-
+                        await self.stop_loss_task.accounts_stop_loss_task(account_id) # 重置上次检查时间，立即检查止盈止损
         except Exception as e:
             print(f"检查持仓失败: {e}")
             logging.error(f"检查持仓失败: {e}")
@@ -460,6 +469,7 @@ class PriceMonitoringTask:
                     await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单
 
                     await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
+                    await cancel_all_orders(self, account_id, symbol, True) # 取消所有委托订单
 
         except Exception as e:
             print(f"检查止盈止损失败: {e}")

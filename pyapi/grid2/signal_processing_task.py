@@ -4,16 +4,18 @@ from decimal import Decimal
 import logging
 import uuid
 from database import Database
+from stop_loss_task import StopLossTask
 from trading_bot_config import TradingBotConfig
 from common_functions import cancel_all_orders, get_account_balance, get_exchange, get_market_price, get_market_precision, get_max_position_value, get_total_positions, open_position, get_client_order_id
 
 class SignalProcessingTask:
     """交易信号处理类"""
-    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock):
+    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock, stop_loss_task: StopLossTask):
         self.db = db
         self.config = config
         self.running = True
         self.signal_lock = signal_lock
+        self.stop_loss_task = stop_loss_task  # 保存引用
 
     async def signal_processing_task(self):
         """信号处理任务"""
@@ -89,7 +91,7 @@ class SignalProcessingTask:
 
                 # 1.2 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
-
+                await cancel_all_orders(self, account_id, symbol, {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
                 # 1.3 开仓
                 await self.handle_open_position(
                     account_id,
@@ -120,6 +122,8 @@ class SignalProcessingTask:
 
                 # 1.5 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
+                await cancel_all_orders(self, account_id, symbol, None, {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
+
 
                 # 1.6 平掉反向仓位
                 await self.cleanup_opposite_positions(account_id, symbol, pos_side)

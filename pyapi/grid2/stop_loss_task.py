@@ -14,71 +14,81 @@ class StopLossTask:
         self.config = config
         self.running = True
         self.signal_lock = signal_lock
-
+    
     async def stop_loss_task(self):
         """价格监控任务"""
         while getattr(self, 'running', True): 
             try:
-                # print("止损任务：", self.db.account_cache)
                 for account_id in self.db.account_cache:
-                    exchange = await get_exchange(self, account_id)
-                    if not exchange:
-                        return
-                    positions = exchange.fetch_positions("", {'instType': 'SWAP'})
-                    for pos in positions:
-                        if pos['contracts'] != 0:
-                            symbol = pos['symbol']
-                            side = 'buy' if pos['side'] == 'long' else 'sell'
-                            entry_price = float(pos['entryPrice'])
-                            mark_price = float(pos['markPrice'])
-                            amount = abs(float(pos['contracts']))
-                            symbol_tactics = pos['info']['instId']
-                            if symbol_tactics.endswith('-SWAP'):
-                                symbol_tactics = symbol_tactics.replace('-SWAP', '')
-                            full_symbol = symbol_tactics + '-SWAP'
-                            tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
-                            if not tactics:
-                                print(f"未找到策略配置: {account_id} {symbol_tactics}")
-                                logging.info(f"未找到策略配置: {account_id} {symbol_tactics}")
-                                return False
-                            # 计算止损价
-                            strategy_info = await self.db.get_strategy_info(tactics)
-                            stop_loss_percent = float(strategy_info.get('stop_loss_percent') or 0.458)
-                            stop_loss_price = entry_price * (1 - stop_loss_percent / 100) if side == 'buy' else entry_price * (1 + stop_loss_percent / 100)  # 止损价 做多时更低，做空时更高
-                            pos_side = 'short' if pos['side'] == 'long' else 'long'  # 持仓方向与开仓方向相反
-                            sl_side = 'sell' if side == 'buy' else 'buy'  # 止损单方向与持仓方向相反
-
-                            order_sl_order = await self.db.get_unclosed_orders(account_id, full_symbol, 'conditional')
-                            # print(f"检查止损单: {symbol} {side} 持仓均价: {entry_price}, 最新标记价格: {mark_price}, 止损价: {stop_loss_price}, 数量: {amount}, 已有止损单: {order_sl_order['order_id'] if order_sl_order else '无'}")
-                            if order_sl_order:
-                                # 先判断是否已经成交或者取消
-                                order_info = exchange.fetch_order(order_sl_order['order_id'], symbol, {'instType': 'SWAP', 'trigger': 'true'})
-                                if order_info['info']['state'] in ['pause', 'effective', 'canceled', 'order_failed', 'partially_failed']:
-                                    print(f"已有止损单状态为 {order_info['info']['state']}，重新创建: {symbol} {str(order_sl_order.get('order_id'))}")
-                                    logging.info(f"已有止损单状态为 {order_info['info']['state']}，重新创建: {symbol} {str(order_sl_order.get('order_id'))}")
-                                    fill_date_time = await milliseconds_to_local_datetime(order_info['lastUpdateTimestamp']) # 格式化成交时间
-                                    print(f"止损单成交时间: {fill_date_time}")
-                                    await self.db.update_order_by_id(account_id, order_sl_order['order_id'], {
-                                        'status': order_info['info']['state'],
-                                        'executed_price': float(order_info['info']['slTriggerPx']),
-                                        'fill_time': fill_date_time
-                                    })
-                                    await self._open_position(account_id, full_symbol, sl_side, amount, stop_loss_price, pos_side)
-                                else:
-                                    # 如果止损单存在，且状态是 live 或者 partially_effective，则修改止损单
-                                    print(f"已有未完成止损单，更新: {symbol} {str(order_sl_order.get('order_id'))}")
-                                    logging.info(f"已有未完成止损单，更新: {symbol} {str(order_sl_order.get('order_id'))}")
-                                    await self._amend_algos_order(account_id, order_sl_order['order_id'], full_symbol, sl_side, amount, stop_loss_price, pos_side)
-                            else:
-                                print(f"持仓方向: {side}, 交易对: {symbol}, 持仓均价: {entry_price}, 最新标记价格: {mark_price}")
-                                logging.info(f"持仓方向: {side}, 交易对: {symbol}, 持仓均价: {entry_price}, 最新标记价格: {mark_price}")
-                                await self._open_position(account_id, full_symbol, sl_side, amount, stop_loss_price, pos_side)
+                    await self.accounts_stop_loss_task(account_id)
                 await asyncio.sleep(300)  # 每5分钟检查一次
             except Exception as e:
                 print(f"价格监控异常: {e}")
                 logging.error(f"价格监控异常: {e}")
                 await asyncio.sleep(5)
 
+    # 检查单个账户的止损
+    async def accounts_stop_loss_task(self, account_id: int):
+        try:
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
+                return
+            positions = exchange.fetch_positions("", {'instType': 'SWAP'})
+            # print(positions)
+            for pos in positions:
+                if pos['contracts'] != 0:
+                    symbol = pos['symbol']
+                    side = 'buy' if pos['side'] == 'long' else 'sell'
+                    entry_price = float(pos['entryPrice'])
+                    mark_price = float(pos['markPrice'])
+                    amount = abs(float(pos['contracts']))
+                    symbol_tactics = pos['info']['instId']
+                    if symbol_tactics.endswith('-SWAP'):
+                        symbol_tactics = symbol_tactics.replace('-SWAP', '')
+                    full_symbol = symbol_tactics + '-SWAP'
+                    tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
+                    if not tactics:
+                        print(f"未找到策略配置: {account_id} {symbol_tactics}")
+                        logging.info(f"未找到策略配置: {account_id} {symbol_tactics}")
+                        return False
+                    # 计算止损价
+                    strategy_info = await self.db.get_strategy_info(tactics)
+                    stop_loss_percent = float(strategy_info.get('stop_loss_percent') or 0.458)
+                    stop_loss_price = entry_price * (1 - stop_loss_percent / 100) if side == 'buy' else entry_price * (1 + stop_loss_percent / 100)  # 止损价 做多时更低，做空时更高
+                    # pos_side = 'short' if pos['side'] == 'long' else 'long'  # 持仓方向与开仓方向相反
+                    pos_side = pos['side'] # 持仓方向与开仓方向相反
+                    sl_side = 'sell' if side == 'buy' else 'buy'  # 止损单方向与持仓方向相反
+
+                    order_sl_order = await self.db.get_unclosed_orders(account_id, full_symbol, 'conditional')
+                    # print(f"检查止损单: {symbol} {side} 持仓均价: {entry_price}, 最新标记价格: {mark_price}, 止损价: {stop_loss_price}, 数量: {amount}, 已有止损单: {order_sl_order['order_id'] if order_sl_order else '无'}")
+                    if order_sl_order:
+                        # 先判断是否已经成交或者取消
+                        order_info = exchange.fetch_order(order_sl_order['order_id'], symbol, {'instType': 'SWAP', 'trigger': 'true'})
+                        # print("order_info", order_info)
+                        if order_info['info']['state'] in ['pause', 'effective', 'canceled', 'order_failed', 'partially_failed']:
+                            print(f"已有止损单状态为 {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}")
+                            logging.info(f"已有止损单状态为 {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}")
+                            fill_date_time = await milliseconds_to_local_datetime(order_info['lastUpdateTimestamp']) # 格式化成交时间
+                            # print(f"止损单成交时间: {fill_date_time}")
+                            await self.db.update_order_by_id(account_id, order_sl_order['order_id'], {
+                                'status': order_info['info']['state'],
+                                'executed_price': float(order_info['info']['slTriggerPx']),
+                                'fill_time': fill_date_time
+                            })
+                            await self._open_position(account_id, full_symbol, sl_side, amount, stop_loss_price, pos_side)
+                        else:
+                            # 如果止损单存在，且状态是 live 或者 partially_effective，则修改止损单
+                            print(f"已有未完成止损单，更新: {symbol} {str(order_sl_order.get('order_id'))}")
+                            logging.info(f"已有未完成止损单，更新: {symbol} {str(order_sl_order.get('order_id'))}")
+                            await self._amend_algos_order(account_id, order_sl_order['order_id'], full_symbol, sl_side, amount, stop_loss_price, pos_side)
+                    else:
+                        print(f"持仓方向: {side}, 交易对: {symbol}, 持仓均价: {entry_price}, 最新标记价格: {mark_price}")
+                        logging.info(f"持仓方向: {side}, 交易对: {symbol}, 持仓均价: {entry_price}, 最新标记价格: {mark_price}")
+                        await self._open_position(account_id, full_symbol, sl_side, amount, stop_loss_price, pos_side)
+        except Exception as e:
+            print(f"止损任务失败: {e}")
+            logging.error(f"止损任务失败: {e}")
+            return False
     # 下策略委托单
     async def _open_position(self, account_id: int, full_symbol: str, side: str, amount: float, price: float, pos_side: str):
         try:
