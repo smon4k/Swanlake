@@ -5,6 +5,8 @@
 ```
 pip3 install -r requirements.txt
 
+## 启动脚本目录位置
+/etc/systemd/system
 
 ## 启动任务
 ```
