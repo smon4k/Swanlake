@@ -16,7 +16,11 @@
             <el-table-column prop="max_position" label="最大仓位数" align="center" />
             <el-table-column prop="min_position" label="最小仓位数" align="center" />
             <el-table-column prop="count_profit_loss" label="总盈亏" align="center" />
-            <el-table-column prop="stop_loss_percent" label="止损率" align="center" />
+            <el-table-column prop="stop_loss_percent" label="止损率" align="center">
+                <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.stop_loss_percent, 3) }}%</span>
+                </template>
+            </el-table-column>
             <el-table-column label="操作" align="center" width="100">
                 <template slot-scope="scope">
                     <el-button type="text" size="small" @click="openEditDialog(scope.row)">编辑</el-button>
