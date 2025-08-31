@@ -35,6 +35,8 @@ class StopLossTask:
                 return
             positions = exchange.fetch_positions("", {'instType': 'SWAP'})
             # print(positions)
+            # return
+            
             for pos in positions:
                 if pos['contracts'] != 0:
                     symbol = pos['symbol']

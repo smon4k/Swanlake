@@ -43,45 +43,53 @@ class PriceMonitoringTask:
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 return
-        
+
             # 获取订单未成交的订单
             open_orders = await self.db.get_active_orders(account_id) # 获取未撤销的和未平仓的订单
             # print("open_orders", open_orders)
             # return
             if not open_orders:
-                # print("没有获取到持仓订单")
-                # logging.warning("没有获取到持仓订单")
+                # print("没有获取到数据库未成交订单")
+                # logging.warning("没有获取到数据库未成交订单")
                 return
             latest_order = None
             latest_fill_time = 0
 
-            # 检查止盈止损并平仓
-        
             for order in open_orders:
-                symbol_tactics = order['symbol']
-                if order['symbol'].endswith('-SWAP'):
-                    symbol_tactics = order['symbol'].replace('-SWAP', '')
-                tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
-                signal = await self.db.get_latest_signal(order['symbol'], tactics)  # 获取最新信号
-                # await self.check_and_close_position(exchange, account_id, order['symbol'], signal['price'])
-                # 检查订单是否存在
-                # print(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
-                # logging.info(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
-                order_info = exchange.fetch_order(order['order_id'], order['symbol'], {'instType': 'SWAP'})
-                # print("order_info", order_info)
-                fill_date_time = None
-                fill_time = order_info['info'].get('fillTime')
-                executed_price = None
-                # print(order_info['info']['state'])
-                if order_info['info']['state'] == 'canceled':
-                    print(f"订单已撤销: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
-                    logging.info(f"订单已撤销: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                symbol = order['symbol']
+                # if symbol.endswith('-SWAP'):
+                #     symbol_tactics = symbol.replace('-SWAP', '')
+                order_info = exchange.fetch_order(order['order_id'], symbol, {'instType': 'SWAP'})
+                # print(order_info)
+                if order_info['info']['state'] == 'live': # 订单未成交
+                    #首先判断是否有该币种仓位信息
+                    positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+                    if not positions:
+                        print(f"无持仓信息，取消订单: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                        logging.info(f"无持仓信息，取消订单: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                        await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
+                        await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
+                        continue
+                elif order_info['info']['state'] == 'canceled': # 订单已撤销
+                    print(f"订单已撤销: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                    logging.info(f"订单已撤销: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
                     await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
-                    await cancel_all_orders(self, account_id, order['symbol']) # 取消当前账户下指定币种 所有未成交的订单
+                    await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     continue
+                else: # 订单已成交
+                    # tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
+                    # signal = await self.db.get_latest_signal(order['symbol'], tactics)  # 获取最新信号
+                    # await self.check_and_close_position(exchange, account_id, order['symbol'], signal['price'])
+                    # 检查订单是否存在
+                    # print(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    # logging.info(f"检查订单: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    # print("order_info", order_info)
+                    # print(order_info['info']['state'])
+                    fill_date_time = None
+                    fill_time = order_info['info'].get('fillTime')
+                    executed_price = None
 
-                if order_info['info']['state'] == 'filled':
-                    print(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
+                    print(f"订单已成交: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
                     # logging.info(f"订单已成交: {account_id} {order['order_id']} {order['symbol']} {order['side']} {order['status']}")
                     fill_date_time = await milliseconds_to_local_datetime(fill_time) # 格式化成交时间
                     fill_time = float(fill_time)
@@ -89,18 +97,16 @@ class PriceMonitoringTask:
                         latest_fill_time = int(fill_time) 
                         latest_order = order_info
 
-                # await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
-                if latest_order:
-                    print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
-                    logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
-                    # print(f"订单存在: {latest_order}")
-                    # 网格管理 下单
-                    executed_price = latest_order['info']['fillPx'] # 成交价格
-                    mangr_orders = await self.manage_grid_orders(latest_order, account_id) #检查网格
-                    if mangr_orders:
-                        await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
-                        await self.update_order_status(order_info, account_id, executed_price, fill_date_time, order['symbol']) # 更新订单状态以及进行配对订单
-                        await self.stop_loss_task.accounts_stop_loss_task(account_id) # 重置上次检查时间，立即检查止盈止损
+                        print(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                        logging.info(f"订单已成交，用户：{account_id}, 成交币种：{latest_order['symbol']}, 成交方向: {latest_order['side']}, 成交时间: {latest_order['info']['fillTime']}, 成交价格: {latest_order['info']['fillPx']}")
+                        # print(f"订单存在: {latest_order}")
+                        # 网格管理 下单
+                        executed_price = latest_order['info']['fillPx'] # 成交价格
+                        mangr_orders = await self.manage_grid_orders(latest_order, account_id) #检查网格
+                        if mangr_orders:
+                            await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
+                            await self.update_order_status(order_info, account_id, executed_price, fill_date_time, symbol) # 更新订单状态以及进行配对订单
+                            await self.stop_loss_task.accounts_stop_loss_task(account_id) # 重置上次检查时间，立即检查止盈止损
         except Exception as e:
             print(f"检查持仓失败: {e}")
             logging.error(f"检查持仓失败: {e}")
