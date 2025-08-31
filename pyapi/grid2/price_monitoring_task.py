@@ -61,10 +61,11 @@ class PriceMonitoringTask:
                 #     symbol_tactics = symbol.replace('-SWAP', '')
                 order_info = exchange.fetch_order(order['order_id'], symbol, {'instType': 'SWAP'})
                 # print(order_info)
+                positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+                pos_contracts = positions[0]['contracts'] if positions else 0
                 if order_info['info']['state'] == 'live': # 订单未成交
                     #首先判断是否有该币种仓位信息
-                    positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
-                    if not positions:
+                    if not positions or pos_contracts <= 0: # 无持仓信息
                         print(f"无持仓信息，取消订单: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
                         logging.info(f"无持仓信息，取消订单: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
                         await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
@@ -74,7 +75,8 @@ class PriceMonitoringTask:
                     print(f"订单已撤销: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
                     logging.info(f"订单已撤销: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
                     await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
-                    await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
+                    if not positions or pos_contracts <= 0: # 无持仓信息
+                        await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     continue
                 else: # 订单已成交
                     # tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
