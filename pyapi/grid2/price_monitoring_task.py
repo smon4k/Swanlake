@@ -63,7 +63,7 @@ class PriceMonitoringTask:
                 # print(order_info)
                 positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 pos_contracts = positions[0]['contracts'] if positions else 0
-                if order_info['info']['state'] == 'live': # 订单未成交
+                if order_info['info']['state'] == 'live': # 订单状态为等待成交
                     #首先判断是否有该币种仓位信息
                     if not positions or pos_contracts <= 0: # 无持仓信息
                         print(f"无持仓信息，取消订单: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
@@ -78,7 +78,16 @@ class PriceMonitoringTask:
                     if not positions or pos_contracts <= 0: # 无持仓信息
                         await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
                     continue
-                else: # 订单已成交
+                elif order_info['info']['state'] == 'filled' or order_info['info']['state'] == 'partially_filled': # 订单已成交或者部分成交
+                    if order_info['info']['state'] == 'partially_filled': # 订单部分成交
+                        print(f"订单部分成交: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                        logging.info(f"订单部分成交: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                        total_amount = Decimal(order_info['amount'])
+                        filled_amount = Decimal(order_info['filled'])
+                        if filled_amount < total_amount * Decimal('0.7'): # 部分成交数量小于70%，未成交
+                            print(f"订单部分成交数量小于70%，订单: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                            logging.info(f"订单部分成交数量小于70%，订单: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                            continue
                     # tactics = await self.db.get_tactics_by_account_and_symbol(account_id, symbol_tactics) # 获取账户币种策略配置名称
                     # signal = await self.db.get_latest_signal(order['symbol'], tactics)  # 获取最新信号
                     # await self.check_and_close_position(exchange, account_id, order['symbol'], signal['price'])

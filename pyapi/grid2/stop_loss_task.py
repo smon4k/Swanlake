@@ -221,8 +221,8 @@ class StopLossTask:
             )
             # print('修改止损单结果', edit_order)
             if edit_order and edit_order.get('info', {}).get('sCode') == '0':
-                print(f"修改止损单成功: {edit_order['id']}")
-                logging.info(f"修改止损单成功: {edit_order['id']}")
+                print(f"修改止损单成功: {account_id} {edit_order['id']}")
+                logging.info(f"修改止损单成功: {account_id} {edit_order['id']}")
                 # fill_date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 await self.db.update_order_by_id(account_id, algo_order_id, {
                     'price': float(price), 
@@ -230,6 +230,6 @@ class StopLossTask:
                 })
                 return edit_order
         except Exception as e:
-            print(f"修改止损单失败: {e}")
-            logging.error(f"修改止损单失败: {e}")
+            print(f"修改止损单失败: {account_id} {e}")
+            logging.error(f"修改止损单失败: {account_id} {e}")
             return None
