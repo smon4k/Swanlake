@@ -166,13 +166,13 @@ class StopLossTask:
                 return order
             else:
                 error_msg = order.get('info', {}).get('sMsg', '未知错误') if order else '订单创建失败'
-                print(f"开仓失败: {error_msg}")
-                logging.error(f"开仓失败: {error_msg}")
+                print(f"下策略单失败: {error_msg}")
+                logging.error(f"下策略单失败: {error_msg}")
                 return None
                 
         except Exception as e:
-            print(f"开仓失败: {e}")
-            logging.error(f"开仓失败: {e}")
+            print(f"下策略单失败 error: {e}")
+            logging.error(f"下策略单失败 error: {e}")
             return None
         
     
