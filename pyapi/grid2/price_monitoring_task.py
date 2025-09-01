@@ -118,6 +118,12 @@ class PriceMonitoringTask:
                             await self.db.update_order_by_id(account_id, order_info['id'], {'executed_price': executed_price, 'status': order_info['info']['state'], 'fill_time': fill_date_time})
                             await self.update_order_status(order_info, account_id, executed_price, fill_date_time, symbol) # 更新订单状态以及进行配对订单
                             await self.stop_loss_task.accounts_stop_loss_task(account_id) # 重置上次检查时间，立即检查止盈止损
+                else:
+                    print(f"订单状态未知: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                    logging.info(f"订单状态未知: {account_id} {order['order_id']} {symbol} {order['side']} {order['status']}")
+                    await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
+                    if not positions or pos_contracts <= 0: # 无持仓信息
+                        await cancel_all_orders(self, account_id, symbol) # 取消当前账户下指定币种 所有未成交的订单
         except Exception as e:
             print(f"检查持仓失败: {e}")
             logging.error(f"检查持仓失败: {e}")
