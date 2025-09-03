@@ -134,11 +134,11 @@
               </el-table-column>
             
               <!-- 成交均价 | 委托价 -->
-              <el-table-column label="开仓均价 | 平仓均价" align="left" width="150">
+              <el-table-column label="开仓均价 | 平仓均价 USDT" align="left" width="150">
                 <template slot-scope="scope">
-                  <span>{{ keepDecimalNotRounding(scope.row.entryPrice, 2, true) }} USDT</span>
+                  <span>{{ keepDecimalNotRounding(scope.row.entryPrice, 2, true) }}</span>
                   <br>
-                  <span>{{ keepDecimalNotRounding(scope.row.lastPrice, 2, true) }} USDT</span>
+                  <span>{{ keepDecimalNotRounding(scope.row.lastPrice, 2, true) }}</span>
                 </template>
               </el-table-column>
             
@@ -150,17 +150,17 @@
               </el-table-column> -->
             
               <!-- 已成交｜委托价值 -->
-              <el-table-column label="已成交｜委托价值" align="left" width="100">
+              <!-- <el-table-column label="已成交｜委托价值" align="left" width="100">
                 <template slot-scope="scope">
                   <span>{{ keepDecimalNotRounding(scope.row.contractSize * scope.row.entryPrice, 2, true) }} USDT</span>
                 </template>
-              </el-table-column>
+              </el-table-column> -->
             
               <!-- 收益 | 收益率 -->
-              <el-table-column label="收益 | 收益率" align="left" width="120">
+              <el-table-column label="收益 USDT | 收益率" align="left" width="120">
                 <template slot-scope="scope">
                   <span style="color: #25a750">
-                    {{ keepDecimalNotRounding(scope.row.realizedPnl, 2, true) }} USDT
+                    {{ keepDecimalNotRounding(scope.row.realizedPnl, 2, true) }}
                     <br>
                     {{ keepDecimalNotRounding(scope.row.realizedPnl / (scope.row.contractSize * scope.row.entryPrice) * 100, 2, true) }}%
                   </span>
@@ -177,11 +177,11 @@
               </el-table-column>
             
               <!-- 手续费 -->
-              <el-table-column prop="fee" label="手续费" align="left">
+              <!-- <el-table-column prop="fee" label="手续费" align="left">
                 <template slot-scope="scope">
                   <span>{{ keepDecimalNotRounding(scope.row.fee || 0, 2, true) }} USDT</span>
                 </template>
-              </el-table-column>
+              </el-table-column> -->
             
               <!-- 止盈止损 -->
               <!-- <el-table-column label="止盈止损" align="left">
@@ -195,12 +195,19 @@
               </el-table-column> -->
             
               <!-- 只减仓 -->
-              <el-table-column prop="hedged" label="只减仓" align="left" width="100">
+              <!-- <el-table-column prop="hedged" label="只减仓" align="left" width="100">
                 <template slot-scope="scope">
                   <span>{{ scope.row.hedged ? '是' : '否' }}</span>
                 </template>
+              </el-table-column> -->
+
+              <el-table-column prop="hedged" label="利润(USDT)" align="left" width="100">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.info.posSide === 'long'">{{ keepDecimalNotRounding(scope.row.lastPrice - scope.row.entryPrice, 2, true) }}</span>
+                  <span v-else-if="scope.row.info.posSide === 'short'">{{ keepDecimalNotRounding(scope.row.entryPrice - scope.row.lastPrice, 2, true) }}</span>
+                </template>
               </el-table-column>
-              
+
               <!-- 开仓时间 -->
               <el-table-column prop="open_time" label="开仓时间" align="left" width="180">
                 <template slot-scope="scope">
