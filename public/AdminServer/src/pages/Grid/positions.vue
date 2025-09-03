@@ -204,14 +204,14 @@
               <!-- 开仓时间 -->
               <el-table-column prop="open_time" label="开仓时间" align="left">
                 <template slot-scope="scope">
-                  <span>{{ formatDate(scope.row.info.cTime) }}</span>
+                  <span>{{ timestampToTime(scope.row.info.cTime) }}</span>
                 </template>
               </el-table-column>
 
               <!-- 平仓时间 -->
               <el-table-column prop="close_time" label="平仓时间" align="left">
                 <template slot-scope="scope">
-                  <span>{{ formatDate(scope.row.info.uTime) }}</span>
+                  <span>{{ timestampToTime(scope.row.info.uTime) }}</span>
                 </template>
               </el-table-column>
               <!-- 订单状态 | 编号 -->
@@ -369,6 +369,16 @@
         if (!timestamp) return '';
         const date = new Date(timestamp);
         return date.toISOString().replace('T', ' ').substring(0, 19); // 格式化为 YYYY-MM-DD HH:MM:SS
+      },
+      timestampToTime(timestamp) {
+        const date = new Date(timestamp);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const hour = date.getHours();
+        const minute = date.getMinutes();
+        const second = date.getSeconds();
+        return `${year}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day} ${hour < 10 ? '0' + hour : hour}:${minute < 10 ? '0' + minute : minute}:${second < 10 ? '0' + second : second}`;
       },
       getAccountList() {
         get("/Grid/grid/getAccountList", {}, json => {
