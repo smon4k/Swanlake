@@ -109,7 +109,7 @@ export default {
       signalList: [],
       loading: false,
       strategyOptions: [],
-      strategy_name: '',
+      strategy_name: 'Y1.1',
     };
   },
   created() {

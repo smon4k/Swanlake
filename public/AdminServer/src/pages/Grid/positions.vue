@@ -101,13 +101,24 @@
                   <span v-if="scope.row.info.mgnMode === 'isolated'">逐仓</span>
                 </template>
               </el-table-column>
-            
+              
+              <!-- 仓位状态 -->
+              <el-table-column label="仓位状态" align="left">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.info.type === '1'" style="color:#05C48E">部分平仓</span>
+                  <span v-else-if="scope.row.info.type === '2'" style="color:#df473d;">完全平仓</span>
+                  <span v-else-if="scope.row.info.type === '3'" style="color:#df473d;">强平</span>
+                  <span v-else-if="scope.row.info.type === '4'" style="color:#df473d;">强减</span>
+                  <span v-else-if="scope.row.info.type === '5'" style="color:#df473d;">ADL自动减仓</span>
+                </template>
+              </el-table-column>
+
               <!-- 委托时间 -->
-              <el-table-column prop="datetime" label="委托时间" align="left">
+              <!-- <el-table-column prop="datetime" label="委托时间" align="left">
                 <template slot-scope="scope">
                   <span>{{ formatDate(scope.row.datetime) }}</span>
                 </template>
-              </el-table-column>
+              </el-table-column> -->
             
               <!-- 交易方向 -->
               <el-table-column prop="side" label="交易方向" align="left">
@@ -123,9 +134,11 @@
               </el-table-column>
             
               <!-- 成交均价 | 委托价 -->
-              <el-table-column label="成交均价 | 委托价" align="left">
+              <el-table-column label="开仓均价 | 平仓均价" align="left">
                 <template slot-scope="scope">
                   <span>{{ keepDecimalNotRounding(scope.row.entryPrice, 2, true) }} USDT</span>
+                  <br>
+                  <span>{{ keepDecimalNotRounding(scope.row.lastPrice, 2, true) }} USDT</span>
                 </template>
               </el-table-column>
             
@@ -153,6 +166,15 @@
                   </span>
                 </template>
               </el-table-column>
+
+              <!-- 最大持仓量 | 已平仓量 -->
+              <el-table-column label="最大持仓量 | 已平仓量" align="left">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.info.openMaxPos }} 张</span>
+                  <br>
+                  <span>{{ scope.row.info.closeTotalPos }} 张</span>
+                </template>
+              </el-table-column>
             
               <!-- 手续费 -->
               <el-table-column prop="fee" label="手续费" align="left">
@@ -178,9 +200,22 @@
                   <span>{{ scope.row.hedged ? '是' : '否' }}</span>
                 </template>
               </el-table-column>
-            
+              
+              <!-- 开仓时间 -->
+              <el-table-column prop="open_time" label="开仓时间" align="left">
+                <template slot-scope="scope">
+                  <span>{{ formatDate(scope.row.info.cTime) }}</span>
+                </template>
+              </el-table-column>
+
+              <!-- 平仓时间 -->
+              <el-table-column prop="close_time" label="平仓时间" align="left">
+                <template slot-scope="scope">
+                  <span>{{ formatDate(scope.row.info.uTime) }}</span>
+                </template>
+              </el-table-column>
               <!-- 订单状态 | 编号 -->
-              <el-table-column label="订单状态 | 编号" align="left">
+              <!-- <el-table-column label="订单状态 | 编号" align="left">
                 <template slot-scope="scope">
                   <span>
                     <span v-if="scope.row.info.type == '1'">部分成交</span>
@@ -192,7 +227,7 @@
                     {{ scope.row.id }}
                   </span>
                 </template>
-              </el-table-column>
+              </el-table-column> -->
             </el-table>
               <el-row class="pages">
               <el-col :span="24">
