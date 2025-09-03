@@ -150,7 +150,7 @@
               </el-table-column> -->
             
               <!-- 已成交｜委托价值 -->
-              <el-table-column label="已成交｜委托价值" align="left">
+              <el-table-column label="已成交｜委托价值" align="left" width="100">
                 <template slot-scope="scope">
                   <span>{{ keepDecimalNotRounding(scope.row.contractSize * scope.row.entryPrice, 2, true) }} USDT</span>
                 </template>
@@ -202,14 +202,14 @@
               </el-table-column>
               
               <!-- 开仓时间 -->
-              <el-table-column prop="open_time" label="开仓时间" align="left" width="150">
+              <el-table-column prop="open_time" label="开仓时间" align="left" width="180">
                 <template slot-scope="scope">
                   <span>{{ timestampToTime(scope.row.info.cTime) }}</span>
                 </template>
               </el-table-column>
 
               <!-- 平仓时间 -->
-              <el-table-column prop="close_time" label="平仓时间" align="left" width="150">
+              <el-table-column prop="close_time" label="平仓时间" align="left" width="180">
                 <template slot-scope="scope">
                   <span>{{ timestampToTime(scope.row.info.uTime) }}</span>
                 </template>
