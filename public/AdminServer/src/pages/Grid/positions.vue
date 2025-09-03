@@ -157,7 +157,7 @@
               </el-table-column>
             
               <!-- 收益 | 收益率 -->
-              <el-table-column label="收益 | 收益率" align="left">
+              <el-table-column label="收益 | 收益率" align="left" width="120">
                 <template slot-scope="scope">
                   <span style="color: #25a750">
                     {{ keepDecimalNotRounding(scope.row.realizedPnl, 2, true) }} USDT
