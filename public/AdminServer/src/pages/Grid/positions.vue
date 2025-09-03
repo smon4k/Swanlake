@@ -93,7 +93,7 @@
           <el-tab-pane label="历史持仓">
             <el-table :data="positionsHistoryList" style="width: 100%;" v-loading="historyLoading">
               <!-- 交易品种 -->
-              <el-table-column prop="symbol" label="交易品种" align="left">
+              <el-table-column prop="symbol" label="交易品种" align="left" width="150">
                 <template slot-scope="scope">
                   <span>{{ scope.row.symbol }}</span>
                   <br>
@@ -134,7 +134,7 @@
               </el-table-column>
             
               <!-- 成交均价 | 委托价 -->
-              <el-table-column label="开仓均价 | 平仓均价" align="left">
+              <el-table-column label="开仓均价 | 平仓均价" align="left" width="150">
                 <template slot-scope="scope">
                   <span>{{ keepDecimalNotRounding(scope.row.entryPrice, 2, true) }} USDT</span>
                   <br>
@@ -202,14 +202,14 @@
               </el-table-column>
               
               <!-- 开仓时间 -->
-              <el-table-column prop="open_time" label="开仓时间" align="left">
+              <el-table-column prop="open_time" label="开仓时间" align="left" width="150">
                 <template slot-scope="scope">
                   <span>{{ timestampToTime(scope.row.info.cTime) }}</span>
                 </template>
               </el-table-column>
 
               <!-- 平仓时间 -->
-              <el-table-column prop="close_time" label="平仓时间" align="left">
+              <el-table-column prop="close_time" label="平仓时间" align="left" width="150">
                 <template slot-scope="scope">
                   <span>{{ timestampToTime(scope.row.info.uTime) }}</span>
                 </template>
