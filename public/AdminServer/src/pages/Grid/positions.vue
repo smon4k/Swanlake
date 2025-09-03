@@ -371,14 +371,21 @@
         return date.toISOString().replace('T', ' ').substring(0, 19); // 格式化为 YYYY-MM-DD HH:MM:SS
       },
       timestampToTime(timestamp) {
-        const date = new Date(timestamp);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        const hour = date.getHours();
-        const minute = date.getMinutes();
-        const second = date.getSeconds();
-        return `${year}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day} ${hour < 10 ? '0' + hour : hour}:${minute < 10 ? '0' + minute : minute}:${second < 10 ? '0' + second : second}`;
+          const num = Number(timestamp);
+          if (!num || isNaN(num)) return "Invalid timestamp";
+
+          const date = new Date(num);
+          if (isNaN(date.getTime())) return "Invalid Date";
+
+          return new Intl.DateTimeFormat('zh-CN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false
+          }).format(date).replace(/\//g, '-');
       },
       getAccountList() {
         get("/Grid/grid/getAccountList", {}, json => {
