@@ -62,7 +62,7 @@ class PriceMonitoringTask:
                     market_precision = await get_market_precision(exchange, symbol_tactics) # 获取市场精度
                     trading_balance_size = trading_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
                     # print(f"无持仓信息，交易账户余额: {account_id} {symbol_tactics} {trading_balance_size}")
-                    logging.info(f"无持仓信息，交易账户余额: {account_id} {symbol_tactics} {trading_balance_size}")
+                    # logging.info(f"无持仓信息，交易账户余额: {account_id} {symbol_tactics} {trading_balance_size}")
                     if trading_balance_size > 0:
                         # print(f"购买理财: {account_id} {symbol_tactics} {trading_balance_size}")
                         logging.info(f"购买理财: {account_id} {symbol_tactics} {trading_balance_size}")
