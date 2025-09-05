@@ -1,12 +1,14 @@
 
 import asyncio
 from decimal import Decimal
+import json
 import logging
 import uuid
 from common_functions import get_account_balance, get_grid_percent_list, get_market_precision, cancel_all_orders, get_client_order_id, get_exchange, get_total_positions, get_market_price, get_max_position_value, open_position, milliseconds_to_local_datetime
 from database import Database
 from trading_bot_config import TradingBotConfig
 from stop_loss_task import StopLossTask
+from savings_task import SavingsTask
 import traceback
 
 class PriceMonitoringTask:
@@ -43,6 +45,29 @@ class PriceMonitoringTask:
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 return
+            
+            account_symbols = self.db.account_config_cache[account_id].get('max_position_list', [])
+            account_symbols_arr = json.loads(account_symbols)
+            if not account_symbols:
+                print(f"账户未配置监控币种: {account_id}")
+                logging.info(f"账户未配置监控币种: {account_id}")
+                return
+            # print(f"监控币种: {account_symbols}")
+            for symbol in account_symbols_arr:
+                symbol_tactics = symbol['symbol'] + '-SWAP'
+                positions = exchange.fetch_positions_for_symbol(symbol_tactics, {'instType': 'SWAP'})
+                pos_contracts = positions[0]['contracts'] if positions else 0
+                if not positions or pos_contracts <= 0: # 无持仓信息
+                    trading_balance = await get_account_balance(exchange, symbol_tactics, 'trading') # funding: 资金账户余额 trading: 交易账户余额
+                    market_precision = await get_market_precision(exchange, symbol_tactics) # 获取市场精度
+                    trading_balance_size = trading_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+                    # print(f"无持仓信息，交易账户余额: {account_id} {symbol_tactics} {trading_balance_size}")
+                    logging.info(f"无持仓信息，交易账户余额: {account_id} {symbol_tactics} {trading_balance_size}")
+                    if trading_balance_size > 0:
+                        # print(f"购买理财: {account_id} {symbol_tactics} {trading_balance_size}")
+                        logging.info(f"购买理财: {account_id} {symbol_tactics} {trading_balance_size}")
+                        savings_task = SavingsTask(self.db, account_id)
+                        await savings_task.purchase_savings("USDT", trading_balance_size) # 购买理财
 
             # 获取订单未成交的订单
             open_orders = await self.db.get_active_orders(account_id) # 获取未撤销的和未平仓的订单
@@ -63,6 +88,8 @@ class PriceMonitoringTask:
                 # print(order_info)
                 positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 pos_contracts = positions[0]['contracts'] if positions else 0
+
+
                 if order_info['info']['state'] == 'live': # 订单状态为等待成交
                     #首先判断是否有该币种仓位信息
                     if not positions or pos_contracts <= 0: # 无持仓信息
