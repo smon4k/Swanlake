@@ -58,10 +58,12 @@ class PriceMonitoringTask:
                 symbol_tactics = symbol['symbol'] + '-SWAP'
                 positions = exchange.fetch_positions_for_symbol(symbol_tactics, {'instType': 'SWAP'})
                 # print(f"持仓信息: {account_id} {symbol_tactics} {positions}")
-                pos_contracts = positions[0]['contracts'] if positions else 0
+                pos_contracts = float(positions[0]['contracts']) if positions else 0
+                # print(f"持仓信息: {account_id} {symbol_tactics} {pos_contracts}")
                 if pos_contracts > 0: # 如果有持仓信息
                     has_position = True
                     break
+
             if not has_position:
                 trading_balance = await get_account_balance(exchange, symbol_tactics, 'trading') # funding: 资金账户余额 trading: 交易账户余额
                 market_precision = await get_market_precision(exchange, symbol_tactics) # 获取市场精度
