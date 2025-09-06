@@ -385,9 +385,9 @@
                         account.balance = response.data.data.data;
                         account.balanceLoading = false; // 结束loading
                     } else {
-                        account.balance = '--';
+                        account.balance = 0;
                         account.balanceLoading = false; // 结束loading
-                        this.$message.error("获取账户余额失败");
+                        // this.$message.error("获取账户余额失败");
                     }
                 });
             });
