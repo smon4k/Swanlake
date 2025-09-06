@@ -63,8 +63,8 @@ class PriceMonitoringTask:
                     has_position = True
                     break
             if not has_position:
-                trading_balance = await get_account_balance(exchange, 'USDT-SWAP', 'trading') # funding: 资金账户余额 trading: 交易账户余额
-                market_precision = await get_market_precision(exchange, 'USDT-SWAP') # 获取市场精度
+                trading_balance = await get_account_balance(exchange, symbol_tactics, 'trading') # funding: 资金账户余额 trading: 交易账户余额
+                market_precision = await get_market_precision(exchange, symbol_tactics) # 获取市场精度
                 trading_balance_size = trading_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
                 # print(f"无持仓信息，交易账户余额: {account_id} {trading_balance_size}")
                 # logging.info(f"无持仓信息，交易账户余额: {account_id} {trading_balance_size}")
