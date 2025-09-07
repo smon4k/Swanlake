@@ -93,23 +93,24 @@ class SignalProcessingTask:
                 # 1.2 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol, {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
-                
-                # 1.2 处理余币宝理财 如果有余币宝余额就赎回
-                savings_task = SavingsTask(self.db, account_id)
-                yubibao_balance = await savings_task.get_saving_balance("USDT")
-                market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
-                print(f"余币宝余额: {account_id} {yubibao_balance}")
-                logging.info(f"余币宝余额: {account_id} {yubibao_balance}")
-                if yubibao_balance > 0:
-                    await savings_task.redeem_savings("USDT", yubibao_balance) # 赎回理财
-                else:
-                    funding_balance = await get_account_balance(exchange, symbol, 'funding') # funding: 资金账户余额 trading: 交易账户余额
-                    funding_balance_size = funding_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-                    if funding_balance_size > 0:
-                        print(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
-                        logging.info(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
-                        await savings_task.transfer("USDT", funding_balance_size, from_acct="6", to_acct="18")
-                        
+                account_info = self.db.account_config_cache.get(account_id, {})            
+                if account_info.get('financ_state', 1) == 1: # 如果理财状态开启
+                    # 1.2 处理余币宝理财 如果有余币宝余额就赎回
+                    savings_task = SavingsTask(self.db, account_id)
+                    yubibao_balance = await savings_task.get_saving_balance("USDT")
+                    market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
+                    print(f"余币宝余额: {account_id} {yubibao_balance}")
+                    logging.info(f"余币宝余额: {account_id} {yubibao_balance}")
+                    if yubibao_balance > 0:
+                        await savings_task.redeem_savings("USDT", yubibao_balance) # 赎回理财
+                    else:
+                        funding_balance = await get_account_balance(exchange, symbol, 'funding') # funding: 资金账户余额 trading: 交易账户余额
+                        funding_balance_size = funding_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+                        if funding_balance_size > 0:
+                            print(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
+                            logging.info(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
+                            await savings_task.transfer("USDT", funding_balance_size, from_acct="6", to_acct="18")
+
                 # 1.3 开仓
                 await self.handle_open_position(
                     account_id,

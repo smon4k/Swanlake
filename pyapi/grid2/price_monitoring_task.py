@@ -63,8 +63,8 @@ class PriceMonitoringTask:
                 if pos_contracts > 0: # 如果有持仓信息
                     has_position = True
                     break
-
-            if not has_position:
+            account_info = self.db.account_config_cache.get(account_id, {})            
+            if not has_position and account_info.get('financ_state', 1) == 1: # 如果没有持仓信息，并且理财状态开启
                 trading_balance = await get_account_balance(exchange, symbol_tactics, 'trading') # funding: 资金账户余额 trading: 交易账户余额
                 market_precision = await get_market_precision(exchange, symbol_tactics) # 获取市场精度
                 trading_balance_size = trading_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
