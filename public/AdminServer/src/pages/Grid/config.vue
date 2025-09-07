@@ -381,12 +381,13 @@
                     inst_id: this.inst_id
                 }, response => {
                     console.log(response);
-                    if (response.status == 200) {
+                    if (response.status == 200 && response.data.data) {
                         account.balance = response.data.data.data;
                         account.balanceLoading = false; // 结束loading
                     } else {
-                        account.balance = '获取失败';
-                        this.$message.error("获取账户余额失败");
+                        account.balance = 0;
+                        account.balanceLoading = false; // 结束loading
+                        // this.$message.error("获取账户余额失败");
                     }
                 });
             });

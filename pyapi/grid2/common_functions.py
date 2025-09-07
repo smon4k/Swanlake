@@ -101,14 +101,15 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
             return None
 
 #获取账户余额
-async def get_account_balance(exchange: ccxt.Exchange, symbol:str) -> Decimal:
+async def get_account_balance(exchange: ccxt.Exchange, symbol:str, marketType: str = 'trading') -> Decimal:
     """获取账户余额"""
     try:
         params = {}
         if symbol:
             trading_pair = symbol.replace("-", ",")
             params = {
-                'ccy': trading_pair
+                'ccy': trading_pair,
+                'type': marketType
             }
         balance = exchange.fetch_balance(params)
         total_equity = Decimal(str(balance["USDT"]['total']))

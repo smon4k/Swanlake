@@ -90,6 +90,38 @@ async def get_account_balances(
             status="error",
             message="An error occurred",
         )
+    
+# 获取资金账户余额
+@router.post("/api/okex/get_funding_balances", response_model=CommonResponse)
+async def get_funding_balances(
+    refugee: AccountBalancesModel, ccy: Optional[str] = None
+):
+    try:
+        fundingAPI = Funding.FundingAPI(
+            refugee.api_key, refugee.secret_key, refugee.passphrase, False, "0"
+        )
+        result = fundingAPI.get_balances(ccy)
+        # print(result)
+        if result["code"] == "0":
+            return CommonResponse(
+                status="success",
+                message="Funding balance fetched successfully",
+                data=result["data"],
+            )
+        else:
+            return CommonResponse(
+                status="error",
+                message="Failed to fetch funding balance",
+                data={
+                    "error_code": result["code"],
+                    "error_message": result.get("msg", "Unknown error"),
+                },
+            )
+    except Exception as e:
+        return CommonResponse(
+            status="error",
+            message="An error occurred",
+        )
 
 
 # 获取单个产品行情信息

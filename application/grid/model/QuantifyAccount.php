@@ -470,7 +470,9 @@ class QuantifyAccount extends Base
             // $balanceDetails = $exchange->fetch_account_balance();
             // p($balance);
             $url = Config('okx_uri') . "/api/okex/get_account_balances";
-            $balanceDetails = self::getOkxRequesInfo($accountInfo, $url);
+            $balanceDetails = self::getOkxRequesInfo($accountInfo, $url); //获取交易账户余额
+            // $funding_url = Config('okx_uri') . "/api/okex/get_funding_balances?ccy=USDT";
+            // $fundingBalanceDetails = self::getOkxRequesInfo($accountInfo, $funding_url, false); //获取资金账户余额
             $btcBalance = 0;
             $usdtBalance = 0;
             if(empty($balanceDetails['details']) || count($balanceDetails) <= 0) {
