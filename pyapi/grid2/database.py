@@ -47,7 +47,7 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(f"""
-                    SELECT id, exchange, api_key, api_secret, api_passphrase 
+                    SELECT id, exchange, api_key, api_secret, api_passphrase, financ_state, status
                     FROM {table('accounts')} WHERE id=%s AND status=%s
                 """, (account_id, 1))
                 account = cursor.fetchone()

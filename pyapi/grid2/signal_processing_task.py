@@ -93,8 +93,8 @@ class SignalProcessingTask:
                 # 1.2 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol, {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
-                account_info = self.db.account_config_cache.get(account_id, {})            
-                if account_info.get('financ_state', 1) == 1: # 如果理财状态开启
+                account_info = self.db.account_cache[account_id]   
+                if account_info.get('financ_state') == 1: # 如果理财状态开启
                     # 1.2 处理余币宝理财 如果有余币宝余额就赎回
                     savings_task = SavingsTask(self.db, account_id)
                     yubibao_balance = await savings_task.get_saving_balance("USDT")
