@@ -1,3 +1,4 @@
+import asyncio
 import os
 from okx import Funding
 from okx.Finance import Savings
@@ -108,6 +109,12 @@ class SavingsTask:
         # print(f"赎回结果: {result}")
         logging.info(f"赎回结果: {result}")
         # return
+        if 'code' in result and result['code'] != '0':
+            # print(f"赎回理财失败: {result}")
+            logging.error(f"赎回理财失败: {result}")
+            return result
+        
+        await asyncio.sleep(2)
         # Step 2: 资金划转 (理财账户 → 交易账户)
         await self.transfer(ccy, amt, from_acct="6", to_acct="18")
 
