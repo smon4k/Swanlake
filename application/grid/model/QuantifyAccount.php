@@ -105,15 +105,23 @@ class QuantifyAccount extends Base
                 // $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
                 $tradingPrice = $prices['last'];
                 // $tradingPrice = 1;
+                $tradepair_balance = 0;
+                $funding_balance = 0;
+                $yubibao_balance = 0;
                 if($accountInfo['exchange'] === 'okx') {
-                    $balanceList = self::getOkxTradePairBalance($accountInfo);
+                    $balanceList = self::getOkxTradePairBalance($accountInfo); # 获取okx交易对余额
+                    $tradepair_balance = $balanceList['usdtBalance'] ? $balanceList['usdtBalance'] : 0;
+                    $funding_balance = self::getOkxFundingBalance($accountInfo); # 获取okx资金余额
+                    $yubibao_balance = self::getOkxSavingBalance($accountInfo); # 获取okx余利宝余额
                 } else { 
                     return false;
                     // $balanceList = self::getTradePairBalance($accountInfo);
                 }
                 
-                $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0; //总结余
-                
+                $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
+                if($totalBalance <= 0) {
+                    return false;
+                }
                 // $totalBalance = 42792.03; //总结余
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
@@ -471,8 +479,6 @@ class QuantifyAccount extends Base
             // p($balance);
             $url = Config('okx_uri') . "/api/okex/get_account_balances";
             $balanceDetails = self::getOkxRequesInfo($accountInfo, $url); //获取交易账户余额
-            // $funding_url = Config('okx_uri') . "/api/okex/get_funding_balances?ccy=USDT";
-            // $fundingBalanceDetails = self::getOkxRequesInfo($accountInfo, $funding_url, false); //获取资金账户余额
             $btcBalance = 0;
             $usdtBalance = 0;
             if(empty($balanceDetails['details']) || count($balanceDetails) <= 0) {
@@ -551,6 +557,64 @@ class QuantifyAccount extends Base
                 return false;
         }
     }
+
+    /** 获取资金余额
+     * @param array $accountInfo 账户信息
+     * @return bool|array 返回false表示失败，否则返回账户余额信息数组
+     * @author qinlh
+     * @since 2025-09-8
+     * */   
+    public static function getOkxFundingBalance($accountInfo) {
+        try {
+            $funding_url = Config('okx_uri') . "/api/okex/get_funding_balances?ccy=USDT";
+            $fundingBalanceDetails = self::getOkxRequesInfo($accountInfo, $funding_url, false); //获取资金账户余额
+            if(!$fundingBalanceDetails) {
+                return false;
+            }
+            $funding_balance = (float)$fundingBalanceDetails['data'][0]['bal'] ?? 0;
+            return $funding_balance;
+        } catch (\Exception $e) {
+            $error_msg = json_encode([
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                ], JSON_UNESCAPED_UNICODE);
+                // self::rollback();
+                echo $error_msg . "\r\n";
+                return false;
+        }
+    }
+
+    /**
+     * 获取余利宝余额
+     * @param array $accountInfo 账户信息
+     * @return bool|array 返回false表示失败，否则返回账户余额信息数组
+     * @author qinlh
+     * @since 2025-09-8
+     */
+    public static function getOkxSavingBalance($accountInfo) {
+        try {
+            $yubibao_url = Config('okx_uri') . "/api/okex/get_saving_balance?ccy=USDT";
+            $yubibaoBalanceDetails = self::getOkxRequesInfo($accountInfo, $yubibao_url, false); //获取余利宝账户余额
+            if(!$yubibaoBalanceDetails) {
+                return false;
+            }
+            $yubibao_balance = (float)$yubibaoBalanceDetails['data'] ?? 0;
+            return $yubibao_balance;
+        } catch (\Exception $e) {
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            // self::rollback();
+            echo $error_msg . "\r\n";
+            return false;
+        }
+    }
+
 
     /**
      * 获取OKX账户余额信息

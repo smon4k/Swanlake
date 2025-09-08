@@ -5,6 +5,7 @@ import okx.Trade as Trade
 from typing import List
 from fastapi import Query
 import okx.Funding as Funding
+from okx.Finance import Savings
 from fastapi import APIRouter
 
 from schemas import AccountBalancesModel, CommonResponse
@@ -123,6 +124,34 @@ async def get_funding_balances(
             message="An error occurred",
         )
 
+# 获取余利宝余额
+@router.post("/api/okex/get_saving_balance", response_model=CommonResponse)
+async def get_saving_balance(
+    refugee: AccountBalancesModel, ccy: Optional[str] = None
+):
+    try:
+        savingsAPI = Savings.SavingsAPI(
+            refugee.api_key, refugee.secret_key, refugee.passphrase, False, "0"
+        )
+        result = savingsAPI.get_saving_balance(ccy)
+        amt = 0
+        if 'data' in result and len(result['data']) > 0:
+            for item in result['data']:
+                if item['ccy'] == ccy:
+                    amt = float(item['amt'])
+                    break
+        else:
+            amt = 0
+        return CommonResponse(
+            status="success",
+            message="Saving balance fetched successfully",
+            data=str(amt),
+        )
+    except Exception as e:
+        return CommonResponse(
+            status="error",
+            message="An error occurred",
+        )   
 
 # 获取单个产品行情信息
 @router.post("/api/okex/get_market_ticker", response_model=CommonResponse)
