@@ -297,6 +297,7 @@ class QuantifyAccount extends Base
             $totalData = [
                 'principal' => 0,
                 'total_balance' => 0,
+                'yubibao_balance' => 0,
                 'daily_profit' => 0,
                 // 'daily_profit_rate' => 0,
                 'average_day_rate' => 0,
