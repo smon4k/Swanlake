@@ -195,7 +195,7 @@ class QuantifyAccount extends Base
                     $upData = [
                         'principal' => $countStandardPrincipal,
                         'total_balance' => $totalBalance,
-                        'yubibao_balance' => $yubibaoBalance,
+                        'yubibao_balance' => $yubibao_balance,
                         'daily_profit' => $dailyProfit,
                         'daily_profit_rate' => $dailyProfitRate, //日利润率
                         'average_day_rate' => $averageDayRate, //平均日利率
@@ -214,7 +214,7 @@ class QuantifyAccount extends Base
                         'date' => $date,
                         'principal' => $countStandardPrincipal,
                         'total_balance' => $totalBalance,
-                        'yubibao_balance' => $yubibaoBalance,
+                        'yubibao_balance' => $yubibao_balance,
                         'daily_profit' => $dailyProfit,
                         'daily_profit_rate' => $dailyProfitRate, //日利润率
                         'average_day_rate' => $averageDayRate, //平均日利率
