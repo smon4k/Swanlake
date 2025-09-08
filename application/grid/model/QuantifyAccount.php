@@ -195,6 +195,7 @@ class QuantifyAccount extends Base
                     $upData = [
                         'principal' => $countStandardPrincipal,
                         'total_balance' => $totalBalance,
+                        'yubibao_balance' => $yubibaoBalance,
                         'daily_profit' => $dailyProfit,
                         'daily_profit_rate' => $dailyProfitRate, //日利润率
                         'average_day_rate' => $averageDayRate, //平均日利率
@@ -213,6 +214,7 @@ class QuantifyAccount extends Base
                         'date' => $date,
                         'principal' => $countStandardPrincipal,
                         'total_balance' => $totalBalance,
+                        'yubibao_balance' => $yubibaoBalance,
                         'daily_profit' => $dailyProfit,
                         'daily_profit_rate' => $dailyProfitRate, //日利润率
                         'average_day_rate' => $averageDayRate, //平均日利率
@@ -339,6 +341,7 @@ class QuantifyAccount extends Base
                 self::name('quantify_equity_monitoring_total')->where('date', $date)->update([
                     'principal' => $totalData['principal'],
                     'total_balance' => $totalData['total_balance'],
+                    'yubibao_balance' => $totalData['yubibao_balance'],
                     'daily_profit' => $totalData['daily_profit'],
                     'daily_profit_rate' => $totalData['daily_profit_rate'],
                     'average_day_rate' => $totalData['average_day_rate'],
@@ -596,11 +599,7 @@ class QuantifyAccount extends Base
     public static function getOkxSavingBalance($accountInfo) {
         try {
             $yubibao_url = Config('okx_uri') . "/api/okex/get_saving_balance?ccy=USDT";
-            $yubibaoBalanceDetails = self::getOkxRequesInfo($accountInfo, $yubibao_url, false); //获取余利宝账户余额
-            if(!$yubibaoBalanceDetails) {
-                return false;
-            }
-            $yubibao_balance = (float)$yubibaoBalanceDetails['data'] ?? 0;
+            $yubibao_balance = self::getOkxRequesInfo($accountInfo, $yubibao_url, true); //获取余利宝账户余额
             return $yubibao_balance;
         } catch (\Exception $e) {
             $error_msg = json_encode([
