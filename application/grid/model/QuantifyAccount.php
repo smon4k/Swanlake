@@ -571,7 +571,7 @@ class QuantifyAccount extends Base
             if(!$fundingBalanceDetails) {
                 return false;
             }
-            $funding_balance = (float)$fundingBalanceDetails['data'][0]['bal'] ?? 0;
+            $funding_balance = (float)$fundingBalanceDetails['bal'] ?? 0;
             return $funding_balance;
         } catch (\Exception $e) {
             $error_msg = json_encode([
