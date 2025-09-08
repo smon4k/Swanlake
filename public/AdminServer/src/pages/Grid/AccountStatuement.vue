@@ -33,6 +33,15 @@
                             </el-link>
                             </template>
                         </el-table-column>
+                        <el-table-column prop="" label="缓存余额(U)" align="center">
+                            <template slot-scope="scope">
+                            <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
+                            <span v-if="activeName == '全部'">{{ Math.floor(scope.row.yubibao_balance) }}</span>
+                            <el-link v-else type="primary" @click="getTotalBalanceClick()">
+                                <span>{{ Math.floor(scope.row.yubibao_balance) }}</span>
+                            </el-link>
+                            </template>
+                        </el-table-column>
                         <el-table-column prop="" label="币价(U)" align="center" width="100">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }}</span>
