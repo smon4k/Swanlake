@@ -91,7 +91,7 @@ class Database:
                 conn.close()
     
     #获取信号表数据最新的一条数据
-    async def get_latest_signal(self, symbol: Optional[str] = None, name: Optional[str] = None, account_id: int = 0) -> Optional[Dict]:
+    async def get_latest_signal(self, symbol: Optional[str] = None, name: Optional[str] = None, status: Optional[str] = None) -> Optional[Dict]:
         """获取信号表数据最新的一条数据，如果 symbol 为空则返回所有的最新一条"""
         conn = None
         try:
@@ -106,9 +106,9 @@ class Database:
                 if name:
                     query += " AND name = %s"
                     params.append(name)
-                if account_id > 0:
-                    query += " AND account_id = %s"
-                    params.append(account_id)
+                if status:
+                    query += " AND status = %s"
+                    params.append(status)
                 
                 query += " ORDER BY id DESC LIMIT 1"
                 cursor.execute(query, tuple(params))
