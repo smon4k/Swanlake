@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 from decimal import Decimal
+import json
 import logging
 import uuid
 from database import Database
@@ -41,6 +42,9 @@ class SignalProcessingTask:
                             if (signal['direction'] == 'long' and signal['size'] == 0) or (signal['direction'] == 'short' and signal['size'] == 0): # 平仓
                                 # 开始处理信号配置数据
                                 await self.handle_close_position_update(signal)  # 处理平仓并更新数据库订单为已平仓
+
+                                # 开始处理理财数据
+                                # await self.handle_savings_update(signal)  # 处理理财并更新数据库订单为已理财
                         else:
                             print("🚫 无对应账户策略信号")
                             logging.info("🚫 无对应账户策略信号")
@@ -85,6 +89,7 @@ class SignalProcessingTask:
             # buy 0: 买入平空 结束做多 buy short
             # sell -1: 卖出开空 sell short 结束： buy 0
             # sell 0: 卖出平多 结束做空 sell long
+            account_info = self.db.account_cache[account_id]   
             if (side == 'buy' and size == 1) or (side == 'sell' and size == -1): # 开仓
                 strategy_info = await self.db.get_strategy_info(name)
                 # 1.1 开仓前先平掉反向仓位
@@ -93,7 +98,8 @@ class SignalProcessingTask:
                 # 1.2 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
                 await cancel_all_orders(self, account_id, symbol, {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
-                account_info = self.db.account_cache[account_id]   
+
+                # 1.3 处理理财数据进行赎回操作
                 if account_info.get('financ_state') == 1: # 如果理财状态开启
                     # 1.2 处理余币宝理财 如果有余币宝余额就赎回
                     savings_task = SavingsTask(self.db, account_id)
@@ -110,7 +116,9 @@ class SignalProcessingTask:
                             print(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
                             logging.info(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
                             await savings_task.transfer("USDT", funding_balance_size, from_acct="6", to_acct="18")
-
+                        else:
+                            print(f"无法赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
+                            logging.info(f"无法赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
                 # 1.3 开仓
                 await self.handle_open_position(
                     account_id,
@@ -147,6 +155,21 @@ class SignalProcessingTask:
                 # 1.6 平掉反向仓位
                 await self.cleanup_opposite_positions(account_id, symbol, pos_side)
 
+                # 1.7 进行余币宝理财
+                if account_info.get('financ_state') == 1: # 如果没有持仓信息，并且理财状态开启
+                    trading_balance = await get_account_balance(exchange, symbol, 'trading') # funding: 资金账户余额 trading: 交易账户余额
+                    market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
+                    trading_balance_size = trading_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+                    print(f"交易账户余额: {account_id} {trading_balance_size}")
+                    logging.info(f"交易账户余额: {account_id} {trading_balance_size}")
+                    if trading_balance_size > 0:
+                        # print(f"购买理财: {account_id} {trading_balance_size}")
+                        logging.info(f"购买理财: {account_id} {trading_balance_size}")
+                        savings_task = SavingsTask(self.db, account_id)
+                        await savings_task.purchase_savings("USDT", trading_balance_size) # 购买理财
+                    else:
+                        print(f"❌ 无法购买理财: {account_id} {trading_balance_size}")
+                        logging.error(f"❌ 无法购买理财: {account_id} {trading_balance_size}")
             else:
                 print(f"❌ 无效信号: {side}{size}") 
                 logging.error(f"❌ 无效信号: {side}{size}")
@@ -177,8 +200,8 @@ class SignalProcessingTask:
             loss_profit_normal = format(loss_profit, 'f')
             is_profit = float(loss_profit_normal) > 0
 
-            print(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}")
-            logging.info(f"✅ 平仓成功: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}")
+            print(f"处理平仓后数据: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}")
+            logging.info(f"处理平仓后数据: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}")
 
             # 获取策略表连续几次亏损 
             strategy_info = await self.db.get_strategy_info(name)
@@ -214,6 +237,61 @@ class SignalProcessingTask:
                 'count_profit_loss': strategy_info['count_profit_loss'],
                 'stage_profit_loss': strategy_info['stage_profit_loss'],
             })
+    
+    # 平仓以后进行理财操作 批量操作所有用户 暂时不启用
+    async def handle_savings_update(self, signal: dict):
+        """平仓以后进行理财操作"""
+        try:
+            conn = self.db.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"SELECT c.account_id, c.max_position_list, a.financ_state FROM g_config AS c INNER JOIN g_accounts AS a ON c.account_id=a.id WHERE a.status = 1")
+                configs = cursor.fetchall()
+                tactics_name = signal['name']
+                symbol_tactics = signal['symbol']
+                # print(configs)
+                for row in configs:
+                    account_id = row.get('account_id') if isinstance(row, dict) else row[0]
+                    exchange = await get_exchange(self, account_id)
+                    if not exchange:
+                        return
+                    max_position_list = row.get('max_position_list') if isinstance(row, dict) else row[1]
+                    if not max_position_list:
+                        continue
+                    try:
+                        max_position_arr = json.loads(max_position_list)
+                    except Exception as e:
+                        logging.error(f"解析max_position_list失败: {e}")
+                        continue
+                    # print(f"处理理财: {max_position_arr}")
+                    has_savings = False # 是否理财操作
+                    for item in max_position_arr:
+                        symbol = item.get('symbol') + '-SWAP'
+                        if item.get('tactics') == tactics_name and symbol == symbol_tactics and row.get('financ_state') == 1: # 如果策勒名称和交易对匹配，且用户理财状态为1
+                            has_savings = True
+                            break
+                    if has_savings:
+                        trading_balance = await get_account_balance(exchange, symbol_tactics, 'trading') # funding: 资金账户余额 trading: 交易账户余额
+                        market_precision = await get_market_precision(exchange, symbol_tactics) # 获取市场精度
+                        trading_balance_size = trading_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+                        # print(f"无持仓信息，交易账户余额: {account_id} {trading_balance_size}")
+                        logging.info(f"处理理财: {account_id} {tactics_name} {symbol_tactics} {trading_balance_size}")
+                        if trading_balance_size > 0:
+                            # print(f"购买理财: {account_id} {trading_balance_size}")
+                            logging.info(f"开始购买理财: {account_id} {trading_balance_size}")
+                            savings_task = SavingsTask(self.db, account_id)
+                            await savings_task.purchase_savings("USDT", trading_balance_size) # 购买理财
+                        else:
+                            # print(f"无法购买理财: {account_id} {trading_balance_size}")
+                            logging.info(f"无法购买理财: {account_id} {trading_balance_size}")
+                        break
+        except Exception as e:
+            print(f"批量更新max_position_list失败: {e}")
+            logging.error(f"批量更新max_position_list失败: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+
 
     # ---------- 核心子方法 ----------
     def parse_operation(self, action: str, size: int) -> dict:

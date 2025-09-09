@@ -55,26 +55,13 @@ class PriceMonitoringTask:
             # print(f"监控币种: {account_symbols}")
             has_position = False
             for symbol in account_symbols_arr:
-                symbol_tactics = symbol['symbol'] + '-SWAP'
-                positions = exchange.fetch_positions_for_symbol(symbol_tactics, {'instType': 'SWAP'})
-                # print(f"持仓信息: {account_id} {symbol_tactics} {positions}")
-                pos_contracts = float(positions[0]['contracts']) if positions else 0
-                # print(f"持仓信息: {account_id} {symbol_tactics} {pos_contracts}")
-                if pos_contracts > 0: # 如果有持仓信息
-                    has_position = True
-                    break
-            account_info = self.db.account_cache[account_id] 
-            if not has_position and account_info.get('financ_state') == 1: # 如果没有持仓信息，并且理财状态开启
-                trading_balance = await get_account_balance(exchange, symbol_tactics, 'trading') # funding: 资金账户余额 trading: 交易账户余额
-                market_precision = await get_market_precision(exchange, symbol_tactics) # 获取市场精度
-                trading_balance_size = trading_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-                # print(f"无持仓信息，交易账户余额: {account_id} {trading_balance_size}")
-                # logging.info(f"无持仓信息，交易账户余额: {account_id} {trading_balance_size}")
-                if trading_balance_size > 0:
-                    # print(f"购买理财: {account_id} {trading_balance_size}")
-                    logging.info(f"购买理财: {account_id} {trading_balance_size}")
-                    savings_task = SavingsTask(self.db, account_id)
-                    await savings_task.purchase_savings("USDT", trading_balance_size) # 购买理财
+                symbol_tactics = symbol['symbol'] + '-SWAP' # 获取对应的币种
+                tactics = symbol['tactics'] # 获取对应的策略
+                signal = await self.db.get_latest_signal(symbol_tactics, tactics)  # 获取最新已成交的信号
+                if not signal:
+                    print(f"未找到最新的信号: {account_id} {symbol_tactics}")
+                    logging.info(f"未找到最新的信号: {account_id} {symbol_tactics}")
+                    continue
 
             # 获取订单未成交的订单
             open_orders = await self.db.get_active_orders(account_id) # 获取未撤销的和未平仓的订单
