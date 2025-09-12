@@ -59,8 +59,8 @@ class PriceMonitoringTask:
                 tactics = symbol['tactics'] # 获取对应的策略
                 signal = await self.db.get_latest_signal(symbol_tactics, tactics)  # 获取最新已成交的信号
                 if not signal:
-                    print(f"未找到最新的信号: {account_id} {symbol_tactics}")
-                    logging.info(f"未找到最新的信号: {account_id} {symbol_tactics}")
+                    # print(f"未找到最新的信号: {account_id} {symbol_tactics}")
+                    # logging.info(f"未找到最新的信号: {account_id} {symbol_tactics}")
                     continue
 
             # 获取订单未成交的订单
