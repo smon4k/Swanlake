@@ -83,7 +83,6 @@ class PriceMonitoringTask:
                 positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 pos_contracts = positions[0]['contracts'] if positions else 0
 
-
                 if order_info['info']['state'] == 'live': # 订单状态为等待成交
                     #首先判断是否有该币种仓位信息
                     if not positions or pos_contracts <= 0: # 无持仓信息

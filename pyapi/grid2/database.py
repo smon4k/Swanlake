@@ -47,7 +47,7 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(f"""
-                    SELECT id, exchange, api_key, api_secret, api_passphrase, financ_state, status
+                    SELECT id, exchange, api_key, api_secret, api_passphrase, financ_state, status, auto_loan
                     FROM {table('accounts')} WHERE id=%s AND status=%s
                 """, (account_id, 1))
                 account = cursor.fetchone()
@@ -58,6 +58,32 @@ class Database:
             print(f"获取账户信息失败: {e}")
             logging.error(f"获取账户信息失败: {e}")
             return None
+        finally:
+            if conn:
+                conn.close()
+    
+    async def update_account_info(self, account_id: int, updates: Dict):
+        """更新用户是否开启自动借币功能"""
+        conn = None
+        try:
+            # print("更新订单信息:", account_id, order_id, updates)
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
+                values = list(updates.values()) + [account_id]
+                query = f"""
+                    UPDATE {table('accounts')}
+                    SET {set_clause}
+                    WHERE id=%s
+                """
+                cursor.execute(query, values)
+            conn.commit()
+
+            # 更新缓存
+            await self.get_account_info(account_id)
+        except Exception as e:
+            print(f"更新用户信息失败: {e}")
+            logging.error(f"更新用户信息失败: {e}")
         finally:
             if conn:
                 conn.close()
