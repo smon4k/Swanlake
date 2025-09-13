@@ -71,7 +71,7 @@ class OKXTradingBot:
                     for account in accounts
                 ])
             await self.db.get_account_max_position()
-            logging.info("账户初始化完成")
+            # logging.info("账户初始化完成")
         except Exception as e:
             logging.error(f"初始化账户失败: {e}", exc_info=True)
         finally:
@@ -90,7 +90,7 @@ class OKXTradingBot:
         while True:
             try:
                 await self.initialize_accounts_once()  # 循环刷新
-                logging.info("刷新账户配置成功")
+                # logging.info("刷新账户配置成功")
             except Exception as e:
                 logging.error(f"刷新配置失败: {e}", exc_info=True)
             await asyncio.sleep(interval)
