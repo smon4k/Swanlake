@@ -77,7 +77,7 @@ class SignalProcessingTask:
         size = signal['size']      # 1, 0, -1
         price = signal['price']    # 0.00001
         
-        print(f"📡 账户 {account_id} 处理信号:  {name} {symbol} {side} {size}")
+        # print(f"📡 账户 {account_id} 处理信号:  {name} {symbol} {side} {size}")
         logging.info(f"📡 账户 {account_id} 处理信号: {name} {symbol} {side} {size}")
 
         try:
@@ -105,7 +105,7 @@ class SignalProcessingTask:
                     savings_task = SavingsTask(self.db, account_id)
                     yubibao_balance = await savings_task.get_saving_balance("USDT")
                     market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
-                    print(f"余币宝余额: {account_id} {yubibao_balance}")
+                    # print(f"余币宝余额: {account_id} {yubibao_balance}")
                     logging.info(f"余币宝余额: {account_id} {yubibao_balance}")
                     if yubibao_balance > 0:
                         await savings_task.redeem_savings("USDT", yubibao_balance) # 赎回理财
@@ -113,12 +113,23 @@ class SignalProcessingTask:
                         funding_balance = await get_account_balance(exchange, symbol, 'funding') # funding: 资金账户余额 trading: 交易账户余额
                         funding_balance_size = funding_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
                         if funding_balance_size > 0:
-                            print(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
+                            # print(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
                             logging.info(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
                             await savings_task.transfer("USDT", funding_balance_size, from_acct="6", to_acct="18")
                         else:
-                            print(f"无法赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
+                            # print(f"无法赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
                             logging.info(f"无法赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
+                elif account_info.get('financ_state') == 3: # 借币开仓 开启自动借币
+                    # print(f"开始借贷: {account_id} {size}")
+                    # print(f"开始借贷: {account_id} {account_info.get('auto_loan')}")
+                    logging.info(f"开始借贷: {account_id} {account_info.get('auto_loan')}")
+                    savings_task = SavingsTask(self.db, account_id)
+                    if account_info.get('auto_loan') == 0:
+                        is_auto_borrow = await savings_task.set_auto_borrow(True)
+                        # print(f"设置自动借币结果: {is_auto_borrow}")
+                        logging.info(f"设置自动借币结果: {is_auto_borrow}")
+                        if is_auto_borrow:
+                            await self.db.update_account_info(account_id, {'auto_loan': 1})
                 # 1.3 开仓
                 await self.handle_open_position(
                     account_id,
@@ -160,7 +171,7 @@ class SignalProcessingTask:
                     trading_balance = await get_account_balance(exchange, symbol, 'trading') # funding: 资金账户余额 trading: 交易账户余额
                     market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
                     trading_balance_size = trading_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-                    print(f"交易账户余额: {account_id} {trading_balance_size}")
+                    # print(f"交易账户余额: {account_id} {trading_balance_size}")
                     logging.info(f"交易账户余额: {account_id} {trading_balance_size}")
                     if trading_balance_size > 0:
                         # print(f"购买理财: {account_id} {trading_balance_size}")
@@ -168,7 +179,7 @@ class SignalProcessingTask:
                         savings_task = SavingsTask(self.db, account_id)
                         await savings_task.purchase_savings("USDT", trading_balance_size) # 购买理财
                     else:
-                        print(f"❌ 无法购买理财: {account_id} {trading_balance_size}")
+                        # print(f"❌ 无法购买理财: {account_id} {trading_balance_size}")
                         logging.error(f"❌ 无法购买理财: {account_id} {trading_balance_size}")
             else:
                 print(f"❌ 无效信号: {side}{size}") 
@@ -420,7 +431,7 @@ class SignalProcessingTask:
             elif(pos_side =='long'): # 做多
                 price = price + price_float # 信号价 + 价格浮动比例
 
-            balance = await get_account_balance(exchange, symbol)
+            balance = await get_account_balance(exchange, symbol, 'trading')
             print(f"账户余额: {balance}")
             logging.info(f"账户余额: {balance}")
             if balance is None:
@@ -447,7 +458,7 @@ class SignalProcessingTask:
                 # print(f"开仓量为0，不执行开仓")
                 logging.info(f"开仓量为0，不执行开仓")
                 return
-            
+
             # 3. 判断当前币种是否超过最大持仓
             # if size_total_quantity >= max_position:
             #     print(f"开仓量超过最大仓位限制，不执行开仓")

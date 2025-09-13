@@ -79,6 +79,7 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
             'clOrdId': client_order_id,
             'reduceOnly': is_reduce_only,
         }
+        
         try:
             # print("create_order", symbol, direction, price, amount)
             order = exchange.create_order(

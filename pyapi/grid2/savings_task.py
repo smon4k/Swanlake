@@ -2,6 +2,7 @@ import asyncio
 import os
 from okx import Funding
 from okx.Finance import Savings
+import okx.Account as Account
 import logging
 
 
@@ -18,6 +19,7 @@ class SavingsTask:
         self.account_id = account_id
         self.savingsAPI = None
         self.financeAPI = None
+        self.accountAPI = None
 
     async def init_api(self):
         """根据 account_id 初始化 OKX API 客户端"""
@@ -38,11 +40,14 @@ class SavingsTask:
         self.financeAPI = Funding.FundingAPI(api_key, secret_key, passphrase, False, is_simulation, proxy=proxy_conf)
         # print("self.financeAPI", self.financeAPI)
         self.savingsAPI = Savings.SavingsAPI(api_key, secret_key, passphrase, False, is_simulation, proxy=proxy_conf)
+        self.accountAPI = Account.AccountAPI(api_key, secret_key, passphrase, False, is_simulation, proxy=proxy_conf)
         # print("self.savingsAPI", self.savingsAPI)
 
     async def transfer(self, ccy: str, amt: float, from_acct: str, to_acct: str):
+        if not self.financeAPI:
+            await self.init_api()
         """资金划转"""
-        # print(f"资金划转: {amt} {ccy} {from_acct} → {to_acct}")
+        print(f"资金划转: {amt} {ccy} {from_acct} → {to_acct}")
         logging.info(f"资金划转: {amt} {ccy} {from_acct} → {to_acct}")
         try:
             result = self.financeAPI.funds_transfer(
@@ -50,13 +55,14 @@ class SavingsTask:
                 amt=str(amt),
                 from_=from_acct,
                 to=to_acct,
-                type="0"  # 内部划转
+                type="0",  # 内部划转
+                loanTrans=True
             )
-            # print(f"划转结果: {result}")
+            print(f"划转结果: {result}")
             logging.info(f"划转结果: {result}")
             return result
         except Exception as e:
-            # print(f"划转失败: {e}")
+            print(f"划转失败: {e}")
             logging.error(f"划转失败: {e}")
             raise e
 
@@ -143,3 +149,20 @@ class SavingsTask:
             # print(f"获取余币宝余额失败: {e}")
             logging.error(f"获取余币宝余额失败: {e}")
             raise e
+    
+     # 设置开启自动借币 
+    async def set_auto_borrow(self, autoLoan: bool = True):
+        if not self.accountAPI:
+            await self.init_api()
+        try:
+            result = self.accountAPI.set_auto_loan(autoLoan=autoLoan)
+            # print(f"设置自动借币结果: {result}")
+            logging.info(f"设置自动借币结果: {result}")
+            if 'code' in result and result['code'] == '0':
+                return True
+            else:
+                return False
+        except Exception as e:
+            # print(f"设置自动借币失败: {e}")
+            logging.error(f"设置自动借币失败: {e}")
+            raise False

@@ -59,8 +59,8 @@ class PriceMonitoringTask:
                 tactics = symbol['tactics'] # 获取对应的策略
                 signal = await self.db.get_latest_signal(symbol_tactics, tactics)  # 获取最新已成交的信号
                 if not signal:
-                    print(f"未找到最新的信号: {account_id} {symbol_tactics}")
-                    logging.info(f"未找到最新的信号: {account_id} {symbol_tactics}")
+                    # print(f"未找到最新的信号: {account_id} {symbol_tactics}")
+                    # logging.info(f"未找到最新的信号: {account_id} {symbol_tactics}")
                     continue
 
             # 获取订单未成交的订单
@@ -82,7 +82,6 @@ class PriceMonitoringTask:
                 # print(order_info)
                 positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 pos_contracts = positions[0]['contracts'] if positions else 0
-
 
                 if order_info['info']['state'] == 'live': # 订单状态为等待成交
                     #首先判断是否有该币种仓位信息
