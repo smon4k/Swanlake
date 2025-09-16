@@ -100,7 +100,7 @@ class SignalProcessingTask:
                 await cancel_all_orders(self, account_id, symbol, {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
 
                 # 1.3 处理理财数据进行赎回操作
-                if account_info.get('financ_state') == 1: # 如果理财状态开启
+                if account_info.get('financ_state') == 1 or account_info.get('financ_state') == 2: # 如果理财状态开启 或者 只做理财
                     # 1.2 处理余币宝理财 如果有余币宝余额就赎回
                     savings_task = SavingsTask(self.db, account_id)
                     yubibao_balance = await savings_task.get_saving_balance("USDT")
@@ -119,6 +119,7 @@ class SignalProcessingTask:
                         else:
                             # print(f"无法赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
                             logging.info(f"无法赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
+
                 elif account_info.get('financ_state') == 3: # 借币开仓 开启自动借币
                     # print(f"开始借贷: {account_id} {size}")
                     # print(f"开始借贷: {account_id} {account_info.get('auto_loan')}")
@@ -130,6 +131,11 @@ class SignalProcessingTask:
                         logging.info(f"设置自动借币结果: {is_auto_borrow}")
                         if is_auto_borrow:
                             await self.db.update_account_info(account_id, {'auto_loan': 1})
+
+                # 理财状态为2时不开仓            
+                if account_info.get('financ_state') == 2:
+                    return
+                
                 # 1.3 开仓
                 await self.handle_open_position(
                     account_id,
