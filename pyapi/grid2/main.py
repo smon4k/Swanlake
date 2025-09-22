@@ -45,6 +45,7 @@ class OKXTradingBot:
         self.config = config
         self.db = Database(config.db_config)
         self.signal_lock = asyncio.Lock()
+        self.signal_queue = asyncio.Queue()
         self.stop_loss_task = StopLossTask(config, self.db, self.signal_lock)
         self.signal_task = SignalProcessingTask(config, self.db, self.signal_lock, self.stop_loss_task)
         self.price_task = PriceMonitoringTask(config, self.db, self.signal_lock, self.stop_loss_task)
@@ -109,8 +110,12 @@ class OKXTradingBot:
             asyncio.create_task(self.refresh_config_loop(), name="refresh_config_task"),
             asyncio.create_task(self.stop_loss_task.stop_loss_task(), name="stop_loss_task"),
         ]
+        # consumer_tasks = [
+        #     asyncio.create_task(self.signal_task.consumer(i))
+        #     for i in range(self.signal_task.max_workers)
+        # ]
 
-        # ✅ 异常隔离
+        # ✅ 异常隔离7
         try:
             await asyncio.gather(*tasks)
         except Exception as e:

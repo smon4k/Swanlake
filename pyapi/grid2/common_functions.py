@@ -245,6 +245,10 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
         # print(params)
         open_orders = exchange.fetch_open_orders(symbol, None, None, params) # 获取未成交的订单
         # print(f"未成交订单: {open_orders}")
+        if not open_orders:
+            # print(f"账户:{account_id}-币种:{symbol},没有未成交的订单")
+            logging.info(f"账户:{account_id}-币种:{symbol},没有未成交的订单")
+            return
         for order in open_orders:
             order_side = order.get('side', '').lower()
 
@@ -268,7 +272,7 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
             except Exception as e:
                 print(f"取消订单失败: {e}")
     except Exception as e:
-        print(f"获取未成交订单失败: {e}")
+        print(f"取消未成交订单失败: {e}")
 
 async def get_max_position_value(self, account_id: int, symbol: str) -> Decimal:
     """根据交易对匹配对应的最大仓位值"""
