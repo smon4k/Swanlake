@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 from decimal import Decimal, getcontext
 import os
 from dotenv import load_dotenv
@@ -47,8 +48,14 @@ class OKXTradingBot:
         self.signal_lock = asyncio.Lock()
         self.signal_queue = asyncio.Queue()
         self.stop_loss_task = StopLossTask(config, self.db, self.signal_lock)
-        self.signal_task = SignalProcessingTask(config, self.db, self.signal_lock, self.stop_loss_task)
-        self.price_task = PriceMonitoringTask(config, self.db, self.signal_lock, self.stop_loss_task)
+
+        # 🔐 新增：记录哪些账户正在被 signal 处理
+        self.busy_accounts: set[int] = set()
+        self.account_locks = defaultdict(asyncio.Lock)  # 每个账户独立锁
+
+        self.signal_task = SignalProcessingTask(config, self.db, self.signal_lock, self.stop_loss_task, self.account_locks, self.busy_accounts)
+        self.price_task = PriceMonitoringTask(config, self.db, self.signal_lock, self.stop_loss_task, self.busy_accounts)
+
 
         # API Server 可选
         # self.app = web.Application()

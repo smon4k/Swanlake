@@ -4,6 +4,7 @@ from decimal import Decimal
 import json
 import logging
 import os
+import traceback
 from typing import Any, Dict
 import redis
 from database import Database
@@ -15,7 +16,7 @@ from common_functions import cancel_all_orders, get_account_balance, get_exchang
 
 class SignalProcessingTask:
     """交易信号处理类"""
-    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock, stop_loss_task: StopLossTask):
+    def __init__(self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock, stop_loss_task: StopLossTask, account_locks: defaultdict, busy_accounts: set):
         self.db = db
         self.config = config
         self.running = True
@@ -25,23 +26,34 @@ class SignalProcessingTask:
         self.account_locks = defaultdict(asyncio.Lock)  # 每个 account_id 一个锁
         self.redis = redis.Redis(host="localhost", port=6379, decode_responses=True)
         self.pubsub = self.redis.pubsub()
+        self.account_locks = account_locks  # 外部传入的账户锁
+        self.busy_accounts = busy_accounts  # 外部传入的忙碌账户集合
+        self.active_tasks: set[asyncio.Task] = set()  # 用于跟踪正在运行的任务
+
 
 
 
     async def signal_processing_task(self):
         """信号调度任务，支持多个信号并发"""
+        # 订阅频道
+        self.pubsub.subscribe("signal_channel")
+        # print("✅ 已订阅 signal_channel 等待唤醒...")
+        logging.info("✅ 已订阅 signal_channel 等待唤醒...")
         while getattr(self, 'running', True):
             try:
-                # 订阅频道
-                self.pubsub.subscribe("signal_channel")
-                print("✅ 已订阅 signal_channel 等待唤醒...")
+                # print("🔍 信号调度任务运行中...")
+                # ✅ 把阻塞的 get_message 放到线程池
+                message = await asyncio.to_thread(
+                    self.pubsub.get_message,
+                    True,  # ignore_subscribe_messages
+                    1      # timeout
+                )
+                if message:
+                    print("📩 收到通知:", message)
+                    asyncio.create_task(self.dispatch_signals())
 
-                while True:
-                    message = self.pubsub.get_message(ignore_subscribe_messages=True, timeout=1)
-                    if message:
-                        print("📩 收到通知:", message)
-                        await self.dispatch_signals()
-                    await asyncio.sleep(0.1)  # 避免CPU占满
+                await asyncio.sleep(self.config.check_interval)
+
 
             except Exception as e:
                 print(f"信号调度异常: {e}")
@@ -69,11 +81,36 @@ class SignalProcessingTask:
             print(f"处理信号异常: {e}")
             logging.error(f"处理信号异常: {e}")
     
-    async def process_signal_with_lock(self, signal, account_id):
-        """带账户锁的信号处理"""
+    async def _run_single_account_signal(self, signal: dict, account_id: int):
+        """单账户信号处理：完成后立即释放 busy 状态"""
         lock = self.account_locks[account_id]
         async with lock:
-            return await self.process_signal(signal, account_id)
+            self.busy_accounts.add(account_id)
+            try:
+                print(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
+                logging.info(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
+
+                await self.process_signal(signal, account_id)
+
+                # ✅ 成功时返回结果
+                return {
+                    "success": True,
+                    "msg": "ok",
+                    "account_id": account_id,
+                    "data": None  # 或返回订单结果
+                }
+
+            except Exception as e:
+                print(f"❌ 账户 {account_id} 信号处理失败: {e}")
+                logging.error(f"❌ 账户 {account_id} 信号处理失败: {e}")
+                return {
+                    "success": False,
+                    "msg": str(e),
+                    "account_id": account_id
+                }
+            finally:
+                self.busy_accounts.discard(account_id)
+                print(f"🔓 账户 {account_id} 已释放")
 
     def _is_close_signal(self, signal):
         # 判断是否是平仓
@@ -81,57 +118,107 @@ class SignalProcessingTask:
             (signal["direction"] == "long" and signal["size"] == 0)
             or (signal["direction"] == "short" and signal["size"] == 0)
         )
+    
     async def handle_single_signal(self, signal):
         """单条信号的处理逻辑"""
         try:
-            print(f"🚦 开始处理信号 {signal['id']} ...")
-            logging.info(f"🚦 开始处理信号 {signal['id']} ...")
+            signal_id = signal['id']
+            print(f"🚦 开始处理信号 {signal_id} ...")
+            logging.info(f"🚦 开始处理信号 {signal_id} ...")
 
-            if signal['name'] in self.db.tactics_accounts_cache:
-                account_tactics_list = self.db.tactics_accounts_cache[signal['name']]
-
-                # 🚀 一个信号下的多个账户并发执行
-                tasks = [
-                    self.process_signal_with_lock(signal, account_id)
-                    for account_id in account_tactics_list
-                ]
-                results = await asyncio.gather(*tasks, return_exceptions=True)
-
-                # 判断是否全部成功
-                all_success = True
-                for res in results:
-                    if isinstance(res, Exception):
-                        logging.error(f"⚠️ 信号 {signal['id']} 执行异常: {res}")
-                        all_success = False
-                    elif not res.get("success", False):
-                        logging.warning(f"⚠️ 账户 {res['account_id']} 执行失败: {res['msg']}")
-                        all_success = False
-
-                # 如果是平仓信号，且所有账户都成功 → 再执行 handle_close_position_update
-                if self._is_close_signal(signal) and all_success:
-                    await self.handle_close_position_update(signal)
-                elif self._is_close_signal(signal) and not all_success:
-                    logging.warning(f"⚠️ 平仓信号 {signal['id']} 未全部成功，跳过 handle_close_position_update")
-            else:
+            if signal['name'] not in self.db.tactics_accounts_cache:
                 print("🚫 无对应账户策略信号")
                 logging.info("🚫 无对应账户策略信号")
+                # 仍更新状态为 processed
+                self._update_signal_status(signal_id, 'processed')
+                return
+
+            account_tactics_list = self.db.tactics_accounts_cache[signal['name']]
+            is_close_signal = self._is_close_signal(signal)
+
+            # 🟡 用于追踪所有任务是否完成
+            all_done = asyncio.Future()
+            running_tasks = set()
+            task_results = {}  # account_id -> result dict or exception
+            task_lock = asyncio.Lock()  # 保护 task_results 写入
+
+            # ✅ 并发执行每个账户
+            for account_id in account_tactics_list:
+                task = asyncio.create_task(
+                    self._run_single_account_signal(signal, account_id)
+                )
+                running_tasks.add(task)
+                self.active_tasks.add(task)
+
+                # 任务完成后从 running_tasks 移除，并记录结果
+                def done_callback(t, acc_id=account_id):
+                    running_tasks.discard(t)
+                    # 记录结果
+                    asyncio.create_task(self._record_task_result(t, acc_id, task_results, task_lock))
+
+                    # 检查是否全部完成
+                    if len(running_tasks) == 0 and not all_done.done():
+                        all_done.set_result(True)
+
+                task.add_done_callback(done_callback)
+
+            # 🔥 等待所有任务完成（在后台处理，不阻塞主流程）
+            # 但我们需要等 all_done 才能判断是否执行 handle_close_position_update
+            await all_done
+
+            # ✅ 所有任务已完成，检查结果
+            all_success = True
+            async with task_lock:
+                for acc_id, res in task_results.items():
+                    if isinstance(res, Exception):
+                        logging.error(f"⚠️ 账户 {acc_id} 执行异常: {res}")
+                        all_success = False
+                    elif not res.get("success", False):
+                        logging.warning(f"⚠️ 账户 {acc_id} 执行失败: {res.get('msg', 'unknown')}")
+                        all_success = False
+
+            # ✅ 如果是平仓信号，且全部成功，才执行后续逻辑
+            print(f"平仓信号: {is_close_signal}, 全部成功: {all_success}")
+            if is_close_signal:
+                if all_success:
+                    await self.handle_close_position_update(signal)
+                    logging.info(f"✅ 平仓信号 {signal_id} 已触发 handle_close_position_update")
+                else:
+                    logging.warning(f"⚠️ 平仓信号 {signal_id} 未全部成功，跳过 handle_close_position_update")
 
             # ✅ 更新信号状态
+            self._update_signal_status(signal_id, 'processed')
+            print(f"✅ 信号 {signal_id} 处理完成")
+            logging.info(f"✅ 信号 {signal_id} 处理完成")
+
+        except Exception as e:
+            print(f"❌ 信号 {signal_id} 处理异常: {e}")
+            logging.error(f"❌ 信号 {signal_id} 处理异常: {e}")
+            self._update_signal_status(signal_id, 'failed')
+    
+    async def _record_task_result(self, task, account_id, result_dict, lock):
+        """记录任务结果，线程安全"""
+        async with lock:
+            try:
+                result = task.result()  # 可能抛出异常
+                result_dict[account_id] = result
+            except Exception as e:
+                result_dict[account_id] = e
+
+    def _update_signal_status(self, signal_id, status):
+        """更新信号状态（独立方法，避免重复）"""
+        try:
             conn = self.db.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE g_signals SET status='processed' WHERE id=%s",
-                    (signal['id'],)
+                    "UPDATE g_signals SET status=%s WHERE id=%s",
+                    (status, signal_id)
                 )
             conn.commit()
-            conn.close()
-
-            print(f"✅ 信号 {signal['id']} 处理完成")
-            logging.info(f"✅ 信号 {signal['id']} 处理完成")
-
         except Exception as e:
-            print(f"❌ 信号 {signal['id']} 处理异常: {e}")
-            logging.error(f"❌ 信号 {signal['id']} 处理异常: {e}")
+            logging.error(f"❌ 更新信号 {signal_id} 状态失败: {e}")
+        finally:
+            conn.close()
 
     async def process_signal(self, signal: Dict[str, Any], account_id: str) -> Dict[str, Any]:
         """

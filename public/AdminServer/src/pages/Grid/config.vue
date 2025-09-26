@@ -261,7 +261,7 @@
     data() {
       return {
         currPage: 1, //当前页
-        pageSize: 10, //每页显示条数
+        pageSize: 50, //每页显示条数
         total: 100, //总条数
         PageSearchWhere: [], //分页搜索数组
         name: "",

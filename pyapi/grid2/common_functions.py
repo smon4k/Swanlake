@@ -43,7 +43,7 @@ async def get_market_precision(exchange: ccxt.Exchange, symbol: str, instType: s
     """获取市场的价格和数量精度"""
     try:
         markets = exchange.fetch_markets_by_type(instType, {'instId': f"{symbol}"})
-        # print("markets:", markets)
+        # print("markets:", markets)ß
         contract_size = Decimal(str(markets[0]['contractSize']))  # 默认是1，适用于BTC
         price_precision = Decimal(str(markets[0]['precision']['price']))
         amount_precision = Decimal(str(markets[0]['precision']['amount']))
