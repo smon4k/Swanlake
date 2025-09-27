@@ -627,7 +627,7 @@ class SignalProcessingTask:
             logging.info(f"开仓价: {price} {position_percent}")
             # print(f"开仓量: {size}")
             print(f"开仓量: {size} {market_precision['amount']}")
-            logging.info(f"开仓量: {size}")
+            # logging.info(f"开仓量: {size}")
             size_total_quantity = Decimal(size) * Decimal(market_precision['amount']) * price
             # print(f"开仓价值: {size_total_quantity}")
             logging.info(f"开仓价值: {size_total_quantity}")
