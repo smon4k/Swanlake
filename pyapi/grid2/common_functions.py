@@ -12,31 +12,42 @@ import logging
 async def get_exchange(self, account_id: int) -> ccxt.Exchange:
     """获取交易所实例（通过account_id）"""
     account_info = await self.db.get_account_info(account_id)
-    if account_info:
-        exchange_id = account_info['exchange']
-        exchange_class = getattr(ccxt, exchange_id)
-        exchange = exchange_class({
-            'apiKey': account_info['api_key'],
-            'secret': account_info['api_secret'],
-            'password': account_info.get('api_passphrase', None),
-            "options": {"defaultType": "swap"},
-            # 'verbose': True, # 启用调试日志
-            "enableRateLimit": True, # 启用频率限制
-            "timeout": 30000,
-        })
-        is_simulation = os.getenv("IS_SIMULATION", '1')
-        if is_simulation == '1': # 1表示模拟环境
-            exchange.set_sandbox_mode(True)
-        
-        if os.getenv('IS_LOCAL', '0') == '1':  # 本地调试
-            exchange.proxies = {
-                'http': 'http://127.0.0.1:7890',
-                'https': 'http://127.0.0.1:7890',
-            }
-        # markets = await exchange.fetch_markets()
-        # print(f"获取到 {len(markets)} 个市场")
-        return exchange
-    return None
+    if not account_info:
+        return None
+
+    exchange_id = account_info['exchange']
+    exchange_class = getattr(ccxt, exchange_id)
+
+    # 统一转成字符串，避免 None / int 之类的问题
+    api_key = str(account_info.get('api_key') or "")
+    api_secret = str(account_info.get('api_secret') or "")
+    api_passphrase = str(account_info.get('api_passphrase') or "")
+
+    params = {
+        'apiKey': api_key,
+        'secret': api_secret,
+        'password': api_passphrase,
+        "options": {"defaultType": "swap"},
+        "enableRateLimit": True,
+        "timeout": 30000,
+        # 'verbose': True,  # 调试日志
+    }
+
+    # 模拟盘设置
+    is_simulation = os.getenv("IS_SIMULATION", "1")
+    exchange = exchange_class(params)
+    if is_simulation == "1":  # 1 表示模拟环境
+        exchange.set_sandbox_mode(True)
+
+    # 本地环境才加代理
+    if os.getenv("IS_LOCAL", "0") == "1":
+        # print("使用本地代理 http://127.0.0.1:7890")
+        proxy_url = "http://127.0.0.1:7890"
+        # 确保是 str 类型
+        exchange.aiohttp_proxy = str(proxy_url)
+        exchange.aiohttp_proxy_auth = None
+
+    return exchange
 
 async def get_market_price(exchange: ccxt.Exchange, symbol: str) -> Decimal:
     """获取当前市场价格"""
