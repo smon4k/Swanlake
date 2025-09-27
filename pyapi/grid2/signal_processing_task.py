@@ -582,7 +582,6 @@ class SignalProcessingTask:
             # print(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
             logging.info(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
             exchange = await get_exchange(self, account_id)
-            print(type(exchange))  # 应该输出: <class 'ccxt.async_support.okx'>
             # 1. 平掉反向仓位
             # await self.cleanup_opposite_positions(account_id, symbol, pos_side)
             # start_time = time.time()
@@ -595,13 +594,8 @@ class SignalProcessingTask:
             #     # print(f"总持仓数获取失败")
             #     logging.error(f"总持仓数获取失败")
             #     return
-            results = {}
-            results['okx'] = {}
-            task = asyncio.ensure_future(get_market_price(exchange, symbol, results)) # 预先获取市场价格，减少延迟
-            print("预先获取市场价格任务", results)
-            return # 先返回，测试用
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
-            print("市场精度", market_precision)
+            # print("市场精度", market_precision)
             # return
             # total_position_quantity = 0
             # if(total_position_value > 0):
