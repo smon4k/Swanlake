@@ -286,7 +286,6 @@ class SignalProcessingTask:
 
             # 1.2 取消所有未成交的订单
             await cancel_all_orders(self, account_id, signal['symbol']) # 取消所有未成交的订单
-            await cancel_all_orders(self, account_id, signal['symbol'], {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
             
             if os.getenv("IS_LOCAL", "0") == "2":  # 本地调试不执行理财
                 # 1.3 处理理财数据进行赎回操作
@@ -338,7 +337,6 @@ class SignalProcessingTask:
                 return
             # TODO: 调用交易 API 平仓
             await cancel_all_orders(self, account_id, signal['symbol']) # 取消所有未成交的订单
-            await cancel_all_orders(self, account_id, signal['symbol'], None, {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
 
 
             # 1.6 平掉反向仓位
