@@ -4,6 +4,7 @@ from decimal import Decimal
 import json
 import logging
 import os
+import time
 import traceback
 from typing import Any, Dict
 import redis
@@ -29,8 +30,6 @@ class SignalProcessingTask:
         self.account_locks = account_locks  # 外部传入的账户锁
         self.busy_accounts = busy_accounts  # 外部传入的忙碌账户集合
         self.active_tasks: set[asyncio.Task] = set()  # 用于跟踪正在运行的任务
-
-
 
 
     async def signal_processing_task(self):
@@ -87,7 +86,7 @@ class SignalProcessingTask:
         async with lock:
             self.busy_accounts.add(account_id)
             try:
-                print(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
+                # print(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
                 logging.info(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
 
                 await self.process_signal(signal, account_id)
@@ -110,7 +109,8 @@ class SignalProcessingTask:
                 }
             finally:
                 self.busy_accounts.discard(account_id)
-                print(f"🔓 账户 {account_id} 已释放")
+                # print(f"🔓 账户 {account_id} 已释放")
+                logging.info(f"🔓 账户 {account_id} 已释放")
 
     def _is_close_signal(self, signal):
         # 判断是否是平仓
@@ -143,12 +143,13 @@ class SignalProcessingTask:
             task_lock = asyncio.Lock()  # 保护 task_results 写入
 
             # ✅ 并发执行每个账户
+            start_time = time.time()
             for account_id in account_tactics_list:
                 task = asyncio.create_task(
                     self._run_single_account_signal(signal, account_id)
                 )
                 running_tasks.add(task)
-                self.active_tasks.add(task)
+                # self.active_tasks.add(task)
 
                 # 任务完成后从 running_tasks 移除，并记录结果
                 def done_callback(t, acc_id=account_id):
@@ -178,7 +179,7 @@ class SignalProcessingTask:
                         all_success = False
 
             # ✅ 如果是平仓信号，且全部成功，才执行后续逻辑
-            print(f"平仓信号: {is_close_signal}, 全部成功: {all_success}")
+            # print(f"平仓信号: {is_close_signal}, 全部成功: {all_success}")
             if is_close_signal:
                 if all_success:
                     await self.handle_close_position_update(signal)
@@ -188,7 +189,9 @@ class SignalProcessingTask:
 
             # ✅ 更新信号状态
             self._update_signal_status(signal_id, 'processed')
-            print(f"✅ 信号 {signal_id} 处理完成")
+            # print(f"✅ 信号 {signal_id} 处理完成")
+            end_time = time.time()  
+            print(f"✅ 所有账户任务已启动, 耗时 {end_time - start_time:.2f} 秒")
             logging.info(f"✅ 信号 {signal_id} 处理完成")
 
         except Exception as e:
@@ -227,6 +230,7 @@ class SignalProcessingTask:
         :param account_id: 账户 ID
         :return: { "account_id": xx, "success": bool, "msg": str }
         """
+        start_time = time.time()
         try:
             logging.info(f"➡️ 账户 {account_id} 开始处理信号 {signal['id']} ...")
 
@@ -270,6 +274,7 @@ class SignalProcessingTask:
         :return: None
         """
         try:
+            start_time = time.time()
             logging.info(f"🟢 [开仓] {account_id} {signal['symbol']} size={signal['size']}")
             exchange = await get_exchange(self, account_id)
             if not exchange:
@@ -277,11 +282,11 @@ class SignalProcessingTask:
             # TODO: 调用交易 API 下单
             strategy_info = await self.db.get_strategy_info(signal['name'])
             # 1.1 开仓前先平掉反向仓位
-            await self.cleanup_opposite_positions(account_id, signal['symbol'], signal['direction'])
+            # await self.cleanup_opposite_positions(account_id, signal['symbol'], signal['direction'])
 
             # 1.2 取消所有未成交的订单
-            await cancel_all_orders(self, account_id, signal['symbol']) # 取消所有未成交的订单
-            await cancel_all_orders(self, account_id, signal['symbol'], {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
+            # await cancel_all_orders(self, account_id, signal['symbol']) # 取消所有未成交的订单
+            # await cancel_all_orders(self, account_id, signal['symbol'], {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
             
             if os.getenv("IS_LOCAL", "0") == "2":  # 本地调试不执行理财
                 # 1.3 处理理财数据进行赎回操作
@@ -290,7 +295,8 @@ class SignalProcessingTask:
             # 理财状态为2时不开仓            
             if account_info.get('financ_state') == 2:
                 return
-            
+            end_time = time.time()
+            # print(f"🟢 账户 {account_id} 信号 {signal['id']} {end_time - start_time:.2f} 秒")
             side =  'buy' if signal['direction'] == 'long' else 'sell'  # 'buy' 或 'sell'
             # 1.3 开仓
             await self.handle_open_position(
@@ -310,7 +316,10 @@ class SignalProcessingTask:
                 'count_profit_loss': strategy_info['count_profit_loss'],
                 'stage_profit_loss': strategy_info['stage_profit_loss'],
             })
-            await asyncio.sleep(0.1)  # 模拟耗时
+            end_time = time.time()
+            # print(f"🟢 账户 {account_id} 信号 {signal['id']} 开仓处理完成, 耗时 {end_time - start_time:.2f} 秒")
+            logging.info(f"🟢 账户 {account_id} 信号 {signal['id']} 开仓处理完成, 耗时 {end_time - start_time:.2f} 秒")
+            # await asyncio.sleep(0.1)  # 模拟耗时
         except Exception as e:
             logging.error(f"❌ 开仓异常: {e}", exc_info=True)
 
@@ -497,7 +506,7 @@ class SignalProcessingTask:
             return
 
         try:
-            positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+            positions = await exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
             if not positions:
                 print("无持仓信息")
                 logging.warning("无持仓信息")
@@ -570,27 +579,35 @@ class SignalProcessingTask:
     async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, price: Decimal):
         try:
             """处理开仓"""
-            print(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
+            # print(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
             logging.info(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
             exchange = await get_exchange(self, account_id)
-            
+            print(type(exchange))  # 应该输出: <class 'ccxt.async_support.okx'>
             # 1. 平掉反向仓位
             # await self.cleanup_opposite_positions(account_id, symbol, pos_side)
-            total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
-            print("总持仓数", total_position_value)
-            logging.info(f"总持仓数：{total_position_value}")
-            if total_position_value is None:
-                print(f"总持仓数获取失败")
-                logging.error(f"总持仓数获取失败")
-                return
+            # start_time = time.time()
+            # total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
+            # end_time = time.time()  
+            # print(f"获取总持仓价值耗时: {end_time - start_time:.2f} 秒")
+            # print("总持仓数", total_position_value)
+            # logging.info(f"总持仓数：{total_position_value}")
+            # if total_position_value is None:
+            #     # print(f"总持仓数获取失败")
+            #     logging.error(f"总持仓数获取失败")
+            #     return
+            results = {}
+            results['okx'] = {}
+            task = asyncio.ensure_future(get_market_price(exchange, symbol, results)) # 预先获取市场价格，减少延迟
+            print("预先获取市场价格任务", results)
+            return # 先返回，测试用
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
-            # print("市场精度", market_precision)
+            print("市场精度", market_precision)
             # return
-            total_position_quantity = 0
-            if(total_position_value > 0):
-                total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
-                print("总持仓价值", total_position_quantity)
-                logging.info(f"总持仓价值：{total_position_quantity}")
+            # total_position_quantity = 0
+            # if(total_position_value > 0):
+            #     total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
+            #     # print("总持仓价值", total_position_quantity)
+            #     logging.info(f"总持仓价值：{total_position_quantity}")
             
             # 2. 计算开仓量
             # price = await get_market_price(exchange, symbol)
@@ -603,7 +620,7 @@ class SignalProcessingTask:
                 price = price + price_float # 信号价 + 价格浮动比例
 
             balance = await get_account_balance(exchange, symbol, 'trading')
-            print(f"账户余额: {balance}")
+            # print(f"账户余额: {balance}")
             logging.info(f"账户余额: {balance}")
             if balance is None:
                 print(f"账户余额获取失败")
@@ -637,18 +654,18 @@ class SignalProcessingTask:
             #     return
             
             # 4. 判断所有仓位是否超过最大持仓量
-            total_size_position_quantity = 0
-            if total_position_quantity > 0:
-                total_size_position_quantity = Decimal(total_position_quantity) + Decimal(size_total_quantity)
+            # total_size_position_quantity = 0
+            # if total_position_quantity > 0:
+            #     total_size_position_quantity = Decimal(total_position_quantity) + Decimal(size_total_quantity)
 
-            # print("开仓以及总持仓价值", total_size_position_quantity)
-            logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
-            if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
-                logging.info(f"最大持仓数：{max_position}")
-                # print(f"最大持仓数：{max_position}")
-                logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
-                # print(f"总持仓数大于等于最大持仓，不执行挂单")
-                return
+            # # print("开仓以及总持仓价值", total_size_position_quantity)
+            # logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
+            # if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
+            #     logging.info(f"最大持仓数：{max_position}")
+            #     # print(f"最大持仓数：{max_position}")
+            #     logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
+            #     # print(f"总持仓数大于等于最大持仓，不执行挂单")
+            #     return
             
             # 3. 获取市场价格
             client_order_id = await get_client_order_id()

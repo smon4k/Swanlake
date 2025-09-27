@@ -33,7 +33,7 @@ class StopLossTask:
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 return
-            positions = exchange.fetch_positions("", {'instType': 'SWAP'})
+            positions = await exchange.fetch_positions("", {'instType': 'SWAP'})
             # print(positions)
             # return
             
@@ -65,7 +65,7 @@ class StopLossTask:
                     # print(f"检查止损单: {symbol} {side} 持仓均价: {entry_price}, 最新标记价格: {mark_price}, 止损价: {stop_loss_price}, 数量: {amount}, 已有止损单: {order_sl_order['order_id'] if order_sl_order else '无'}")
                     if order_sl_order:
                         # 先判断是否已经成交或者取消
-                        order_info = exchange.fetch_order(order_sl_order['order_id'], symbol, {'instType': 'SWAP', 'trigger': 'true'})
+                        order_info = await exchange.fetch_order(order_sl_order['order_id'], symbol, {'instType': 'SWAP', 'trigger': 'true'})
                         # print("order_info", order_info)
                         if order_info['info']['state'] in ['pause', 'effective', 'canceled', 'order_failed', 'partially_failed']:
                             print(f"已有止损单状态为 {account_id} {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}")
@@ -137,7 +137,7 @@ class StopLossTask:
             symbol_tactics = full_symbol.replace('-SWAP', '')
             market_price = await get_market_price(exchange, symbol_tactics) # 获取最新市场价格
             # 创建止损订单
-            order = exchange.create_order(
+            order = await exchange.create_order(
                 symbol=full_symbol,
                 type='conditional',
                 side=side,
@@ -210,7 +210,7 @@ class StopLossTask:
                 'cxlOnFail': True,  # 平仓时取消订单
             }
             # 创建止损订单
-            edit_order = exchange.edit_order(
+            edit_order = await exchange.edit_order(
                 id=algo_order_id,
                 symbol=symbol,
                 type='conditional',

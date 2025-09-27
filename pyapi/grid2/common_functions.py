@@ -1,7 +1,7 @@
 import json
 import os
 from typing import Dict, Tuple
-import ccxt
+import ccxt.async_support as ccxt
 from decimal import Decimal
 from database import Database
 import asyncio
@@ -15,35 +15,68 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
     if account_info:
         exchange_id = account_info['exchange']
         exchange_class = getattr(ccxt, exchange_id)
-        exchange = exchange_class({
+        
+        # 构建初始化参数
+        exchange_params = {
             'apiKey': account_info['api_key'],
             'secret': account_info['api_secret'],
             'password': account_info.get('api_passphrase', None),
-            "options": {"defaultType": "swap"},
-            "timeout": 30000,
-        })
-        is_simulation = os.getenv("IS_SIMULATION", '1')
-        if is_simulation == '1': # 1表示模拟环境
-            exchange.set_sandbox_mode(True)
-        
-        if os.getenv('IS_LOCAL', '0') == '1':  # 本地调试
-            exchange.proxies = {
-                'http': 'http://127.0.0.1:7890',
-                'https': 'http://127.0.0.1:7890',
+            'options': {'defaultType': 'swap'},
+            'verbose': True,
+            'enableRateLimit': True,
+            # 'timeout': 30000,
+        }
+
+        # ✅ 异步代理配置：通过 aiohttp_proxy
+        if os.getenv('IS_LOCAL', '0') == '1' or os.getenv('IS_LOCAL', '0') == '2':  # 本地调试 或 测试环境
+            exchange_params['aiohttp_proxy'] = {
+                'proxy': 'http://127.0.0.1:7890'  # aiohttp 风格代理
             }
+
+        # 创建交易所实例
+        exchange = exchange_class(exchange_params)
+
+        # 沙盒模式
+        is_simulation = os.getenv("IS_SIMULATION", '1')
+        if is_simulation == '1':
+            exchange.set_sandbox_mode(True)
+
         return exchange
     return None
 
-async def get_market_price(exchange: ccxt.Exchange, symbol: str) -> Decimal:
+async def get_market_price(exchange: ccxt.Exchange, symbol: str, results_dict) -> Decimal:
     """获取当前市场价格"""
-    ticker = exchange.fetch_ticker(symbol)
-    return Decimal(str(ticker['last']))
+    try:
+        print(f"  开始获取 {exchange.id} 的 {symbol} Ticker...")
+        ticker = await exchange.fetch_ticker(symbol) # 使用 await 调用异步方法
+        print("ticker:", ticker)
+        price = ticker.get('last')
+        if not price or price <= 0:
+            raise ccxt.ExchangeError(f"Invalid or missing last price: {price}")
+        
+        results_dict[exchange.id][symbol] = Decimal(str(price))
+    except ccxt.BadSymbol:
+        # print(f"  {exchange.id} 不支持交易对 {symbol}")
+        results_dict[exchange.id][symbol] = 'Not Supported'
+    except ccxt.RateLimitExceeded as e:
+        print(f"  {exchange.id} 获取 {symbol} 时遭遇速率限制: {e}")
+        results_dict[exchange.id][symbol] = 'Rate Limited'
+        # 在实际应用中可能需要更复杂的重试逻辑
+    except (ccxt.NetworkError, ccxt.RequestTimeout) as e:
+        print(f"  {exchange.id} 获取 {symbol} 时网络错误: {e}")
+        results_dict[exchange.id][symbol] = 'Network Error'
+    except ccxt.ExchangeError as e:
+         print(f"  {exchange.id} 获取 {symbol} 时交易所错误: {e}")
+         results_dict[exchange.id][symbol] = 'Exchange Error'
+    except Exception as e:
+        print(f"  {exchange.id} 获取 {symbol} 时未知错误: {type(e).__name__} - {e}")
+        results_dict[exchange.id][symbol] = 'Unknown Error'
 
 async def get_market_precision(exchange: ccxt.Exchange, symbol: str, instType: str = 'SWAP') -> Tuple[Decimal, Decimal]:
     """获取市场的价格和数量精度"""
     try:
-        markets = exchange.fetch_markets_by_type(instType, {'instId': f"{symbol}"})
-        # print("markets:", markets)ß
+        markets = await exchange.fetch_markets({'instType': instType})
+        print("markets:", markets)
         contract_size = Decimal(str(markets[0]['contractSize']))  # 默认是1，适用于BTC
         price_precision = Decimal(str(markets[0]['precision']['price']))
         amount_precision = Decimal(str(markets[0]['precision']['amount']))
@@ -82,7 +115,7 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
         
         try:
             # print("create_order", symbol, direction, price, amount)
-            order = exchange.create_order(
+            order = await exchange.create_order(
                 symbol=symbol,
                 type=order_type,
                 side=side,
@@ -112,7 +145,7 @@ async def get_account_balance(exchange: ccxt.Exchange, symbol:str, marketType: s
                 'ccy': trading_pair,
                 'type': marketType
             }
-        balance = exchange.fetch_balance(params)
+        balance = await exchange.fetch_balance(params)
         total_equity = Decimal(str(balance["USDT"]['total']))
         return total_equity
     except Exception as e:
@@ -211,7 +244,7 @@ async def get_latest_filled_price_from_position_history(exchange, symbol: str, p
     """
     try:
         # 只请求最近一条记录（limit = 1）
-        positions = exchange.fetch_position_history(symbol, None, 1)
+        positions = await exchange.fetch_position_history(symbol, None, 1)
 
         if not positions:
             print("⚠️ 没有历史持仓记录")
@@ -243,7 +276,7 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
         params = {'instType': 'SWAP'}
     try:
         # print(params)
-        open_orders = exchange.fetch_open_orders(symbol, None, None, params) # 获取未成交的订单
+        open_orders = await exchange.fetch_open_orders(symbol, None, None, params) # 获取未成交的订单
         # print(f"未成交订单: {open_orders}")
         if not open_orders:
             # print(f"账户:{account_id}-币种:{symbol},没有未成交的订单")
@@ -258,7 +291,7 @@ async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all
                 continue  # 跳过不匹配的订单
 
             try:
-                cancel_order =  exchange.cancel_order(order['id'], symbol, params) # 进行撤单
+                cancel_order =  await exchange.cancel_order(order['id'], symbol, params) # 进行撤单
                 print(f"取消账户:{account_id}-币种:{symbol},未成交的订单: {order['id']}")
                 logging.info(f"取消未成交的订单: {order['id']}")
                 if cancel_order['info']['sCode'] == '0':
@@ -316,7 +349,7 @@ async def fetch_positions_history(self, account_id: int, inst_type: str = "SWAP"
             }
 
             # 调用交易所接口获取历史持仓
-            result = exchange.fetch_positions_history([inst_id], None, limit, params)
+            result = await exchange.fetch_positions_history([inst_id], None, limit, params)
 
             # 如果返回结果为空，说明已经获取完所有数据
             if not result:
@@ -334,7 +367,7 @@ async def fetch_current_positions(self, account_id: int, symbol: str, inst_type:
         exchange = await get_exchange(self, account_id)
         if not exchange:
             raise Exception("无法获取交易所对象")
-        positions = exchange.fetch_positions_for_symbol(symbol, {"instType": inst_type})
+        positions = await exchange.fetch_positions_for_symbol(symbol, {"instType": inst_type})
         return positions
 
     except Exception as e:
