@@ -47,9 +47,9 @@ async def get_exchange(self, account_id: int) -> ccxt.Exchange:
 async def get_market_price(exchange: ccxt.Exchange, symbol: str, results_dict) -> Decimal:
     """获取当前市场价格"""
     try:
-        print(f"  开始获取 {exchange.id} 的 {symbol} Ticker...")
+        # print(f"  开始获取 {exchange.id} 的 {symbol} Ticker...")
         ticker = await exchange.fetch_ticker(symbol) # 使用 await 调用异步方法
-        print("ticker:", ticker)
+        # print("ticker:", ticker)
         price = ticker.get('last')
         if not price or price <= 0:
             raise ccxt.ExchangeError(f"Invalid or missing last price: {price}")
