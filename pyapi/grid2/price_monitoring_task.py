@@ -151,7 +151,7 @@ class PriceMonitoringTask:
                 if not positions:
                     logging.info(f"🔍 无持仓，取消订单: {account_id} {order['order_id']} {symbol} {order['side']}")
                     await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
-                    await cancel_all_orders(self, account_id, symbol)
+                    await cancel_all_orders(self, exchange, account_id, symbol)
                     continue
 
                 state = order_info['info']['state']
@@ -294,7 +294,7 @@ class PriceMonitoringTask:
             market_precision = await get_market_precision(exchange, symbol)
 
             total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price
-            await cancel_all_orders(self, account_id, symbol)
+            await cancel_all_orders(self, exchange, account_id, symbol)
 
             percent_list = await get_grid_percent_list(self, account_id, signal['direction'])
             buy_percent = percent_list.get('buy')
@@ -361,7 +361,7 @@ class PriceMonitoringTask:
                 print(f"✅ 已挂单: 买{buy_price}({buy_size}) 卖{sell_price}({sell_size})")
                 return True
             else:
-                await cancel_all_orders(self, account_id, symbol)
+                await cancel_all_orders(self, exchange, account_id, symbol)
                 print("❌ 网格下单失败")
                 return False
 
@@ -450,8 +450,7 @@ class PriceMonitoringTask:
 
                     await self.db.update_order_by_symbol(account_id, symbol, {'is_clopos': 1}) # 更新所有平仓订单
 
-                    await cancel_all_orders(self, account_id, symbol) # 取消所有未成交的订单
-                    await cancel_all_orders(self, account_id, symbol, True) # 取消所有委托订单
+                    await cancel_all_orders(self, exchange, account_id, symbol) # 取消所有未成交的订单
 
         except Exception as e:
             print(f"检查止盈止损失败: {e}")
