@@ -285,8 +285,8 @@ class SignalProcessingTask:
             # await self.cleanup_opposite_positions(account_id, signal['symbol'], signal['direction'])
 
             # 1.2 取消所有未成交的订单
-            # await cancel_all_orders(self, account_id, signal['symbol']) # 取消所有未成交的订单
-            # await cancel_all_orders(self, account_id, signal['symbol'], {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
+            await cancel_all_orders(self, account_id, signal['symbol']) # 取消所有未成交的订单
+            await cancel_all_orders(self, account_id, signal['symbol'], {'instType': 'SWAP', 'trigger': True, 'ordType': 'conditional'}) # 取消所有委托订单
             
             if os.getenv("IS_LOCAL", "0") == "2":  # 本地调试不执行理财
                 # 1.3 处理理财数据进行赎回操作
@@ -573,8 +573,6 @@ class SignalProcessingTask:
             print(f"清理反向持仓出错: {e}")
             logging.error(f"清理反向持仓出错: {e}")
 
-
-
                 
     async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, price: Decimal):
         try:
@@ -584,24 +582,20 @@ class SignalProcessingTask:
             exchange = await get_exchange(self, account_id)
             # 1. 平掉反向仓位
             # await self.cleanup_opposite_positions(account_id, symbol, pos_side)
-            # start_time = time.time()
-            # total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
-            # end_time = time.time()  
-            # print(f"获取总持仓价值耗时: {end_time - start_time:.2f} 秒")
+            total_position_value = await get_total_positions(self, account_id, symbol, 'SWAP') # 获取总持仓价值
             # print("总持仓数", total_position_value)
-            # logging.info(f"总持仓数：{total_position_value}")
-            # if total_position_value is None:
-            #     # print(f"总持仓数获取失败")
-            #     logging.error(f"总持仓数获取失败")
-            #     return
+            logging.info(f"总持仓数：{total_position_value}")
+            if total_position_value is None:
+                # print(f"总持仓数获取失败")
+                logging.error(f"总持仓数获取失败")
+                return
             market_precision = await get_market_precision(exchange, symbol) # 获取市场精度
-            print("市场精度", market_precision)
-            return
-            # total_position_quantity = 0
-            # if(total_position_value > 0):
-            #     total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
-            #     # print("总持仓价值", total_position_quantity)
-            #     logging.info(f"总持仓价值：{total_position_quantity}")
+
+            total_position_quantity = 0
+            if(total_position_value > 0):
+                total_position_quantity = Decimal(total_position_value) * Decimal(market_precision['amount']) * price # 计算总持仓价值
+                # print("总持仓价值", total_position_quantity)
+                logging.info(f"总持仓价值：{total_position_quantity}")
             
             # 2. 计算开仓量
             # price = await get_market_price(exchange, symbol)
@@ -630,8 +624,9 @@ class SignalProcessingTask:
             logging.info(f"最大开仓数量: {max_position}")
             size = await self.calculate_position_size(market_precision, max_position, position_percent, price, account_id)
             # print(f"开仓价: {price}")
-            logging.info(f"开仓价: {price}")
+            logging.info(f"开仓价: {price} {position_percent}")
             # print(f"开仓量: {size}")
+            print(f"开仓量: {size} {market_precision['amount']}")
             logging.info(f"开仓量: {size}")
             size_total_quantity = Decimal(size) * Decimal(market_precision['amount']) * price
             # print(f"开仓价值: {size_total_quantity}")
@@ -648,18 +643,18 @@ class SignalProcessingTask:
             #     return
             
             # 4. 判断所有仓位是否超过最大持仓量
-            # total_size_position_quantity = 0
-            # if total_position_quantity > 0:
-            #     total_size_position_quantity = Decimal(total_position_quantity) + Decimal(size_total_quantity)
+            total_size_position_quantity = 0
+            if total_position_quantity > 0:
+                total_size_position_quantity = Decimal(total_position_quantity) + Decimal(size_total_quantity)
 
-            # # print("开仓以及总持仓价值", total_size_position_quantity)
-            # logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
-            # if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
-            #     logging.info(f"最大持仓数：{max_position}")
-            #     # print(f"最大持仓数：{max_position}")
-            #     logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
-            #     # print(f"总持仓数大于等于最大持仓，不执行挂单")
-            #     return
+            # print("开仓以及总持仓价值", total_size_position_quantity)
+            logging.info(f"开仓以及总持仓价值：{total_size_position_quantity}")
+            if total_size_position_quantity >= max_position: # 总持仓价值大于等于最大持仓
+                logging.info(f"最大持仓数：{max_position}")
+                # print(f"最大持仓数：{max_position}")
+                logging.info(f"总持仓数大于等于最大持仓，不执行挂单")
+                # print(f"总持仓数大于等于最大持仓，不执行挂单")
+                return
             
             # 3. 获取市场价格
             client_order_id = await get_client_order_id()
