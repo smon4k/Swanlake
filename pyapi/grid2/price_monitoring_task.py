@@ -113,7 +113,7 @@ class PriceMonitoringTask:
             positions_dict = {}
             async def fetch_pos(symbol):
                 try:
-                    positions_dict[symbol] = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+                    positions_dict[symbol] = await exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
                 except Exception as e:
                     logging.error(f"⚠️ 获取持仓失败 {account_id}/{symbol}: {e}")
                     positions_dict[symbol] = []
@@ -125,7 +125,7 @@ class PriceMonitoringTask:
             order_infos = {}
             async def fetch_order_info(order):
                 try:
-                    info = exchange.fetch_order(order['order_id'], order['symbol'], {'instType': 'SWAP'})
+                    info = await exchange.fetch_order(order['order_id'], order['symbol'], {'instType': 'SWAP'})
                     order_infos[order['order_id']] = info
                 except Exception as e:
                     logging.error(f"⚠️ 查询订单失败 {account_id}/{order['symbol']}: {e}")
@@ -271,7 +271,7 @@ class PriceMonitoringTask:
             buy_price = filled_price * (1 - grid_step)
             sell_price = filled_price * (1 + grid_step)
 
-            positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+            positions = await exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
             if not positions:
                 print("🚫 网格下单：无持仓")
                 return True
@@ -377,7 +377,7 @@ class PriceMonitoringTask:
         if not exchange:
             return None
         try:
-            order_info = exchange.fetch_order(order_id, None, None, {'instType': 'SWAP'})
+            order_info = await exchange.fetch_order(order_id, None, None, {'instType': 'SWAP'})
             print(f"📋 订单信息: {order_info}")
             logging.info(f"📋 订单信息: {order_info}")
             return order_info
@@ -388,7 +388,7 @@ class PriceMonitoringTask:
     async def check_and_close_position(self, exchange, account_id, symbol, price: float = None):
         """检查止盈止损 并关闭持仓"""
         try:
-            positions = exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+            positions = await exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
             # print(f"当前持仓: {positions}")
             for pos in positions:
                 contracts = Decimal(str(pos['contracts']))

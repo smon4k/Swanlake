@@ -265,45 +265,47 @@ async def get_latest_filled_price_from_position_history(exchange, symbol: str, p
         await exchange.close()
     
 
-async def cancel_all_orders(self, account_id: int, symbol: str, side: str = 'all', params: dict = None):
-    """取消所有未成交的订单"""
-    exchange = await get_exchange(self, account_id)
-    if not exchange:
-        return None
-    if params is None:
-        params = {'instType': 'SWAP'}
-    try:
-        # print(params)
-        open_orders = await exchange.fetch_open_orders(symbol, None, None, params) # 获取未成交的订单
-        # print(f"未成交订单: {open_orders}")
-        if not open_orders:
-            # print(f"账户:{account_id}-币种:{symbol},没有未成交的订单")
-            logging.info(f"账户:{account_id}-币种:{symbol},没有未成交的订单")
-            return
-        for order in open_orders:
+async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: str = 'all'):
+    """取消所有未成交订单（普通 + 条件单）"""
+
+    async def fetch_orders(params: dict):
+        """封装获取订单方法"""
+        try:
+            return await exchange.fetch_open_orders(symbol, None, None, params)
+        except Exception as e:
+            logging.error(f"获取未成交订单失败 params={params}: {e}")
+            return []
+        finally:
+            await exchange.close()
+
+    async def cancel_orders(order_list: list, params: dict):
+        """批量撤销订单"""
+        for order in order_list:
             order_side = order.get('side', '').lower()
-
-            # 根据 side 参数过滤订单
-            if params.get('trigger') == False and side != 'all' and order_side != side:
-                print(f"跳过订单 {order['id']}，方向不匹配: {order_side}")
-                continue  # 跳过不匹配的订单
-
+            if side != 'all' and order_side != side:
+                continue
             try:
-                cancel_order =  await exchange.cancel_order(order['id'], symbol, params) # 进行撤单
-                print(f"取消账户:{account_id}-币种:{symbol},未成交的订单: {order['id']}")
-                logging.info(f"取消未成交的订单: {order['id']}")
-                if cancel_order['info']['sCode'] == '0':
+                cancel_order = await exchange.cancel_order(order['id'], symbol, params)
+                logging.info(f"取消订单: {order['id']} params={params}")
+                if cancel_order.get('info', {}).get('sCode') == '0':
                     existing_order = await self.db.get_order_by_id(account_id, order['id'])
                     if existing_order:
-                        # 更新订单信息
-                        await self.db.update_order_by_id(account_id, order['id'], {
-                            'status': 'canceled'
-                        })
-                    print(f"取消订单成功")
+                        await self.db.update_order_by_id(account_id, order['id'], {'status': 'canceled'})
             except Exception as e:
-                print(f"取消订单失败: {e}")
+                logging.error(f"取消订单失败: {order['id']} params={params}, error={e}")
+            finally:
+                await exchange.close()
+
+    try:
+        # 1️⃣ 普通订单
+        normal_orders = await fetch_orders({'instType': 'SWAP'})
+        await cancel_orders(normal_orders, {'instType': 'SWAP'})
+
+        # 2️⃣ 条件单（策略单）
+        conditional_orders = await fetch_orders({'instType': 'SWAP', 'ordType': 'conditional', 'trigger': True})
+        await cancel_orders(conditional_orders, {'instType': 'SWAP', 'ordType': 'conditional', 'trigger': True})
     except Exception as e:
-        print(f"取消未成交订单失败: {e}")
+        logging.error(f"取消所有订单失败: {e}")
     finally:
         await exchange.close()
 

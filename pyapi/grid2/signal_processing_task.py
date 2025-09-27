@@ -572,6 +572,8 @@ class SignalProcessingTask:
         except Exception as e:
             print(f"清理反向持仓出错: {e}")
             logging.error(f"清理反向持仓出错: {e}")
+        finally:
+            await exchange.close()
 
                 
     async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, price: Decimal):
