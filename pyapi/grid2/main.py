@@ -113,9 +113,9 @@ class OKXTradingBot:
         # ✅ 创建长期任务
         tasks = [
             asyncio.create_task(self.signal_task.signal_processing_task(), name="signal_task"),
-            # asyncio.create_task(self.price_task.price_monitoring_task(), name="price_task"),
+            asyncio.create_task(self.price_task.price_monitoring_task(), name="price_task"),
             asyncio.create_task(self.refresh_config_loop(), name="refresh_config_task"),
-            # asyncio.create_task(self.stop_loss_task.stop_loss_task(), name="stop_loss_task"),
+            asyncio.create_task(self.stop_loss_task.stop_loss_task(), name="stop_loss_task"),
         ]
         # consumer_tasks = [
         #     asyncio.create_task(self.signal_task.consumer(i))
