@@ -287,9 +287,9 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
     async def cancel_orders(order_list: list, params: dict):
         """批量撤销订单"""
         for order in order_list:
-            order_side = order.get('side', '').lower()
-            if side != 'all' and order_side != side:
-                continue
+            # order_side = order.get('side', '').lower()
+            # if side != 'all' and order_side != side:
+            #     continue
             try:
                 cancel_order = await exchange.cancel_order(order['id'], symbol, params)
                 logging.info(f"取消订单: {order['id']} params={params}")
