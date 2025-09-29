@@ -370,6 +370,8 @@ class PriceMonitoringTask:
             logging.error(f"❌ 网格管理失败: {e}")
             traceback.print_exc()
             return False
+        finally:
+            await exchange.close()
 
     # 其他方法保持不变（get_order_info, check_and_close_position 等）
     async def get_order_info(self, account_id: int, order_id: str):
@@ -384,6 +386,8 @@ class PriceMonitoringTask:
         except Exception as e:
             print(f"❌ 获取订单失败: {e}")
             logging.error(f"❌ 获取订单失败: {e}")
+        finally:
+            await exchange.close()
 
     async def check_and_close_position(self, exchange, account_id, symbol, price: float = None):
         """检查止盈止损 并关闭持仓"""
@@ -456,3 +460,5 @@ class PriceMonitoringTask:
             print(f"检查止盈止损失败: {e}")
             logging.error(f"检查止盈止损失败: {e}")
             traceback.print_exc()
+        finally:
+            await exchange.close()
