@@ -190,6 +190,9 @@ class PriceMonitoringTask:
 
         except Exception as e:
             logging.error(f"❌ 账户 {account_id} 检查持仓失败: {e}", exc_info=True)
+        finally:
+            if exchange:
+                await exchange.close()
 
 
     async def update_order_status(self, order: dict, account_id: int, executed_price: float, fill_date_time: str, symbol: str):
@@ -244,6 +247,9 @@ class PriceMonitoringTask:
         except Exception as e:
             print(f"❌ 配对利润计算失败: {e}")
             logging.error(f"❌ 配对利润计算失败: {e}")
+        finally:
+            if exchange:
+                await exchange.close()
 
     async def manage_grid_orders(self, order: dict, account_id: int):
         """网格订单管理（逻辑不变，仅优化并发安全性）"""
