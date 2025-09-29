@@ -305,7 +305,7 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
         normal_params = {'instType': 'SWAP'}
         normal_orders = await fetch_orders(normal_params)
         if normal_orders:
-            await cancel_orders(normal_orders, normal_params, order_type="普通")
+            await cancel_orders(normal_orders, normal_params)
         else:
             logging.info("无普通订单需要取消")
 
@@ -318,7 +318,7 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
             }
             conditional_orders = await fetch_orders(conditional_params)
             if conditional_orders:
-                await cancel_orders(conditional_orders, conditional_params, order_type="条件")
+                await cancel_orders(conditional_orders, conditional_params)
             else:
                 logging.info("无条件单需要取消")
         else:
