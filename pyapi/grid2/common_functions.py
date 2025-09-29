@@ -265,8 +265,16 @@ async def get_latest_filled_price_from_position_history(exchange, symbol: str, p
         await exchange.close()
     
 
-async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: str = 'all'):
-    """取消所有未成交订单（普通 + 条件单）"""
+async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: str = 'all', cancel_conditional: bool = False):
+    """
+    取消所有未成交订单（普通 + 条件单）
+
+    :param exchange: ccxt 交易所实例
+    :param account_id: 账户 ID
+    :param symbol: 交易对，如 'BTC/USDT:USDT'
+    :param side: 'buy', 'sell', 'all'，指定取消的订单方向
+    :param cancel_conditional: bool, 是否取消条件单（策略单）
+    """
 
     async def fetch_orders(params: dict):
         """封装获取订单方法"""
@@ -275,8 +283,6 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
         except Exception as e:
             logging.error(f"获取未成交订单失败 params={params}: {e}")
             return []
-        finally:
-            await exchange.close()
 
     async def cancel_orders(order_list: list, params: dict):
         """批量撤销订单"""
@@ -293,17 +299,30 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
                         await self.db.update_order_by_id(account_id, order['id'], {'status': 'canceled'})
             except Exception as e:
                 logging.error(f"取消订单失败: {order['id']} params={params}, error={e}")
-            finally:
-                await exchange.close()
 
     try:
-        # 1️⃣ 普通订单
-        normal_orders = await fetch_orders({'instType': 'SWAP'})
-        await cancel_orders(normal_orders, {'instType': 'SWAP'})
+        # 1️⃣ 取消普通订单（永续合约）
+        normal_params = {'instType': 'SWAP'}
+        normal_orders = await fetch_orders(normal_params)
+        if normal_orders:
+            await cancel_orders(normal_orders, normal_params, order_type="普通")
+        else:
+            logging.info("无普通订单需要取消")
 
-        # 2️⃣ 条件单（策略单）
-        conditional_orders = await fetch_orders({'instType': 'SWAP', 'ordType': 'conditional', 'trigger': True})
-        await cancel_orders(conditional_orders, {'instType': 'SWAP', 'ordType': 'conditional', 'trigger': True})
+        # 2️⃣ 取消条件单（策略单）—— 由 cancel_conditional 控制
+        if cancel_conditional:
+            conditional_params = {
+                'instType': 'SWAP',
+                'ordType': 'conditional',
+                'trigger': True
+            }
+            conditional_orders = await fetch_orders(conditional_params)
+            if conditional_orders:
+                await cancel_orders(conditional_orders, conditional_params, order_type="条件")
+            else:
+                logging.info("无条件单需要取消")
+        else:
+            logging.info("跳过取消条件单")
     except Exception as e:
         logging.error(f"取消所有订单失败: {e}")
     finally:

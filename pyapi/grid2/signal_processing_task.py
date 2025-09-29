@@ -336,7 +336,7 @@ class SignalProcessingTask:
             if not exchange:
                 return
             # TODO: 调用交易 API 平仓
-            await cancel_all_orders(self, exchange, account_id, signal['symbol']) # 取消所有未成交的订单
+            await cancel_all_orders(self, exchange, account_id, signal['symbol'], True) # 取消所有未成交的订单
 
 
             # 1.6 平掉反向仓位
