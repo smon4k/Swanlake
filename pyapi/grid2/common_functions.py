@@ -414,9 +414,9 @@ async def get_total_positions(self, account_id: int, symbol: str, inst_type: str
 #更新订单状态以及进行配对订单、计算利润
 async def update_order_status(self, order: dict, account_id: int, executed_price: float = None, fill_date_time: str = None):
     """更新订单状态以及进行配对订单、计算利润"""
-    exchange = await get_exchange(self, account_id)
-    if not exchange:
-        return
+    # exchange = await get_exchange(self, account_id)
+    # if not exchange:
+    #     return
     print("开始匹配订单") 
     side = 'sell' if order['side'] == 'buy' else 'buy'
     get_order_by_price_diff = await self.db.get_order_by_price_diff_v2(account_id, order['info']['instId'], executed_price, side)
