@@ -91,6 +91,9 @@ class StopLossTask:
             print(f"止损任务失败: {e}")
             logging.error(f"止损任务失败: {e}")
             return False
+        finally:
+            await exchange.close()
+        
     # 下策略委托单
     async def _open_position(self, account_id: int, full_symbol: str, side: str, amount: float, price: float, pos_side: str):
         try:
@@ -174,6 +177,8 @@ class StopLossTask:
             print(f"用户{account_id} 下策略单失败 error: {e}")
             logging.error(f"用户{account_id} 下策略单失败 error: {e}")
             return None
+        finally:
+            await exchange.close()
         
     
     # 修改委托订单
@@ -233,3 +238,5 @@ class StopLossTask:
             print(f"修改止损单失败: {account_id} {e}")
             logging.error(f"修改止损单失败: {account_id} {e}")
             return None
+        finally:
+            await exchange.close()
