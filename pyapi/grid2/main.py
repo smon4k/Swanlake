@@ -8,9 +8,7 @@ from trading_bot_config import TradingBotConfig
 from signal_processing_task import SignalProcessingTask
 from price_monitoring_task import PriceMonitoringTask
 from stop_loss_task import StopLossTask
-from common_functions import fetch_current_positions, fetch_positions_history, get_exchange
-from aiohttp import web
-from datetime import datetime, timezone
+from common_functions import get_exchange
 import logging
 from logging.handlers import TimedRotatingFileHandler
 

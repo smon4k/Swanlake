@@ -3,7 +3,6 @@ import os
 from typing import Dict, Tuple
 import ccxt.async_support as ccxt
 from decimal import Decimal
-from database import Database
 import asyncio
 from datetime import datetime, timezone
 import uuid

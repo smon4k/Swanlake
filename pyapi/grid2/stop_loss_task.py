@@ -1,8 +1,6 @@
 import asyncio
-from datetime import datetime
 from decimal import Decimal
 import logging
-import uuid
 from database import Database
 from trading_bot_config import TradingBotConfig
 from common_functions import get_exchange, get_market_price, get_market_precision, milliseconds_to_local_datetime, get_client_order_id

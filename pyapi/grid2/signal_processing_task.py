@@ -1,11 +1,9 @@
 import asyncio
 from datetime import datetime
 from decimal import Decimal
-import json
 import logging
 import os
 import time
-import traceback
 from typing import Any, Dict
 import redis
 from database import Database
@@ -24,7 +22,7 @@ class SignalProcessingTask:
         self.signal_lock = signal_lock
         self.stop_loss_task = stop_loss_task  # 保存引用
         self.max_workers = 5  # 并发 worker 数，可调节
-        self.account_locks = defaultdict(asyncio.Lock)  # 每个 account_id 一个锁
+        # self.account_locks = defaultdict(asyncio.Lock)  # 每个 account_id 一个锁
         self.redis = redis.Redis(host="localhost", port=6379, decode_responses=True)
         self.pubsub = self.redis.pubsub()
         self.account_locks = account_locks  # 外部传入的账户锁
