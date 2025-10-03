@@ -9,6 +9,7 @@ from typing import Optional
 from datetime import datetime, timezone
 import logging
 import uvicorn
+import redis
 
 # 模块依赖
 from database import Database
@@ -48,6 +49,7 @@ class PositionService:
     def __init__(self, config: TradingBotConfig, db: Database):
         self.db = db
         self.config = config
+        self.redis = redis.Redis(host="localhost", port=6379, decode_responses=True)
     
     # 接口：处理写入信号的API请求
     async def insert_signal(self, name: str, symbol: str, side: str, price: Decimal, size: float):
@@ -79,6 +81,7 @@ class PositionService:
                 'status': 'pending',
                 'timestamp': timestamp,
             })
+            self.redis.publish("signal_channel", "new_signal")  # 发布消息
             return result
         except Exception as e:
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})

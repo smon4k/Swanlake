@@ -1,8 +1,6 @@
 from decimal import Decimal
-from typing import Dict
 from dotenv import load_dotenv
 import os
-from database import Database
 
 import pymysql
 
