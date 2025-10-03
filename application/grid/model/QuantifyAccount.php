@@ -138,7 +138,7 @@ class QuantifyAccount extends Base
                             // $countStandardPrincipal = 0;
                         }
                     } else {
-                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance + (float)$depositToday : (isset($dayData['principal']) ? $dayData['principal'] : $totalBalance + (float)$depositToday);
+                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance + (float)$depositToday : (isset($dayData['principal']) ? $dayData['principal'] + (float)$depositToday : $totalBalance + (float)$depositToday);
                     }
                 } else {
                     //本金
