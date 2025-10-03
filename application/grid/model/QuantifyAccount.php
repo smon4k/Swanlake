@@ -134,11 +134,11 @@ class QuantifyAccount extends Base
                         if(isset($yestData['principal']) && $yestData['principal'] > 0) {
                             $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] + (float)$depositToday : 0;
                         } else {
-                            $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance;
+                            $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance + (float)$depositToday;
                             // $countStandardPrincipal = 0;
                         }
                     } else {
-                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance : (isset($dayData['principal']) ? $dayData['principal'] : $totalBalance);
+                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance + (float)$depositToday : (isset($dayData['principal']) ? $dayData['principal'] : $totalBalance + (float)$depositToday);
                     }
                 } else {
                     //本金
