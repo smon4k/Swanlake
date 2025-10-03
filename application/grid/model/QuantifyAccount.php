@@ -306,7 +306,7 @@ class QuantifyAccount extends Base
             return $totalBalanceFromInOut + (float)$depositToday;
         }
 
-        return $todayPrincipal + (float)$depositToday;
+        return $todayPrincipal;
     }
 
     /**
