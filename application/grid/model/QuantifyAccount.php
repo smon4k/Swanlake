@@ -272,15 +272,15 @@ class QuantifyAccount extends Base
      * @param array  $dayData    今日数据
      * @return float
      */
-    private function calculateStandardPrincipal(
-        int $account_id,
-        string $date,
-        float $amount = 0,
-        int $direction = 0,
-        float $totalBalanceFromInOut = 0.0,
-        float $depositToday = 0.0,
-        array $yestData = [],
-        array $dayData = []
+    private static function calculateStandardPrincipal(
+        $account_id,
+        $date,
+        $amount = 0,
+        $direction = 0,
+        $totalBalanceFromInOut = 0.0,
+        $depositToday = 0.0,
+        $yestData = [],
+        $dayData = []
     ): float {
 
         // 2. 如果有操作金额，直接基于总余额 + 当前操作计算
