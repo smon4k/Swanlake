@@ -129,25 +129,7 @@ class QuantifyAccount extends Base
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
-                if (!$amount || $amount == 0) {
-                    if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
-                        if(isset($yestData['principal']) && $yestData['principal'] > 0) {
-                            $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] + (float)$depositToday : 0;
-                        } else {
-                            $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance + (float)$depositToday;
-                            // $countStandardPrincipal = 0;
-                        }
-                    } else {
-                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance + (float)$depositToday : (isset($dayData['principal']) ? $dayData['principal'] + (float)$depositToday : $totalBalance + (float)$depositToday);
-                    }
-                } else {
-                    //本金
-                    if ($direction == 1) { //入金
-                        $countStandardPrincipal = (float)$total_balance + (float)$amount;
-                    } else {
-                        $countStandardPrincipal = (float)$total_balance - (float)$amount;
-                    }
-                }
+                $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData);
                 
                 $dailyProfit = 0; //昨日利润
                 $dailyProfitRate = 0; //昨日利润率
@@ -275,6 +257,56 @@ class QuantifyAccount extends Base
                 return false;
             }
         }
+    }
+
+    /**
+     * 计算账户当日标准本金
+     *
+     * @param int    $account_id 账户ID
+     * @param string $date       日期 Y-m-d
+     * @param float  $amount     当前操作金额（可为0）
+     * @param int    $direction  1:入金, 0或其它:出金
+     * @param float  $totalBalanceFromInOut 出入金总结余额
+     * @param float  $depositToday 今日入金金额
+     * @param array  $yestData   昨日数据
+     * @param array  $dayData    今日数据
+     * @return float
+     */
+    private function calculateStandardPrincipal(
+        int $account_id,
+        string $date,
+        float $amount = 0,
+        int $direction = 0,
+        float $totalBalanceFromInOut = 0.0,
+        float $depositToday = 0.0,
+        array $yestData = [],
+        array $dayData = []
+    ): float {
+
+        // 2. 如果有操作金额，直接基于总余额 + 当前操作计算
+        if ($amount > 0) {
+            return $direction === 1
+                ? $totalBalanceFromInOut + $amount           // 入金：加
+                : $totalBalanceFromInOut - $amount;          // 出金：减
+        }
+
+        // 3. 无操作金额时：判断是首次执行还是已有今日数据
+        if (empty($dayData)) {
+            // 今日无数据：使用昨日本金 + 今日入金
+            if (!empty($yestData) && isset($yestData['principal']) && $yestData['principal'] > 0) {
+                return (float)$yestData['principal'] + (float)$depositToday;
+            }
+            // 否则 fallback 到总余额 + 今日入金
+            return $totalBalanceFromInOut + (float)$depositToday;
+        }
+
+        // 4. 有今日数据：使用今日本金（若为0则 fallback）
+        $todayPrincipal = (float)($dayData['principal'] ?? 0);
+        if ($todayPrincipal == 0) {
+            return $totalBalanceFromInOut + (float)$depositToday;
+        }
+
+        return $todayPrincipal + (float)$depositToday;
     }
 
     /**
