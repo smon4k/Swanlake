@@ -119,8 +119,8 @@ async def open_position(self, account_id: int, symbol: str, side: str, pos_side:
                 print(f"开仓失败: {order['info'].get('sMsg', '未知错误')}")
                 return None
         except Exception as e:
-            print(f"开仓失败: {e}")
-            logging.error(f"开仓失败: {e}")
+            print(f"开仓失败: {account_id} {e}")
+            logging.error(f"开仓失败: {account_id} {e}")
             return None
         finally:
             await exchange.close()  # ✅ 用完就关
