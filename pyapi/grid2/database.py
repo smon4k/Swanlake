@@ -766,6 +766,8 @@ class Database:
         :return: 是否全部更新成功
         """
         try:
+            # print(f"开始批量更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
+            logging.info(f"开始批量更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 获取所有用户的max_position_list
@@ -810,18 +812,24 @@ class Database:
                             logging.info(f"账户{account_id}连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
                             continue
 
+                        logging.info(f"账户{account_id}开始更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
+
                         if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
                             try:
                                 value = float(item.get('value'))
+                                logging.info(f"账户{account_id} 当前最大仓位: {value}, 盈利增加比例: {increase_ratio}%, 亏损减少比例: {decrease_ratio}%, 连续亏损次数: {loss_number}, 最大亏损次数: {max_loss_number}, 最小亏损比例: {min_loss_ratio}, 清0值: {clear_value}, 阶段性盈亏: {stage_profit_loss}")
                                 if stage_profit_loss == 0 or abs(float(loss_profit_normal)) > abs(stage_profit_loss): # 如果阶段盈亏小于等于0或者单次盈亏超过阶段性盈亏绝对值 重置最大仓位
+                                    logging.info(f"账户{account_id}单次盈亏{loss_profit_normal}超过阶段性盈亏{stage_profit_loss}，重置最大仓位为初始值{clear_value}")
                                     value = clear_value
                                     loss_number = 0
                                 else:
+                                    logging.info(f"账户{account_id}单次盈亏{loss_profit_normal}未超过阶段性盈亏{stage_profit_loss}，按规则调整最大仓位")
                                     if increase: # 盈利 减少百分比
                                         # value = round(value * (1 - increase_ratio / 100), 8)
                                         # 盈利时次数保持不变
                                         pass
                                     else: # 亏损 增加百分比
+                                        logging.info(f"账户{account_id}亏损，按比例{decrease_ratio}%增加最大仓位")
                                         value = round(value * (1 + decrease_ratio / 100), 8)
                                         loss_number = add_loss_number
                                     
@@ -844,6 +852,7 @@ class Database:
                             f"UPDATE {table('config')} SET max_position_list=%s WHERE account_id=%s",
                             (new_max_position_list, account_id)
                         )
+                        logging.info(f"账户{account_id}更新max_position_list成功: {new_max_position_list}")
                         # 记录仓位变更记录
                         if position_cache != -1:
                             await self.record_account_position_change(account_id, position_cache, sign_id)
