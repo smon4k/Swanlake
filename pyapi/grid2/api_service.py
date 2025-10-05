@@ -133,7 +133,7 @@ class PositionService:
             if not exchange:
                 return None
             # 获取账户余额数据
-            result = await get_account_balance(
+            trading_balance = await get_account_balance(
                 exchange,
                 inst_id,
                 'trading'
@@ -141,12 +141,10 @@ class PositionService:
             # market_precision = await get_market_precision(exchange, inst_id) # 获取市场精度
             funding_balance = await get_account_balance(exchange, inst_id, 'funding') # funding: 资金账户余额 trading: 交易账户余额
             # funding_balance_size = funding_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
-            result['funding_balance'] = funding_balance
             savings_task = SavingsTask(self.db, account_id)
             yubibao_balance = await savings_task.get_saving_balance("USDT")
             # print("yubibao_balance", yubibao_balance)
-            result['yubibao_balance'] = yubibao_balance
-            return {"success": True, "data": result}
+            return {"success": True, "data": { "trading_balance": trading_balance, "funding_balance": funding_balance, "yubibao_balance": yubibao_balance }}
         except Exception as e:
             logging.error(f"获取账户余额出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
