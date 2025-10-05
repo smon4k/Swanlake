@@ -19,7 +19,7 @@
       </div>
       <el-descriptions v-for="(item, index) in tableData" :key="index" border :column="2">
         <template slot="title">
-          <div>{{ item.account_name }}</div> 
+          <div>{{ item.account_id }} &nbsp;&nbsp; {{ item.account_name }}</div> 
           <div class="balance-container">
             <span v-if="!item.balanceLoading">{{ keepDecimalNotRounding(item.balance, 2) }} USDT</span>
             <span v-else style="display: contents;"><span class="loading"></span>&nbsp;&nbsp;USDT</span>
