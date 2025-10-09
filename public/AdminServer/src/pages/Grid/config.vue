@@ -382,7 +382,7 @@
                 }, response => {
                     console.log(response);
                     if (response.status == 200 && response.data.data) {
-                        account.balance = response.data.data.data;
+                        account.balance = response.data.data.data.trading_balance;
                         account.balanceLoading = false; // 结束loading
                     } else {
                         account.balance = 0;

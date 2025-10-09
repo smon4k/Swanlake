@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from datetime import datetime, timezone
+from savings_task import SavingsTask
 import logging
 import uvicorn
 import redis
@@ -14,7 +15,7 @@ import redis
 # 模块依赖
 from database import Database
 from trading_bot_config import TradingBotConfig
-from common_functions import fetch_positions_history, fetch_current_positions, get_account_balance, get_exchange
+from common_functions import fetch_positions_history, fetch_current_positions, get_account_balance, get_exchange, get_market_precision
 
 load_dotenv()
 
@@ -132,11 +133,18 @@ class PositionService:
             if not exchange:
                 return None
             # 获取账户余额数据
-            result = await get_account_balance(
+            trading_balance = await get_account_balance(
                 exchange,
-                inst_id
+                inst_id,
+                'trading'
             )
-            return {"success": True, "data": result}
+            # market_precision = await get_market_precision(exchange, inst_id) # 获取市场精度
+            funding_balance = await get_account_balance(exchange, inst_id, 'funding') # funding: 资金账户余额 trading: 交易账户余额
+            # funding_balance_size = funding_balance.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
+            savings_task = SavingsTask(self.db, account_id)
+            yubibao_balance = await savings_task.get_saving_balance("USDT")
+            # print("yubibao_balance", yubibao_balance)
+            return {"success": True, "data": { "trading_balance": trading_balance, "funding_balance": funding_balance, "yubibao_balance": yubibao_balance }}
         except Exception as e:
             logging.error(f"获取账户余额出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
