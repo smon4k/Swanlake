@@ -290,23 +290,29 @@ class QuantifyAccount extends Base
                 : $totalBalanceFromInOut - $amount;          // 出金：减
         }
 
-        // 3. 无操作金额时：判断是首次执行还是已有今日数据
-        if (empty($dayData)) {
-            // 今日无数据：使用昨日本金 + 今日入金
-            if (!empty($yestData) && isset($yestData['principal']) && $yestData['principal'] > 0) {
-                return (float)$yestData['principal'] + (float)$depositToday;
-            }
-            // 否则 fallback 到总余额 + 今日入金
+        if (!empty($yestData) && isset($yestData['principal']) && $yestData['principal'] > 0) {
+            return (float)$yestData['principal'] + (float)$depositToday;
+        } else {
             return $totalBalanceFromInOut + (float)$depositToday;
         }
 
-        // 4. 有今日数据：使用今日本金（若为0则 fallback）
-        $todayPrincipal = (float)($dayData['principal'] ?? 0);
-        if ($todayPrincipal == 0) {
-            return $totalBalanceFromInOut + (float)$depositToday;
-        }
+        // // 3. 无操作金额时：判断是首次执行还是已有今日数据
+        // if (empty($dayData)) {
+        //     // 今日无数据：使用昨日本金 + 今日入金
+        //     if (!empty($yestData) && isset($yestData['principal']) && $yestData['principal'] > 0) {
+        //         return (float)$yestData['principal'] + (float)$depositToday;
+        //     }
+        //     // 否则 fallback 到总余额 + 今日入金
+        //     return $totalBalanceFromInOut + (float)$depositToday;
+        // }
 
-        return $todayPrincipal;
+        // // 4. 有今日数据：使用今日本金（若为0则 fallback）
+        // $todayPrincipal = (float)($dayData['principal'] ?? 0);
+        // if ($todayPrincipal == 0) {
+        //     return $totalBalanceFromInOut + (float)$depositToday;
+        // }
+
+        // return $todayPrincipal;
     }
 
     /**
