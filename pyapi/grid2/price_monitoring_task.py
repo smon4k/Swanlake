@@ -113,7 +113,7 @@ class PriceMonitoringTask:
 
             try:
                 all_positions = await exchange.fetch_positions('', {'instType': 'SWAP'})
-                logging.info(f"🔍 账户 {account_id} 持仓数: {len(all_positions)}")
+                # logging.info(f"🔍 账户 {account_id} 持仓数: {len(all_positions)}")
 
                 # 分类整理：symbol => [pos1, pos2, ...]
                 for pos in all_positions:
