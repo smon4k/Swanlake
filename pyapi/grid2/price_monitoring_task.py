@@ -112,10 +112,13 @@ class PriceMonitoringTask:
             positions_dict = {}
             async def fetch_pos(symbol):
                 try:
-                    positions_dict[symbol] = await exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
+                    all_positions = await exchange.fetch_positions('', {'instType': 'SWAP'})
+                    positions_dict = {}
+                    for pos in all_positions:
+                        symbol = pos['symbol']
+                        positions_dict.setdefault(symbol, []).append(pos)
                 except Exception as e:
-                    logging.error(f"⚠️ 获取持仓失败 {account_id}/{symbol}: {e}")
-                    positions_dict[symbol] = []
+                    logging.error(f"⚠️ 获取所有持仓失败 {account_id}: {e}")
             await asyncio.gather(*[fetch_pos(sym) for sym in unique_symbols])
 
             # --------------------------
