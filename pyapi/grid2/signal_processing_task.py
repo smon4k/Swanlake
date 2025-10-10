@@ -296,7 +296,7 @@ class SignalProcessingTask:
             # print(f"🟢 账户 {account_id} 信号 {signal['id']} {end_time - start_time:.2f} 秒")
             side =  'buy' if signal['direction'] == 'long' else 'sell'  # 'buy' 或 'sell'
             # 1.3 开仓
-            await self.handle_open_position(
+            open_position = await self.handle_open_position(
                 account_id,
                 signal['symbol'],
                 signal['direction'],
@@ -304,6 +304,8 @@ class SignalProcessingTask:
                 signal['price']
             )
 
+            if not open_position:
+                return
             #1.4 处理记录开仓方向数据
             # has_open_position = await self.db.has_open_position(name, side)
             # if has_open_position:
@@ -685,9 +687,17 @@ class SignalProcessingTask:
                     'status': 'live',
                     'position_group_id': '',
                 })
+                return True
+            else:
+                # print(f"用户 {account_id} 开仓失败")
+                logging.error(f"用户 {account_id} 开仓失败")
+                return False
         except Exception as e:
             print(f"用户 {account_id} 开仓异常: {e}")
             logging.error(f"用户 {account_id} 开仓异常: {e}")
+            return False
+        finally:
+            await exchange.close()
 
     async def calculate_position_size(self, market_precision: object, balance: Decimal, position_percent: Decimal, price: float, account_id: int) -> Decimal:
         """计算仓位大小"""
