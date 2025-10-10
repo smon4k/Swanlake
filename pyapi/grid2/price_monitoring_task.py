@@ -108,15 +108,22 @@ class PriceMonitoringTask:
             # --------------------------
             # 1. 缓存 symbol -> positions
             # --------------------------
-            unique_symbols = list({o['symbol'] for o in open_orders})
+            # ✅ 直接获取所有持仓，不再为每个 symbol 重复请求
             positions_dict = {}
-            async def fetch_pos(symbol):
-                try:
-                    positions_dict[symbol] = await exchange.fetch_positions_for_symbol(symbol, {'instType': 'SWAP'})
-                except Exception as e:
-                    logging.error(f"⚠️ 获取持仓失败 {account_id}/{symbol}: {e}")
-                    positions_dict[symbol] = []
-            await asyncio.gather(*[fetch_pos(sym) for sym in unique_symbols])
+
+            try:
+                all_positions = await exchange.fetch_positions('', {'instType': 'SWAP'})
+                # logging.info(f"🔍 账户 {account_id} 持仓数: {len(all_positions)}")
+
+                # 分类整理：symbol => [pos1, pos2, ...]
+                for pos in all_positions:
+                    sym = pos['info'].get('instId')
+                    if not sym:
+                        continue
+                    positions_dict.setdefault(sym, []).append(pos)
+
+            except Exception as e:
+                logging.error(f"⚠️ 获取所有持仓失败 {account_id}: {e}")
 
             # --------------------------
             # 2. 并发获取订单详情

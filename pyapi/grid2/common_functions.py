@@ -1,5 +1,6 @@
 import json
 import os
+import random
 from typing import Dict, Tuple
 import ccxt.async_support as ccxt
 from decimal import Decimal
@@ -275,13 +276,22 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
     :param cancel_conditional: bool, 是否取消条件单（策略单）
     """
 
-    async def fetch_orders(params: dict):
-        """封装获取订单方法"""
-        try:
-            return await exchange.fetch_open_orders(symbol, None, None, params)
-        except Exception as e:
-            logging.error(f"获取未成交订单失败 params={params}: {e}")
-            return []
+    async def fetch_orders(params: dict, retries=3):
+        """带限流与重试机制的 fetch_open_orders"""
+        for attempt in range(retries):
+            try:
+                return await exchange.fetch_open_orders(symbol, None, None, params)
+            except Exception as e:
+                if "Too Many Requests" in str(e):
+                    delay = (attempt + 1) * 0.6 + random.uniform(0.1, 0.5)
+                    logging.warning(f"⏳ 请求过多，等待 {delay:.2f}s 后重试 ({attempt+1}/{retries})...")
+                    await asyncio.sleep(delay)
+                    continue
+                else:
+                    logging.error(f"获取未成交订单失败 params={params}: {e}")
+                    return []
+        logging.error(f"多次重试仍失败 params={params}")
+        return []
 
     async def cancel_orders(order_list: list, params: dict):
         """批量撤销订单"""
