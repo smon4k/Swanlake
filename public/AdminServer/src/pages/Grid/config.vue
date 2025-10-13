@@ -61,7 +61,7 @@
         </el-descriptions-item>
         <el-descriptions-item label="价格浮动比例">{{ item.commission_price_difference }}</el-descriptions-item>
       </el-descriptions>
-      <el-row v-if="tableData && tableData.length > 0">
+      <el-row v-if="tableData && tableData.length > 0" style="margin-bottom: 50px;">
         <el-col :span="24">
           <div style="float:right;">
             <wbc-page
