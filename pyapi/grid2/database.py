@@ -831,6 +831,7 @@ class Database:
                                     else: # 亏损 增加百分比
                                         logging.info(f"账户{account_id}亏损，按比例{decrease_ratio}%增加最大仓位")
                                         value = round(value * (1 + decrease_ratio / 100), 8)
+                                        print("计算后的value值：", value)
                                         loss_number = add_loss_number
                                     
                                 # 仓位最大值不能超过仓位最大仓位数
