@@ -282,7 +282,7 @@ class QuantifyAccount extends Base
         $depositToday = 0.0,
         $yestData = [],
         $dayData = [],
-        $totalBalance = 0,
+        $totalBalance = 0
     ): float {
 
         // 2. 如果有操作金额，直接基于总余额 + 当前操作计算
