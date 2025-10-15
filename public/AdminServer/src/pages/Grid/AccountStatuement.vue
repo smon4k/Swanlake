@@ -88,7 +88,7 @@
                             </template>
                         </el-table-column>
                     </el-table>
-                    <el-row class="pages" v-if="total > pageSize">
+                    <el-row class="pages" v-if="tableData.length >= pageSize">
                         <el-col :span="24">
                             <div style="float:right;">
                             <wbc-page
@@ -744,13 +744,12 @@ export default {
                     page: this.currPage,
                 };
             }
-            console.log(ServerWhere);
             this.loading = true;
             get("/Grid/QuantifyAccount/getQuantifyAccountDateAllList", ServerWhere, json => {
-                console.log(json.data);
                 if (json.data.code == 10000) {
                     if (json.data.data) {
                         let list = (json.data && json.data.data.data) || [];
+                        console.log(list);
                         if(this.isMobel) {
                             if (this.currPage <= 1) {
                                 // console.log('首次加载');
@@ -775,6 +774,7 @@ export default {
                             this.tableData = list;
                         }
                     }
+
                     this.total = json.data.data.count;
                     this.loading = false;
                 } else {
@@ -793,7 +793,7 @@ export default {
             // console.log(ServerWhere);
             this.loading = true;
             get("/Grid/QuantifyAccount/getQuantifyAccountDateList", ServerWhere, json => {
-                // console.log(json.data);
+                console.log(json.data);
                 if (json.data.code == 10000) {
                     if (json.data.data) {
                         let list = (json.data && json.data.data.data) || [];
@@ -821,7 +821,7 @@ export default {
                             this.tableData = list;
                         }
                     }
-                    this.total = json.data.count;
+                    this.total = json.data.data.count;
                     this.loading = false;
                 } else {
                     this.$message.error("加载数据失败");
