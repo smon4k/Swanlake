@@ -33,7 +33,7 @@
                             </el-link>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="" label="缓存余额(U)" align="center">
+                        <el-table-column prop="" label="缓存(U)" align="center">
                             <template slot-scope="scope">
                                 <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
                                 <span v-if="activeName == '全部'">{{ Math.floor(scope.row.yubibao_balance) }}</span>
