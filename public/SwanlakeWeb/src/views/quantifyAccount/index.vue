@@ -28,6 +28,11 @@
                             </el-link>
                             </template>
                         </el-table-column>
+                        <el-table-column prop="" label="缓存(U)" align="center">
+                            <template slot-scope="scope">
+                                <span>{{ Math.floor(scope.row.yubibao_balance) }}</span>
+                            </template>
+                        </el-table-column>
                         <!-- <el-table-column prop="" label="币价" align="center">
                             <template slot-scope="scope">
                             <span>{{ keepDecimalNotRounding(scope.row.price, 2, true) }} USDT</span>

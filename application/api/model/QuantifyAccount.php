@@ -101,10 +101,12 @@ class QuantifyAccount extends Base
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
+                $yubibao_balance = 0; //理财余额
                 if($accountInfo['type'] == 1) { //Binance
                     $balanceList = self::getTradePairBalance($accountInfo);
                 } else { //OKX
                     $balanceList = self::getOkxTradePairBalance($accountInfo);
+                    $yubibao_balance = self::getOkxSavingBalance($accountInfo); # 获取okx余利宝余额
                 }
                 if($account_id == 1) {
                     $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] + 900 : 0; //总结余
@@ -169,6 +171,7 @@ class QuantifyAccount extends Base
                     $upData = [
                         'principal' => $countStandardPrincipal,
                         'total_balance' => $totalBalance,
+                        'yubibao_balance' => $yubibao_balance,
                         'daily_profit' => $dailyProfit,
                         'daily_profit_rate' => $dailyProfitRate, //日利润率
                         'average_day_rate' => $averageDayRate, //平均日利率
@@ -187,6 +190,7 @@ class QuantifyAccount extends Base
                         'date' => $date,
                         'principal' => $countStandardPrincipal,
                         'total_balance' => $totalBalance,
+                        'yubibao_balance' => $yubibao_balance,
                         'daily_profit' => $dailyProfit,
                         'daily_profit_rate' => $dailyProfitRate, //日利润率
                         'average_day_rate' => $averageDayRate, //平均日利率
@@ -244,6 +248,31 @@ class QuantifyAccount extends Base
         }
     }
 
+      /**
+     * 获取余利宝余额 理财余额
+     * @param array $accountInfo 账户信息
+     * @return bool|array 返回false表示失败，否则返回账户余额信息数组
+     * @author qinlh
+     * @since 2025-09-8
+     */
+    public static function getOkxSavingBalance($accountInfo) {
+        try {
+            $yubibao_url = Config('okx_uri') . "/api/okex/get_saving_balance?ccy=USDT";
+            $yubibao_balance = self::getOkxRequesInfo($accountInfo, $yubibao_url, true); //获取余利宝账户余额
+            return $yubibao_balance;
+        } catch (\Exception $e) {
+            $error_msg = json_encode([
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ], JSON_UNESCAPED_UNICODE);
+            // self::rollback();
+            echo $error_msg . "\r\n";
+            return false;
+        }
+    }
+
     /**
      * 统计总的量化数据
      * @author qinlh
@@ -258,6 +287,7 @@ class QuantifyAccount extends Base
             $totalData = [
                 'principal' => 0,
                 'total_balance' => 0,
+                'yubibao_balance' => 0,
                 'daily_profit' => 0,
                 // 'daily_profit_rate' => 0,
                 'average_day_rate' => 0,
@@ -294,6 +324,7 @@ class QuantifyAccount extends Base
                 self::name('quantify_equity_monitoring_total')->where('date', $date)->update([
                     'principal' => $totalData['principal'],
                     'total_balance' => $totalData['total_balance'],
+                    'yubibao_balance' => $totalData['yubibao_balance'],
                     'daily_profit' => $totalData['daily_profit'],
                     'daily_profit_rate' => $totalData['daily_profit_rate'],
                     'average_day_rate' => $totalData['average_day_rate'],
@@ -310,6 +341,7 @@ class QuantifyAccount extends Base
                     'date' => $date,
                     'principal' => $totalData['principal'],
                     'total_balance' => $totalData['total_balance'],
+                    'yubibao_balance' => $totalData['yubibao_balance'],
                     'daily_profit' => $totalData['daily_profit'],
                     'daily_profit_rate' => $totalData['daily_profit_rate'],
                     'average_day_rate' => $totalData['average_day_rate'],
