@@ -101,17 +101,21 @@ class QuantifyAccount extends Base
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
                 $tradingPrice = 1;
+                $tradepair_balance = 0; //交易对余额
                 $yubibao_balance = 0; //理财余额
+                $funding_balance = 0; //资金余额
                 if($accountInfo['type'] == 1) { //Binance
                     $balanceList = self::getTradePairBalance($accountInfo);
                 } else { //OKX
                     $balanceList = self::getOkxTradePairBalance($accountInfo);
+                    $tradepair_balance = isset($balanceList['usdtBalance']) ? (float)$balanceList['usdtBalance'] : 0;
+                    $funding_balance = self::getOkxFundingBalance($accountInfo); # 获取okx资金余额
                     $yubibao_balance = self::getOkxSavingBalance($accountInfo); # 获取okx余利宝余额
                 }
                 if($account_id == 1) {
                     $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] + 900 : 0; //总结余
                 } else {
-                    $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0; //总结余
+                    $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
                 }
                 // $totalBalance = 42792.03; //总结余
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
@@ -270,6 +274,34 @@ class QuantifyAccount extends Base
             // self::rollback();
             echo $error_msg . "\r\n";
             return false;
+        }
+    }
+
+    /** 获取资金余额
+     * @param array $accountInfo 账户信息
+     * @return bool|array 返回false表示失败，否则返回账户余额信息数组
+     * @author qinlh
+     * @since 2025-09-8
+     * */   
+    public static function getOkxFundingBalance($accountInfo) {
+        try {
+            $funding_url = Config('okx_uri') . "/api/okex/get_funding_balances?ccy=USDT";
+            $fundingBalanceDetails = self::getOkxRequesInfo($accountInfo, $funding_url, false); //获取资金账户余额
+            if(!$fundingBalanceDetails) {
+                return false;
+            }
+            $funding_balance = (float)$fundingBalanceDetails['bal'] ?? 0;
+            return $funding_balance;
+        } catch (\Exception $e) {
+            $error_msg = json_encode([
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                ], JSON_UNESCAPED_UNICODE);
+                // self::rollback();
+                echo $error_msg . "\r\n";
+                return false;
         }
     }
 
@@ -1067,11 +1099,10 @@ class QuantifyAccount extends Base
             $total_balance = 0;
             if($type == 1) {
                 $amount_num = $amount;
-                $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount;
             } else {
                 $amount_num = $amount *= -1;
-                $total_balance = self::getInoutGoldTotalBalance($account_id) - (float)$amount;
             }
+            $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount_num;
             $insertData = [
                 'account_id' => $account_id,
                 'amount' => $amount_num,
@@ -1534,12 +1565,15 @@ class QuantifyAccount extends Base
                 $billId = $transfer['billId'];
                 $time = date('Y-m-d H:i:s', $transfer['ts'] / 1000);
                 $remark = "";
+                $type = 1;
                 if ($transfer['type'] == '131') {
-                    $remark = "转出至交易账户";
+                    $remark = "转入交易账户"; //转出至交易账户 转入
+                    $type = 1;
                 } else {
-                    $remark = "转入至交易账户";
+                    $remark = "转出交易账户"; // 转入至交易账户 转出
+                    $type = 2;
                 }
-                self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, 1, $remark,  $time);
+                self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, $type, $remark,  $time);
             }
         }
         return true;
@@ -1555,11 +1589,10 @@ class QuantifyAccount extends Base
             }
             if($type == 1) {
                 $amount_num = $amount;
-                $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount;
             } else {
                 $amount_num = $amount *= -1;
-                $total_balance = self::getInoutGoldTotalBalance($account_id) - (float)$amount;
             }
+            $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount_num;
             $insertData = [
                 'account_id' => $account_id,
                 'amount' => $amount_num,
