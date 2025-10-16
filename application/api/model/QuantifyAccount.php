@@ -106,7 +106,7 @@ class QuantifyAccount extends Base
                 $tradepair_balance = 0; //交易对余额
                 $yubibao_balance = 0; //理财余额
                 $funding_balance = 0; //资金余额
-                if($accountInfo['type'] == 2) { # okx
+                if($accountInfo['type'] == 2) {
                     $balanceList = self::getOkxTradePairBalance($accountInfo); # 获取okx交易对余额
                     $tradepair_balance = $balanceList['usdtBalance'] ? $balanceList['usdtBalance'] : 0;
                     $funding_balance = self::getOkxFundingBalance($accountInfo); # 获取okx资金余额
