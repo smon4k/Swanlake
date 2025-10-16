@@ -133,8 +133,12 @@ class QuantifyAccount extends Base
                 $dailyProfitRate = 0; //昨日利润率
                 $yestTotalBalance = isset($yestData['total_balance']) ? (float)$yestData['total_balance'] : 0;
                 // p($depositToday);
-                $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
-                $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
+                $hasOnlyTodayData = self::hasOnlyTodayData($account_id); //获取是否只第一天
+                if(!$hasOnlyTodayData) {
+                    $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
+                } else {
+                    $dailyProfit = $totalBalance - $countStandardPrincipal; //日利润 = 总结余-累计本金
+                }
                 // if($dailyProfit < -801) {
                 //     $totalBalance = $totalBalance + 700;
                 //     $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday; //日利润 = 今日的总结余-昨日的总结余-今日入金数量
@@ -1084,6 +1088,28 @@ class QuantifyAccount extends Base
             }
         }
         return [];
+    }
+
+    /**
+     * 判断账户是否只有今天一天的数据
+     * @author 
+     * @since 2025-05-08
+     */
+    public static function hasOnlyTodayData($account_id=0)
+    {
+        if ($account_id) {
+            $today = date('Y-m-d');
+            $count = self::name('quantify_equity_monitoring')
+                        ->where(['account_id' => $account_id])
+                        ->count();
+            $todayCount = self::name('quantify_equity_monitoring')
+                              ->where(['account_id' => $account_id, 'date' => $today])
+                              ->count();
+            if ($count === 1 && $todayCount === 1) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
