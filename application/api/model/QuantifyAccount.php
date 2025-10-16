@@ -100,51 +100,38 @@ class QuantifyAccount extends Base
                 $date = date('Y-m-d');
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
-                $tradingPrice = 1;
+                $url = Config('okx_uri') . "/api/okex/get_market_ticker?instId=BTC-USDT";
+                $prices = self::getOkxRequesInfo($accountInfo, $url);
+                $tradingPrice = isset($prices['last']) ? $prices['last'] : 0;
                 $tradepair_balance = 0; //交易对余额
                 $yubibao_balance = 0; //理财余额
                 $funding_balance = 0; //资金余额
-                if($accountInfo['type'] == 1) { //Binance
-                    $balanceList = self::getTradePairBalance($accountInfo);
-                } else { //OKX
-                    $balanceList = self::getOkxTradePairBalance($accountInfo);
-                    $tradepair_balance = isset($balanceList['usdtBalance']) ? (float)$balanceList['usdtBalance'] : 0;
+                if($accountInfo['exchange'] === 'okx') {
+                    $balanceList = self::getOkxTradePairBalance($accountInfo); # 获取okx交易对余额
+                    $tradepair_balance = $balanceList['usdtBalance'] ? $balanceList['usdtBalance'] : 0;
                     $funding_balance = self::getOkxFundingBalance($accountInfo); # 获取okx资金余额
                     $yubibao_balance = self::getOkxSavingBalance($accountInfo); # 获取okx余利宝余额
+                } else { 
+                    return false;
+                    // $balanceList = self::getTradePairBalance($accountInfo);
                 }
-                if($account_id == 1) {
-                    $totalBalance = !empty($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] + 900 : 0; //总结余
-                } else {
-                    $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
+
+                $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
+                if($totalBalance <= 0) {
+                    return false;
                 }
+
                 // $totalBalance = 42792.03; //总结余
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $countStandardPrincipal = 0; //累计本金
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
-                if (!$amount || $amount == 0) {
-                    if(!$dayData || empty($dayData)) { //今日第一次执行 获取昨日本金
-                        if(isset($yestData['principal']) && $yestData['principal'] > 0) {
-                            $countStandardPrincipal = isset($yestData['principal']) ? (float)$yestData['principal'] : 0;
-                        } else {
-                            $countStandardPrincipal = $total_balance ? $total_balance : $totalBalance;
-                        }
-                    } else {
-                        $countStandardPrincipal = (float)$dayData['principal'] == 0 ? $totalBalance : (isset($dayData['principal']) ? $dayData['principal'] : $totalBalance);
-                    }
-                } else {
-                    //本金
-                    if ($direction == 1) { //入金
-                        $countStandardPrincipal = (float)$total_balance + (float)$amount;
-                    } else {
-                        $countStandardPrincipal = (float)$total_balance - (float)$amount;
-                    }
-                }
+                $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今
+                $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
                 
                 $dailyProfit = 0; //昨日利润
                 $dailyProfitRate = 0; //昨日利润率
                 $yestTotalBalance = isset($yestData['total_balance']) ? (float)$yestData['total_balance'] : 0;
-                $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // p($depositToday);
                 $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
                 $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
@@ -157,11 +144,19 @@ class QuantifyAccount extends Base
                 $averageDayCountNum = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<=', $date]])->count(); //获取平均数总人数
                 $averageDayRateRes = self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => ['<=', $date]])->avg('daily_profit_rate'); //获取平均日利率
                 if(!$dayData || empty($dayData)) { //今日第一次执行 加上今天的日利润率
-                    $averageDayRate = ($averageDayRateRes * $averageDayCountNum + $dailyProfitRate) / (1 + $averageDayCountNum);
+                    if($hasOnlyTodayData) { //如果是第一天执行
+                        $averageDayRate = 0;
+                    } else {
+                        $averageDayRate = ($averageDayRateRes * $averageDayCountNum + $dailyProfitRate) / (1 + $averageDayCountNum);
+                    }
                 } else {
                     $averageDayRate = $averageDayRateRes;
                 }
-                $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
+                if($hasOnlyTodayData) {
+                    $averageYearRate = 0;
+                } else {
+                    $averageYearRate = $averageDayRate * 365; //平均年利率 = 平均日利率 * 365
+                }
                 $profit = $totalBalance - $countStandardPrincipal;//利润 = 总结余 - 本金
                 
                 $totalShareProfit = self::getTotalProfitBalance($account_id); //总分润 = 所有分润累计
@@ -250,6 +245,64 @@ class QuantifyAccount extends Base
                 return false;
             }
         }
+    }
+
+    /**
+     * 计算账户当日标准本金
+     *
+     * @param int    $account_id 账户ID
+     * @param string $date       日期 Y-m-d
+     * @param float  $amount     当前操作金额（可为0）
+     * @param int    $direction  1:入金, 0或其它:出金
+     * @param float  $totalBalanceFromInOut 出入金总结余额
+     * @param float  $depositToday 今日入金金额
+     * @param array  $yestData   昨日数据
+     * @param array  $dayData    今日数据
+     * @param array  $totalBalance    总结余
+     * @return float
+     */
+    private static function calculateStandardPrincipal(
+        $account_id,
+        $date,
+        $amount = 0,
+        $direction = 0,
+        $totalBalanceFromInOut = 0.0,
+        $depositToday = 0.0,
+        $yestData = [],
+        $dayData = [],
+        $totalBalance = 0
+    ): float {
+
+        // 2. 如果有操作金额，直接基于总余额 + 当前操作计算
+        if ($amount > 0) {
+            return $direction === 1
+                ? $totalBalanceFromInOut + $amount           // 入金：加
+                : $totalBalanceFromInOut - $amount;          // 出金：减
+        }
+
+        if (!empty($yestData) && isset($yestData['principal']) && $yestData['principal'] > 0) {
+            return (float)$yestData['principal'] + (float)$depositToday;
+        } else { //第一天执行 
+            return $totalBalanceFromInOut + (float)$depositToday + (float)$totalBalance;
+        }
+
+        // // 3. 无操作金额时：判断是首次执行还是已有今日数据
+        // if (empty($dayData)) {
+        //     // 今日无数据：使用昨日本金 + 今日入金
+        //     if (!empty($yestData) && isset($yestData['principal']) && $yestData['principal'] > 0) {
+        //         return (float)$yestData['principal'] + (float)$depositToday;
+        //     }
+        //     // 否则 fallback 到总余额 + 今日入金
+        //     return $totalBalanceFromInOut + (float)$depositToday;
+        // }
+
+        // // 4. 有今日数据：使用今日本金（若为0则 fallback）
+        // $todayPrincipal = (float)($dayData['principal'] ?? 0);
+        // if ($todayPrincipal == 0) {
+        //     return $totalBalanceFromInOut + (float)$depositToday;
+        // }
+
+        // return $todayPrincipal;
     }
 
       /**
@@ -1559,9 +1612,12 @@ class QuantifyAccount extends Base
     public static function getTransferHistory($accountInfo) {
         $url = Config('okx_uri') . "/api/okex/get_transfer_history";
         $balanceDetails = self::getOkxRequesInfo($accountInfo, $url, true);
+        if($accountInfo['financ_state'] == 1) {
+            return false;
+        }
         if ($balanceDetails && count($balanceDetails) > 0) {
             foreach ($balanceDetails as $transfer) {
-                $amount = $transfer['balChg'];
+                $amount = abs($transfer['balChg']);
                 $billId = $transfer['billId'];
                 $time = date('Y-m-d H:i:s', $transfer['ts'] / 1000);
                 $remark = "";
