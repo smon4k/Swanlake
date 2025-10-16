@@ -220,6 +220,11 @@ class QuantifyAccount extends Base
                         // }
                         $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
                         if ($isIntOut) {
+                            $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
+                            if ($total_balance >= 0) {
+                                self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->update(['total_balance' => $total_balance, 'up_time' => date('Y-m-d H:i:s')]);
+
+                            }
                             $isTrue = true;
                             // self::commit();
                             // return true;
