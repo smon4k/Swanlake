@@ -127,8 +127,7 @@ class QuantifyAccount extends Base
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $countStandardPrincipal = 0; //累计本金
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
-                $depositToday = 0;
-                // $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
+                $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
                 $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
                 
@@ -1182,7 +1181,7 @@ class QuantifyAccount extends Base
         if($account_id) {
             $start_time = $date . "00:00:00";
             $end_time = $date . "23:59:59";
-            $amount = self::name('quantify_inout_gold')->where(['account_id' => $account_id, 'type' => 1])->whereTime('time', 'between', [$start_time, $end_time])->sum('amount');
+            $amount = self::name('quantify_inout_gold')->where(['account_id' => $account_id])->whereTime('time', 'between', [$start_time, $end_time])->sum('amount');
             if ($amount !== 0) {
                 return $amount;
             }
