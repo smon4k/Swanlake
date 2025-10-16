@@ -125,7 +125,11 @@ class QuantifyAccount extends Base
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
-                $countStandardPrincipal = $total_balance; //累计本金 = 出入金总结余
+                $amount_num = 0;
+                if ($amount > 0) {
+                    $amount_num = $direction == 1 ? $amount : $amount *= -1;
+                }
+                $countStandardPrincipal = $total_balance + (float)$amount_num; //累计本金 = 出入金总结余
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
                 
@@ -211,7 +215,7 @@ class QuantifyAccount extends Base
                 $isTrue = false;
                 if ($saveUres !== false) {
                     if ($amount > 0) {
-                        $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark, $date);
+                        $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
                         if ($isIntOut) {
                             $isTrue = true;
                             // self::commit();
@@ -1173,7 +1177,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-01-31
      */
-    public static function setInoutGoldRecord($account_id=0, $amount='', $price=0, $type=0, $remark='', $date='', $time='')
+    public static function setInoutGoldRecord($account_id=0, $amount='', $price=0, $type=0, $remark='', $time='')
     {
         if ($account_id && $amount !== 0 && $type > 0) {
             $total_balance = 0;
@@ -1195,7 +1199,6 @@ class QuantifyAccount extends Base
             ];
             $res = self::name('quantify_inout_gold')->insertGetId($insertData);
             if ($res) {
-                self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->update(['total_balance' => $total_balance, 'up_time' => date('Y-m-d H:i:s')]);
                 return true;
             }
         }
