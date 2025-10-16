@@ -1639,9 +1639,6 @@ class QuantifyAccount extends Base
     public static function getTransferHistory($accountInfo) {
         $url = Config('okx_uri') . "/api/okex/get_transfer_history";
         $balanceDetails = self::getOkxRequesInfo($accountInfo, $url, true);
-        if($accountInfo['financ_state'] == 1) {
-            return false;
-        }
         if ($balanceDetails && count($balanceDetails) > 0) {
             foreach ($balanceDetails as $transfer) {
                 $amount = abs($transfer['balChg']);
