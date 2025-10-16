@@ -226,7 +226,7 @@ class QuantifyAccount extends Base
                             // return true;
                         }
                     } else {
-                        self::getTransferHistory($accountInfo);
+                        // self::getTransferHistory($accountInfo);
                         $isTrue = true;
                         // self::commit();
                         // return true;
