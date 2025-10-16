@@ -127,9 +127,9 @@ class QuantifyAccount extends Base
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
                 $amount_num = 0;
                 if ($amount > 0) {
-                    $amount_num = $direction == 1 ? $amount : $amount *= -1;
+                    $amount_num = $direction == 1 ? $amount : (float)$amount *= -1;
                 }
-                $countStandardPrincipal = $total_balance + (float)$amount_num; //累计本金 = 出入金总结余
+                $countStandardPrincipal = $total_balance + $amount_num; //累计本金 = 出入金总结余
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
                 
@@ -214,7 +214,7 @@ class QuantifyAccount extends Base
                 }
                 $isTrue = false;
                 if ($saveUres !== false) {
-                    if ($amount > 0) {
+                    if ($amount !== 0 && $direction > 0) {
                         $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
                         if ($isIntOut) {
                             $isTrue = true;
