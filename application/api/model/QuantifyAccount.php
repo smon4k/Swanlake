@@ -631,7 +631,7 @@ class QuantifyAccount extends Base
                 ], JSON_UNESCAPED_UNICODE);
                 // self::rollback();
                 echo $error_msg . "\r\n";
-                return false;
+                return 0;
         }
     }
 
