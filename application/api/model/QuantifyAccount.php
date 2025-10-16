@@ -126,7 +126,8 @@ class QuantifyAccount extends Base
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $countStandardPrincipal = 0; //累计本金
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
-                $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
+                // $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
+                $depositToday = 0;
                 $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
                 
                 $dailyProfit = 0; //昨日利润
@@ -1647,10 +1648,10 @@ class QuantifyAccount extends Base
                 $remark = "";
                 $type = 1;
                 if ($transfer['type'] == '131') {
-                    $remark = "转入交易账户"; //转出至交易账户 转入
+                    $remark = "转入交易账户"; //转出到交易账户 转入
                     $type = 1;
                 } else {
-                    $remark = "转出交易账户"; // 转入至交易账户 转出
+                    $remark = "转出交易账户"; // 从交易账户转入 转出
                     $type = 2;
                 }
                 self::setInoutGoldRecordTransfer($accountInfo['id'], $billId, $amount, $type, $remark,  $time);
