@@ -213,11 +213,6 @@ class QuantifyAccount extends Base
                     if ($amount > 0) {
                         $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
                         if ($isIntOut) {
-                            $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
-                            if ($total_balance >= 0) {
-                                self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->update(['total_balance' => $total_balance, 'up_time' => date('Y-m-d H:i:s')]);
-
-                            }
                             $isTrue = true;
                             // self::commit();
                             // return true;
@@ -1178,7 +1173,7 @@ class QuantifyAccount extends Base
      * @author qinlh
      * @since 2023-01-31
      */
-    public static function setInoutGoldRecord($account_id=0, $amount='', $price=0, $type=0, $remark='', $time='')
+    public static function setInoutGoldRecord($account_id=0, $amount='', $price=0, $type=0, $remark='', $date='', $time='')
     {
         if ($account_id && $amount !== 0 && $type > 0) {
             $total_balance = 0;
@@ -1200,6 +1195,7 @@ class QuantifyAccount extends Base
             ];
             $res = self::name('quantify_inout_gold')->insertGetId($insertData);
             if ($res) {
+                self::name('quantify_equity_monitoring')->where(['account_id' => $account_id, 'date' => $date])->update(['total_balance' => $total_balance, 'up_time' => date('Y-m-d H:i:s')]);
                 return true;
             }
         }
