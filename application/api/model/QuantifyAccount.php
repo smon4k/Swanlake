@@ -124,10 +124,10 @@ class QuantifyAccount extends Base
                 // $totalBalance = 42792.03; //总结余
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
-                $countStandardPrincipal = 0; //累计本金
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
+                $countStandardPrincipal = $total_balance; //累计本金 = 出入金总结余
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
-                $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
+                // $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
                 
                 $dailyProfit = 0; //昨日利润
                 $dailyProfitRate = 0; //昨日利润率
@@ -218,7 +218,7 @@ class QuantifyAccount extends Base
                             // return true;
                         }
                     } else {
-                        // self::getTransferHistory($accountInfo);
+                        self::getTransferHistory($accountInfo);
                         $isTrue = true;
                         // self::commit();
                         // return true;

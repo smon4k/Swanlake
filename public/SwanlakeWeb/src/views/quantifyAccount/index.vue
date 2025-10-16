@@ -157,7 +157,7 @@
                     <span v-else>出金</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="total_balance" label="账户余额" align="center" width="150">
+                <el-table-column prop="total_balance" label="累计本金" align="center" width="150">
                     <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
                     </template>
