@@ -211,7 +211,7 @@ class QuantifyAccount extends Base
                 $isTrue = false;
                 if ($saveUres !== false) {
                     if ($amount > 0) {
-                        $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark);
+                        $isIntOut = self::setInoutGoldRecord($account_id, $amount, $tradingPrice, $direction, $remark, $date);
                         if ($isIntOut) {
                             $isTrue = true;
                             // self::commit();
