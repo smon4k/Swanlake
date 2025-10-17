@@ -1744,7 +1744,7 @@ class QuantifyAccount extends Base
      */
     public static function recycleQuantityAccount($account_id) {
         $result = self::name('quantify_account')->where('id', $account_id)->update(['state' => 1]);
-        if ($result) {
+        if ($result !== false) {
             return true;
         } else {
             return false;
