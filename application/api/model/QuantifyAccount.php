@@ -1736,4 +1736,18 @@ class QuantifyAccount extends Base
             return false;
         }
     }
+
+    /**
+     * 将账户移到回收站
+     * @author qinlh
+     * @since 2025-10-17
+     */
+    public static function recycleQuantityAccount($account_id) {
+        $result = self::where('id', $account_id)->update(['state' => 1]);
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

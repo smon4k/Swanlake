@@ -345,6 +345,24 @@ class QuantifyaccountController extends QuantifybaseController
         }
     }
 
+    /**
+     * 将账户移到回收站
+     * @author qinlh
+     * @since 2025-10-17
+     */
+    public function recycleQuantityAccount(Request $request) {
+        $account_id = $request->request('account_id', 0, 'intval');
+        if ($account_id <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $result = QuantifyAccount::recycleQuantityAccount($account_id);
+        if ($result) {
+            return $this->as_json('ok');
+        } else {
+            return $this->as_json(70001, 'Error');
+        }
+    }
+
     // public function test(Request $request) {
     //     $accountInfo = QuantifyAccount::getAccountInfo(19);
     //     QuantifyAccount::getTransferHistory($accountInfo);

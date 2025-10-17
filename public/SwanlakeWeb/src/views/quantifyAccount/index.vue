@@ -7,8 +7,9 @@
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
             <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
             <el-button type="primary" @click="addQuantityAccount()">添加账户</el-button>
+            <el-button type="primary" @click="deleteQuantityAccount()">删除账户</el-button>
         </div>
-        <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
+        <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'top'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
             <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
                 <div v-if="!isMobel">
                     <el-table
@@ -982,6 +983,35 @@ export default {
                     console.log('error submit!!');
                     return false;
                 }
+            });
+        },
+        deleteQuantityAccount() { //删除账户
+            this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                const loading = this.$loading({
+                    target: '.el-dialog',
+                });
+                get(this.apiUrl + '/Api/QuantifyAccount/recycleQuantityAccount', {
+                    account_id: this.tabAccountId,
+                }, (json) => {
+                    console.log(json);
+                    if (json && json.code == 10000) {
+                        this.$message.success('删除成功');
+                        loading.close();
+                        this.getAccountList();
+                    } else {
+                        loading.close();
+                        this.$message.error(json.data.msg);
+                    }
+                })
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });
             });
         },
         dialogVisibleListClick() {
