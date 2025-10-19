@@ -280,7 +280,7 @@ class SignalProcessingTask:
             # TODO: 调用交易 API 下单
             strategy_info = await self.db.get_strategy_info(signal['name'])
             # 1.1 开仓前先平掉反向仓位
-            # await self.cleanup_opposite_positions(account_id, signal['symbol'], signal['direction'])
+            await self.cleanup_opposite_positions(account_id, signal['symbol'], signal['direction'])
 
             # 1.2 取消所有未成交的订单
             await cancel_all_orders(self, exchange, account_id, signal['symbol']) # 取消所有未成交的订单
@@ -687,6 +687,7 @@ class SignalProcessingTask:
                     'status': 'live',
                     'position_group_id': '',
                 })
+                logging.info(f"用户 {account_id} 开仓成功")
                 return True
             else:
                 # print(f"用户 {account_id} 开仓失败")
