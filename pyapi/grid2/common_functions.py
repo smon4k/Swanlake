@@ -284,13 +284,13 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
             except Exception as e:
                 if "Too Many Requests" in str(e):
                     delay = (attempt + 1) * 0.6 + random.uniform(0.1, 0.5)
-                    logging.warning(f"⏳ 请求过多，等待 {delay:.2f}s 后重试 ({attempt+1}/{retries})...")
+                    logging.warning(f"⏳ 用户 {account_id} 请求过多，等待 {delay:.2f}s 后重试 ({attempt+1}/{retries})...")
                     await asyncio.sleep(delay)
                     continue
                 else:
-                    logging.error(f"获取未成交订单失败 params={params}: {e}")
+                    logging.error(f"用户 {account_id} 获取未成交订单失败 params={params}: {e}")
                     return []
-        logging.error(f"多次重试仍失败 params={params}")
+        logging.error(f"用户 {account_id} 获取未成交订单多次重试仍失败 params={params}")
         return []
 
     async def cancel_orders(order_list: list, params: dict):
@@ -301,13 +301,14 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
             #     continue
             try:
                 cancel_order = await exchange.cancel_order(order['id'], symbol, params)
-                logging.info(f"取消订单: {order['id']} params={params}")
+                logging.info(f"用户 {account_id} 取消订单: {order['id']} params={params}")
                 if cancel_order.get('info', {}).get('sCode') == '0':
                     existing_order = await self.db.get_order_by_id(account_id, order['id'])
                     if existing_order:
                         await self.db.update_order_by_id(account_id, order['id'], {'status': 'canceled'})
+                        logging.info(f"用户 {account_id} 订单 {order['id']} 更新状态为 canceled")
             except Exception as e:
-                logging.error(f"取消订单失败: {order['id']} params={params}, error={e}")
+                logging.error(f"用户 {account_id} 取消订单失败: {order['id']} params={params}, error={e}")
 
     try:
         # 1️⃣ 取消普通订单（永续合约）
@@ -316,7 +317,7 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
         if normal_orders:
             await cancel_orders(normal_orders, normal_params)
         else:
-            logging.info("无普通订单需要取消")
+            logging.info(f"用户 {account_id} 无普通订单需要取消")
 
         # 2️⃣ 取消条件单（策略单）—— 由 cancel_conditional 控制
         if cancel_conditional:
@@ -329,11 +330,11 @@ async def cancel_all_orders(self, exchange, account_id: int, symbol: str, side: 
             if conditional_orders:
                 await cancel_orders(conditional_orders, conditional_params)
             else:
-                logging.info("无条件单需要取消")
+                logging.info(f"用户 {account_id} 无条件单需要取消")
         else:
-            logging.info("跳过取消条件单")
+            logging.info(f"用户 {account_id} 跳过取消条件单")
     except Exception as e:
-        logging.error(f"取消所有订单失败: {e}")
+        logging.error(f"用户 {account_id} 取消所有订单失败: {e}")
     finally:
         await exchange.close()
 
