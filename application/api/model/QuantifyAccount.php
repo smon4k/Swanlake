@@ -1070,6 +1070,37 @@ class QuantifyAccount extends Base
     }
 
     /**
+     * 获取账户资金本金列表
+     * @author qinlh
+     * @since 2025-10-19
+     */
+    public static function getAccountPrincipalList($where=[]) {
+        // 获取quantify_account表中用户记录，并关联s_quantify_equity_monitoring表最新一条principal
+        $subQuery = self::name('quantify_equity_monitoring')
+            ->alias('m1')
+            ->field('m1.account_id, m1.principal')
+            ->where('m1.id IN (SELECT MAX(id) FROM s_quantify_equity_monitoring GROUP BY account_id)')
+            ->buildSql();
+
+        $data = self::name('quantify_account')
+            ->alias('a')
+            ->where($where)
+            ->join([$subQuery => 'm'], 'a.id = m.account_id', 'LEFT')
+            ->field('a.*, m.principal as last_principal')
+            ->select();
+
+        if($data && count((array)$data) > 0) {
+            $arrayData = $data->toArray();
+            // 对结果按照last_principal从大到小排序
+            usort($arrayData, function($a, $b) {
+                return floatval($b['last_principal']) <=> floatval($a['last_principal']);
+            });
+            return $arrayData;
+        }
+        return [];
+    }
+
+    /**
      * 获取昨天数据
      * @author qinlh
      * @since 2022-08-20

@@ -9,7 +9,7 @@
             <el-button type="primary" @click="addQuantityAccount()">添加账户</el-button>
             <el-button type="primary" :disabled="activeName == '全部' || activeName == ''" @click="deleteQuantityAccount()">删除账户</el-button>
         </div>
-        <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'top'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
+        <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
             <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
                 <div v-if="!isMobel">
                     <el-table
@@ -847,7 +847,7 @@ export default {
             });
         },
         getAccountList() {
-            get(this.apiUrl + "/Api/QuantifyAccount/getAccountList", {
+            get(this.apiUrl + "/Api/QuantifyAccount/getAccountPrincipalList", {
                 user_id: this.userOkxId
             }, json => {
                 console.log(json.data);
