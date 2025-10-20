@@ -24,6 +24,7 @@ use ClassLibrary\CLFfmpeg;
 use ClassLibrary\CLFile;
 use RequestService\RequestService;
 use think\Log;
+use think\Db;
 use think\Config;
 use cache\Rediscache;
 
