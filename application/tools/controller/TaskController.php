@@ -593,19 +593,25 @@ class TaskController extends ToolsBaseController
             // ]);
             // p($balance);
             // QuantifyAccount::calcQuantifyAccountData(1);die;
-        foreach ($accountList as $key => $val) {
-            $account_id = $val['id'];
-            $key = "Swanlake:calcDepositAndWithdrawal:".$account_id.":Lock";
-            $isStart = Rediscache::getInstance()->get($key);
-            if(!$isStart) {
-                QuantifyAccount::calcQuantifyAccountData($account_id);
+            Db::startTrans();
+            try {
+                foreach ($accountList as $key => $val) {
+                    $account_id = $val['id'];
+                    $key = "Swanlake:calcDepositAndWithdrawal:".$account_id.":Lock";
+                    $isStart = Rediscache::getInstance()->get($key);
+                    if(!$isStart) {
+                        Rediscache::getInstance()->set($key, 1); 
+                        QuantifyAccount::calcQuantifyAccountData($account_id);
+                        Rediscache::getInstance()->del($key); 
+                    }
+                }
+                QuantifyAccount::calcQuantifyAccountTotalData();
+                Db::commit();
+            } catch (\Exception $e) {
+                Db::rollback();
+                echo $e->getMessage();
             }
-        }
-
-        QuantifyAccount::calcQuantifyAccountTotalData();
-            
-        
-        return (time() - $begin_time) . "s\n";
+            return (time() - $begin_time) . "s\n";
     }
 
     /**
@@ -625,17 +631,24 @@ class TaskController extends ToolsBaseController
             // ]);
             // p($balance);
             // QuantifyAccount::calcQuantifyAccountData(1);die;
-        foreach ($accountList as $key => $val) {
-            $account_id = $val['id'];
-            $key = "Swanlake:calcGridDepositAndWithdrawal:".$account_id.":Lock";
-            $isStart = Rediscache::getInstance()->get($key);
-            if(!$isStart) {
-                QuantifyAccountGrid::calcQuantifyAccountData($account_id);
+            Db::startTrans();
+            try {
+                foreach ($accountList as $key => $val) {
+                    $account_id = $val['id'];
+                    $key = "Swanlake:calcGridDepositAndWithdrawal:".$account_id.":Lock";
+                    $isStart = Rediscache::getInstance()->get($key);
+                    if(!$isStart) {
+                        Rediscache::getInstance()->set($key, 1); 
+                        QuantifyAccountGrid::calcQuantifyAccountData($account_id);
+                        Rediscache::getInstance()->del($key); 
+                    }
+                }
+                QuantifyAccountGrid::calcQuantifyAccountTotalData();
+                Db::commit();
+            } catch (\Exception $e) {
+                Db::rollback();
+                echo $e->getMessage();
             }
-        }
-
-        QuantifyAccountGrid::calcQuantifyAccountTotalData();
-            
         
         return (time() - $begin_time) . "s\n";
     }

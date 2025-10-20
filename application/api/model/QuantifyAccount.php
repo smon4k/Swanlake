@@ -94,7 +94,7 @@ class QuantifyAccount extends Base
      */
     public static function calcQuantifyAccountData($account_id=0, $direction=0, $amount=0, $remark='', $profit_amount=0, $profit_remark='') {
         if($account_id) {
-            self::startTrans();
+            // self::startTrans();
             try {
                 date_default_timezone_set("Etc/GMT-8");
                 $date = date('Y-m-d');
@@ -118,6 +118,7 @@ class QuantifyAccount extends Base
 
                 $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
                 if($totalBalance <= 0) {
+                    echo "【" . $accountInfo['id'] . "】总结余为0\r\n";
                     return false;
                 }
 
@@ -232,15 +233,15 @@ class QuantifyAccount extends Base
                     if($profit_amount > 0) { //开始写入分润记录表
                         $IsDividendRec = self::setDividendRecord($account_id, $profit_amount, $profit_remark);
                         if($IsDividendRec) {
-                            self::commit();
+                            // self::commit();
                             return true;
                         }
                     } else {
-                        self::commit();
+                        // self::commit();
                         return true;
                     }
                 }
-                self::rollback();
+                // self::rollback();
                 return false;
             } catch (\Exception $e) {
                 $error_msg = json_encode([
@@ -250,7 +251,7 @@ class QuantifyAccount extends Base
                     'code' => $e->getCode(),
                 ], JSON_UNESCAPED_UNICODE);
                 echo $error_msg . "\r\n";
-                self::rollback();
+                // self::rollback();
                 return false;
             }
         }
@@ -373,7 +374,7 @@ class QuantifyAccount extends Base
      * @since 2024-11-26
      */
     public static function calcQuantifyAccountTotalData() {
-        self::startTrans();
+        // self::startTrans();
         try {
             date_default_timezone_set("Etc/GMT-8");
             $date = date('Y-m-d');
@@ -449,7 +450,7 @@ class QuantifyAccount extends Base
                 ]);
             }
 
-            self::commit();
+            // self::commit();
             return true;
         } catch (\Exception $e) {
             $error_msg = json_encode([
@@ -459,7 +460,7 @@ class QuantifyAccount extends Base
                 'code' => $e->getCode(),
             ], JSON_UNESCAPED_UNICODE);
             echo $error_msg . "\r\n";
-            self::rollback();
+            // self::rollback();
             return false;
         }
     }
@@ -563,8 +564,8 @@ class QuantifyAccount extends Base
             $btcBalance = 0;
             $usdtBalance = 0;
             if(empty($balanceDetails['details']) || count($balanceDetails) <= 0) {
-                echo "【" . $accountInfo['id'] . "】没有余额\r\n";
-                return false;
+                // echo "【" . $accountInfo['id'] . "】没有余额\r\n";
+                return ['usdtBalance' => 0];
             }
             $usdtBalance = $balanceDetails['totalEq'] > 0 ? $balanceDetails['totalEq'] : 0; //总余额
             foreach ($balanceDetails['details'] as $k => $v) {
