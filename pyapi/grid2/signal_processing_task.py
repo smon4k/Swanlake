@@ -708,7 +708,7 @@ class SignalProcessingTask:
             # print("market_precision", market_precision, price)
             open_coefficient_num = 1
             if pos_side == 'short': # 做空
-                open_coefficient_num = open_coefficient # 开仓系数
+                open_coefficient_num = open_coefficient # 空单系数
             position_size = (balance * position_percent * open_coefficient_num) / (price * Decimal(market_precision['contract_size']))
             position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 

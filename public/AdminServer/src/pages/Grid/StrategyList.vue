@@ -21,7 +21,7 @@
                     <span>{{ keepDecimalNotRounding(scope.row.stop_loss_percent, 3) }}%</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="open_coefficient" label="开仓系数" align="center">
+            <el-table-column prop="open_coefficient" label="空单系数" align="center">
                 <template slot-scope="scope">
                     <span>{{ keepDecimalNotRounding(scope.row.open_coefficient, 3) }}</span>
                 </template>
@@ -56,7 +56,7 @@
                 <el-form-item label="止损率(%)">
                     <el-input-number v-model="editForm.stop_loss_percent" :min="0" />
                 </el-form-item>
-                <el-form-item label="开仓系数">
+                <el-form-item label="空单系数">
                     <el-input-number v-model="editForm.open_coefficient" :min="0" />
                 </el-form-item>
             </el-form>
