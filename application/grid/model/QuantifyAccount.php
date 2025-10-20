@@ -1099,7 +1099,7 @@ class QuantifyAccount extends Base
             ->where('m1.id IN (SELECT MAX(id) FROM g_quantify_equity_monitoring GROUP BY account_id)')
             ->buildSql();
 
-        $data = self::name('quantify_account')
+        $data = self::name('accounts')
             ->alias('a')
             ->where($where)
             ->join([$subQuery => 'm'], 'a.id = m.account_id', 'LEFT')
