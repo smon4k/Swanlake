@@ -301,7 +301,8 @@ class SignalProcessingTask:
                 signal['symbol'],
                 signal['direction'],
                 side,
-                signal['price']
+                signal['price'],
+                strategy_info['open_coefficient']
             )
 
             if not open_position:
@@ -574,7 +575,7 @@ class SignalProcessingTask:
             await exchange.close()
 
                 
-    async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, price: Decimal):
+    async def handle_open_position(self, account_id: int, symbol: str, pos_side: str, side: str, price: Decimal, open_coefficient: Decimal):
         try:
             """处理开仓"""
             # print(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
@@ -622,7 +623,7 @@ class SignalProcessingTask:
             #     balance = max_position
             # print(f"最大开仓数量: {max_balance}")
             logging.info(f"用户 {account_id} 最大开仓数量: {max_position}")
-            size = await self.calculate_position_size(market_precision, max_position, position_percent, price, account_id)
+            size = await self.calculate_position_size(market_precision, max_position, position_percent, price, account_id, pos_side, open_coefficient)
             # print(f"开仓价: {price}")
             logging.info(f"用户 {account_id} 开仓价: {price} {position_percent}")
             # print(f"开仓量: {size}")
@@ -700,13 +701,15 @@ class SignalProcessingTask:
         finally:
             await exchange.close()
 
-    async def calculate_position_size(self, market_precision: object, balance: Decimal, position_percent: Decimal, price: float, account_id: int) -> Decimal:
+    async def calculate_position_size(self, market_precision: object, balance: Decimal, position_percent: Decimal, price: float, account_id: int, pos_side: str, open_coefficient: Decimal) -> Decimal:
         """计算仓位大小"""
         try:
             # market_precision = await get_market_precision(exchange, symbol, 'SWAP')
             # print("market_precision", market_precision, price)
-
-            position_size = (balance * position_percent) / (price * Decimal(market_precision['contract_size']))
+            open_coefficient_num = 1
+            if pos_side == 'short': # 做空
+                open_coefficient_num = open_coefficient # 开仓系数
+            position_size = (balance * position_percent * open_coefficient_num) / (price * Decimal(market_precision['contract_size']))
             position_size = position_size.quantize(Decimal(market_precision['amount']), rounding='ROUND_DOWN')
 
             # total_position = Decimal(self.db.account_config_cache[account_id].get('total_position', 0)) # 获取配置文件对应币种最大持仓

@@ -21,6 +21,11 @@
                     <span>{{ keepDecimalNotRounding(scope.row.stop_loss_percent, 3) }}%</span>
                 </template>
             </el-table-column>
+            <el-table-column prop="open_coefficient" label="开仓系数" align="center">
+                <template slot-scope="scope">
+                    <span>{{ keepDecimalNotRounding(scope.row.open_coefficient, 3) }}</span>
+                </template>
+            </el-table-column>
             <el-table-column label="操作" align="center" width="100">
                 <template slot-scope="scope">
                     <el-button type="text" size="small" @click="openEditDialog(scope.row)">编辑</el-button>
@@ -51,6 +56,9 @@
                 <el-form-item label="止损率(%)">
                     <el-input-number v-model="editForm.stop_loss_percent" :min="0" />
                 </el-form-item>
+                <el-form-item label="开仓系数">
+                    <el-input-number v-model="editForm.open_coefficient" :min="0" />
+                </el-form-item>
             </el-form>
             <template #footer>
                 <el-button @click="dialogVisible = false">取消</el-button>
@@ -77,7 +85,8 @@ export default {
                 name: '',
                 max_position: 0,
                 min_position: 0,
-                stop_loss_percent: 0
+                stop_loss_percent: 0,
+                open_coefficient: 0
             }
         };
     },
@@ -128,7 +137,8 @@ export default {
                 name: row.name,
                 max_position: row.max_position,
                 min_position: row.min_position,
-                stop_loss_percent: row.stop_loss_percent
+                stop_loss_percent: row.stop_loss_percent,
+                open_coefficient: row.open_coefficient
             };
             this.dialogVisible = true;
         },
@@ -139,7 +149,8 @@ export default {
                     id: this.editForm.id,
                     max_position: this.editForm.max_position,
                     min_position: this.editForm.min_position,
-                    stop_loss_percent: this.editForm.stop_loss_percent
+                    stop_loss_percent: this.editForm.stop_loss_percent,
+                    open_coefficient: this.editForm.open_coefficient
                 };
                 post("/Grid/grid/updateStrategyMaxMinPosition", params, response => {
                     if (response.data.code === 10000) {

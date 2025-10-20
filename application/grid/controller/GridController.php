@@ -267,13 +267,15 @@ class GridController extends BaseController
         $max_position = $request->post('max_position', '', 'trim');
         $min_position = $request->post('min_position', '', 'trim');
         $stop_loss_percent = $request->post('stop_loss_percent', '', 'trim');
-        if ($id <= 0 || !$max_position || !$min_position || !$stop_loss_percent) {
+        $open_coefficient = $request->post('open_coefficient', '', 'trim');
+        if ($id <= 0 || !$max_position || !$min_position || !$stop_loss_percent || !$open_coefficient) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $data = [
             'max_position' => $max_position,
             'min_position' => $min_position,
             'stop_loss_percent' => $stop_loss_percent,
+            'open_coefficient' => $open_coefficient,
             'updated_at' => date('Y-m-d H:i:s'), 
         ];
         $res = Strategy::updateStrategyMaxMinPosition($id, $data);
