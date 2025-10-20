@@ -126,6 +126,26 @@ class QuantifyaccountController extends BaseController
     }
 
     /**
+     * 获取账户资金本金列表
+     * @author qinlh
+     * @since 2025-10-19
+     */
+    public function getAccountPrincipalList(Request $request) {
+        $external = $request->request('external', 0, 'intval');
+        $user_id = $request->request('user_id', 0, 'intval');
+        $where = [];
+        $where['a.state'] = 1;
+        if($external) {
+            $where['a.external'] = 1;
+        }
+        if($user_id) {
+            $where['a.user_id'] = $user_id;
+        }
+        $result = QuantifyAccount::getAccountPrincipalList($where);
+        return $this->as_json($result);
+    }
+
+    /**
      * 获取账户列表
      * @author qinlh
      * @since 2023-01-31

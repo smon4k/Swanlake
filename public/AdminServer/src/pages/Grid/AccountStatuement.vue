@@ -829,7 +829,7 @@ export default {
             });
         },
         getAccountList() {
-            get("/Grid/QuantifyAccount/getAccountList", {
+            get("/Grid/QuantifyAccount/getAccountPrincipalList", {
                 user_id: this.userOkxId
             }, json => {
                 console.log(json.data);
