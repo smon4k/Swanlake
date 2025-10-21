@@ -700,9 +700,20 @@ class SignalProcessingTask:
             return False
         finally:
             await exchange.close()
-
+    
+    # 计算仓位大小
     async def calculate_position_size(self, market_precision: object, balance: Decimal, position_percent: Decimal, price: float, account_id: int, pos_side: str, open_coefficient: Decimal) -> Decimal:
-        """计算仓位大小"""
+        """
+        计算仓位大小
+        :param market_precision: 市场精度
+        :param balance: 账户余额
+        :param position_percent: 开仓比例
+        :param price: 开仓价
+        :param account_id: 账户 ID
+        :param pos_side: 仓位方向
+        :param open_coefficient: 开仓系数
+        :return: Decimal 类型的仓位大小
+        """
         try:
             # market_precision = await get_market_precision(exchange, symbol, 'SWAP')
             # print("market_precision", market_precision, price)
