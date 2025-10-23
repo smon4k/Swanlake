@@ -283,7 +283,7 @@ function CurlRequest($url, $header, $content=array(), $backHeader=0, $cookie='')
         if(getIsCli()) {
             return 'prod';
         }
-        if ($_SERVER['HTTP_HOST'] === 'www.swanlake.club') { //正式环境
+        if ($_SERVER['HTTP_HOST'] === 'yutstly.xyz' || $_SERVER['HTTP_HOST'] === 'www.yutstly.xyz') { //正式环境
             return 'prod';
         } else {
             return 'dev';
