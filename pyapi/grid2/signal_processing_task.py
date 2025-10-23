@@ -622,10 +622,10 @@ class SignalProcessingTask:
             # if balance >= max_balance: # 超过最大仓位限制
             #     balance = max_position
             # print(f"最大开仓数量: {max_balance}")
-            logging.info(f"用户 {account_id} 最大开仓数量: {max_position}")
+            logging.info(f"用户 {account_id} 最大开仓数量: {max_position} 开仓系数: {open_coefficient}")
             size = await self.calculate_position_size(market_precision, max_position, position_percent, price, account_id, pos_side, open_coefficient)
             # print(f"开仓价: {price}")
-            logging.info(f"用户 {account_id} 开仓价: {price} {position_percent}")
+            logging.info(f"用户 {account_id} 开仓价: {price} 开仓比例: {position_percent}")
             # print(f"开仓量: {size}")
             print(f"用户 {account_id} 开仓量: {size} {market_precision['amount']}")
             logging.info(f"用户 {account_id} 开仓量: {size} {market_precision['amount']}")
