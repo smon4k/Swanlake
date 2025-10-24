@@ -156,8 +156,8 @@ class PriceMonitoringTask:
                 # ⚡ 处理无持仓情况
                 if not positions:
                     logging.info(f"🔍 无持仓，取消订单: {account_id} {order['order_id']} {symbol} {order['side']}")
-                    await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
-                    await cancel_all_orders(self, exchange, account_id, symbol)
+                    # await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
+                    # await cancel_all_orders(self, exchange, account_id, symbol)
                     continue
 
                 state = order_info['info']['state']
