@@ -767,7 +767,7 @@ class Database:
         """
         try:
             # print(f"开始批量更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
-            # logging.info(f"开始批量更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
+            logging.info(f"开始批量更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 获取所有用户的max_position_list
@@ -855,6 +855,7 @@ class Database:
                         logging.info(f"账户{account_id}更新max_position_list成功: {new_max_position_list}")
                         # 记录仓位变更记录
                         if position_cache != -1:
+                            logging.info(f"账户{account_id}记录仓位变更记录: {position_cache}")
                             await self.record_account_position_change(account_id, position_cache, sign_id)
                 conn.commit()
             return True
