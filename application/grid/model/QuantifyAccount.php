@@ -103,7 +103,7 @@ class QuantifyAccount extends Base
                 $url = Config('okx_uri') . "/api/okex/get_market_ticker?instId=BTC-USDT";
                 $prices = self::getOkxRequesInfo($accountInfo, $url);
                 // $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
-                $tradingPrice = $prices['last'];
+                $tradingPrice = isset($prices['last']) ? $prices['last'] : 0;
                 // $tradingPrice = 1;
                 $tradepair_balance = 0;
                 $funding_balance = 0;
@@ -126,10 +126,14 @@ class QuantifyAccount extends Base
                 $yestData = self::getYestTotalPrincipal($account_id, $date); //获取昨天的数据
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
-                $countStandardPrincipal = 0; //累计本金
+                $amount_num = 0;
+                if ($amount > 0) {
+                    $amount_num = $direction == 1 ? $amount : (float)$amount *= -1;
+                }
+                $countStandardPrincipal = $total_balance + $amount_num; //累计本金 = 出入金总结余
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
                 // $depositTodayNum = $depositToday *= -1; // 入金为负数 出金为正数 计算反过来
-                $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
+                // $countStandardPrincipal = self::calculateStandardPrincipal($account_id, $date, $amount, $direction, $total_balance, $depositToday, $yestData, $dayData, $totalBalance);
                 
                 $dailyProfit = 0; //昨日利润
                 $dailyProfitRate = 0; //昨日利润率
