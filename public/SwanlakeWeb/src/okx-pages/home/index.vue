@@ -846,7 +846,7 @@ export default {
 </script>
 <style lang="scss" scoped>
    .container {
-      /deep/ {
+      ::v-deep  {
             padding: 16px;
           .el-breadcrumb {
               height: 25px;

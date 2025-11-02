@@ -803,114 +803,113 @@ export default {
 </script>
 <style lang="scss" scoped>
     .container {
-        /deep/ {
-            .box-card {
-                padding: 10px;
-                margin-bottom: 20px;
-                border-radius: 20px;
-                .el-card__body {
-                    padding: 0;
-                    div {
-                        font-size: 13px;
-                    }
-                }
-                .public-info {
-                    padding: 10px;
-                    font-size: 10px;
-                    text-align: right;
-                    margin-right: 30px;
-                }
-                .info {
-                    padding: 30px;
-                    .el-divider {
-                        background-color: rgba(255,255,255,0.1);
-                        width: 80%;
-                        // margin: 0 auto;
-                        top: 10px;
-                    }
-                } 
-                .model-info {
-                    margin-top: 10px;
+        .box-card {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 20px;
+            .el-card__body {
+                padding: 0;
+                div {
                     font-size: 13px;
-                    padding: 0;
                 }
             }
-            .commin-title {
-                margin-bottom: 10px;
-                .btn {
-                    display: inline-block;
-                    padding: 0 17px;
-                    height: 30px;
-                    background: linear-gradient(90deg, #0096FF, #0024FF);
-                    color: #fff;
-                    border-style: solid;
-                    border-width: 1px;
-                    border-radius: 15px;
-                    line-height: 28px;
-                    vertical-align: middle;
-                    margin-left: 8px;
-                    cursor: pointer;
-                    position: relative;
-                    box-sizing: border-box;
-                }
-                .tit {
-                    padding-right: 14px;
-                    display: inline-block;
-                    font-weight: 800;
-                    font-size: 13px;        
-                }
-            }
-            .el-table {
-                border-radius: 20px;
+            .public-info {
+                padding: 10px;
                 font-size: 10px;
-                .cell {
-                    padding-left: unset;
-                    .el-button--mini.is-round {
-                        padding: 4px 15px;
-                    }
-                    button {
-                        color: #409EFF;
-                        border-color: #409EFF;
-                    }
-                    button.is-disabled {
-                        color: #C0C4CC;
-                        border-color: #EBEEF5;
-                    }
-                    .el-link {
-                        font-size: 10px;
-                    }
+                text-align: right;
+                margin-right: 30px;
+            }
+            .info {
+                padding: 30px;
+                .el-divider {
+                    background-color: rgba(255,255,255,0.1);
+                    width: 80%;
+                    // margin: 0 auto;
+                    top: 10px;
+                }
+            } 
+            .model-info {
+                margin-top: 10px;
+                font-size: 13px;
+                padding: 0;
+            }
+        }
+        .commin-title {
+            margin-bottom: 10px;
+            .btn {
+                display: inline-block;
+                padding: 0 17px;
+                height: 30px;
+                background: linear-gradient(90deg, #0096FF, #0024FF);
+                color: #fff;
+                border-style: solid;
+                border-width: 1px;
+                border-radius: 15px;
+                line-height: 28px;
+                vertical-align: middle;
+                margin-left: 8px;
+                cursor: pointer;
+                position: relative;
+                box-sizing: border-box;
+            }
+            .tit {
+                padding-right: 14px;
+                display: inline-block;
+                font-weight: 800;
+                font-size: 13px;        
+            }
+        }
+        .el-table {
+            border-radius: 20px;
+            font-size: 10px;
+            .cell {
+                padding-left: unset;
+                .el-button--mini.is-round {
+                    padding: 4px 15px;
+                }
+                button {
+                    color: #409EFF;
+                    border-color: #409EFF;
+                }
+                button.is-disabled {
+                    color: #C0C4CC;
+                    border-color: #EBEEF5;
+                }
+                .el-link {
+                    font-size: 10px;
                 }
             }
-            .el-descriptions {
-                margin-bottom: 20px;
-                .el-descriptions__body {
-                    padding: 20px;
-                    border-radius: 20px;
-                    .el-descriptions-item__container {
-                        .el-descriptions-item__content {
-                            display: unset;
-                            text-align: right;
-                            .operate {
-                                text-align: center;
-                                button {
-                                    width: 80px;
-                                }
+        }
+        .el-descriptions {
+            margin-bottom: 20px;
+            .el-descriptions__body {
+                padding: 20px;
+                border-radius: 20px;
+                .el-descriptions-item__container {
+                    .el-descriptions-item__content {
+                        display: unset;
+                        text-align: right;
+                        .operate {
+                            text-align: center;
+                            button {
+                                width: 80px;
                             }
                         }
                     }
                 }
             }
-            .info {
-                .title {
-                    font-weight: 800;
-                }
-            }
-            .el-dialog__body {
-                padding-top: 0;
-                .el-table .el-table__cell {
-                    padding: 10px 0;
-                }
+        }
+        .info {
+            .title {
+                font-weight: 800;
             }
         }
+        .el-dialog__body {
+            padding-top: 0;
+            .el-table .el-table__cell {
+                padding: 10px 0;
+            }
+        }
+        
     }
 </style>

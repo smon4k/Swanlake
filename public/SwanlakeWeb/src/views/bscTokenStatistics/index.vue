@@ -988,7 +988,7 @@ export default {
 </script>
 <style lang="scss" scoped>
     .container {
-        /deep/ {
+        ::v-deep  {
             height: 100%;
             overflow: auto;
             .left-text {

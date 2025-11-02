@@ -23,12 +23,7 @@
         </div>
         <transition-group name="fade-transform" mode="out-in" tag="div" v-loading="listLoading">
           <div class="body" key="live">
-            <div
-              v-for="(item, index) in hashPowerList"
-              :key="index"
-              class="item live"
-              v-loading="item.loading"
-            >
+            <div v-for="(item, index) in hashPowerList" :key="index" class="item live" v-loading="item.loading">
               <div class="kind">
                 <div>
                   <span>{{ item.time }}</span>
@@ -43,9 +38,9 @@
                 <p class="bold">{{ item.status == 1 ? $t('subscribe:buy') : '' }}</p>
               </div>
               <div class="kind">
-                  <a :href="domainHostAddress + item.hash" target="_blank">
-                      <img :src="require(`@/assets/view-data.png`)" width="20" />
-                  </a>
+                <a :href="domainHostAddress + item.hash" target="_blank">
+                  <img :src="require(`@/assets/view-data.png`)" width="20" />
+                </a>
               </div>
               <!-- <div class="opera">
                 <div
@@ -59,21 +54,16 @@
                 <div class="pick" @click="toDetail(2, item)">Withdraw</div>
               </div> -->
             </div>
-            <div class="noresult" v-if="!hashPowerList.length&&!listLoading">
-                <!-- {{ $t('public:nothing') }} -->
-                <el-empty :description="$t('public:nothing')"></el-empty>
+            <div class="noresult" v-if="!hashPowerList.length && !listLoading">
+              <!-- {{ $t('public:nothing') }} -->
+              <el-empty :description="$t('public:nothing')"></el-empty>
             </div>
           </div>
         </transition-group>
       </div>
       <div class="common-page-outer">
-        <wbc-page
-          :total="total"
-          :pageSize="pageSize"
-          :currPage="currPage"
-          @changeLimit="limitPaging"
-          @changeSkip="skipPaging"
-        ></wbc-page>
+        <wbc-page :total="total" :pageSize="pageSize" :currPage="currPage" @changeLimit="limitPaging"
+          @changeSkip="skipPaging"></wbc-page>
         <!-- <el-pagination layout="prev, pager, next" :total="1"> </el-pagination> -->
       </div>
     </div>
@@ -107,22 +97,22 @@ export default {
     next();
   },
   watch: {
-      isConnected:{
-            immediate:true,
-            async handler(val){
-                if(val){
-                    this.getListData();
-                }   
-            }
+    isConnected: {
+      immediate: true,
+      async handler(val) {
+        if (val) {
+          this.getListData();
         }
+      }
+    }
   },
-  mounted() {},
+  mounted() { },
   computed: {
     ...mapState({
-        isConnected:state=>state.base.isConnected,
-        address:state=>state.base.address,
-        nftUrl:state=>state.base.nftUrl,
-        domainHostAddress:state=>state.base.domainHostAddress,
+      isConnected: state => state.base.isConnected,
+      address: state => state.base.address,
+      nftUrl: state => state.base.nftUrl,
+      domainHostAddress: state => state.base.domainHostAddress,
     }),
   },
   components: {
@@ -130,40 +120,40 @@ export default {
   },
   methods: {
     getListData(ServerWhere) {
-        if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
-            ServerWhere = {
-                limit: this.pageSize,
-                page: this.currPage,
-                address: this.address,
-            };
+      if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
+        ServerWhere = {
+          limit: this.pageSize,
+          page: this.currPage,
+          address: this.address,
+        };
+      }
+      axios.get(this.nftUrl + "/hashpower/Hashpower/getHashPowerList", {
+        params: ServerWhere
+      }).then((json) => {
+        // console.log(json);
+        // console.log(this.address);
+        if (json.code == 10000) {
+          this.hashPowerList = json.data.lists;
+          this.total = json.data.count;
+          this.listLoading = false;
+        } else {
+          this.$message.error("加载数据失败");
         }
-        axios.get(this.nftUrl + "/hashpower/Hashpower/getHashPowerList",{
-            params: ServerWhere
-        }).then((json) => {
-            // console.log(json);
-            // console.log(this.address);
-            if (json.code == 10000) {
-                this.hashPowerList = json.data.lists;
-                this.total = json.data.count;
-                this.listLoading = false;
-            } else {
-                this.$message.error("加载数据失败");
-            }
-        }).catch((error) => {
-            this.$message.error(error);
-        });
+      }).catch((error) => {
+        this.$message.error(error);
+      });
     },
     limitPaging(limit) {
-        //赋值当前条数
-        this.pageSize = limit;
-        if (
-            this.PageSearchWhere.limit &&
-            this.PageSearchWhere.limit !== undefined
-        ) {
-            this.PageSearchWhere.limit = limit;
-        }
-        this.PageSearchWhere.address = this.address;
-        this.getListData(this.PageSearchWhere); //刷新列表
+      //赋值当前条数
+      this.pageSize = limit;
+      if (
+        this.PageSearchWhere.limit &&
+        this.PageSearchWhere.limit !== undefined
+      ) {
+        this.PageSearchWhere.limit = limit;
+      }
+      this.PageSearchWhere.address = this.address;
+      this.getListData(this.PageSearchWhere); //刷新列表
     },
     skipPaging(page) {
       //赋值当前页数
@@ -182,158 +172,181 @@ export default {
 </script>
 <style lang="scss" scoped>
 .container {
-  /deep/ {
-    border-radius: 38px;
-    // min-height: 268px;
-    background-color: #fff;
-    // padding: 30px;
-    .noresult {
-      line-height: 60px;
-      text-align: center;
+  border-radius: 38px;
+  // min-height: 268px;
+  background-color: #fff;
+
+  // padding: 30px;
+  .noresult {
+    line-height: 60px;
+    text-align: center;
+    font-weight: 600;
+    padding-top: 20px;
+  }
+
+  .commin-title {
+    .btn {
+      display: inline-block;
+      padding: 0 17px;
+      height: 30px;
+      // border: 1px solid #333333;
+      // color: #333333;
+      border-style: solid;
+      border-width: 1px;
+      border-radius: 15px;
+      line-height: 28px;
+      vertical-align: middle;
+      margin-left: 8px;
+      cursor: pointer;
+      position: relative;
+      @include commonbtn($commonbtn-light);
+      box-sizing: border-box;
+    }
+
+    .btn.active {
+      background: linear-gradient(90deg, #0096ff, #0024ff);
+      color: #fff;
+      // border-color: transparent;
+      border: none;
+      line-height: 30px;
+    }
+
+    .tit {
+      padding-right: 14px;
+      display: inline-block;
+    }
+  }
+
+  .commin-title.IRO {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
+    padding-right: 23px;
+    font-size: 14px;
+
+    .boxtit {
+      color: #999999;
       font-weight: 600;
-      padding-top: 20px;
+      display: inline-block;
+      margin-right: 10px;
     }
-    .commin-title {
-      .btn {
-        display: inline-block;
-        padding: 0 17px;
-        height: 30px;
-        // border: 1px solid #333333;
-        // color: #333333;
-        border-style: solid;
-        border-width: 1px;
-        border-radius: 15px;
-        line-height: 28px;
-        vertical-align: middle;
-        margin-left: 8px;
-        cursor: pointer;
-        position: relative;
-        @include commonbtn($commonbtn-light);
-        box-sizing: border-box;
-      }
-      .btn.active {
-        background: linear-gradient(90deg, #0096ff, #0024ff);
-        color: #fff;
-        // border-color: transparent;
-        border: none;
-        line-height: 30px;
-      }
-      .tit {
-        padding-right: 14px;
-        display: inline-block;
-      }
+
+    .num {
+      font-weight: 600;
     }
-    .commin-title.IRO {
-      margin-top: 30px;
-      display: flex;
-      justify-content: space-between;
-      padding-right: 23px;
+
+    .btn {
+      display: inline-block;
+      width: 72px;
+      height: 32px;
+      background: linear-gradient(90deg, #0096ff, #0024ff);
+      border-radius: 15px;
+      text-align: center;
+      line-height: 32px;
       font-size: 14px;
-      .boxtit {
-        color: #999999;
-        font-weight: 600;
-        display: inline-block;
-        margin-right: 10px;
-      }
-      .num {
-        font-weight: 600;
-      }
-      .btn {
-        display: inline-block;
-        width: 72px;
-        height: 32px;
-        background: linear-gradient(90deg, #0096ff, #0024ff);
-        border-radius: 15px;
-        text-align: center;
-        line-height: 32px;
-        font-size: 14px;
-        color: #fff;
-        margin-left: 15px;
-        cursor: pointer;
-        border: none;
-        padding: 0;
-      }
-      .btn.disable {
-        @include enterDisabled($enterDisabled-light);
-        color: #fff;
-        cursor: not-allowed;
+      color: #fff;
+      margin-left: 15px;
+      cursor: pointer;
+      border: none;
+      padding: 0;
+    }
+
+    .btn.disable {
+      @include enterDisabled($enterDisabled-light);
+      color: #fff;
+      cursor: not-allowed;
+    }
+  }
+
+  .common-assets-list {
+    .head {
+      >div {
+        width: 10.5%;
       }
     }
-    .common-assets-list {
-      .head {
-        > div {
+
+    .head.live {
+      >div {
+        width: 100%;
+        text-align: center;
+      }
+
+      .opera {
+        width: 25%;
+      }
+    }
+
+    .body {
+      .item {
+        .reward {
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: center;
+        }
+
+        .el-icon-question {
+          display: inline-block;
+          width: 12px;
+        }
+
+        >div {
           width: 10.5%;
         }
-      }
-      .head.live {
-        > div {
-          width: 100%;
-          text-align: center;
+
+        .days {
+          width: 14%;
         }
+
         .opera {
-          width: 25%;
-        }
-      }
-      .body {
-        .item {
-          .reward {
-            flex-direction: row;
-            justify-content: flex-start;
-            align-items: center;
-          }
-          .el-icon-question {
-            display: inline-block;
-            width: 12px;
-          }
-          > div {
-            width: 10.5%;
-          }
-          .days {
-            width: 14%;
-          }
-          .opera {
-            width: 16%;
-            .live {
-              margin-right: 5px;
-              position: relative;
-              ::v-deep {
-                .el-loading-mask {
-                  border-radius: 15px;
-                }
-                .el-loading-spinner .circular {
-                  height: 22px;
-                  width: 22px;
-                }
-                .el-loading-spinner {
-                  margin-top: -11px;
-                }
+          width: 16%;
+
+          .live {
+            margin-right: 5px;
+            position: relative;
+
+            ::v-deep {
+              .el-loading-mask {
+                border-radius: 15px;
+              }
+
+              .el-loading-spinner .circular {
+                height: 22px;
+                width: 22px;
+              }
+
+              .el-loading-spinner {
+                margin-top: -11px;
               }
             }
-            .live.disabled {
-              @include enterDisabled($enterDisabled-light);
-              color: #fff;
-              cursor: not-allowed;
-            }
+          }
+
+          .live.disabled {
+            @include enterDisabled($enterDisabled-light);
+            color: #fff;
+            cursor: not-allowed;
           }
         }
-        .item.live {
-          > div {
-            width: 100%;
-            text-align: center;
-            font-size: 15px;
-          }
+      }
+
+      .item.live {
+        >div {
+          width: 100%;
+          text-align: center;
+          font-size: 15px;
         }
       }
     }
-    .common-assets-list.IRO {
-      .body {
-        .item {
-          > div {
-            width: 42%;
-          }
-          .opera {
-            width: 16%;
-          }
+  }
+
+  .common-assets-list.IRO {
+    .body {
+      .item {
+        >div {
+          width: 42%;
+        }
+
+        .opera {
+          width: 16%;
         }
       }
     }

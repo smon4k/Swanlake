@@ -335,7 +335,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-/deep/ {
+::v-deep  {
     .el-drawer__body {
         padding: 20px !important;
     }
@@ -455,7 +455,7 @@ export default {
         }
     }
     .language {
-        /deep/ {
+        ::v-deep  {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -508,7 +508,7 @@ export default {
         }
     }
     .carousel {
-        /deep/ {
+        ::v-deep  {
             margin-right: auto;
             width: 80%;
             height: 50px;

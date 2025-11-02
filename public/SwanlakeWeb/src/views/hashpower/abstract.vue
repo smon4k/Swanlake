@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+    <div class="container">
         <!-- <el-page-header @back="$router.go(-1)" :content="$t('subscribe:WhitePaper')"></el-page-header> -->
         <el-container class="main">
             <!-- <el-header class="title">{{ $t("subscribe:WhitePaper") }}</el-header> -->
@@ -56,47 +56,53 @@
                 </el-row>
             </el-main>
         </el-container>
-  </div>
+    </div>
 </template>
 <script>
 export default {
     data() {
         return {
-            
+
         }
     }
 }
 </script>
 <style lang="scss" scoped>
 .container {
-  /deep/ {
     border-radius: 30px;
     background-color: #fff !important;
+
     // padding: 30px;
     .main {
         padding: 20px;
         @include mainFont($color-mainFont-light);
+
         .el-main {
             padding: 0;
         }
+
         .images {
             text-align: center;
+
             .el-image {
                 width: 70%;
             }
         }
+
         .title {
             text-align: center;
             height: 30px !important;
             // line-height: 30px;
         }
+
         .content {
             line-height: 30px;
         }
+
         .item {
             margin-bottom: -10px;
         }
     }
-  }
+
 }
 </style>

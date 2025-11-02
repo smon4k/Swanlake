@@ -256,7 +256,7 @@ export default {
 </script>
 <style lang="scss" scoped>
     .container {
-        /deep/ {
+        ::v-deep  {
             // padding: 20px;
             .box-card {
                 position: relative;

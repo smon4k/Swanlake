@@ -762,7 +762,7 @@ export default {
     margin-top: 6px;
     padding: 0.75rem 0.75rem 0.75rem 1rem;
     .input-input {
-      /deep/ {
+      ::v-deep  {
         .el-input__inner {
           // width: 0px;
           position: relative;
@@ -834,7 +834,7 @@ export default {
   }
 
   .dialogClass {
-    /deep/ {
+    ::v-deep  {
       .el-dialog--center {
         width: 100%;
         max-width: 420px;

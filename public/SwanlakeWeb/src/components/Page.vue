@@ -34,7 +34,7 @@
 </script>
 <style lang="scss" scoped>
   .pagination{
-    /deep/ {
+    ::v-deep  {
       float: right;
       .el-pagination__total,.el-pagination__jump {
         @include mainFont($color-mainFont-light);
