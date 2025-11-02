@@ -43,7 +43,7 @@ class PriceMonitoringTask:
                     await asyncio.sleep(1)
                     continue
 
-                # 获取所有账户 ID
+                # 获取所有账户 IDƒ
                 account_ids = list(self.db.account_cache.keys())
                 if not account_ids:
                     await asyncio.sleep(self.config.check_interval)
@@ -155,7 +155,7 @@ class PriceMonitoringTask:
 
                 # ⚡ 处理无持仓情况
                 if not positions:
-                    logging.info(f"🔍 无持仓，取消订单: {account_id} {order['order_id']} {symbol} {order['side']}")
+                    # logging.info(f"🔍 无持仓，取消订单: {account_id} {order['order_id']} {symbol} {order['side']}")
                     # await self.db.update_order_by_id(account_id, order_info['id'], {'status': order_info['info']['state']})
                     # await cancel_all_orders(self, exchange, account_id, symbol)
                     continue
