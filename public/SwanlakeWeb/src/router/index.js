@@ -9,7 +9,8 @@ export const constantRoutes = [
     {
       path: '/',
       component: Layout,
-      redirect: '/hashpower/list',
+      // redirect: '/hashpower/list',
+      redirect: '/home',
       children: [
         {
           path: 'home',

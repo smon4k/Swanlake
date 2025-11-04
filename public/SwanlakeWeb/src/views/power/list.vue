@@ -234,7 +234,6 @@ export default {
     .el-table {
         font-size: 16px;
     }
-
     .el-descriptions {
         margin-bottom: 20px;
 

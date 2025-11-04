@@ -2,7 +2,6 @@
     .app-wrapper {
         width: 100%;
         .nav-container {
-            background-color: #fff;
             .container {
                 margin: 0 auto;
                 .sidebar-container {
@@ -50,34 +49,66 @@
                     }
                 }
                 .headerNav-container {
-                    position: relative;
+                    // position: fixed;
                     display: flex;
-                    justify-content: flex-end;
-                    // padding-right: 45px;
+                    justify-content: space-between;
                     align-items: center;
                     top: 0px;
                     right: 0px;
                     z-index: 1002;
                     // width: calc(100% - 270px);
-                    width: 100%;
+                    // width: 100%;
                     height: 63px;
+                    padding: 20px 40px;
+                    background-color: rgba(0, 5, 3, 0.8);
+                    border-bottom: 1px solid rgba(0, 232, 137, 0.15);
+                    backdrop-filter: blur(10px);
                     // background-color: #fff;
-                    @include topNavBgc($color-bgc-topnav-light);
+                    // @include topNavBgc($color-bgc-topnav-light);
                     // box-shadow: 0px 0px 8px 0px $color-sidebar-container-bs;
                     // box-sizing: border-box;
+
+                    > div:nth-child(2) {
+                        flex: 1;
+                        display: flex;
+                        justify-content: center;
+                        margin: 0 auto;
+                    }
+
+                    > div:last-child {
+                        display: flex;
+                        align-items: center;
+                        gap: 20px;
+                        flex-shrink: 0;
+                        margin-left: auto;
+                    }
+
+                    .sider-inner {
+                        flex-shrink: 0;
+                    }
+
+                    .nav-right {
+                        display: flex;
+                        align-items: center;
+                        gap: 20px;
+                        flex-shrink: 0;
+                        margin-left: auto;
+                    }
+
                     .connectWallet {
                         height: 30px;
                         min-width: 55px;
                         padding: 0 10px;
                         border-radius: 19px;
-                        background: $color-connectWallet-bg;
+                        background-color: #00e889;
+                        // background: $color-connectWallet-bg;
                         text-align: center;
                         line-height: 30px;
                         font-size: 16px;
                         font-weight: 500;
-                        color: #fff;
+                        color: #000;
                         cursor: pointer;
-                        margin-right: 10px;
+                        margin-right: 0;
                         img{
                             width:24px;
                             height :24px;
@@ -169,6 +200,7 @@
                 }
             }
             .footer {
+                backdrop-filter: blur(10px);
                 position: fixed;
                 bottom: 0;
                 min-height: 44px;
@@ -179,8 +211,8 @@
                 text-align: center;
                 padding: 10px;
                 margin-top: 20px;
-                color: #000;
-                background: #fff;
+                color: #fff;
+                // background: #fff;
                 z-index: 10;
                 display: flex;
                 align-items: center;
@@ -244,5 +276,47 @@
     }
     100%{
         transform:rotateZ(360deg)
+    }
+}
+
+.el-submenu > .el-menu {
+    background-color: transparent !important;
+}
+.el-submenu__title {
+    background-color: transparent !important;
+    color: #fff !important;
+}
+
+// 覆盖 Element UI 菜单悬停背景色
+.el-menu--horizontal > .el-menu-item:hover,
+.el-menu--horizontal > .el-menu-item:focus,
+.el-menu--horizontal > .el-submenu .el-submenu__title:hover {
+    background-color: transparent !important;
+    color: #fff !important;
+}
+
+.el-menu--horizontal .el-menu--popup {
+    background-color: #1a1a1a !important;
+    border-color: rgba(0, 232, 137, 0.15) !important;
+}
+
+.el-menu--horizontal .el-menu--popup .el-menu-item {
+    background-color: #1a1a1a !important;
+    color: #9ca3af !important;
+}
+
+.el-menu--horizontal .el-menu--popup .el-menu-item:hover,
+.el-menu--horizontal .el-menu--popup .el-menu-item:focus {
+    background-color: #2a2a2a !important;
+    color: #fff !important;
+}
+
+// Drawer 样式
+.el-drawer__body {
+    padding: 20px !important;
+    background-color: #0a0f0d;
+    color: #fff;
+    .el-menu-item a{
+        color: #fff;
     }
 }
