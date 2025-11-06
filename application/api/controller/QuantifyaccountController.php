@@ -115,14 +115,18 @@ class QuantifyaccountController extends QuantifybaseController
             return $this->as_json('70001', 'Missing parameters');
         }
         $key = "Swanlake:calcDepositAndWithdrawal:".$account_id.":Lock";
-        Rediscache::getInstance()->set($key, 1); 
-        $result = QuantifyAccount::calcQuantifyAccountData($account_id, $direction, $amount, $remark);
-        if($result) {
-            Rediscache::getInstance()->del($key); 
-            return $this->as_json('ok');
-        } else {
-            return $this->as_json(70001, 'Error');
+        $isStart = Rediscache::getInstance()->get($key);
+        if(!$isStart) {
+            Rediscache::getInstance()->set($key, 1); 
+            $result = QuantifyAccount::calcQuantifyAccountData($account_id, $direction, $amount, $remark);
+            if($result) {
+                Rediscache::getInstance()->del($key); 
+                return $this->as_json('ok');
+            } else {
+                return $this->as_json(70001, 'Error');
+            }
         }
+        return $this->as_json(70001, '正在计算中，请稍后再试');
     }
 
     /**
