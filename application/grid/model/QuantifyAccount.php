@@ -127,7 +127,7 @@ class QuantifyAccount extends Base
                 $dayData = self::getDayTotalPrincipal($account_id, $date); //获取今天的数据
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
                 $amount_num = 0;
-                if ($amount > 0) {
+                if ($amount !== 0) {
                     $amount_num = $direction == 1 ? $amount : (float)$amount *= -1;
                 }
                 $countStandardPrincipal = $total_balance + $amount_num; //累计本金 = 出入金总结余
