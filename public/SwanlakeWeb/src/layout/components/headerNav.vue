@@ -119,9 +119,9 @@
         </div>
         <div class="footer">
             <div class="container">
-                <div class="risk-warning">
+                <!-- <div class="risk-warning">
                     风险提示：加密货币投资存在较高的市场风险。价格波动剧烈，可能导致投资本金损失。请务必充分了解相关风险，并考虑自身的经验水平和投资目标。
-                </div>
+                </div> -->
                 <font style="vertical-align: inherit;">
                     <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 SwanLake Company, LLC。</font>
                     <!-- <font style="vertical-align: inherit;">版权所有。</font> -->

@@ -804,11 +804,14 @@ export default {
 <style lang="scss" scoped>
     .container {
         .box-card {
-            padding: 10px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            border: 1px solid rgba(0, 232, 137, 0.1);
             border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             .el-card__body {
-                padding: 0;
+                padding: 10px;
                 div {
                     font-size: 13px;
                 }
@@ -856,49 +859,11 @@ export default {
                 padding-right: 14px;
                 display: inline-block;
                 font-weight: 800;
-                font-size: 13px;        
+                font-size: 13px;  
+                color: #fff;      
             }
         }
-        .el-table {
-            border-radius: 20px;
-            font-size: 10px;
-            .cell {
-                padding-left: unset;
-                .el-button--mini.is-round {
-                    padding: 4px 15px;
-                }
-                button {
-                    color: #409EFF;
-                    border-color: #409EFF;
-                }
-                button.is-disabled {
-                    color: #C0C4CC;
-                    border-color: #EBEEF5;
-                }
-                .el-link {
-                    font-size: 10px;
-                }
-            }
-        }
-        .el-descriptions {
-            margin-bottom: 20px;
-            .el-descriptions__body {
-                padding: 20px;
-                border-radius: 20px;
-                .el-descriptions-item__container {
-                    .el-descriptions-item__content {
-                        display: unset;
-                        text-align: right;
-                        .operate {
-                            text-align: center;
-                            button {
-                                width: 80px;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+
         .info {
             .title {
                 font-weight: 800;
