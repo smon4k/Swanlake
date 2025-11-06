@@ -80,7 +80,7 @@
         <div class="footer">
             <div class="container">
                 <font style="vertical-align: inherit;">
-                    <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 SwanLake Company, LLC。</font>
+                    <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 BLOCK EARNING Company, LLC。</font>
                     <!-- <font style="vertical-align: inherit;">版权所有。</font> -->
                     <a class="privacy-link" href="https://sg.godaddy.com/legal/agreements/privacy-policy?target=_blank" target="_blank" data-eid="uxp.hyd.int.pc.app_header.footer.privacy_policy.link.click">
                         <!-- <font style="vertical-align: inherit;">隐私政策</font> -->

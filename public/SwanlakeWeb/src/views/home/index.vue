@@ -5,7 +5,7 @@
             <div class="hero-content">
                 <h1 class="hero-title">自动化您的加密收益</h1>
                 <p class="hero-subtitle">加入我们的全球领先云挖矿服务平台。无需昂贵硬件，每日稳定被动收入。</p>
-                <button class="hero-btn" @click="handleRegister">立即免费注册</button>
+                <button class="hero-btn" @click="handleRegister">立即开始挖矿</button>
             </div>
         </section>
 
@@ -13,7 +13,7 @@
         <section id="stats" class="stats-section">
             <div class="stats-content">
                 <div class="stats-number">{{ userCount | formatNumber }}</div>
-                <div class="stats-label">全球注册用户</div>
+                <div class="stats-label">购买算力币的人数</div>
             </div>
         </section>
 
@@ -55,8 +55,8 @@
                 <div class="steps-container">
                     <div class="step-card">
                         <div class="step-number">1</div>
-                        <h3>一分钟注册</h3>
-                        <p>仅需邮箱和密码，轻松创建您的专属账户</p>
+                        <h3>一秒钟注册</h3>
+                        <p>仅需web3钱包</p>
                     </div>
                     <!-- <div class="step-connector"></div> -->
                     <div class="step-card">
@@ -139,8 +139,8 @@
                     </div>
                     <div class="footer-section">
                         <h4>联系我们</h4>
-                        <p>Email: <a href="mailto:support@swanlake.com">support@swanlake.com</a></p>
-                        <p>地址: 北京市朝阳区</p>
+                        <p>Email: <a href="mailto:support@BLOCK EARNING.com">support@BLOCK EARNING.com</a></p>
+                        <p>地址: 英国伦敦科文特花园谢尔顿街71-75号，邮编WC2H 9JQ</p>
                     </div>
                 </div>
                 <!-- <div class="footer-bottom">
@@ -223,7 +223,13 @@ export default {
             this.$forceUpdate();
         },
         handleRegister() {
-            this.$message.info("请先连接钱包并注册");
+            this.$router.push({
+                name: 'powerBuy',
+                params: {
+                    type: 1,
+                    hash_id: 2,
+                }
+            })
         },
         buyClick(row) {
             this.$router.push({

@@ -171,14 +171,14 @@
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   <span data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;"></span>&nbsp;&nbsp;&nbsp;&nbsp;1、请您先仔细阅读本合约内容，充分理解本合约及各条款，尤其是字体加粗部分。如果您对本合约内容有任何疑问，请勿进行下一步操作。您可通过SwanLake官方电报群进行咨询，以便我们为您解释和说明。您通过页面访问或其他方式确认即表示您已同意本合约。<span
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;"></span>&nbsp;&nbsp;&nbsp;&nbsp;1、请您先仔细阅读本合约内容，充分理解本合约及各条款，尤其是字体加粗部分。如果您对本合约内容有任何疑问，请勿进行下一步操作。您可通过BLOCK EARNING官方电报群进行咨询，以便我们为您解释和说明。您通过页面访问或其他方式确认即表示您已同意本合约。<span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   <span data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;"></span>&nbsp;&nbsp;&nbsp;&nbsp;2、如我们对本合约进行修改，我们将通过www.swanlake.club网站公告的方式提前予以公布，变更后的协议在公告届满30日起生效。<span
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;"></span>&nbsp;&nbsp;&nbsp;&nbsp;2、如我们对本合约进行修改，我们将通过www.BLOCK EARNING.club网站公告的方式提前予以公布，变更后的协议在公告届满30日起生效。<span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
                 </p>
@@ -199,7 +199,7 @@
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">b</span><span
                     data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">）您接受并使用SwanLake提供的服务在您的居住地</span><span
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">）您接受并使用BLOCK EARNING提供的服务在您的居住地</span><span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">/</span><span
                     data-v-532aaa84=""
@@ -220,7 +220,7 @@
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">b</span><span
                     data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">款规定的内容时，您会立即停止使用SwanLake提供的服务并通过客服务渠道告知SwanLake停止服务。终止服务后，您使用SwanLake服务的权利立即终止。您同意：在这种情况下，SwanLake没有义务将任何未处理的信息或未完成的服务传输给您或任何第三方。</span>
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">款规定的内容时，您会立即停止使用BLOCK EARNING提供的服务并通过客服务渠道告知BLOCK EARNING停止服务。终止服务后，您使用BLOCK EARNING服务的权利立即终止。您同意：在这种情况下，BLOCK EARNING没有义务将任何未处理的信息或未完成的服务传输给您或任何第三方。</span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: Helvetica; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal; min-height: 13px;">
@@ -239,7 +239,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1</span><span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>购买算力币{{
-                  detailData.name }}，则代表SwanLake和您之间就该订单所约定的算力产生了一份具有约束力的合约（“{{ detailData.name
+                  detailData.name }}，则代表BLOCK EARNING和您之间就该订单所约定的算力产生了一份具有约束力的合约（“{{ detailData.name
                   }}算力币合约”），该合约约定了算力的具体内容<span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
@@ -248,7 +248,7 @@
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;2</span><span
                     data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、用户在线下单并支付成功后，订单无法撤销。SwanLake不支持任何取消订单和退款的请求，请下单前仔细阅读并确认本合约条款</span><span
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、用户在线下单并支付成功后，订单无法撤销。BLOCK EARNING不支持任何取消订单和退款的请求，请下单前仔细阅读并确认本合约条款</span><span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;。</span>
                 </p>
@@ -268,7 +268,7 @@
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1</span><span
                     data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>SwanLake对{{
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>BLOCK EARNING对{{
                   detailData.name }}以美元0.065每千瓦时为标准，向用户收取维护费（含电费和管理费），根据算力巢实际测试该矿机的功耗计算每天每TH/S的维护费，计算公式如下<span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
@@ -309,7 +309,7 @@
                       style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;3</span><span
                       style="font-family:PingFang HK">、</span></span><span
                     style="font-family:PingFang HK">如果根据实际运营情况需要对维护费进行调整，我们将通过
-                    www.swanlake.club网站公告的方式提前3天予以公布，变更后的维护费在公告届满3天起生效</span><span data-v-532aaa84=""
+                    www.BLOCK EARNING.club网站公告的方式提前3天予以公布，变更后的维护费在公告届满3天起生效</span><span data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
@@ -330,7 +330,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1</span><span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>本合约的生效期从购买下单日开始计算，当收益连续50天收益低于电费，算力币{{
-                  detailData.name }}合约自动作废，SwanLake将在官网www.swanlake.club公告终止算力币合约<span data-v-532aaa84=""
+                  detailData.name }}合约自动作废，BLOCK EARNING将在官网www.BLOCK EARNING.club公告终止算力币合约<span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
@@ -338,7 +338,7 @@
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"><span
                       style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;2</span><span
-                      style="font-family:PingFang HK">、由于法律政策、战争、地震、火灾、电力故障或者网络故障等不可抗原因导致矿场无法继续运营的，本合约提前终止，SwanLake会告知用户并不承担相应的赔偿责任。</span></span>
+                      style="font-family:PingFang HK">、由于法律政策、战争、地震、火灾、电力故障或者网络故障等不可抗原因导致矿场无法继续运营的，本合约提前终止，BLOCK EARNING会告知用户并不承担相应的赔偿责任。</span></span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: Helvetica; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal; min-height: 13px;">
@@ -361,7 +361,7 @@
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>&nbsp;&nbsp;&nbsp;&nbsp;凡购买本算力币{{
-                  detailData.name }}前，用户应当认真阅读本合约，了解潜在风险，进行独立的投资判断。如对本合约条款有任何疑问，请咨询SwanLake客服。以下各项风险因素因，造成的任何用户损失，
+                  detailData.name }}前，用户应当认真阅读本合约，了解潜在风险，进行独立的投资判断。如对本合约条款有任何疑问，请咨询BLOCK EARNING客服。以下各项风险因素因，造成的任何用户损失，
                   项目方不承担损害赔偿责任，风险因素包括但不限于<span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">：</span>
                 </p>
@@ -370,7 +370,7 @@
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1</span><span
                     data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>数字货币风险：任何数字货币持有人和任何数量的任何数字货币的价值都可能在任何时刻失去部分或全部价值；对于因为数字货币价值降低（甚至为零）而受到的全部损失由用户自行承担，SwanLake不承担任何责任<span
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>数字货币风险：任何数字货币持有人和任何数量的任何数字货币的价值都可能在任何时刻失去部分或全部价值；对于因为数字货币价值降低（甚至为零）而受到的全部损失由用户自行承担，BLOCK EARNING不承担任何责任<span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
@@ -379,7 +379,7 @@
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"><span
                       style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;2</span><span
-                      style="font-family:PingFang HK">、</span></span>市场风险：由于挖矿难度和/或其他挖矿参数/属性的变化，数字货币的市场价格波动（法定货币对数字货币汇率），数字货币价值下跌，导致的投资亏损，SwanLake不承担任何责任和赔偿义务<span
+                      style="font-family:PingFang HK">、</span></span>市场风险：由于挖矿难度和/或其他挖矿参数/属性的变化，数字货币的市场价格波动（法定货币对数字货币汇率），数字货币价值下跌，导致的投资亏损，BLOCK EARNING不承担任何责任和赔偿义务<span
                     data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
@@ -389,7 +389,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal;"><span
                       style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;3</span></span><span data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal;">、</span><span
-                    style="font-family:PingFang SC">不可抗力及意外事件风险：自然灾害、数字货币市场危机、战争、或者国家政策变化等不能预见、不能避免、不能克服的不可抗力事件，或者病毒、木马、恶意程序攻击、网络拥堵、系统不稳定、系统或设备故障、通讯故障、电力故障、数据不能传输、数据异常、市场交易停止、第三方服务问题或政府行为等意外事件的出现，可能导致本合约终止、用户投资收益降低乃至本金损失，SwanLake不承担任何责任</span><span
+                    style="font-family:PingFang SC">不可抗力及意外事件风险：自然灾害、数字货币市场危机、战争、或者国家政策变化等不能预见、不能避免、不能克服的不可抗力事件，或者病毒、木马、恶意程序攻击、网络拥堵、系统不稳定、系统或设备故障、通讯故障、电力故障、数据不能传输、数据异常、市场交易停止、第三方服务问题或政府行为等意外事件的出现，可能导致本合约终止、用户投资收益降低乃至本金损失，BLOCK EARNING不承担任何责任</span><span
                     data-v-532aaa84=""
                     style="font-family: &quot;PingFang SC&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
@@ -406,7 +406,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"><span
                       style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;5</span><span
                       style="font-family:PingFang HK">、</span></span><span
-                    style="font-family:PingFang HK">SwanLake有权随时通过正式的页面公告、站内信、电子邮件、客服电话、手机短信或常规的信件发布，修改，和/或提供与SwanLake和SwanLake提供的服务相关的任何信息。任何非经SwanLake正规渠道获得的信息，SwanLake不承担法律责任</span><span
+                    style="font-family:PingFang HK">BLOCK EARNING有权随时通过正式的页面公告、站内信、电子邮件、客服电话、手机短信或常规的信件发布，修改，和/或提供与BLOCK EARNING和BLOCK EARNING提供的服务相关的任何信息。任何非经BLOCK EARNING正规渠道获得的信息，BLOCK EARNING不承担法律责任</span><span
                     data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
@@ -468,7 +468,7 @@
                   Please read the contents of this contract carefully and fully understand this contract and its terms,
                   especially the bolded part. If you have any questions about the contents of this contract, please do
                   not
-                  proceed to the next step. You can consult through the SwanLake official telegram group so that we can
+                  proceed to the next step. You can consult through the BLOCK EARNING official telegram group so that we can
                   explain for you. Your confirmation by visiting the page or otherwise means that you have agreed to
                   this
                   contract. <span data-v-532aaa84=""
@@ -477,7 +477,7 @@
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   &nbsp;&nbsp;&nbsp;&nbsp;2. If we revise this contract, we will announce it in advance through the
-                  announcement on the www.swanlake.club website, and the revised agreement will take effect 30 days
+                  announcement on the www.BLOCK EARNING.club website, and the revised agreement will take effect 30 days
                   after the
                   announcement expires.<span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
@@ -488,7 +488,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;</span>You
                   confirm that: a) You are over 18 years old and have full capacity for civil conduct. b) Your
                   acceptance and
-                  use of the services provided by SwanLake is in compliance with applicable laws, regulations and
+                  use of the services provided by BLOCK EARNING is in compliance with applicable laws, regulations and
                   relevant
                   policies in your place of residence/country, and does not violate your obligations to any other third
                   party.<span data-v-532aaa84=""
@@ -499,11 +499,11 @@
                   &nbsp;&nbsp;&nbsp;&nbsp;If you find that you cannot promise the content stipulated in paragraph a
                   and/or b
                   of this article due to changes in facts or laws and regulations, you should immediately stop using the
-                  services provided by SwanLake and inform SwanLake to stop the service through the customer service
+                  services provided by BLOCK EARNING and inform BLOCK EARNING to stop the service through the customer service
                   channel.
-                  After the termination of the service, your right to use the SwanLake service will terminate
+                  After the termination of the service, your right to use the BLOCK EARNING service will terminate
                   immediately. You
-                  agree: In this case, SwanLake is not obligated to transmit any unprocessed information or unfinished
+                  agree: In this case, BLOCK EARNING is not obligated to transmit any unprocessed information or unfinished
                   service
                   to you or any third party.
                 </p>
@@ -526,7 +526,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;</span>Purchasing
                   the {{ detailData.name }} token means a binding contract (“{{ detailData.name }} hashrate contract”)
                   between
-                  SwanLake and you regarding the hashrate agreed upon in the order, which stipulates the specific
+                  BLOCK EARNING and you regarding the hashrate agreed upon in the order, which stipulates the specific
                   content of
                   the hashrate.
                 </p>
@@ -534,7 +534,7 @@
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;2.&nbsp;</span>After
-                  the user places an online order and pays successfully, the order cannot be cancelled. SwanLake does
+                  the user places an online order and pays successfully, the order cannot be cancelled. BLOCK EARNING does
                   not
                   support any request for cancellation of orders and refunds, please read and confirm the terms of this
                   contract carefully before placing an order.
@@ -555,7 +555,7 @@
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   <span data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;</span>SwanLake
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;</span>BLOCK EARNING
                   charges users a maintenance fee (including electricity fee and management fee) for {{ detailData.name
                   }}
                   based on USD 0.065 per kWh, and calculates the maintenance fee per TH/S per day according to the
@@ -586,7 +586,7 @@
                       style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;</span></span><span
                     style="font-family:PingFang HK">If the maintenance fee needs to be adjusted according to the actual
                     operation situation, we will announce it 3 days in advance through the announcement on the
-                    www.swanlake.club website, and the changed maintenance fee will take effect 3 days after the
+                    www.BLOCK EARNING.club website, and the changed maintenance fee will take effect 3 days after the
                     announcement
                     expires.</span><span data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
@@ -609,10 +609,10 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;</span>The
                   effective period of this contract is calculated from the date of the purchase order. When the income
                   is
-                  lower than the electricity bill for 50 consecutive days, the SwanLake {{ detailData.name }} contract
+                  lower than the electricity bill for 50 consecutive days, the BLOCK EARNING {{ detailData.name }} contract
                   will be
-                  automatically invalidated. SwanLake will announce the termination of the SWAN contract on the official
-                  website www.swanlake.club.
+                  automatically invalidated. BLOCK EARNING will announce the termination of the SWAN contract on the official
+                  website www.BLOCK EARNING.club.
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
@@ -622,7 +622,7 @@
                       style="font-family:PingFang HK">If the mining farm cannot continue to operate due to force majeure
                       reasons such as legal policy, war, earthquake, fire, power failure or network failure, this
                       contract
-                      will be terminated in advance, and SwanLake will inform the user that it will not be liable for
+                      will be terminated in advance, and BLOCK EARNING will inform the user that it will not be liable for
                       the
                       corresponding compensation.</span></span>
                 </p>
@@ -652,7 +652,7 @@
                   purchasing this {{ detailData.name }} token, users should read this contract carefully, understand the
                   potential risks, and make independent investment judgments. If you have any questions about the terms
                   of
-                  this contract, please consult SwanLake customer service. The project party will not be liable for any
+                  this contract, please consult BLOCK EARNING customer service. The project party will not be liable for any
                   loss
                   to the user caused by the following risk factors, including but not limited to:<span
                     data-v-532aaa84=""
@@ -666,7 +666,7 @@
                   lose some
                   or all of its value at any time; all losses due to the reduction in the value of digital currency
                   (even
-                  zero) are borne by the user , SwanLake does not assume any responsibility.<span data-v-532aaa84=""
+                  zero) are borne by the user , BLOCK EARNING does not assume any responsibility.<span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
@@ -679,7 +679,7 @@
                   digital
                   currencies (the exchange rate between fiat currencies and digital currencies), and declines in the
                   value of
-                  digital currencies, resulting in investment losses, SwanLake is not responsible for and Indemnity
+                  digital currencies, resulting in investment losses, BLOCK EARNING is not responsible for and Indemnity
                   obligation.<span data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
                 </p>
@@ -699,7 +699,7 @@
                   abnormality,
                   market transaction stop, third-party service problems or government actions may lead to the
                   termination of
-                  this contract, the reduction of user investment income and even the loss of principal, SwanLake We do
+                  this contract, the reduction of user investment income and even the loss of principal, BLOCK EARNING We do
                   not
                   assume any responsibility.<span data-v-532aaa84=""
                     style="font-family: &quot;PingFang SC&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
@@ -721,15 +721,15 @@
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"><span
-                      style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;5.&nbsp;</span></span>SwanLake reserves the
+                      style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;5.&nbsp;</span></span>BLOCK EARNING reserves the
                   right
-                  to release, modify, and/or provide any information related to SwanLake and the services provided by
-                  SwanLake
+                  to release, modify, and/or provide any information related to BLOCK EARNING and the services provided by
+                  BLOCK EARNING
                   at any time through official page announcements, internal letters, emails, customer service calls,
                   mobile
-                  phone text messages or regular letters. SwanLake does not assume legal responsibility for any
+                  phone text messages or regular letters. BLOCK EARNING does not assume legal responsibility for any
                   information
-                  not obtained through SwanLake&#39;s official channels.<span data-v-532aaa84=""
+                  not obtained through BLOCK EARNING&#39;s official channels.<span data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
