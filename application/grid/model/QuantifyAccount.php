@@ -128,7 +128,7 @@ class QuantifyAccount extends Base
                 $total_balance = self::getInoutGoldTotalBalance($account_id); //出入金总结余
                 $amount_num = 0;
                 if ($amount !== 0) {
-                    $amount_num = $direction == 1 ? $amount : (float)$amount *= -1;
+                    $amount_num = $direction == 1 ? $amount : (float)$amount * -1;
                 }
                 $countStandardPrincipal = $total_balance + $amount_num; //累计本金 = 出入金总结余
                 $depositToday = self::getInoutGoldDepositToday($account_id, $date); //获取今日入金数量
@@ -1234,9 +1234,9 @@ class QuantifyAccount extends Base
         if ($account_id && $amount !== 0 && $type > 0) {
             $total_balance = 0;
             if($type == 1) {
-                $amount_num = $amount;
+                $amount_num = abs($amount);
             } else {
-                $amount_num = $amount *= -1;
+                $amount_num = abs($amount) * -1;
             }
             $total_balance = self::getInoutGoldTotalBalance($account_id) + (float)$amount_num;
             $insertData = [
