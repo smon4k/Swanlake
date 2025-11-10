@@ -62,10 +62,22 @@ class SignalProcessingTask:
         try:
             conn = self.db.get_db_connection()
             with conn.cursor() as cursor:
+                # ✅ 使用事务，查询并立即更新状态
+                cursor.execute("START TRANSACTION")
+
                 cursor.execute(
                     "SELECT * FROM g_signals WHERE status='pending' LIMIT 10"  # 一次取多条
                 )
                 signals = cursor.fetchall()
+                # ✅ 立即标记为 processing，防止重复获取
+                if signals:
+                    signal_ids = [s['id'] for s in signals]
+                    placeholders = ','.join(['%s'] * len(signal_ids))
+                    cursor.execute(
+                        f"UPDATE g_signals SET status='processing' WHERE id IN ({placeholders})",
+                        signal_ids
+                    )
+                conn.commit()  # ✅ 提交事务
             conn.close()
 
             if signals:
@@ -75,6 +87,8 @@ class SignalProcessingTask:
             else:
                 await asyncio.sleep(self.config.check_interval)
         except Exception as e:
+            if conn:
+                conn.rollback()  # 回滚事务
             print(f"处理信号异常: {e}")
             logging.error(f"处理信号异常: {e}")
     
@@ -212,7 +226,7 @@ class SignalProcessingTask:
             conn = self.db.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE g_signals SET status=%s WHERE id=%s",
+                    "UPDATE g_signals SET status=%s WHERE id=%s AND status='processing'",
                     (status, signal_id)
                 )
             conn.commit()
