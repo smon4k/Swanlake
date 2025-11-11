@@ -62,8 +62,19 @@
         </transition-group>
       </div>
       <div class="common-page-outer">
-        <wbc-page :total="total" :pageSize="pageSize" :currPage="currPage" @changeLimit="limitPaging"
-          @changeSkip="skipPaging"></wbc-page>
+          <el-row class="pages" v-if="total > pageSize">
+                <el-col :span="24">
+                    <div style="float:right;">
+                    <wbc-page
+                        :total="total"
+                        :pageSize="pageSize"
+                        :currPage="currPage"
+                        @changeLimit="limitPaging"
+                        @changeSkip="skipPaging"
+                    ></wbc-page>
+                    </div>
+                </el-col>
+            </el-row>
         <!-- <el-pagination layout="prev, pager, next" :total="1"> </el-pagination> -->
       </div>
     </div>
@@ -174,7 +185,10 @@ export default {
 .container {
   border-radius: 38px;
   // min-height: 268px;
-  background-color: #fff;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  border: 1px solid rgba(0, 232, 137, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 
   // padding: 30px;
   .noresult {
@@ -182,6 +196,7 @@ export default {
     text-align: center;
     font-weight: 600;
     padding-top: 20px;
+    color: #fff;
   }
 
   .commin-title {
@@ -214,6 +229,9 @@ export default {
     .tit {
       padding-right: 14px;
       display: inline-block;
+      font-weight: 800;
+      font-size: 13px;  
+      color: #fff;
     }
   }
 
@@ -262,6 +280,8 @@ export default {
     .head {
       >div {
         width: 10.5%;
+        color: #fff;
+        font-weight: 600;
       }
     }
 
@@ -269,6 +289,8 @@ export default {
       >div {
         width: 100%;
         text-align: center;
+        color: #fff;
+        font-weight: 600;
       }
 
       .opera {
@@ -278,6 +300,12 @@ export default {
 
     .body {
       .item {
+        .kind {
+          span {
+            color: #fff;
+            font-weight: 600;
+          }
+        }
         .reward {
           flex-direction: row;
           justify-content: flex-start;
@@ -333,6 +361,7 @@ export default {
           width: 100%;
           text-align: center;
           font-size: 15px;
+          color: #fff;
         }
       }
     }
@@ -349,6 +378,18 @@ export default {
           width: 16%;
         }
       }
+    }
+  }
+
+  .common-page-outer {
+    margin-top: 20px;
+    padding: 20px;
+    
+    ::v-deep .wbc-page {
+      color: #fff;
+    }
+    .el-pager li.active {
+      color: #fff !important;
     }
   }
 }

@@ -1,8 +1,5 @@
 <template>
     <div class="container">
-
-
-
         <!-- 算力币信息 -->
         <el-card class="box-card">
             <!-- PC -->
@@ -109,30 +106,6 @@
                     </template>
                 </el-table-column>
                 <el-table-column
-                    label="价格"
-                    align="center"
-                    width="">
-                    <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.price || 0, 2) }} USDT</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    label="单位"
-                    align="center"
-                    width="">
-                    <template slot-scope="scope">
-                        <span>{{ scope.row.hash_rate }} TH/s</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    label="库存"
-                    align="center"
-                    width="">
-                    <template slot-scope="scope">
-                        <span>{{ scope.row.stock }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
                     label="日支出/T"
                     align="center"
                     width="">
@@ -176,9 +149,6 @@
             <div v-if="hashPowerPoolsList.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="价格">{{ toFixed(item.price || 0, 2) }} USDT</el-descriptions-item>
-                    <el-descriptions-item label="单位">{{ item.hash_rate }} TH/s</el-descriptions-item>
-                    <el-descriptions-item label="库存">{{ item.stock }}</el-descriptions-item>
                     <el-descriptions-item label="日支出/T">{{ toFixed(item.daily_expenditure_usdt || 0, 2) }} USDT</el-descriptions-item>
                     <el-descriptions-item label="日收益/T">{{ toFixed(item.daily_income_usdt || 0, 2) }} USDT</el-descriptions-item>
                     <el-descriptions-item label="年化收益率">{{ toFixed(item.annualized_rate || 0, 2) }}%</el-descriptions-item>

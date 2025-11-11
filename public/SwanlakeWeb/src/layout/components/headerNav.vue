@@ -9,7 +9,7 @@
                     <div class="logo" v-show="screenWidth > 600">
                         <router-link to="/" class="logo-link">
                             <img
-                                src="@/assets/logo.png"
+                                src="@/assets/logo2.png"
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
@@ -18,12 +18,14 @@
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             /> -->
-                            <img src="@/assets/logo.png" alt="" v-else />
+                            <img src="@/assets/logo2.png" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <!-- <div class="title" v-show="screenWidth > 600"> Swan Lake Quant<br>H2O Finance </div> -->
+                    <div class="title" v-show="screenWidth > 600"> BEST MINING </div>
                 </div>
+                <!-- <div class="title" v-show="screenWidth > 600"> Swan Lake Quant<br>H2O Finance </div> -->
+
                 <div v-show="screenWidth >= 1280">
                     <el-menu 
                         class="el-menu-demo" 
@@ -74,7 +76,7 @@
                     <div class="logo">
                         <router-link to="/" class="logo-link">
                             <img
-                                src="@/assets/logo.png"
+                                src="@/assets/logo2.png"
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
@@ -83,11 +85,11 @@
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             /> -->
-                            <img src="@/assets/logo.png" alt="" v-else />
+                            <img src="@/assets/logo2.png" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <!-- <div class="title"> Swan Lake Quant </div> -->
+                    <div class="title"> BEST MINING </div>
                 </div>
                 <br><br>
                 <el-menu
@@ -227,6 +229,16 @@ export default {
                 //     path: "/bscTokenStatistics",
                 //     children: [],
                 // },
+                {
+                    name: '仪表盘',
+                    path: "/hashpower/my",
+                    children: [],
+                },
+                {
+                    name: '算力总览',
+                    path: "/hashpower/overview",
+                    children: [],
+                },
                 {
                     name: '算力币',
                     path: "/hashpower/list",
@@ -459,8 +471,12 @@ export default {
 <style lang="scss" scoped>
     .sider-inner {
         display: flex;
-        position: absolute;
+        // position: absolute;
         align-items: center;
+        flex-direction: row;
+        left: 0;
+        top: 50%;
+        // transform: translateY(-50%);
         // top: 15px;
         // height: 100%;
         // min-height: 436px;
@@ -475,24 +491,26 @@ export default {
         .title {
             display: flex;
             align-items: center;
-            justify-content: space-around;
-            flex-direction: column;
+            margin-left: -10px;
             font-weight: 900;
+            font-size: 18px;
             color: #fff;
         }
         .logo {
             display: flex;
-            margin-left: 20px;
-            margin-right: 10px;
+            align-items: center;
+            // margin-left: 20px;
+            // margin-right: 10px;
             height: 78px;
             box-sizing: border-box;
             .logo-link {
-                display: block;
+                display: flex;
+                align-items: center;
                 height: 100%;
-                text-align: center;
+                text-align: left;
                 img {
-                    width: 200px;
-                    // height: 40px;
+                    // width: 70px;
+                    height: 70px;
                     margin-left: -24px;
                     border-radius: 50%;
                 }
@@ -502,7 +520,13 @@ export default {
                     @include mainFont($color-mainFont-light);
                     // color: #1C1C1B;
                     padding-top: 4px;
-                    margin-left: -14px;
+                    // margin-left: -14px;
+                }
+                title {
+                    font-size: 16px;
+                    color: #fff;
+                    padding-top: 4px;
+                    // margin-left: -14px;
                 }
             }
         }
@@ -529,6 +553,7 @@ export default {
             background-color: transparent !important;
 
             .el-submenu__title {
+                font-size: 18px !important;
                 background-color: transparent !important;
 
                 &:hover {
@@ -718,4 +743,16 @@ export default {
             }
         }
     }
+
+.nav-container {
+    position: relative;
+}
+
+.headerNav-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 80px;
+}
 </style>

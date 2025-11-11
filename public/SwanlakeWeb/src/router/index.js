@@ -108,6 +108,18 @@ export const constantRoutes = [
           meta: { title: 'hashpowerList', keepAlive: false }
         },
         {
+          path: 'hashpower/my',
+          name: 'hashpowerMy',
+          component: () => import('@/views/hashpower/my'),
+          meta: { title: 'hashpowerMy', keepAlive: false }
+        },
+        {
+          path: 'hashpower/overview',
+          name: 'hashpowerOverview',
+          component: () => import('@/views/hashpower/overview'),
+          meta: { title: 'hashpowerOverview', keepAlive: false }
+        },
+        {
           path: 'hashpower/buy',
           name: 'hashpowerBuy',
           component: () => import('@/views/hashpower/buy'),

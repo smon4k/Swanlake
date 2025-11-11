@@ -108,28 +108,20 @@
                         </el-link>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    label="价格"
-                    align="center"
-                    width="">
+                <!-- <el-table-column
+                    prop="annualized_income"
+                    label="年化利率"
+                    align="center">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.price || 0, 2) }} USDT</span>
+                        <span>{{ toFixed(scope.row.annualized_income || 0, 2) }}%</span>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column
-                    label="单位"
+                    label="总质押算力"
                     align="center"
-                    width="">
+                    width="80">
                     <template slot-scope="scope">
-                        <span>{{ scope.row.hash_rate }} TH/s</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    label="库存"
-                    align="center"
-                    width="">
-                    <template slot-scope="scope">
-                        <span>{{ scope.row.stock }}</span>
+                        <span>{{ toFixed(scope.row.total || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -151,6 +143,66 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    label="我的质押"
+                    align="center"
+                    width="80">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.balance || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="昨日BTC收益"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
+                            {{ toFixed(scope.row.yest_income_usdt || 0, 2) }} USDT <br>
+                            {{ fromSATBTCNum(scope.row.yest_income_btcb, 2) }}
+                        </el-link>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="昨日H2O收益"
+                    align="center"
+                    width="100">
+                    <template slot-scope="scope">
+                        {{ toFixed(scope.row.yest_income_h2ousdt || 0, 2) }} USDT <br>
+                        {{ toFixed(scope.row.yest_income_h2o, 4) }} H2O
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="BTC累计收益"
+                    align="center"
+                    width="110">
+                    <template slot-scope="scope">
+                        <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
+                            {{ toFixed(scope.row.total_income_usdt || 0, 2) }} USDT <br>
+                            {{ fromSATBTCNum(scope.row.total_income_btcb, 2) }}
+                        </el-link>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop=""
+                    label="昨日总收益"
+                    align="center"
+                    width="100">
+                    <template slot-scope="scope">
+                        {{ toFixed(scope.row.yest_total_income || 0, 2) }} USDT
+                    </template>
+                </el-table-column>
+                <!-- <el-table-column
+                    prop=""
+                    label="昨日总收益率"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        {{ toFixed(scope.row.yest_total_incomerate || 0, 2) }}%
+                    </template>
+                </el-table-column> -->
+                <el-table-column
                     prop=""
                     label="年化收益率"
                     align="center"
@@ -160,13 +212,30 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    prop=""
+                    label="可领取收益"
+                    align="center"
+                    width="110">
+                    <template slot-scope="scope">
+                        <span>
+                            {{ fromSATBTCNum(scope.row.btcbReward, 2) }} <br>
+                            {{ toFixed(scope.row.h2oReward, 2) }} H2O
+                        </span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     fixed="right"
                     label="操作"
                     align="center"
                     width="180">
                     <template slot-scope="scope">
                         <div>
-                            <el-button size="" type="primary" round @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
+                            <el-button size="mini" round @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
+                            <el-button size="mini" round @click="receiveBTCBReward(scope.row)" :loading="receiveLoading" :disabled="!Number(scope.row.btcbReward)">收获</el-button>
+                        </div>
+                        <div style="margin-top:5px">
+                            <el-button size="mini" round @click="toHashpowerDetail(1, scope.row)">存入</el-button>
+                            <el-button size="mini" round @click="toHashpowerDetail(2, scope.row)" >提取</el-button>
                         </div>
                     </template>
                 </el-table-column>
@@ -176,15 +245,47 @@
             <div v-if="hashPowerPoolsList.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="价格">{{ toFixed(item.price || 0, 2) }} USDT</el-descriptions-item>
-                    <el-descriptions-item label="单位">{{ item.hash_rate }} TH/s</el-descriptions-item>
-                    <el-descriptions-item label="库存">{{ item.stock }}</el-descriptions-item>
-                    <el-descriptions-item label="日支出/T">{{ toFixed(item.daily_expenditure_usdt || 0, 2) }} USDT</el-descriptions-item>
-                    <el-descriptions-item label="日收益/T">{{ toFixed(item.daily_income_usdt || 0, 2) }} USDT</el-descriptions-item>
-                    <el-descriptions-item label="年化收益率">{{ toFixed(item.annualized_rate || 0, 2) }}%</el-descriptions-item>
+                    <!-- <el-descriptions-item label="年化利率">{{ toFixed(item.annualized_income || 0, 2) }}%</el-descriptions-item> -->
+                    <!-- <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item> -->
+                    <el-descriptions-item label="总质押算力">{{ toFixed(item.total || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
+                    <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
+                    <el-descriptions-item label="昨日BTC收益">
+                        <el-link type="primary" @click="getHashpowerDetail(item.id)">
+                            {{ toFixed(item.yest_income_usdt || 0, 4) }} USDT <br>
+                            {{ fromSATBTCNum(item.yest_income_btcb, 2) }}
+                        </el-link>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="昨日H2O收益">
+                        {{ toFixed(item.yest_income_h2ousdt || 0, 4) }} USDT <br>
+                        {{ fromSATBTCNum(item.yest_income_h2o, 2) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="BTC总收益">
+                        <!-- <el-link type="primary" @click="showHashpowerIncomeList(item.id)"> -->
+                            {{ toFixed(item.total_income_usdt || 0, 4) }} USDT <br>
+                            {{ fromSATBTCNum(item.total_income_btcb, 2) }}
+                        <!-- </el-link> -->
+                    </el-descriptions-item>
+                    <el-descriptions-item label="昨日总收益">
+                            {{ toFixed(item.yest_total_income || 0, 4) }} USDT
+                    </el-descriptions-item>
+                    <!-- <el-descriptions-item label="昨日总收益率">
+                            {{ toFixed(item.yest_total_incomerate || 0, 2) }} %
+                    </el-descriptions-item> -->
+                    <el-descriptions-item label="年化收益率">
+                            {{ toFixed(item.annualized_rate || 0, 2) }} %
+                    </el-descriptions-item>
+                    <el-descriptions-item label="可领取收益">
+                        <span>
+                            {{ fromSATBTCNum(item.btcbReward, 2) }}
+                            {{ toFixed(item.h2oReward, 2) }} H2O
+                        </span>
+                    </el-descriptions-item>
                     <el-descriptions-item>
                         <div style="text-align:center;">
-                            <el-button type="primary" @click="hashpowerBuyClick(item, 1)">购买</el-button>
+                            <el-button size="mini" type="primary" @click="hashpowerBuyClick(item, 1)">购买</el-button>
+                            <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获</el-button>
+                            <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
+                            <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
                         </div>
                     </el-descriptions-item>
                 </el-descriptions>
@@ -477,6 +578,23 @@ export default {
                 } else {
                     this.$message.error("加载数据失败");
                 }
+            });
+        },
+        getHashpowerDetail(hashId) { //获取算力币详情数据 展示面板信息
+            axios.get(this.nftUrl + "/Hashpower/hashpower/getHashpowerDetail",{
+                params: {
+                    hashId: hashId,
+                }
+            }).then((json) => {
+            this.detailLoding = false;
+                // console.log(json);
+                // console.log(this.address);
+                if (json.code == 10000) {
+                    this.detailData = json.data;
+                    this.hashpowerPanelShow = true;
+                } 
+            }).catch((error) => {
+                this.$message.error(error);
             });
         },
         async getPoolBtcData() { //获取BTC爬虫数据

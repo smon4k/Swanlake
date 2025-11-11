@@ -172,7 +172,10 @@ export default {
                         yest_total_income: 0,
                         yest_total_incomerate: 0,
                         annualized_rate: 0,
-                        claimLoading:false
+                        claimLoading:false,
+                        hash_rate: '',
+                        stock: 0,
+                        price: 0
                     })
                 })
             }
@@ -217,6 +220,9 @@ export default {
                 state.hashPowerPoolsList[index].yest_total_income = info.yest_total_income;
                 state.hashPowerPoolsList[index].yest_total_incomerate = info.yest_total_incomerate;
                 state.hashPowerPoolsList[index].annualized_rate = info.annualized_rate;
+                state.hashPowerPoolsList[index].hash_rate = info.hash_rate; 
+                state.hashPowerPoolsList[index].stock = info.stock;
+                state.hashPowerPoolsList[index].price = info.hashpower_price;
                 state.hashPowerPoolsList[index].loading = false
             }
         },

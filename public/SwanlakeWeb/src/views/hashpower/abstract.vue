@@ -70,12 +70,12 @@ export default {
 <style lang="scss" scoped>
 .container {
     border-radius: 30px;
-    background-color: #fff !important;
+    background-color: rgb(14,22,33) !important;
 
     // padding: 30px;
     .main {
         padding: 20px;
-        @include mainFont($color-mainFont-light);
+        color: #fff !important;
 
         .el-main {
             padding: 0;

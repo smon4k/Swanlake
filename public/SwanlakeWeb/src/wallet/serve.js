@@ -182,6 +182,8 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let h2o_income_number = 0;
   let hashpower_price = 0;
   let hash_rate = 0;
+  let price_unit = '';
+  let stock = 0;
   if(id) {
     if(address && address !== undefined && address !== '') {
       userBalance = await getH2OUserInfo(goblinAddress);
@@ -216,6 +218,8 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     h2o_income_number = HashpowerDetail.h2o_income_number; //总的自定义收益数量
     hashpower_price = HashpowerDetail.price;
     hash_rate = HashpowerDetail.hash_rate;
+    price_unit = HashpowerDetail.price_unit; //价格单位
+    stock = HashpowerDetail.stock; //库存
   } 
   let reObj = {
     totalTvl: totalTvl,
@@ -245,6 +249,8 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     h2o_income_number: h2o_income_number,
     hashpower_price: hashpower_price,
     hash_rate: hash_rate,
+    price_unit: price_unit,
+    stock: stock,
   };
   return reObj;
 }
