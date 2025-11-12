@@ -224,7 +224,7 @@ export default {
         },
         handleRegister() {
             this.$router.push({
-                name: 'powerBuy',
+                name: 'hashpowerList',
                 params: {
                     type: 1,
                     hash_id: 2,
@@ -271,6 +271,7 @@ export default {
 <style lang="scss" scoped>
 .home-container {
     width: 100%;
+    margin-top: -20px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     color: #333;
     line-height: 1.6;

@@ -1,90 +1,6 @@
 <template>
     <div class="container">
 
-
-
-        <!-- 算力币信息 -->
-        <el-card class="box-card">
-            <!-- PC -->
-            <el-row class="public-info" v-if="!isMobel">
-                <el-col :span="24" style="float:right;">
-                    <!-- 全网最低电费 -->
-                    <span>
-                        {{ $t('subscribe:MinimumElectricityBill') }}
-                        <span>0.68 USDT</span> 
-                    </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <!-- 日产出 -->
-                    <span>
-                        {{ $t('subscribe:DailyEarnings') }}/T
-                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
-                        <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2) }}</span>
-                    </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <!-- 全网算力  -->
-                    <span>
-                        {{ $t('subscribe:Hashrate') }}
-                        <span> {{toFixed(Number(poolBtcData.power),3) || "--"}}EH/s</span> 
-                    </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <!-- 币价 -->
-                    <span>
-                        {{ $t('subscribe:CurrencyPrice') }}
-                        <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
-                    </span>
-                </el-col>
-            </el-row>
-            <!-- 移动 -->
-            <el-row style="line-height:20px;font-size:8px;" v-else>
-                <el-col :span="6" align="center">{{ $t('subscribe:DailyEarnings') }}/T<br /> 
-                    <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
-                    <br> 
-                    <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}}BTC</span>
-                </el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.065 USDT</el-col>
-            </el-row>
-
-            <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
-                <el-row style="line-height:30px;">
-                    <!-- 平台昨日产出 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
-                        <!-- <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
-                        <br> -->
-                        <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.currency_price), 2) }}</span>
-                    </el-col>
-                    <!-- 平台累计产出 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
-                        <!-- <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
-                        <br> -->
-                        <!-- <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.currency_price), 2) || "--" }}</span> -->
-                        <span>{{ fromSATBTCNum(Number(count_btc_output), 2) || "--" }}</span>
-                    </el-col>
-                    <!-- 总质押算力 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">总质押算力<br /> 
-                        <span>{{toFixed(Number(totalPledgePower), 2) || "--"}} T</span>
-                    </el-col>
-                    <!-- <el-col :span="isMobel ? 8 : 5" align="center">{{ $t('subscribe:EstimatedElectricityCharge') }}/T<br /> 
-                        <span>{{ toFixed(daily_expenditure_usdt || 0, 4) }} USDT</span>
-                        <br>
-                        <span>{{ toFixed(daily_expenditure_btc || 0, 8) }} BTC</span>
-                    </el-col>
-                    <el-col :span="isMobel ? 12 : 5" align="center">{{ $t('subscribe:NetProfit') }}/T<br /> 
-                        <span>{{ toFixed(daily_income_usdt || 0, 3) }} USDT</span>
-                        <br>
-                        <span></span>{{ toFixed(daily_income_btc || 0, 8) }} BTC
-                    </el-col> -->
-                    <!-- 上线天数 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">
-                        {{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}
-                        <br>
-                        <el-link type="primary" style="font-size:16px;" href="https://bscscan.com/address/0x8f4bdA5080fE2A97E54c9B5277D9D6b0A9e9124F#tokentxns" target='_blank'>{{ '链上收益查询' }}</el-link>
-                    </el-col>
-                </el-row>
-            </div>
-        </el-card>
-
         <div class="commin-title">
             <div class="title-inner">
                 <span class="tit">质押算力币获取BTC收益</span>
@@ -685,40 +601,6 @@ export default {
 </script>
 <style lang="scss" scoped>
     .container {
-        .box-card {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            border: 1px solid rgba(0, 232, 137, 0.1);
-            border-radius: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            .el-card__body {
-                padding: 10px;
-                div {
-                    font-size: 13px;
-                }
-            }
-            .public-info {
-                padding: 10px;
-                font-size: 10px;
-                text-align: right;
-                margin-right: 30px;
-            }
-            .info {
-                padding: 30px;
-                .el-divider {
-                    background-color: rgba(255,255,255,0.1);
-                    width: 80%;
-                    // margin: 0 auto;
-                    top: 10px;
-                }
-            } 
-            .model-info {
-                margin-top: 10px;
-                font-size: 13px;
-                padding: 0;
-            }
-        }
         .commin-title {
             margin-bottom: 10px;
             .btn {

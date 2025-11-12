@@ -342,11 +342,11 @@ export default {
     .app-left {}
 
     .title {
-      // color: #1C1C1B;
+      color: #fff;
       font-size: 18px;
       font-weight: 600;
       padding-bottom: 10px;
-      @include mainFont($color-mainFont-light);
+      // @include mainFont($color-mainFont-light);
     }
 
     .input-area {
@@ -368,18 +368,17 @@ export default {
         text-align: right;
 
         .info {
-          color: #999999;
+          color: #fff;
         }
 
         .num {
-          // color: #333333;
-          @include balanceFont($balanceFont-light);
+          color: #fff;
         }
       }
 
       .inputBox {
         height: 45px;
-        background-color: rgba(0, 49, 255, 0.06);
+        background-color: #55555582;
         border-radius: 8px;
         position: relative;
 
@@ -399,9 +398,10 @@ export default {
           line-height: 26px;
           font-size: 12px;
           // border: 1px solid #0031FF;
-          // color: #002EFF;
-          @include btnBorderColor($color-btnBorderColor-light);
-          background-color: transparent;
+          color: #fff;
+          border: 1px solid rgba(0, 232, 137, 0.3);
+          // @include btnBorderColor($color-btnBorderColor-light);
+          background: linear-gradient(135deg, #00e889, #067549);
           right: 15px;
           top: 8px;
           border-radius: 19px;
@@ -417,7 +417,7 @@ export default {
           outline: none;
           background-color: transparent;
           font-size: 18px;
-          // color: #333333;
+          color: #fff;
           // @include balanceFont($balanceFont-light);
           // padding: 0 120px 0 62px;
           padding-left: 10px;

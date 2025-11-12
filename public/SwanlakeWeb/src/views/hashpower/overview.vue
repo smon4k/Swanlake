@@ -132,17 +132,6 @@
                         {{ toFixed(scope.row.annualized_rate || 0, 2) }}%
                     </template>
                 </el-table-column>
-                <el-table-column
-                    fixed="right"
-                    label="操作"
-                    align="center"
-                    width="180">
-                    <template slot-scope="scope">
-                        <div>
-                            <el-button size="" type="primary" round @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
-                        </div>
-                    </template>
-                </el-table-column>
             </el-table>
         </div>
         <div v-else>
@@ -152,11 +141,6 @@
                     <el-descriptions-item label="日支出/T">{{ toFixed(item.daily_expenditure_usdt || 0, 2) }} USDT</el-descriptions-item>
                     <el-descriptions-item label="日收益/T">{{ toFixed(item.daily_income_usdt || 0, 2) }} USDT</el-descriptions-item>
                     <el-descriptions-item label="年化收益率">{{ toFixed(item.annualized_rate || 0, 2) }}%</el-descriptions-item>
-                    <el-descriptions-item>
-                        <div style="text-align:center;">
-                            <el-button type="primary" @click="hashpowerBuyClick(item, 1)">购买</el-button>
-                        </div>
-                    </el-descriptions-item>
                 </el-descriptions>
             </div>
             <div v-else>

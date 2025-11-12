@@ -23,14 +23,6 @@
                     </template>
                 </el-table-column>
                 <el-table-column
-                    label="总质押算力"
-                    align="center"
-                    width="80">
-                    <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
                     label="我的质押"
                     align="center"
                     width="80">
@@ -121,9 +113,6 @@
             <div v-if="hashPowerPoolsList.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <!-- <el-descriptions-item label="年化利率">{{ toFixed(item.annualized_income || 0, 2) }}%</el-descriptions-item> -->
-                    <!-- <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item> -->
-                    <el-descriptions-item label="总质押算力">{{ toFixed(item.total || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="昨日BTC收益">
                         <el-link type="primary" @click="getHashpowerDetail(item.id)">

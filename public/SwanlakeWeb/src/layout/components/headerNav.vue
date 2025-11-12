@@ -46,11 +46,19 @@
                                 <font v-else-if="item.isText" color="#0096FF">{{ item.name }}</font>
                                 <span v-else>{{ item.name }}</span>
                             </el-menu-item>
-                            <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
-                                <template slot="title">{{item.name}}</template>
-                                <div v-for="(childe, keye) in item.children" :key="keye">
-                                    <el-menu-item :index="childe.path">{{childe.name}}</el-menu-item>
-                                </div>
+                            <el-submenu
+                                v-else
+                                :index="item.path == '#' ? item.path + item.id : item.path"
+                                :key="'submenu-' + (item.id || index)"
+                            >
+                                <template slot="title">{{ item.name }}</template>
+                                <el-menu-item
+                                    v-for="(childe, keye) in item.children"
+                                    :key="'submenu-' + (item.id || index) + '-' + (childe.id || keye)"
+                                    :index="childe.path"
+                                >
+                                    {{ childe.name }}
+                                </el-menu-item>
                             </el-submenu>
                         </template>
                     </el-menu>
@@ -108,9 +116,12 @@
                             <font v-else-if="item.isText" color="#0096FF">{{ item.name }}</font>
                             <span v-else>{{ item.name }}</span>
                         </el-menu-item>
-                        <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
+                        <el-submenu 
+                            v-else 
+                            :index="item.path == '#' ? item.path + item.id : item.path" 
+                            :key="item.path == '#' ? item.path + item.id : item.path">
                             <template slot="title">{{item.name}}</template>
-                            <div v-for="(childe, keye) in item.children" :key="keye">
+                            <div v-for="(childe, keye) in item.children" :key="childe.path">
                                 <el-menu-item :index="childe.path">{{childe.name}}</el-menu-item>
                             </div>
                         </el-submenu>
@@ -230,8 +241,13 @@ export default {
                 //     children: [],
                 // },
                 {
-                    name: '仪表盘',
+                    name: '仪表板',
                     path: "/hashpower/my",
+                    children: [],
+                },
+                {
+                    name: '订单',
+                    path: "/hashpower/history",
                     children: [],
                 },
                 {
@@ -240,21 +256,17 @@ export default {
                     children: [],
                 },
                 {
-                    name: '算力币',
+                    name: '开始挖矿',
                     path: "/hashpower/list",
                     children: [
                         // {
                         //     name: '算力币列表',
                         //     path: "/hashpower/list",
                         // },
-                        {
-                            name: '白皮书',
-                            path: "/hashpower/abstract",
-                        },
-                        {
-                            name: '订单历史',
-                            path: "/hashpower/history",
-                        },
+                        // {
+                        //     name: '白皮书',
+                        //     path: "/hashpower/abstract",
+                        // },
                     ]
                 },
                 {

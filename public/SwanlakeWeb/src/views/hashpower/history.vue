@@ -14,52 +14,70 @@
       </div>
     </div>
     <div class="app-inner">
-      <div class="common-assets-list">
-        <div class="head live">
-          <div class="kind">{{ $t('subscribe:Time') }}</div>
-          <div class="kind">{{ $t('subscribe:Amount') }}</div>
-          <div class="kind">{{ $t('subscribe:Directions') }}</div>
-          <div class="kind">{{ $t('subscribe:ViewBSCscan') }}</div>
+      <!-- 桌面端表格布局 -->
+      <div v-if="!isMobel">
+        <el-table
+          v-loading="listLoading"
+          :data="hashPowerList"
+          style="width: 100%">
+          <el-table-column
+            prop="time"
+            :label="$t('subscribe:Time')"
+            align="center"
+            width="">
+            <template slot-scope="scope">
+              <span>{{ scope.row.time }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="amount"
+            :label="$t('subscribe:Amount')"
+            align="center"
+            width="">
+            <template slot-scope="scope">
+              <span>{{ scope.row.amount }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="status"
+            :label="$t('subscribe:Directions')"
+            align="center"
+            width="">
+            <template slot-scope="scope">
+              <span class="bold">{{ scope.row.status == 1 ? $t('subscribe:buy') : '' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="hash"
+            :label="$t('subscribe:ViewBSCscan')"
+            align="center"
+            width="">
+            <template slot-scope="scope">
+              <a :href="domainHostAddress + scope.row.hash" target="_blank">
+                <img :src="require(`@/assets/view-data.png`)" width="20" />
+              </a>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      
+      <!-- 移动端描述列表布局 -->
+      <div v-else>
+        <div v-if="hashPowerList.length" v-loading="listLoading">
+          <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerList" :key="index">
+            <el-descriptions-item :label="$t('subscribe:Time')">{{ item.time }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('subscribe:Amount')">{{ item.amount }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('subscribe:Directions')">{{ item.status == 1 ? $t('subscribe:buy') : '' }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('subscribe:ViewBSCscan')">
+              <a :href="domainHostAddress + item.hash" target="_blank">
+                <img :src="require(`@/assets/view-data.png`)" width="20" />
+              </a>
+            </el-descriptions-item>
+          </el-descriptions>
         </div>
-        <transition-group name="fade-transform" mode="out-in" tag="div" v-loading="listLoading">
-          <div class="body" key="live">
-            <div v-for="(item, index) in hashPowerList" :key="index" class="item live" v-loading="item.loading">
-              <div class="kind">
-                <div>
-                  <span>{{ item.time }}</span>
-                </div>
-              </div>
-              <div class="kind">
-                <div>
-                  <span>{{ item.amount }}</span>
-                </div>
-              </div>
-              <div class="kind">
-                <p class="bold">{{ item.status == 1 ? $t('subscribe:buy') : '' }}</p>
-              </div>
-              <div class="kind">
-                <a :href="domainHostAddress + item.hash" target="_blank">
-                  <img :src="require(`@/assets/view-data.png`)" width="20" />
-                </a>
-              </div>
-              <!-- <div class="opera">
-                <div
-                  :class="['live', { disabled: !Number(item.reward) }]"
-                  @click="receiveH2OReward(item)"
-                  v-loading="item.claimLoading"
-                >
-                  Harvest
-                </div>
-                <div class="live" @click="toDetail(1, item)">Deposit</div>
-                <div class="pick" @click="toDetail(2, item)">Withdraw</div>
-              </div> -->
-            </div>
-            <div class="noresult" v-if="!hashPowerList.length && !listLoading">
-              <!-- {{ $t('public:nothing') }} -->
-              <el-empty :description="$t('public:nothing')"></el-empty>
-            </div>
-          </div>
-        </transition-group>
+        <div v-else-if="!listLoading">
+          <el-empty :description="$t('public:nothing')"></el-empty>
+        </div>
       </div>
       <div class="common-page-outer">
           <el-row class="pages" v-if="total > pageSize">
@@ -124,6 +142,7 @@ export default {
       address: state => state.base.address,
       nftUrl: state => state.base.nftUrl,
       domainHostAddress: state => state.base.domainHostAddress,
+      isMobel: state => state.comps.isMobel,
     }),
   },
   components: {
@@ -185,9 +204,7 @@ export default {
 .container {
   border-radius: 38px;
   // min-height: 268px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #fff;
-  border: 1px solid rgba(0, 232, 137, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 
   // padding: 30px;
@@ -276,108 +293,64 @@ export default {
     }
   }
 
-  .common-assets-list {
-    .head {
-      >div {
-        width: 10.5%;
-        color: #fff;
-        font-weight: 600;
+  // 表格样式
+  ::v-deep .el-table {
+    background: transparent;
+    color: #fff;
+    
+    .el-table__header-wrapper {
+      .el-table__header {
+        background: transparent;
+        
+        th {
+          background: transparent;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          color: #fff;
+          font-weight: 600;
+        }
       }
     }
-
-    .head.live {
-      >div {
-        width: 100%;
-        text-align: center;
-        color: #fff;
-        font-weight: 600;
-      }
-
-      .opera {
-        width: 25%;
-      }
-    }
-
-    .body {
-      .item {
-        .kind {
-          span {
-            color: #fff;
-            font-weight: 600;
+    
+    .el-table__body-wrapper {
+      .el-table__body {
+        background: transparent;
+        
+        tr {
+          background: transparent;
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.05);
           }
-        }
-        .reward {
-          flex-direction: row;
-          justify-content: flex-start;
-          align-items: center;
-        }
-
-        .el-icon-question {
-          display: inline-block;
-          width: 12px;
-        }
-
-        >div {
-          width: 10.5%;
-        }
-
-        .days {
-          width: 14%;
-        }
-
-        .opera {
-          width: 16%;
-
-          .live {
-            margin-right: 5px;
-            position: relative;
-
-            ::v-deep {
-              .el-loading-mask {
-                border-radius: 15px;
-              }
-
-              .el-loading-spinner .circular {
-                height: 22px;
-                width: 22px;
-              }
-
-              .el-loading-spinner {
-                margin-top: -11px;
-              }
+          
+          td {
+            background: transparent;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #fff;
+            
+            .bold {
+              font-weight: 600;
             }
           }
-
-          .live.disabled {
-            @include enterDisabled($enterDisabled-light);
-            color: #fff;
-            cursor: not-allowed;
-          }
-        }
-      }
-
-      .item.live {
-        >div {
-          width: 100%;
-          text-align: center;
-          font-size: 15px;
-          color: #fff;
         }
       }
     }
   }
-
-  .common-assets-list.IRO {
-    .body {
-      .item {
-        >div {
-          width: 42%;
-        }
-
-        .opera {
-          width: 16%;
-        }
-      }
+  
+  // 移动端描述列表样式
+  ::v-deep .el-descriptions {
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    
+    .el-descriptions__label {
+      color: #fff;
+      font-weight: 600;
+    }
+    
+    .el-descriptions__content {
+      color: #fff;
     }
   }
 
