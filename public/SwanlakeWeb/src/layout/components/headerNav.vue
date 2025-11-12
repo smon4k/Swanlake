@@ -22,7 +22,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title" v-show="screenWidth > 600"> BEST MINING </div>
+                    <div class="title" v-show="screenWidth > 600"> BLOCK MINING </div>
                 </div>
                 <!-- <div class="title" v-show="screenWidth > 600"> Swan Lake Quant<br>H2O Finance </div> -->
 
@@ -97,7 +97,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title"> BEST MINING </div>
+                    <div class="title"> BLOCK MINING </div>
                 </div>
                 <br><br>
                 <el-menu

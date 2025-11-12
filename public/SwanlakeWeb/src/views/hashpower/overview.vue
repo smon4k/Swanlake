@@ -36,10 +36,10 @@
                 <el-col :span="6" align="center">{{ $t('subscribe:DailyEarnings') }}/T<br /> 
                     <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
                     <br> 
-                    <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}}BTC</span>
+                    <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2)}}</span>
                 </el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</el-col>
+                <el-col :span="7" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
+                <el-col :span="5" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.currency_price), 0) || "--"}}</el-col>
                 <el-col :span="6" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.065 USDT</el-col>
             </el-row>
 

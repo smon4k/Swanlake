@@ -146,10 +146,10 @@
                         </span>
                     </el-descriptions-item>
                     <el-descriptions-item>
-                        <div style="text-align:center;">
-                            <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
-                            <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
-                            <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获</el-button>
+                        <div class="mobile-button-group">
+                            <el-button size="small" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
+                            <el-button size="small" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
+                            <el-button size="small" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获</el-button>
                         </div>
                     </el-descriptions-item>
                 </el-descriptions>
@@ -720,6 +720,22 @@ export default {
             padding-top: 0;
             .el-table .el-table__cell {
                 padding: 10px 0;
+            }
+        }
+        
+        // 移动端按钮组样式
+        .mobile-button-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            
+            .el-button {
+                flex: 1;
+                margin: 0;
+                font-size: 12px;
+                padding: 8px 12px;
+                border-radius: 6px;
             }
         }
         
