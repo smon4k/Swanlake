@@ -25,7 +25,7 @@
                 <el-table-column
                     label="我的质押"
                     align="center"
-                    width="80">
+                    width="">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.balance || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
@@ -46,7 +46,7 @@
                     prop=""
                     label="昨日H2O收益"
                     align="center"
-                    width="100">
+                    width="">
                     <template slot-scope="scope">
                         {{ toFixed(scope.row.yest_income_h2ousdt || 0, 2) }} USDT <br>
                         {{ toFixed(scope.row.yest_income_h2o, 4) }} H2O
@@ -56,7 +56,7 @@
                     prop=""
                     label="BTC累计收益"
                     align="center"
-                    width="110">
+                    width="">
                     <template slot-scope="scope">
                         <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
                             {{ toFixed(scope.row.total_income_usdt || 0, 2) }} USDT <br>
@@ -68,7 +68,7 @@
                     prop=""
                     label="昨日总收益"
                     align="center"
-                    width="100">
+                    width="">
                     <template slot-scope="scope">
                         {{ toFixed(scope.row.yest_total_income || 0, 2) }} USDT
                     </template>
@@ -86,7 +86,7 @@
                     prop=""
                     label="可领取收益"
                     align="center"
-                    width="110">
+                    width="">
                     <template slot-scope="scope">
                         <span>
                             {{ fromSATBTCNum(scope.row.btcbReward, 2) }} <br>
