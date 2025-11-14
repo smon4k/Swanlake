@@ -14,7 +14,7 @@
                     <!-- 日产出 -->
                     <span>
                         {{ $t('subscribe:DailyEarnings') }}/T
-                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
+                        <span>{{toFixed(Number(poolBtcData.daily_income), decimalJudgment(poolBtcData.daily_income)) || "--"}} USDT</span> 
                         <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2) }}</span>
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
@@ -32,21 +32,24 @@
                 </el-col>
             </el-row>
             <!-- 移动 -->
-            <el-row style="line-height:20px;font-size:8px;" v-else>
-                <el-col :span="6" align="center">{{ $t('subscribe:DailyEarnings') }}/T<br /> 
-                    <span>{{toFixed(Number(poolBtcData.daily_income), 2) || "--"}} USDT</span> 
-                    <br> 
-                    <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2)}}</span>
+            <el-row style="line-height:20px;font-size:8px;margin-top: 10px;">
+                <el-col :span="12" align="center">{{ $t('subscribe:DailyEarnings') }} /T<br /> 
+                    <span>{{toFixed(Number(poolBtcData.daily_income), decimalJudgment(poolBtcData.daily_income)) || "--"}} USDT</span> 
+                    /
+                    <span>{{ fromSATBTCNum(poolBtcData.daily_income/poolBtcData.currency_price, 2)}}</span>
                 </el-col>
-                <el-col :span="7" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
-                <el-col :span="5" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.currency_price), 0) || "--"}}</el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.065 USDT</el-col>
+                <el-col :span="12" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
             </el-row>
-
+            <el-row style="line-height:20px;font-size:8px;margin-top: 10px;">
+                <el-col :span="12" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.currency_price), 0) || "--"}}</el-col>
+                <el-col :span="12" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.065 USDT</el-col>
+            </el-row>
+            加个横线 虚线 不太要明显
+            
             <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
                 <el-row style="line-height:30px;">
                     <!-- 平台昨日产出 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
+                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }} / 
                         <!-- <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
                         <br> -->
                         <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.currency_price), 2) }}</span>
@@ -110,7 +113,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 2) }} USDT</span><br>
+                        <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, decimalJudgment(scope.row.daily_expenditure_usdt)) }} USDT</span><br>
                         <span>{{ fromSATBTCNum(scope.row.daily_expenditure_btc, 2) }}</span>
                     </template>
                 </el-table-column>
@@ -119,7 +122,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, 2) }} USDT</span><br>
+                        <span>{{ toFixed(scope.row.daily_income_usdt || 0, decimalJudgment(scope.row.daily_income_usdt)) }} USDT</span><br>
                         <span>{{ fromSATBTCNum(scope.row.daily_income_btc, 2) }}</span>
                     </template>
                 </el-table-column>
@@ -138,8 +141,8 @@
             <div v-if="hashPowerPoolsList.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="日支出/T">{{ toFixed(item.daily_expenditure_usdt || 0, 2) }} USDT</el-descriptions-item>
-                    <el-descriptions-item label="日收益/T">{{ toFixed(item.daily_income_usdt || 0, 2) }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="日支出/T">{{ toFixed(item.daily_expenditure_usdt || 0, decimalJudgment(item.daily_expenditure_usdt)) }} USDT / {{ fromSATBTCNum(item.daily_expenditure_btc, 2) }}</el-descriptions-item>
+                    <el-descriptions-item label="日收益/T">{{ toFixed(item.daily_income_usdt || 0, 2) }} USDT / {{ fromSATBTCNum(item.daily_income_btc, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="年化收益率">{{ toFixed(item.annualized_rate || 0, 2) }}%</el-descriptions-item>
                 </el-descriptions>
             </div>

@@ -13,6 +13,7 @@ import {
   toWei,
   fromWei,
   fromSATBTCNum,
+  decimalJudgment,
   toolNumber,
   keepDecimalNotRounding
 } from './utils/tools'
@@ -77,6 +78,7 @@ Object.assign(Vue.prototype, {
   toWei,
   fromWei,
   fromSATBTCNum,
+  decimalJudgment,
   keepDecimalNotRounding,
   $get,
   $post,
