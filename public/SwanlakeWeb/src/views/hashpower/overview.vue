@@ -44,12 +44,11 @@
                 <el-col :span="12" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.currency_price), 0) || "--"}}</el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.065 USDT</el-col>
             </el-row>
-            加个横线 虚线 不太要明显
-            
+
             <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
                 <el-row style="line-height:30px;">
                     <!-- 平台昨日产出 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }} / 
+                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }} <br /> 
                         <!-- <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
                         <br> -->
                         <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.currency_price), 2) }}</span>
