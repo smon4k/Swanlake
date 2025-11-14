@@ -438,10 +438,13 @@ export default {
         width: 180px;
         height: 38px;
         line-height: 36px;
+        background-color: #00e889;
+        color: #000;
+        border: none;
         // border: 1px solid #0031FF;
         // color: #002EFF;
-        @include btnBorderColor($color-btnBorderColor-light);
-        @include sideBarBgc($color-bgc-sideBar-light);
+        // @include btnBorderColor($color-btnBorderColor-light);
+        // @include sideBarBgc($color-bgc-sideBar-light);
         border-radius: 19px;
         // background-color: #fff;
         cursor: pointer;
@@ -450,7 +453,7 @@ export default {
       }
 
       .enter {
-        background: linear-gradient(90deg, #0096ff, #0024ff);
+        background: linear-gradient(135deg, #00e889, #067549);
         border: none;
         color: #fff !important;
         margin-right: 22px;

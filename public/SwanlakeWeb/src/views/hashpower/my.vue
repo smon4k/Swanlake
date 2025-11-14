@@ -116,17 +116,16 @@
                     <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="昨日BTC收益">
                         <el-link type="primary" @click="getHashpowerDetail(item.id)">
-                            {{ toFixed(item.yest_income_usdt || 0, 4) }} USDT <br>
+                            {{ toFixed(item.yest_income_usdt || 0, 4) }} USDT /
                             {{ fromSATBTCNum(item.yest_income_btcb, 2) }}
                         </el-link>
                     </el-descriptions-item>
                     <el-descriptions-item label="昨日H2O收益">
-                        {{ toFixed(item.yest_income_h2ousdt || 0, 4) }} USDT <br>
-                        {{ fromSATBTCNum(item.yest_income_h2o, 2) }}
+                        {{ toFixed(item.yest_income_h2ousdt || 0, 4) }} USDT / {{ toFixed(item.yest_income_h2o, 4) }} H2O
                     </el-descriptions-item>
                     <el-descriptions-item label="BTC总收益">
                         <!-- <el-link type="primary" @click="showHashpowerIncomeList(item.id)"> -->
-                            {{ toFixed(item.total_income_usdt || 0, 4) }} USDT <br>
+                            {{ toFixed(item.total_income_usdt || 0, 4) }} USDT /
                             {{ fromSATBTCNum(item.total_income_btcb, 2) }}
                         <!-- </el-link> -->
                     </el-descriptions-item>

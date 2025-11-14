@@ -14,7 +14,7 @@
                     <!-- 日产出 -->
                     <span>
                         {{ $t('subscribe:DailyEarnings') }}/T
-                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
+                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
                         <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2) }}</span>
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
@@ -34,7 +34,7 @@
             <!-- 移动 -->
             <el-row style="line-height:20px;font-size:8px;" v-else>
                 <el-col :span="6" align="center">{{ $t('subscribe:DailyEarnings') }}/T<br /> 
-                    <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
+                    <span>{{toFixed(Number(poolBtcData.daily_income), 2) || "--"}} USDT</span> 
                     <br> 
                     <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2)}}</span>
                 </el-col>

@@ -522,7 +522,7 @@ export default {
                 text-align: left;
                 img {
                     // width: 70px;
-                    height: 70px;
+                    height: 60px;
                     margin-left: -24px;
                     border-radius: 50%;
                 }
