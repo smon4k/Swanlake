@@ -32,18 +32,17 @@
                 </el-col>
             </el-row>
             <!-- 移动 -->
-            <el-row style="line-height:20px;font-size:8px;margin-top: 10px;">
+            <el-row v-else style="line-height:20px;font-size:8px;margin-top: 10px;">
                 <el-col :span="12" align="center">{{ $t('subscribe:DailyEarnings') }} /T<br /> 
                     <span>{{toFixed(Number(poolBtcData.daily_income), decimalJudgment(poolBtcData.daily_income)) || "--"}} USDT</span> 
                     /
                     <span>{{ fromSATBTCNum(poolBtcData.daily_income/poolBtcData.currency_price, 2)}}</span>
                 </el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
-            </el-row>
-            <el-row style="line-height:20px;font-size:8px;margin-top: 10px;">
                 <el-col :span="12" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.currency_price), 0) || "--"}}</el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.065 USDT</el-col>
             </el-row>
+
                         
             <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
                 <el-row style="line-height:30px;">
