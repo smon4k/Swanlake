@@ -474,7 +474,7 @@ export const getFillingIncreasingId = async function(){
   const apiUrl = __ownInstance__.$store.state.base.apiUrl
   const address = __ownInstance__.$store.state.base.address;
   let result = [];
-  let data = await $get('https://h2o.h2opower.site/getPoolBtc')
+  let data = await $get('https://pacx.h2opower.site/getPoolBtc')
   if(data) {
     result = data;
   }
