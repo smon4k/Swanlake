@@ -37,13 +37,13 @@
               </div>
               <div class="text item">
                 <el-row>
-                  <el-col :span="24">
-                    <el-image src="@/assets/BTCS19Pro.png" style="width: 100%; height: 100%;"></el-image>
+                  <el-col :span="24" align="center">
+                    <img src="@/assets/BTCS19Pro.png" style="width: 300px;"></img>
                   </el-col>
                 </el-row>
                 <el-row class="content" :style="'width:' + isMobel ? '100%' : '80%'">
-                  <el-col :span="24" align="right">
-                    <el-button style="float: right; padding: 3px 0" type="text"
+                  <el-col :span="24" align="center">
+                    <el-button style="padding: 3px 0" type="text"
                       @click="hashpowerPanelShow = true">算力规模</el-button>
                   </el-col>
                   <el-col :span="isMobel ? 12 : 8" align="center">
