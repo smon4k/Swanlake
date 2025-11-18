@@ -183,7 +183,7 @@
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   <span data-v-532aaa84=""
-                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;"></span>&nbsp;&nbsp;&nbsp;&nbsp;2、如我们对本合约进行修改，我们将通过www.BLOCK EARNING.club网站公告的方式提前予以公布，变更后的协议在公告届满30日起生效。<span
+                    style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;"></span>&nbsp;&nbsp;&nbsp;&nbsp;2、如我们对本合约进行修改，我们将通过网站公告的方式提前予以公布，变更后的协议在公告届满30日起生效。<span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
                 </p>
@@ -274,7 +274,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1</span><span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>BLOCK EARNING对{{
-                  detailData.name }}以美元0.07每千瓦时为标准，向用户收取维护费（含电费和管理费），根据算力巢实际测试该矿机的功耗计算每天每TH/S的维护费，计算公式如下<span
+                  detailData.name }}以美元0.07每千瓦时为标准，向用户收取维护费（含电费和管理费），根据BLOCK EARNING实际测试该矿机的功耗计算每天每TH/S的维护费，计算公式如下<span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
@@ -314,7 +314,7 @@
                       style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;3</span><span
                       style="font-family:PingFang HK">、</span></span><span
                     style="font-family:PingFang HK">如果根据实际运营情况需要对维护费进行调整，我们将通过
-                    www.BLOCK EARNING.club网站公告的方式提前3天予以公布，变更后的维护费在公告届满3天起生效</span><span data-v-532aaa84=""
+                    网站公告的方式提前3天予以公布，变更后的维护费在公告届满3天起生效</span><span data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
@@ -335,7 +335,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1</span><span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>本合约的生效期从购买下单日开始计算，当收益连续50天收益低于电费，算力币{{
-                  detailData.name }}合约自动作废，BLOCK EARNING将在官网www.BLOCK EARNING.club公告终止算力币合约<span data-v-532aaa84=""
+                  detailData.name }}合约自动作废，BLOCK EARNING将在官网公告终止算力币合约<span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
@@ -482,7 +482,7 @@
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   &nbsp;&nbsp;&nbsp;&nbsp;2. If we revise this contract, we will announce it in advance through the
-                  announcement on the www.BLOCK EARNING.club website, and the revised agreement will take effect 30 days
+                  announcement on the  website, and the revised agreement will take effect 30 days
                   after the
                   announcement expires.<span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
@@ -591,7 +591,7 @@
                       style="font-family:Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;</span></span><span
                     style="font-family:PingFang HK">If the maintenance fee needs to be adjusted according to the actual
                     operation situation, we will announce it 3 days in advance through the announcement on the
-                    www.BLOCK EARNING.club website, and the changed maintenance fee will take effect 3 days after the
+                     website, and the changed maintenance fee will take effect 3 days after the
                     announcement
                     expires.</span><span data-v-532aaa84=""
                     style="font-family: &quot;PingFang HK&quot;; margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
@@ -617,7 +617,7 @@
                   lower than the electricity bill for 50 consecutive days, the BLOCK EARNING {{ detailData.name }} contract
                   will be
                   automatically invalidated. BLOCK EARNING will announce the termination of the SWAN contract on the official
-                  website www.BLOCK EARNING.club.
+                  website .
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
