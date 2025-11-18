@@ -1,102 +1,79 @@
 <template>
     <div class="nav-container">
-        <div class="container">
+        <div class="container-fluid">
             <div class="headerNav-container">
                 <div class="sider-inner">
                     <div class="menu" @click="menuDrawerShow = true" v-if="screenWidth < 1280">
-                        <img src="@/assets/menu.png" alt="" />
+                        <img src="@/assets/menu_line.png" alt="" />
                     </div>
                     <div class="logo" v-show="screenWidth > 600">
                         <router-link to="/" class="logo-link">
                             <img
-                                src="@/assets/log.jpeg"
+                                src="@/assets/logo2.png"
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
-                            <img
+                            <!-- <img
                                 src="@/assets/h2o.png"
                                 alt=""
                                 v-if="mainTheme === 'light'"
-                            />
-                            <img src="@/assets/log.jpeg" alt="" v-else />
+                            /> -->
+                            <img src="@/assets/logo2.png" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title" v-show="screenWidth > 600"> Swan Lake Quant<br>H2O Finance </div>
+                    <div class="title" v-show="screenWidth > 600"> Block EARNING </div>
                 </div>
-                <!-- 安全审计 -->
-                <!-- <div class="security-audit" v-if="$route.path !== '/deposit'" @click="SecurityAudit()">
-                    <img src="@/assets/certik_light.svg" alt="" v-if="mainTheme==='light'">
-                    <img src="@/assets/certik.svg" alt="" v-else>
-                </div> -->
-                <!-- {{ language }} -->
-                <!-- <i class="el-icon-arrow-down el-icon--right"></i> -->
-                <div class="language">
-                      <!-- <el-button v-if="language === 'en'" @click="clickLanguageDropdown('zh')">中文</el-button>
-                      <el-button v-else @click="clickLanguageDropdown('en')">英文</el-button> -->
-                    <!-- <el-dropdown trigger="click" @command="clickLanguageDropdown">
-                        <span class="el-dropdown-link">
-                            {{ language }}
-                            <i class="el-icon-arrow-down el-icon--right"></i>
-                            <img src="@/assets/zh.png" alt="" v-if="activeTheme==='light'" width="22">
-                            <img src="@/assets/en.png" alt="" v-else width="22">
-                        </span>
-                        <el-dropdown-menu slot="dropdown" :append-to-body="false" popper-class="popper-select" class="popper-select">
-                            <el-dropdown-item command="zh">中文</el-dropdown-item>
-                            <el-dropdown-item command="en">English</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </el-dropdown> -->
+                <!-- <div class="title" v-show="screenWidth > 600"> BLOCK EARNING<br>H2O Finance </div> -->
 
+                <div v-show="screenWidth >= 1280">
+                    <el-menu 
+                        class="el-menu-demo" 
+                        v-if="navList.length" 
+                        :default-active="$route.path" 
+                        mode="horizontal" 
+                        @select="handleSelect" 
+                        :router="true" 
+                        menu-trigger="click" 
+                        @open="menuSelectOpen" 
+                        :collapse-transition="false"
+                        :default-openeds="defaultOpenedsArray"
+                        :unique-opened="true"
+                    >
+                        <template v-for="(item, index) in navList">
+                            <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">
+                                <a :href="item.link" target="_blank" v-if="item.link">{{ item.name }}</a>
+                                <font v-else-if="item.isText" color="#0096FF">{{ item.name }}</font>
+                                <span v-else>{{ item.name }}</span>
+                            </el-menu-item>
+                            <el-submenu
+                                v-else
+                                :index="item.path == '#' ? item.path + item.id : item.path"
+                                :key="'submenu-' + (item.id || index)"
+                            >
+                                <template slot="title">{{ item.name }}</template>
+                                <el-menu-item
+                                    v-for="(childe, keye) in item.children"
+                                    :key="'submenu-' + (item.id || index) + '-' + (childe.id || keye)"
+                                    :index="childe.path"
+                                >
+                                    {{ childe.name }}
+                                </el-menu-item>
+                            </el-submenu>
+                        </template>
+                    </el-menu>
                 </div>
-                <!-- <div class="main-theme" @click="changeTheme">
-                    <img src="@/assets/theme.png" alt="" v-if="activeTheme==='light'">
-                    <img src="@/assets/daily_icon.png" alt="" v-else>
-                </div> -->
-                <!-- <div class="switchLang">
-                    <div @click="changeLang('zh')" :class="{'activeCN':activeLang === 'zh'}">中文</div>
-                    <div @click="changeLang('en')" :class="{'activeEN':activeLang === 'en'}">EN</div>
-                    <span class="bar"></span>
-                </div> -->
-                <div class="connectWallet pending" v-if="isConnected && pendingOrderAmount" >
-                    <span>Trading</span>
-                    <img src="@/assets/shuaxin.png" alt="">
-                </div>
-                <div class="connectWallet" @click="connectWallet" v-else>
-                    {{isConnected ? addressStr : 'bsc ' + $t('public:ConnectWallet') }}
+                <div class="nav-right">
+                    <div class="connectWallet pending" v-if="isConnected && pendingOrderAmount" >
+                        <span>Trading</span>
+                        <img src="@/assets/shuaxin.png" alt="">
+                    </div>
+                    <div class="connectWallet" @click="connectWallet" v-else>
+                        {{isConnected ? addressStr : 'bsc ' + $t('public:ConnectWallet') }}
+                    </div>
                 </div>
             </div>
 
-            <el-divider></el-divider>
-
-            <div v-show="screenWidth >= 1280">
-                <el-menu 
-                    class="el-menu-demo" 
-                    v-if="navList.length" 
-                    :default-active="$route.path" 
-                    mode="horizontal" 
-                    @select="handleSelect" 
-                    :router="true" 
-                    menu-trigger="click" 
-                    @open="menuSelectOpen" 
-                    :collapse-transition="false"
-                    :default-openeds="defaultOpenedsArray"
-                    :unique-opened="true"
-                >
-                    <template v-for="(item, index) in navList">
-                        <el-menu-item :index="item.path" v-if="!item.children.length" :key="index">
-                            <a :href="item.link" target="_blank" v-if="item.link">{{ item.name }}</a>
-                            <font v-else-if="item.isText" color="#0096FF">{{ item.name }}</font>
-                            <span v-else>{{ item.name }}</span>
-                        </el-menu-item>
-                        <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
-                            <template slot="title">{{item.name}}</template>
-                            <div v-for="(childe, keye) in item.children" :key="keye">
-                                <el-menu-item :index="childe.path">{{childe.name}}</el-menu-item>
-                            </div>
-                        </el-submenu>
-                    </template>
-                </el-menu>
-            </div>
             <el-drawer
                 title="我是标题"
                 :visible.sync="menuDrawerShow"
@@ -107,15 +84,20 @@
                     <div class="logo">
                         <router-link to="/" class="logo-link">
                             <img
-                                src="@/assets/log.jpeg"
+                                src="@/assets/logo2.png"
                                 alt=""
                                 v-if="mainTheme === 'light'"
                             />
-                            <img src="@/assets/log.jpeg" alt="" v-else />
+                            <!-- <img
+                                src="@/assets/h2o.png"
+                                alt=""
+                                v-if="mainTheme === 'light'"
+                            /> -->
+                            <img src="@/assets/logo2.png" alt="" v-else />
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title"> Swan Lake Quant </div>
+                    <div class="title"> Block EARNING </div>
                 </div>
                 <br><br>
                 <el-menu
@@ -134,9 +116,12 @@
                             <font v-else-if="item.isText" color="#0096FF">{{ item.name }}</font>
                             <span v-else>{{ item.name }}</span>
                         </el-menu-item>
-                        <el-submenu v-else :index="item.path == '#' ? item.path + item.id : item.path" :key="index">
+                        <el-submenu 
+                            v-else 
+                            :index="item.path == '#' ? item.path + item.id : item.path" 
+                            :key="item.path == '#' ? item.path + item.id : item.path">
                             <template slot="title">{{item.name}}</template>
-                            <div v-for="(childe, keye) in item.children" :key="keye">
+                            <div v-for="(childe, keye) in item.children" :key="childe.path">
                                 <el-menu-item :index="childe.path">{{childe.name}}</el-menu-item>
                             </div>
                         </el-submenu>
@@ -147,8 +132,11 @@
         </div>
         <div class="footer">
             <div class="container">
+                <!-- <div class="risk-warning">
+                    风险提示：加密货币投资存在较高的市场风险。价格波动剧烈，可能导致投资本金损失。请务必充分了解相关风险，并考虑自身的经验水平和投资目标。
+                </div> -->
                 <font style="vertical-align: inherit;">
-                    <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 SwanLake Company, LLC。</font>
+                    <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 Block EARNING Company, LLC。</font>
                     <!-- <font style="vertical-align: inherit;">版权所有。</font> -->
                     <a class="privacy-link" href="https://sg.godaddy.com/legal/agreements/privacy-policy?target=_blank" target="_blank" data-eid="uxp.hyd.int.pc.app_header.footer.privacy_policy.link.click">
                         <!-- <font style="vertical-align: inherit;">隐私政策</font> -->
@@ -253,21 +241,32 @@ export default {
                 //     children: [],
                 // },
                 {
-                    name: '算力币',
+                    name: '仪表板',
+                    path: "/hashpower/my",
+                    children: [],
+                },
+                {
+                    name: '订单',
+                    path: "/hashpower/history",
+                    children: [],
+                },
+                {
+                    name: '算力总览',
+                    path: "/hashpower/overview",
+                    children: [],
+                },
+                {
+                    name: '开始挖矿',
                     path: "/hashpower/list",
                     children: [
                         // {
                         //     name: '算力币列表',
                         //     path: "/hashpower/list",
                         // },
-                        {
-                            name: '白皮书',
-                            path: "/hashpower/abstract",
-                        },
-                        {
-                            name: '订单历史',
-                            path: "/hashpower/history",
-                        },
+                        // {
+                        //     name: '白皮书',
+                        //     path: "/hashpower/abstract",
+                        // },
                     ]
                 },
                 {
@@ -482,15 +481,14 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-/deep/ {
-    .el-drawer__body {
-        padding: 20px !important;
-    }
     .sider-inner {
         display: flex;
-        position: absolute;
-        left: 10px;
+        // position: absolute;
         align-items: center;
+        flex-direction: row;
+        left: 0;
+        top: 50%;
+        // transform: translateY(-50%);
         // top: 15px;
         // height: 100%;
         // min-height: 436px;
@@ -505,21 +503,26 @@ export default {
         .title {
             display: flex;
             align-items: center;
-            justify-content: space-around;
-            flex-direction: column;
+            margin-left: -10px;
             font-weight: 900;
+            font-size: 18px;
+            color: #fff;
         }
         .logo {
-            margin-left: 20px;
-            margin-right: 10px;
-            height: 40px;
+            display: flex;
+            align-items: center;
+            // margin-left: 20px;
+            // margin-right: 10px;
+            height: 78px;
             box-sizing: border-box;
             .logo-link {
-                display: block;
+                display: flex;
+                align-items: center;
                 height: 100%;
-                text-align: center;
+                text-align: left;
                 img {
-                    height: 40px;
+                    // width: 70px;
+                    height: 60px;
                     margin-left: -24px;
                     border-radius: 50%;
                 }
@@ -529,24 +532,73 @@ export default {
                     @include mainFont($color-mainFont-light);
                     // color: #1C1C1B;
                     padding-top: 4px;
-                    margin-left: -14px;
+                    // margin-left: -14px;
+                }
+                title {
+                    font-size: 16px;
+                    color: #fff;
+                    padding-top: 4px;
+                    // margin-left: -14px;
                 }
             }
         }
     }
-    .el-menu--horizontal {
+    .el-menu {
+        background-color: transparent;
+        border-bottom: 0;
+        color: #9ca3af;
+
+        .el-menu-item {
+            background-color: transparent !important;
+            color: #fff;
+            &:hover {
+                background-color: transparent !important;
+                color: #fff;
+            }
+        }
+
+        .el-menu-item.is-active {
+            background-color: transparent !important;
+        }
+
+        .el-submenu {
+            background-color: transparent !important;
+
+            .el-submenu__title {
+                font-size: 18px !important;
+                background-color: transparent !important;
+
+                &:hover {
+                    background-color: transparent !important;
+                    color: #fff;
+                }
+            }
+        }
+
+        .el-submenu__title {
+            background-color: transparent !important;
+            font-size: 18px;
+            &:hover {
+                background-color: transparent !important;
+                color: #fff;
+            }
+        }
+
         .el-menu--popup {
+            background-color: #1a1a1a;
+            border-color: rgba(0, 232, 137, 0.15);
+
             .el-menu-item {
-                font-size: 13px;
+                background-color: #1a1a1a !important;
+                color: #9ca3af;
+
+                &:hover {
+                    background-color: #2a2a2a !important;
+                    color: #fff !important;
+                }
             }
         }
     }
-    // .el-menu-item {
-    //     font-size: 18px;
-    //     .is-active {
-    //         border-bottom: 4px solid #409EFF;
-    //     }
-    // }
     .el-menu-demo {
         .el-menu-item {
             font-size: 18px;
@@ -602,7 +654,7 @@ export default {
         }
     }
     .language {
-        /deep/ {
+        ::v-deep  {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -655,7 +707,7 @@ export default {
         }
     }
     .carousel {
-        /deep/ {
+        ::v-deep  {
             margin-right: auto;
             width: 80%;
             height: 50px;
@@ -703,5 +755,16 @@ export default {
             }
         }
     }
+
+.nav-container {
+    position: relative;
+}
+
+.headerNav-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 80px;
 }
 </style>

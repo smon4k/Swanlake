@@ -160,7 +160,7 @@ export default {
 </script>
 <style lang="scss" scoped>
     .container {
-        /deep/ {
+        ::v-deep  {
             .main {
                 .el-descriptions {
                     .el-descriptions__body {

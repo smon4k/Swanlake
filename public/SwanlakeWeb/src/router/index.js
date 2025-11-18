@@ -9,7 +9,8 @@ export const constantRoutes = [
     {
       path: '/',
       component: Layout,
-      redirect: '/hashpower/list',
+      // redirect: '/hashpower/list',
+      redirect: '/home',
       children: [
         {
           path: 'home',
@@ -105,6 +106,18 @@ export const constantRoutes = [
           name: 'hashpowerList',
           component: () => import('@/views/hashpower/list'),
           meta: { title: 'hashpowerList', keepAlive: false }
+        },
+        {
+          path: 'hashpower/my',
+          name: 'hashpowerMy',
+          component: () => import('@/views/hashpower/my'),
+          meta: { title: 'hashpowerMy', keepAlive: false }
+        },
+        {
+          path: 'hashpower/overview',
+          name: 'hashpowerOverview',
+          component: () => import('@/views/hashpower/overview'),
+          meta: { title: 'hashpowerOverview', keepAlive: false }
         },
         {
           path: 'hashpower/buy',

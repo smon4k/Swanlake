@@ -301,7 +301,7 @@ export default {
 </script>
 <style lang="scss" scoped>
     .container {
-        /deep/ {
+        ::v-deep  {
             .el-table {
                 font-size: 16px;
             }

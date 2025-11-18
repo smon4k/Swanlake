@@ -631,7 +631,7 @@ export default {
 </style>
 <style lang="scss" scoped>
 .container {
-    /deep/ {
+    ::v-deep  {
         div {
             min-height: 0;
         }

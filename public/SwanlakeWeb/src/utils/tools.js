@@ -31,6 +31,12 @@ export function toFixed(val, len) {
   if (isNaN(f)) {
     return '--';
   }
+  
+  // 如果 len 为 0，只返回整数部分
+  if (len === 0) {
+    return Math.floor(f).toString();
+  }
+  
   var s = val.toString();
   if (s.indexOf(".") > 0) {
     var f = s.split(".")[1].substring(0, len)
@@ -46,6 +52,7 @@ export function toFixed(val, len) {
   }
   return s || '--';
 }
+
 export function toWei(amount, decimal) {
   let str = 'ether'
   switch (Number(decimal)) {
@@ -82,11 +89,19 @@ export function fromSATBTCNum(amount, decimal) {
   let number = Number(amount) * pow;
   // console.log(number);
   if(number > 100000) {
-    num = toFixed(amount, 10) + ' BTC';
+    num = toFixed(amount, 8) + ' BTC';
   } else {
     num = toFixed(number, decimal) + ' SAT';
   }
   return num;
+}
+
+ export function decimalJudgment(val) {
+  if(Number(val) > 1) {
+      return 2;
+  } else {
+      return 4;
+  }
 }
 
 export const $inputLimit = function (e, point, isModel) {

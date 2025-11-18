@@ -176,12 +176,16 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let daily_expenditure_btc = 0
   let daily_income_usdt = 0
   let daily_income_btc = 0
+  let daily_output_usdt = 0
+  let daily_output_btc = 0
   let power_consumption_ratio = 0
   let chain_address = ''
   let h2oPrice = 0;
   let h2o_income_number = 0;
   let hashpower_price = 0;
   let hash_rate = 0;
+  let price_unit = '';
+  let stock = 0;
   if(id) {
     if(address && address !== undefined && address !== '') {
       userBalance = await getH2OUserInfo(goblinAddress);
@@ -204,18 +208,22 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     cost_revenue = HashpowerDetail.cost_revenue; //估值
     daily_income = HashpowerDetail.daily_income; //日收益率
     currency = HashpowerDetail.currency; //交易币种
-    annualized_income = HashpowerDetail.annualized_income; //年化收益率
+    annualized_income = HashpowerDetail.annualized_income < 0 ? 0 : HashpowerDetail.annualized_income; //年化收益率
     harvest_btcb_amount = HashpowerDetail.harvest_btcb_amount; //已收割奖励数量
     is_give_income = HashpowerDetail.is_give_income; //是否显示昨日收益 大于第一次质押时间一天 给收益
     daily_expenditure_usdt = HashpowerDetail.daily_expenditure_usdt //日支出 usdt
     daily_expenditure_btc = HashpowerDetail.daily_expenditure_btc //日支出 btc
-    daily_income_usdt = HashpowerDetail.daily_income_usdt //日收益 usdt
-    daily_income_btc = HashpowerDetail.daily_income_btc //日收益 btc
+    daily_income_usdt = HashpowerDetail.daily_income_usdt < 0 ? 0 : HashpowerDetail.daily_income_usdt; //日收益 usdt
+    daily_income_btc = HashpowerDetail.daily_income_btc < 0 ? 0 : HashpowerDetail.daily_income_btc; //日收益 btc
+    daily_output_usdt = HashpowerDetail.daily_output < 0 ? 0 : HashpowerDetail.daily_output; //日产出 usdt
+    daily_output_btc = HashpowerDetail.daily_output_btc < 0 ? 0 : HashpowerDetail.daily_output_btc; //日产出 btc
     power_consumption_ratio = HashpowerDetail.power_consumption_ratio //功耗比
     chain_address = HashpowerDetail.chain_address //合约地址
     h2o_income_number = HashpowerDetail.h2o_income_number; //总的自定义收益数量
     hashpower_price = HashpowerDetail.price;
     hash_rate = HashpowerDetail.hash_rate;
+    price_unit = HashpowerDetail.price_unit; //价格单位
+    stock = HashpowerDetail.stock; //库存
   } 
   let reObj = {
     totalTvl: totalTvl,
@@ -240,11 +248,15 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     daily_expenditure_btc: daily_expenditure_btc,
     daily_income_usdt: daily_income_usdt,
     daily_income_btc: daily_income_btc,
+    daily_output_usdt: daily_output_usdt,
+    daily_output_btc: daily_output_btc,
     power_consumption_ratio: power_consumption_ratio,
     chain_address: chain_address,
     h2o_income_number: h2o_income_number,
     hashpower_price: hashpower_price,
     hash_rate: hash_rate,
+    price_unit: price_unit,
+    stock: stock,
   };
   return reObj;
 }

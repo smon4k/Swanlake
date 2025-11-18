@@ -398,9 +398,9 @@ export default {
         return true;
       }
     },
-    estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.065/美元币价
-      // let num = (24 * 29.55 * 0.065) / item.currency_price;
-      let num = 0.065 * 29.55 * 24 / 1000;
+    estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.07/美元币价
+      // let num = (24 * 29.55 * 0.07) / item.currency_price;
+      let num = 0.07 * 29.55 * 24 / 1000;
       return num.toFixed(4);
     },
     dailyExpenditure(item) { //日支出 BTC数量

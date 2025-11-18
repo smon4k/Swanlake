@@ -1,8 +1,8 @@
-$color-body-bg :#F6F6F6;
-$color-sidebar-container-bg :#f5f7f8;
+$color-body-bg :#000503;
+$color-sidebar-container-bg :#000503;
 $color-sidebar-container-bs :rgba(0, 0, 0, 0.1);
 $color-connectWallet-bg :linear-gradient(90deg, #0096FF, #0024FF);
-$color-main-theme-bg:#F6F6F6;
+$color-main-theme-bg:#000503;
 $color-receive-airdrop-font:#0024FF;
 $color-headerNav-bg : #fff;
 
@@ -57,7 +57,7 @@ $color-exchange-activeBg-light: rgba(250, 247, 245, 0.96);
 
 //暗黑模式背景颜色
 $color-bgc-switchLang-dark:#1C1C1C ; 
-$color-bgc-switchLang-light:#F6F6F6 ;
+$color-bgc-switchLang-light:#000503 ;
 @mixin switchLangBgc($color){
     background-color:$color;
     [data-theme="light"] & {
@@ -74,7 +74,7 @@ $color-bgc-switchLang-light:#F6F6F6 ;
 $color-bgc-topnav-dark:#333333 ; 
 // $color-bgc-topnav-dark:#1C1C1C ; 
 $color-bgc-topnav-light:#fff ;
-// $color-bgc-topnav-light:#f5f7f8;
+// $color-bgc-topnav-light:#000503;
 
 @mixin topNavBgc($color){
     background-color:$color;
@@ -115,7 +115,7 @@ $color-bgc-sideBar-light:#fff;
 
 //中间内容背景颜色
 $color-bg-body-dark: #0C0C0C;
-$color-bg-body-light: #f5f7f8;;
+$color-bg-body-light: #000503;;
 
 $color-font-body-dark: #999999;
 $color-font-body-light: #333333;

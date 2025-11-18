@@ -48,6 +48,7 @@
     "Time": "时间",
     "Amount": "数量",
     "Directions": "方向",
+    "CountPrice": "总价",
     "ViewBSCscan": "在BSCscan上查看",
     "Buy": "购买",
     "poolsHeader": "质押算力币获取BTC和H2O收益",
@@ -64,5 +65,6 @@
     "onlineDays": "上线天数",
     "RequiresPledgeIncome": "需要质押才有收益",
     "RequiresPledgeIncomeLike": "领取收益",
-    "MinimumElectricityBill": "全网最低电费"
+    "MinimumElectricityBill": "电费",
+    "ToDashboard": "跳转到仪表板"
 }

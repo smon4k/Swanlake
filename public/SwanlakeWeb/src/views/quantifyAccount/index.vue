@@ -7,26 +7,27 @@
             <el-button type="primary" @click="DepositWithdrawalShow()">出入金</el-button>
             <el-button type="primary" @click="dialogVisibleListClick()">出入金记录</el-button>
             <el-button type="primary" @click="addQuantityAccount()">添加账户</el-button>
-            <el-button type="primary" :disabled="activeName == '全部' || activeName == ''" @click="deleteQuantityAccount()">删除账户</el-button>
+            <el-button type="primary" :disabled="activeName == '全部' || activeName == ''"
+                @click="deleteQuantityAccount()">删除账户</el-button>
         </div>
-        <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
-            <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
+        <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'left'" :stretch="isMobel ? true : false"
+            style="background-color: #fff;" @tab-click="tabsHandleClick">
+            <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList"
+                :key="index">
                 <div v-if="!isMobel">
-                    <el-table
-                        :data="tableData"
-                        style="width: 100%">
+                    <el-table :data="tableData" style="width: 100%">
                         <el-table-column prop="date" label="日期" align="center"></el-table-column>
                         <el-table-column prop="principal" label="累计本金(U)" align="center" width="150">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.principal, 2, true) }}</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.principal, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="总结余(U)" align="center">
                             <template slot-scope="scope">
-                            <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
-                            <el-link type="primary" @click="getTotalBalanceClick()">
-                                <span>{{ Math.floor(scope.row.total_balance) }}</span>
-                            </el-link>
+                                <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
+                                <el-link type="primary" @click="getTotalBalanceClick()">
+                                    <span>{{ Math.floor(scope.row.total_balance) }}</span>
+                                </el-link>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="缓存(U)" align="center">
@@ -41,72 +42,78 @@
                         </el-table-column> -->
                         <el-table-column prop="" label="日利润(U)" align="center">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 2, true) }}</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.daily_profit, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="日利润率" align="center" width="100">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.daily_profit_rate, 2, true) }}%</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.daily_profit_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="平均日利率" align="center" width="100">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 2, true) }}%</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.average_day_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="平均年利率" align="center" width="130">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 2, true) }}%</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.average_year_rate, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="利润(U)" align="center">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.profit, 2, true) }}</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.profit, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="总分润" align="center">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.total_share_profit, 2, true) }}</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.total_share_profit, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="总利润" align="center">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.total_profit, 2, true) }}</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.total_profit, 2, true) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="利润率" align="center">
                             <template slot-scope="scope">
-                            <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 2, true) }}%</span>
+                                <span>{{ keepDecimalNotRounding(scope.row.profit_rate * 100, 2, true) }}%</span>
                             </template>
                         </el-table-column>
                     </el-table>
                     <el-row class="pages" v-if="total > pageSize">
                         <el-col :span="24">
                             <div style="float:right;">
-                            <wbc-page
-                                :total="total"
-                                :pageSize="pageSize"
-                                :currPage="currPage"
-                                @changeLimit="limitPaging"
-                                @changeSkip="skipPaging"
-                            ></wbc-page>
+                                <wbc-page :total="total" :pageSize="pageSize" :currPage="currPage"
+                                    @changeLimit="limitPaging" @changeSkip="skipPaging"></wbc-page>
                             </div>
                         </el-col>
                     </el-row>
                 </div>
                 <div v-else>
                     <div v-if="tableData.length">
-                        <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
+                        <el-descriptions :colon="false" :border="false" :column="1" title=""
+                            v-for="(item, index) in tableData" :key="index">
                             <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
                             <!-- <el-descriptions-item label="账户名称">{{ item.account }}</el-descriptions-item> -->
-                            <el-descriptions-item label="总结余">{{ Math.floor(item.total_balance) }} USDT</el-descriptions-item>
+                            <el-descriptions-item label="总结余">{{ Math.floor(item.total_balance) }}
+                                USDT</el-descriptions-item>
                             <!-- <el-descriptions-item label="币价">{{ keepDecimalNotRounding(item.price, 2, true) }} USDT</el-descriptions-item> -->
-                            <el-descriptions-item label="日利润">{{ keepDecimalNotRounding(item.daily_profit, 2, true) }} USDT</el-descriptions-item>
-                            <el-descriptions-item label="日利润率">{{ keepDecimalNotRounding(item.daily_profit_rate, 4, true) }}</el-descriptions-item>
-                            <el-descriptions-item label="平均日利率">{{ keepDecimalNotRounding(item.average_day_rate, 2, true) }}%</el-descriptions-item>
-                            <el-descriptions-item label="平均年利率">{{ keepDecimalNotRounding(item.average_year_rate, 2, true) }}%</el-descriptions-item>
-                            <el-descriptions-item label="利润">{{ keepDecimalNotRounding(item.profit, 2, true) }} USDT</el-descriptions-item>
-                            <el-descriptions-item label="利润率">{{ keepDecimalNotRounding(item.profit_rate * 100, 2, true) }}%</el-descriptions-item>
+                            <el-descriptions-item label="日利润">{{ keepDecimalNotRounding(item.daily_profit, 2, true) }}
+                                USDT</el-descriptions-item>
+                            <el-descriptions-item label="日利润率">{{ keepDecimalNotRounding(item.daily_profit_rate, 4,
+                                true)
+                                }}</el-descriptions-item>
+                            <el-descriptions-item label="平均日利率">{{ keepDecimalNotRounding(item.average_day_rate, 2,
+                                true)
+                                }}%</el-descriptions-item>
+                            <el-descriptions-item label="平均年利率">{{ keepDecimalNotRounding(item.average_year_rate, 2,
+                                true)
+                                }}%</el-descriptions-item>
+                            <el-descriptions-item label="利润">{{ keepDecimalNotRounding(item.profit, 2, true) }}
+                                USDT</el-descriptions-item>
+                            <el-descriptions-item label="利润率">{{ keepDecimalNotRounding(item.profit_rate * 100, 2, true)
+                                }}%</el-descriptions-item>
                         </el-descriptions>
                     </div>
                     <div v-else>
@@ -116,15 +123,12 @@
             </el-tab-pane>
         </el-tabs>
 
-         <el-dialog
-            :title="activeName + ' 出/入金'"
-            :visible.sync="dialogVisibleShow"
-            width="50%">
+        <el-dialog :title="activeName + ' 出/入金'" :visible.sync="dialogVisibleShow" width="50%">
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="80px">
                 <el-form-item label="方向" prop="direction">
                     <el-radio-group v-model="ruleForm.direction">
-                    <el-radio label="1">入金</el-radio>
-                    <el-radio label="2">出金</el-radio>
+                        <el-radio label="1">入金</el-radio>
+                        <el-radio label="2">出金</el-radio>
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item label="金额" prop="amount">
@@ -140,54 +144,44 @@
             </span>
         </el-dialog>
 
-         <el-dialog
-            title="出/入金记录"
-            :visible.sync="dialogVisibleListShow"
-            width="50%">
+        <el-dialog title="出/入金记录" :visible.sync="dialogVisibleListShow" width="50%">
             <el-table :data="InoutGoldList" style="width: 100%;" height="500">
-                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"
+                    type="index"></el-table-column>
                 <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
                 <el-table-column prop="amount" label="出入金额" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} USDT</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="type" label="类型" align="center">
                     <template slot-scope="scope">
-                    <span v-if="scope.row.type == 1">入金</span>
-                    <span v-else>出金</span>
+                        <span v-if="scope.row.type == 1">入金</span>
+                        <span v-else>出金</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="total_balance" label="累计本金" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.total_balance, 4, true) }} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="备注" align="center">
                     <template slot-scope="scope">
-                    <span>{{ scope.row.remark }}</span>
+                        <span>{{ scope.row.remark }}</span>
                     </template>
                 </el-table-column>
             </el-table>
             <el-row class="pages">
                 <el-col :span="24">
                     <div style="float:right;">
-                    <wbc-page
-                        :total="InoutGoldTotal"
-                        :pageSize="InoutGoldPageSize"
-                        :currPage="InoutGoldCurrPage"
-                        @changeLimit="InoutGoldLimitPaging"
-                        @changeSkip="InoutGoldSkipPaging"
-                    ></wbc-page>
+                        <wbc-page :total="InoutGoldTotal" :pageSize="InoutGoldPageSize" :currPage="InoutGoldCurrPage"
+                            @changeLimit="InoutGoldLimitPaging" @changeSkip="InoutGoldSkipPaging"></wbc-page>
                     </div>
                 </el-col>
             </el-row>
         </el-dialog>
 
-        <el-dialog
-            title="添加账户"
-            :visible.sync="addQuantityAccountShow"
-            width="50%">
+        <el-dialog title="添加账户" :visible.sync="addQuantityAccountShow" width="50%">
             <el-form :model="accountForm" :rules="accountRules" ref="accountForm" label-width="120px">
                 <el-form-item label="账户名称" prop="name">
                     <el-input v-model="accountForm.name"></el-input>
@@ -221,18 +215,11 @@
         </el-dialog>
 
         <!-- 账户余额明细数据 -->
-        <el-dialog
-            title="账户余额明细"
-            :visible.sync="accountBalanceDetailsShow"
-            width="80%">
+        <el-dialog title="账户余额明细" :visible.sync="accountBalanceDetailsShow" width="80%">
             <el-tabs v-model="accountBalanceTabValue" @tab-click="accountBalanceTabClick">
                 <el-tab-pane label="余额明细" name="1" v-if="tabAccountId !== 7 && tabAccountId !== 9">
                     <el-select v-model="currency" clearable placeholder="请选择" @change="selectCurrencyChange">
-                        <el-option
-                            v-for="item in currencyList"
-                            :key="item"
-                            :label="item"
-                            :value="item">
+                        <el-option v-for="item in currencyList" :key="item" :label="item" :value="item">
                         </el-option>
                     </el-select>
                     <el-table :data="accountBalanceDetailsList" style="width: 100%;" height="500">
@@ -245,17 +232,20 @@
                         </el-table-column>
                         <el-table-column prop="" label="价格" align="center" width="150">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.price ? keepDecimalNotRounding(scope.row.price, 10, true) : 0 }}</span>
+                                <span>{{ scope.row.price ? keepDecimalNotRounding(scope.row.price, 10, true) : 0
+                                    }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="余额" align="center" width="150">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.balance ? keepDecimalNotRounding(scope.row.balance, 10, true) : 0 }}</span>
+                                <span>{{ scope.row.balance ? keepDecimalNotRounding(scope.row.balance, 10, true) : 0
+                                    }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="USDT估值" align="center" width="">
                             <template slot-scope="scope">
-                                <span v-if="scope.row.currency !== 'USDT'">{{ scope.row.valuation ? keepDecimalNotRounding(scope.row.valuation, 4, true) : 0 }}</span>
+                                <span v-if="scope.row.currency !== 'USDT'">{{ scope.row.valuation ?
+                                    keepDecimalNotRounding(scope.row.valuation, 4, true) : 0 }}</span>
                                 <span v-else>————</span>
                             </template>
                         </el-table-column>
@@ -264,13 +254,9 @@
                     <el-row class="pages">
                         <el-col :span="24">
                             <div style="float:right;">
-                            <wbc-page
-                                :total="accountBalanceDetailsTotal"
-                                :pageSize="accountBalanceDetailsLimit"
-                                :currPage="accountBalanceDetailsPage"
-                                @changeLimit="accountBalanceLimitPaging"
-                                @changeSkip="accountBalanceSkipPaging"
-                            ></wbc-page>
+                                <wbc-page :total="accountBalanceDetailsTotal" :pageSize="accountBalanceDetailsLimit"
+                                    :currPage="accountBalanceDetailsPage" @changeLimit="accountBalanceLimitPaging"
+                                    @changeSkip="accountBalanceSkipPaging"></wbc-page>
                             </div>
                         </el-col>
                     </el-row>
@@ -303,22 +289,26 @@
                         </el-table-column>
                         <el-table-column prop="" label="开仓均价" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.avg_px ? keepDecimalNotRounding(scope.row.avg_px, 8, true) : 0 }}</span>
+                                <span>{{ scope.row.avg_px ? keepDecimalNotRounding(scope.row.avg_px, 8, true) : 0
+                                    }}</span>
                             </template>
                         </el-table-column>
-                         <el-table-column prop="" label="标记价格" align="center" width="">
+                        <el-table-column prop="" label="标记价格" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.mark_px ? keepDecimalNotRounding(scope.row.mark_px, 8, true) : 0 }}</span>
+                                <span>{{ scope.row.mark_px ? keepDecimalNotRounding(scope.row.mark_px, 8, true) : 0
+                                    }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="保证金余额" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.margin_balance ? keepDecimalNotRounding(scope.row.margin_balance, 8, true) : 0 }}</span>
+                                <span>{{ scope.row.margin_balance ? keepDecimalNotRounding(scope.row.margin_balance, 8,
+                                    true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="保证金率" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.margin_ratio ? keepDecimalNotRounding(scope.row.margin_ratio * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.margin_ratio ? keepDecimalNotRounding(scope.row.margin_ratio * 100,
+                                    2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="收益" align="center" width="">
@@ -328,22 +318,26 @@
                         </el-table-column>
                         <el-table-column prop="" label="收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.upl_ratio ? keepDecimalNotRounding(scope.row.upl_ratio * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.upl_ratio ? keepDecimalNotRounding(scope.row.upl_ratio * 100, 2,
+                                    true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="最大收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.max_upl_rate ? keepDecimalNotRounding(scope.row.max_upl_rate * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.max_upl_rate ? keepDecimalNotRounding(scope.row.max_upl_rate * 100,
+                                    2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="" label="最小收益率" align="center" width="">
                             <template slot-scope="scope">
-                                <span>{{ scope.row.min_upl_rate ? keepDecimalNotRounding(scope.row.min_upl_rate * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.min_upl_rate ? keepDecimalNotRounding(scope.row.min_upl_rate * 100,
+                                    2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="rate_average" label="平均值" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.rate_average ? keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.rate_average ? keepDecimalNotRounding(scope.row.rate_average * 100,
+                                    2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="time" label="更新时间" align="center" width="200"></el-table-column>
@@ -351,18 +345,14 @@
                     <el-row class="pages">
                         <el-col :span="24">
                             <div style="float:right;">
-                            <wbc-page
-                                :total="currencyPositionsTotal"
-                                :pageSize="currencyPositionsLimit"
-                                :currPage="currencyPositionsPage"
-                                @changeLimit="currencyPositionsLimitPaging"
-                                @changeSkip="currencyPositionsSkipPaging"
-                            ></wbc-page>
+                                <wbc-page :total="currencyPositionsTotal" :pageSize="currencyPositionsLimit"
+                                    :currPage="currencyPositionsPage" @changeLimit="currencyPositionsLimitPaging"
+                                    @changeSkip="currencyPositionsSkipPaging"></wbc-page>
                             </div>
                         </el-col>
                     </el-row>
                 </el-tab-pane>
-                 <el-tab-pane label="收益率列表" name="3" v-if="tabAccountId == 7 || tabAccountId == 9">
+                <el-tab-pane label="收益率列表" name="3" v-if="tabAccountId == 7 || tabAccountId == 9">
                     <el-table :data="maxMinUplRateList" style="width: 100%;" height="">
                         <!-- <el-table-column label="序号" align="center">
                             <template slot-scope="scope">
@@ -378,47 +368,55 @@
                         </el-table-column>
                         <el-table-column prop="max_rate" label="最大收益率" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.max_rate ? keepDecimalNotRounding(scope.row.max_rate * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.max_rate ? keepDecimalNotRounding(scope.row.max_rate * 100, 2, true)
+                                    : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="min_rate" label="最小收益率" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.min_rate ? keepDecimalNotRounding(scope.row.min_rate * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.min_rate ? keepDecimalNotRounding(scope.row.min_rate * 100, 2, true)
+                                    : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="closing_yield" label="平仓收益率" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.closing_yield ? keepDecimalNotRounding(scope.row.closing_yield * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.closing_yield ? keepDecimalNotRounding(scope.row.closing_yield * 100,
+                                    2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="avg_price" label="平仓价格" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.avg_price ? keepDecimalNotRounding(scope.row.avg_price, 2, true) : 0 }}</span>
+                                <span>{{ scope.row.avg_price ? keepDecimalNotRounding(scope.row.avg_price, 2, true) : 0
+                                    }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="upl" label="收益" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.upl ? keepDecimalNotRounding(scope.row.upl, 2, true) : 0 }}</span>
+                                <span>{{ scope.row.upl ? keepDecimalNotRounding(scope.row.upl, 2, true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="opening_price" label="开仓价格" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.opening_price ? keepDecimalNotRounding(scope.row.opening_price, 2, true) : 0 }}</span>
+                                <span>{{ scope.row.opening_price ? keepDecimalNotRounding(scope.row.opening_price, 2,
+                                    true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="rate_average" label="平均值" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.rate_average ? keepDecimalNotRounding(scope.row.rate_average * 100, 2, true) : 0 }}%</span>
+                                <span>{{ scope.row.rate_average ? keepDecimalNotRounding(scope.row.rate_average * 100,
+                                    2, true) : 0 }}%</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="min_make_price" label="最低价" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.min_make_price ? keepDecimalNotRounding(scope.row.min_make_price, 2, true) : 0 }}</span>
+                                <span>{{ scope.row.min_make_price ? keepDecimalNotRounding(scope.row.min_make_price, 2,
+                                    true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="max_make_price" label="最高价" align="center" width="">
                             <template slot-scope="scope">
-                            <span>{{ scope.row.max_make_price ? keepDecimalNotRounding(scope.row.max_make_price, 2, true) : 0 }}</span>
+                                <span>{{ scope.row.max_make_price ? keepDecimalNotRounding(scope.row.max_make_price, 2,
+                                    true) : 0 }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column prop="c_time" label="开仓时间" align="center" width="200"></el-table-column>
@@ -427,27 +425,19 @@
                     <el-row class="pages">
                         <el-col :span="24">
                             <div style="float:right;">
-                            <wbc-page
-                                :total="maxMinUplRateTotal"
-                                :pageSize="maxMinUplRateLimit"
-                                :currPage="maxMinUplRatePage"
-                                @changeLimit="maxMinUplRateLimitPaging"
-                                @changeSkip="maxMinUplRatePaging"
-                            ></wbc-page>
+                                <wbc-page :total="maxMinUplRateTotal" :pageSize="maxMinUplRateLimit"
+                                    :currPage="maxMinUplRatePage" @changeLimit="maxMinUplRateLimitPaging"
+                                    @changeSkip="maxMinUplRatePaging"></wbc-page>
                             </div>
                         </el-col>
                     </el-row>
-                 </el-tab-pane>
+                </el-tab-pane>
             </el-tabs>
         </el-dialog>
 
         <!-- 账户币种交易明细 -->
-        <el-dialog
-            title="账户币种交易明细"
-            :visible.sync="accountCurrencyDetailsShow"
-            width="80%"
-            v-loading="loading">
-            <el-table :data="accountCurrencyDetailsList" style="width: 100%;" height="600" >
+        <el-dialog title="账户币种交易明细" :visible.sync="accountCurrencyDetailsShow" width="80%" v-loading="loading">
+            <el-table :data="accountCurrencyDetailsList" style="width: 100%;" height="600">
                 <!-- <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column> -->
                 <!-- <el-table-column prop="currency" label="币种" align="center" width="">
                     <template slot-scope="scope">
@@ -490,23 +480,17 @@
             <el-row class="pages">
                 <el-col :span="24">
                     <div style="float:right;">
-                    <wbc-page
-                        :total="accountCurrencyDetailsTotal"
-                        :pageSize="accountCurrencyDetailsLimit"
-                        :currPage="accountCurrencyDetailsPage"
-                        @changeLimit="accountCurrencyDetailsLimitPaging"
-                        @changeSkip="accountCurrencyDetailsSkipPaging"
-                    ></wbc-page>
+                        <wbc-page :total="accountCurrencyDetailsTotal" :pageSize="accountCurrencyDetailsLimit"
+                            :currPage="accountCurrencyDetailsPage" @changeLimit="accountCurrencyDetailsLimitPaging"
+                            @changeSkip="accountCurrencyDetailsSkipPaging"></wbc-page>
                     </div>
                 </el-col>
             </el-row>
         </el-dialog>
 
-        <el-dialog
-            :title="activeName + ' 分润'"
-            :visible.sync="profitShow"
-            width="50%">
-            <el-form :model="ruleProfitForm" :rules="rules" ref="ruleProfitForm" label-width="80px" class="profit-loading"> 
+        <el-dialog :title="activeName + ' 分润'" :visible.sync="profitShow" width="50%">
+            <el-form :model="ruleProfitForm" :rules="rules" ref="ruleProfitForm" label-width="80px"
+                class="profit-loading">
                 <el-form-item label="金额" prop="amount">
                     <el-input v-model="ruleProfitForm.amount"></el-input>
                 </el-form-item>
@@ -516,43 +500,37 @@
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="profitShow = false" :disabled="loading">取 消</el-button>
-                <el-button type="primary" @click="submitProfitForm('ruleProfitForm')" :disabled="loading">确 定</el-button>
+                <el-button type="primary" @click="submitProfitForm('ruleProfitForm')" :disabled="loading">确
+                    定</el-button>
             </span>
         </el-dialog>
 
-        <el-dialog
-            title="分润记录"
-            :visible.sync="profitListShow"
-            width="50%">
+        <el-dialog title="分润记录" :visible.sync="profitListShow" width="50%">
             <el-table :data="profitGoldList" style="width: 100%;" height="500">
-                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left" type="index"></el-table-column>
+                <el-table-column sortable prop="id" label="ID" width="100" align="center" fixed="left"
+                    type="index"></el-table-column>
                 <el-table-column prop="time" label="时间" align="center" width="200"></el-table-column>
                 <el-table-column prop="amount" label="出入金额" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} USDT</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.amount, 8, true) }} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="total_profit" label="总分润" align="center" width="150">
                     <template slot-scope="scope">
-                    <span>{{ keepDecimalNotRounding(scope.row.total_profit, 4, true) }} USDT</span>
+                        <span>{{ keepDecimalNotRounding(scope.row.total_profit, 4, true) }} USDT</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="" label="备注" align="center">
                     <template slot-scope="scope">
-                    <span>{{ scope.row.remark }}</span>
+                        <span>{{ scope.row.remark }}</span>
                     </template>
                 </el-table-column>
             </el-table>
             <el-row class="pages">
                 <el-col :span="24">
                     <div style="float:right;">
-                    <wbc-page
-                        :total="profitGoldTotal"
-                        :pageSize="profitGoldPageSize"
-                        :currPage="profitGoldCurrPage"
-                        @changeLimit="profitGoldLimitPaging"
-                        @changeSkip="profitGoldSkipPaging"
-                    ></wbc-page>
+                        <wbc-page :total="profitGoldTotal" :pageSize="profitGoldPageSize" :currPage="profitGoldCurrPage"
+                            @changeLimit="profitGoldLimitPaging" @changeSkip="profitGoldSkipPaging"></wbc-page>
                     </div>
                 </el-col>
             </el-row>
@@ -713,12 +691,12 @@ export default {
     },
     computed: {
         ...mapState({
-            address:state=>state.base.address,
-            isConnected:state=>state.base.isConnected,
-            isMobel:state=>state.comps.isMobel,
-            mainTheme:state=>state.comps.mainTheme,
-            apiUrl:state=>state.base.apiUrl,
-            userOkxId:state=>state.base.userOkxId,
+            address: state => state.base.address,
+            isConnected: state => state.base.isConnected,
+            isMobel: state => state.comps.isMobel,
+            mainTheme: state => state.comps.mainTheme,
+            apiUrl: state => state.base.apiUrl,
+            userOkxId: state => state.base.userOkxId,
         }),
 
     },
@@ -728,7 +706,7 @@ export default {
     watch: {
         userOkxId: {
             handler: function (val, oldVal) {
-                if(val) {
+                if (val) {
                     this.getAccountList();
                 }
             },
@@ -769,7 +747,7 @@ export default {
                 if (json.code == 10000) {
                     if (json.data.data) {
                         let list = (json.data && json.data.data) || [];
-                        if(this.isMobel) {
+                        if (this.isMobel) {
                             if (this.currPage <= 1) {
                                 // console.log('首次加载');
                                 this.tableData = list;
@@ -815,7 +793,7 @@ export default {
                 if (json.code == 10000) {
                     if (json.data.data) {
                         let list = (json.data && json.data.data) || [];
-                        if(this.isMobel) {
+                        if (this.isMobel) {
                             if (this.currPage <= 1) {
                                 // console.log('首次加载');
                                 this.tableData = list;
@@ -870,7 +848,7 @@ export default {
                 if (json.code == 10000) {
                     this.accountBalanceDetailsList = json.data.lists;
                     this.accountBalanceDetailsTotal = json.data.count;
-                    if(account_id) {
+                    if (account_id) {
                         this.getCurrencyList();
                     }
                 }
@@ -1022,22 +1000,22 @@ export default {
             console.log(tab);
             this.currencyPositionsList = [];
             this.accountBalanceDetailsList = [];
-            if(tab.name == 1) {
+            if (tab.name == 1) {
                 // this.accountBalanceTabValue = '1'
                 this.accountBalanceDetailsFun();
             }
-            if(tab.name == 2) {
+            if (tab.name == 2) {
                 // this.accountBalanceTabValue = '2'
                 this.getAccountCurrencyPositionsList();
             }
-            if(tab.name == 3) {
+            if (tab.name == 3) {
                 this.getMaxMinUplRate();
             }
         },
         getTotalBalanceClick() { //获取总结余弹框
             this.currencyPositionsList = [];
             this.accountBalanceDetailsList = [];
-            if(this.tabAccountId == 7 || this.tabAccountId == 9) {
+            if (this.tabAccountId == 7 || this.tabAccountId == 9) {
                 this.accountBalanceTabValue = '2'
                 this.getAccountCurrencyPositionsList();
             } else {
@@ -1143,7 +1121,7 @@ export default {
         currencyPositionsLimitPaging(limit) {
             this.currencyPositionsLimit = limit;
             this.getAccountCurrencyPositionsList();
-        },  
+        },
         currencyPositionsSkipPaging(page) {
             this.currencyPositionsPage = page;
             this.getAccountCurrencyPositionsList();
@@ -1163,7 +1141,7 @@ export default {
             this.pageSize = 20;
             this.currPage = 1;
             this.tableData = [];
-            if(this.tabAccountId <= 0) {
+            if (this.tabAccountId <= 0) {
                 this.getAllList();
             } else {
                 this.getList();
@@ -1241,37 +1219,43 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-     .container {
-        /deep/ {
-            .el-breadcrumb {
-                height: 25px;
-                font-size: 10px;
-            }
-            .el-table {
-                font-size: 10px;
-            }
-            .el-tabs__item {
-                font-size: 10px;
-            }
-            .el-descriptions {
-                margin-bottom: 20px;
-                .el-descriptions__body {
-                    padding: 20px;
-                    border-radius: 20px;
-                    .el-descriptions-item__container {
-                        .el-descriptions-item__content {
-                            display: unset;
-                            text-align: right;
-                            .operate {
-                                text-align: center;
-                                button {
-                                    width: 80px;
-                                }
-                            }
+.container {
+    .el-breadcrumb {
+        height: 25px;
+        font-size: 10px;
+    }
+
+    .el-table {
+        font-size: 10px;
+    }
+
+    .el-tabs__item {
+        font-size: 10px;
+    }
+
+    .el-descriptions {
+        margin-bottom: 20px;
+
+        .el-descriptions__body {
+            padding: 20px;
+            border-radius: 20px;
+
+            .el-descriptions-item__container {
+                .el-descriptions-item__content {
+                    display: unset;
+                    text-align: right;
+
+                    .operate {
+                        text-align: center;
+
+                        button {
+                            width: 80px;
                         }
                     }
                 }
             }
         }
     }
+
+}
 </style>

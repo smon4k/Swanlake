@@ -1,90 +1,6 @@
 <template>
     <div class="container">
 
-
-
-        <!-- 算力币信息 -->
-        <el-card class="box-card">
-            <!-- PC -->
-            <el-row class="public-info" v-if="!isMobel">
-                <el-col :span="24" style="float:right;">
-                    <!-- 全网最低电费 -->
-                    <span>
-                        {{ $t('subscribe:MinimumElectricityBill') }}
-                        <span>0.68 USDT</span> 
-                    </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <!-- 日产出 -->
-                    <span>
-                        {{ $t('subscribe:DailyEarnings') }}/T
-                        <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
-                        <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2) }}</span>
-                    </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <!-- 全网算力  -->
-                    <span>
-                        {{ $t('subscribe:Hashrate') }}
-                        <span> {{toFixed(Number(poolBtcData.power),3) || "--"}}EH/s</span> 
-                    </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <!-- 币价 -->
-                    <span>
-                        {{ $t('subscribe:CurrencyPrice') }}
-                        <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
-                    </span>
-                </el-col>
-            </el-row>
-            <!-- 移动 -->
-            <el-row style="line-height:20px;font-size:8px;" v-else>
-                <el-col :span="6" align="center">{{ $t('subscribe:DailyEarnings') }}/T<br /> 
-                    <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}}USDT</span> 
-                    <br> 
-                    <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}}BTC</span>
-                </el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.065 USDT</el-col>
-            </el-row>
-
-            <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
-                <el-row style="line-height:30px;">
-                    <!-- 平台昨日产出 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
-                        <!-- <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
-                        <br> -->
-                        <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.currency_price), 2) }}</span>
-                    </el-col>
-                    <!-- 平台累计产出 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
-                        <!-- <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
-                        <br> -->
-                        <!-- <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.currency_price), 2) || "--" }}</span> -->
-                        <span>{{ fromSATBTCNum(Number(count_btc_output), 2) || "--" }}</span>
-                    </el-col>
-                    <!-- 总质押算力 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">总质押算力<br /> 
-                        <span>{{toFixed(Number(totalPledgePower), 2) || "--"}} T</span>
-                    </el-col>
-                    <!-- <el-col :span="isMobel ? 8 : 5" align="center">{{ $t('subscribe:EstimatedElectricityCharge') }}/T<br /> 
-                        <span>{{ toFixed(daily_expenditure_usdt || 0, 4) }} USDT</span>
-                        <br>
-                        <span>{{ toFixed(daily_expenditure_btc || 0, 8) }} BTC</span>
-                    </el-col>
-                    <el-col :span="isMobel ? 12 : 5" align="center">{{ $t('subscribe:NetProfit') }}/T<br /> 
-                        <span>{{ toFixed(daily_income_usdt || 0, 3) }} USDT</span>
-                        <br>
-                        <span></span>{{ toFixed(daily_income_btc || 0, 8) }} BTC
-                    </el-col> -->
-                    <!-- 上线天数 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">
-                        {{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}
-                        <br>
-                        <el-link type="primary" style="font-size:16px;" href="https://bscscan.com/address/0x8f4bdA5080fE2A97E54c9B5277D9D6b0A9e9124F#tokentxns" target='_blank'>{{ '链上收益查询' }}</el-link>
-                    </el-col>
-                </el-row>
-            </div>
-        </el-card>
-
         <div class="commin-title">
             <div class="title-inner">
                 <span class="tit">质押算力币获取BTC收益</span>
@@ -108,20 +24,37 @@
                         </el-link>
                     </template>
                 </el-table-column>
-                <!-- <el-table-column
-                    prop="annualized_income"
-                    label="年化利率"
-                    align="center">
-                    <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.annualized_income || 0, 2) }}%</span>
-                    </template>
-                </el-table-column> -->
                 <el-table-column
-                    label="总质押算力"
+                    label="价格"
                     align="center"
-                    width="80">
+                    width="">
                     <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.total || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
+                        <span>{{ toFixed(scope.row.price || 0, 2) }} USDT</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    label="单位"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.hash_rate }} TH/s</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    label="库存"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.stock }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    label="日产出/T"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_output_usdt || 0, 2) }} USDT</span><br>
+                        <span>{{ fromSATBTCNum(scope.row.daily_output_btc, 2) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -143,66 +76,6 @@
                     </template>
                 </el-table-column>
                 <el-table-column
-                    label="我的质押"
-                    align="center"
-                    width="80">
-                    <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.balance || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="昨日BTC收益"
-                    align="center"
-                    width="">
-                    <template slot-scope="scope">
-                        <el-link type="primary" @click="getHashpowerDetail(scope.row.id)">
-                            {{ toFixed(scope.row.yest_income_usdt || 0, 2) }} USDT <br>
-                            {{ fromSATBTCNum(scope.row.yest_income_btcb, 2) }}
-                        </el-link>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="昨日H2O收益"
-                    align="center"
-                    width="100">
-                    <template slot-scope="scope">
-                        {{ toFixed(scope.row.yest_income_h2ousdt || 0, 2) }} USDT <br>
-                        {{ toFixed(scope.row.yest_income_h2o, 4) }} H2O
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="BTC累计收益"
-                    align="center"
-                    width="110">
-                    <template slot-scope="scope">
-                        <el-link type="primary" @click="showHashpowerIncomeList(scope.row.id)">
-                            {{ toFixed(scope.row.total_income_usdt || 0, 2) }} USDT <br>
-                            {{ fromSATBTCNum(scope.row.total_income_btcb, 2) }}
-                        </el-link>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="昨日总收益"
-                    align="center"
-                    width="100">
-                    <template slot-scope="scope">
-                        {{ toFixed(scope.row.yest_total_income || 0, 2) }} USDT
-                    </template>
-                </el-table-column>
-                <!-- <el-table-column
-                    prop=""
-                    label="昨日总收益率"
-                    align="center"
-                    width="">
-                    <template slot-scope="scope">
-                        {{ toFixed(scope.row.yest_total_incomerate || 0, 2) }}%
-                    </template>
-                </el-table-column> -->
-                <el-table-column
                     prop=""
                     label="年化收益率"
                     align="center"
@@ -212,30 +85,13 @@
                     </template>
                 </el-table-column>
                 <el-table-column
-                    prop=""
-                    label="可领取收益"
-                    align="center"
-                    width="110">
-                    <template slot-scope="scope">
-                        <span>
-                            {{ fromSATBTCNum(scope.row.btcbReward, 2) }} <br>
-                            {{ toFixed(scope.row.h2oReward, 2) }} H2O
-                        </span>
-                    </template>
-                </el-table-column>
-                <el-table-column
                     fixed="right"
                     label="操作"
                     align="center"
                     width="180">
                     <template slot-scope="scope">
                         <div>
-                            <el-button size="mini" round @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
-                            <el-button size="mini" round @click="receiveBTCBReward(scope.row)" :loading="receiveLoading" :disabled="!Number(scope.row.btcbReward)">收获</el-button>
-                        </div>
-                        <div style="margin-top:5px">
-                            <el-button size="mini" round @click="toHashpowerDetail(1, scope.row)">存入</el-button>
-                            <el-button size="mini" round @click="toHashpowerDetail(2, scope.row)" >提取</el-button>
+                            <el-button size="" type="primary" round @click="hashpowerBuyClick(scope.row, 1)">购买</el-button>
                         </div>
                     </template>
                 </el-table-column>
@@ -245,47 +101,25 @@
             <div v-if="hashPowerPoolsList.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <!-- <el-descriptions-item label="年化利率">{{ toFixed(item.annualized_income || 0, 2) }}%</el-descriptions-item> -->
-                    <!-- <el-descriptions-item label="总份数">{{ toFixed(item.total_size || 0, 4) }}</el-descriptions-item> -->
-                    <el-descriptions-item label="总质押算力">{{ toFixed(item.total || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
-                    <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
-                    <el-descriptions-item label="昨日BTC收益">
-                        <el-link type="primary" @click="getHashpowerDetail(item.id)">
-                            {{ toFixed(item.yest_income_usdt || 0, 4) }} USDT <br>
-                            {{ fromSATBTCNum(item.yest_income_btcb, 2) }}
-                        </el-link>
+                    <el-descriptions-item label="价格">{{ toFixed(item.price || 0, 2) }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="单位">{{ item.hash_rate }} TH/s</el-descriptions-item>
+                    <el-descriptions-item label="库存">{{ item.stock }}</el-descriptions-item>
+                    <el-descriptions-item label="日产出/T">
+                        {{ toFixed(item.daily_output_usdt || 0, 2) }} USDT /
+                        {{ fromSATBTCNum(item.daily_output_btc, 2) }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="昨日H2O收益">
-                        {{ toFixed(item.yest_income_h2ousdt || 0, 4) }} USDT <br>
-                        {{ fromSATBTCNum(item.yest_income_h2o, 2) }}
+                    <el-descriptions-item label="日支出/T">
+                        {{ toFixed(item.daily_expenditure_usdt || 0, 2) }} USDT /
+                        {{ fromSATBTCNum(item.daily_expenditure_btc, 2) }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="BTC总收益">
-                        <!-- <el-link type="primary" @click="showHashpowerIncomeList(item.id)"> -->
-                            {{ toFixed(item.total_income_usdt || 0, 4) }} USDT <br>
-                            {{ fromSATBTCNum(item.total_income_btcb, 2) }}
-                        <!-- </el-link> -->
+                    <el-descriptions-item label="日收益/T">
+                        {{ toFixed(item.daily_income_usdt || 0, 2) }} USDT /
+                        {{ fromSATBTCNum(item.daily_income_btc, 2) }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="昨日总收益">
-                            {{ toFixed(item.yest_total_income || 0, 4) }} USDT
-                    </el-descriptions-item>
-                    <!-- <el-descriptions-item label="昨日总收益率">
-                            {{ toFixed(item.yest_total_incomerate || 0, 2) }} %
-                    </el-descriptions-item> -->
-                    <el-descriptions-item label="年化收益率">
-                            {{ toFixed(item.annualized_rate || 0, 2) }} %
-                    </el-descriptions-item>
-                    <el-descriptions-item label="可领取收益">
-                        <span>
-                            {{ fromSATBTCNum(item.btcbReward, 2) }}
-                            {{ toFixed(item.h2oReward, 2) }} H2O
-                        </span>
-                    </el-descriptions-item>
+                    <el-descriptions-item label="年化收益率">{{ toFixed(item.annualized_rate || 0, 2) }}%</el-descriptions-item>
                     <el-descriptions-item>
                         <div style="text-align:center;">
-                            <el-button size="mini" type="primary" @click="hashpowerBuyClick(item, 1)">购买</el-button>
-                            <el-button size="mini" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获</el-button>
-                            <el-button size="mini" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
-                            <el-button size="mini" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
+                            <el-button type="primary" @click="hashpowerBuyClick(item, 1)">购买</el-button>
                         </div>
                     </el-descriptions-item>
                 </el-descriptions>
@@ -386,7 +220,7 @@ export default {
         return {
             activeName: '1',
             timeInterval: null,
-            refreshTime: 10000, //数据刷新间隔时间
+            refreshTime: 10000, //数据刷新间隔时间 
             currPage: 1, //当前页
             pageSize: 20, //每页显示条数
             total: 100, //总条数
@@ -431,6 +265,18 @@ export default {
     },
     beforeRouteLeave(to, from, next){ //页面离开
         next();
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+    },
+    deactivated() { //页面停用（keep-alive 停用时）
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+    },
+    beforeDestroy() { //组件销毁时
         if (this.timeInterval) {
             clearInterval(this.timeInterval);
             this.timeInterval = null;
@@ -506,6 +352,10 @@ export default {
     },
     methods: {
         refreshData() { //定时刷新数据
+            // 先清除已存在的定时器，防止重复创建
+            if (this.timeInterval) {
+                clearInterval(this.timeInterval);
+            }
             this.timeInterval = setInterval(async () => {
                 this.$store.dispatch('refreshHashPowerPoolsList')
                 await this.getPoolBtcData();
@@ -578,23 +428,6 @@ export default {
                 } else {
                     this.$message.error("加载数据失败");
                 }
-            });
-        },
-        getHashpowerDetail(hashId) { //获取算力币详情数据 展示面板信息
-            axios.get(this.nftUrl + "/Hashpower/hashpower/getHashpowerDetail",{
-                params: {
-                    hashId: hashId,
-                }
-            }).then((json) => {
-            this.detailLoding = false;
-                // console.log(json);
-                // console.log(this.address);
-                if (json.code == 10000) {
-                    this.detailData = json.data;
-                    this.hashpowerPanelShow = true;
-                } 
-            }).catch((error) => {
-                this.$message.error(error);
             });
         },
         async getPoolBtcData() { //获取BTC爬虫数据
@@ -678,8 +511,8 @@ export default {
         showHashpowerDetail() { //查看详情
             this.hashpowerDetail = true;
         },
-        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.065/美元币价
-            // let num = (24 * 29.55 * 0.065) / item.currency_price;
+        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.07/美元币价
+            // let num = (24 * 29.55 * 0.07) / item.currency_price;
             let num = item.electricity_price * item.power_consumption_ratio * 24 / 1000;
             return num.toFixed(4);
         },
@@ -803,114 +636,44 @@ export default {
 </script>
 <style lang="scss" scoped>
     .container {
-        /deep/ {
-            .box-card {
-                padding: 10px;
-                margin-bottom: 20px;
-                border-radius: 20px;
-                .el-card__body {
-                    padding: 0;
-                    div {
-                        font-size: 13px;
-                    }
-                }
-                .public-info {
-                    padding: 10px;
-                    font-size: 10px;
-                    text-align: right;
-                    margin-right: 30px;
-                }
-                .info {
-                    padding: 30px;
-                    .el-divider {
-                        background-color: rgba(255,255,255,0.1);
-                        width: 80%;
-                        // margin: 0 auto;
-                        top: 10px;
-                    }
-                } 
-                .model-info {
-                    margin-top: 10px;
-                    font-size: 13px;
-                    padding: 0;
-                }
+        .commin-title {
+            margin-bottom: 10px;
+            .btn {
+                display: inline-block;
+                padding: 0 17px;
+                height: 30px;
+                background: linear-gradient(90deg, #0096FF, #0024FF);
+                color: #fff;
+                border-style: solid;
+                border-width: 1px;
+                border-radius: 15px;
+                line-height: 28px;
+                vertical-align: middle;
+                margin-left: 8px;
+                cursor: pointer;
+                position: relative;
+                box-sizing: border-box;
             }
-            .commin-title {
-                margin-bottom: 10px;
-                .btn {
-                    display: inline-block;
-                    padding: 0 17px;
-                    height: 30px;
-                    background: linear-gradient(90deg, #0096FF, #0024FF);
-                    color: #fff;
-                    border-style: solid;
-                    border-width: 1px;
-                    border-radius: 15px;
-                    line-height: 28px;
-                    vertical-align: middle;
-                    margin-left: 8px;
-                    cursor: pointer;
-                    position: relative;
-                    box-sizing: border-box;
-                }
-                .tit {
-                    padding-right: 14px;
-                    display: inline-block;
-                    font-weight: 800;
-                    font-size: 13px;        
-                }
-            }
-            .el-table {
-                border-radius: 20px;
-                font-size: 10px;
-                .cell {
-                    padding-left: unset;
-                    .el-button--mini.is-round {
-                        padding: 4px 15px;
-                    }
-                    button {
-                        color: #409EFF;
-                        border-color: #409EFF;
-                    }
-                    button.is-disabled {
-                        color: #C0C4CC;
-                        border-color: #EBEEF5;
-                    }
-                    .el-link {
-                        font-size: 10px;
-                    }
-                }
-            }
-            .el-descriptions {
-                margin-bottom: 20px;
-                .el-descriptions__body {
-                    padding: 20px;
-                    border-radius: 20px;
-                    .el-descriptions-item__container {
-                        .el-descriptions-item__content {
-                            display: unset;
-                            text-align: right;
-                            .operate {
-                                text-align: center;
-                                button {
-                                    width: 80px;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .info {
-                .title {
-                    font-weight: 800;
-                }
-            }
-            .el-dialog__body {
-                padding-top: 0;
-                .el-table .el-table__cell {
-                    padding: 10px 0;
-                }
+            .tit {
+                padding-right: 14px;
+                display: inline-block;
+                font-weight: 800;
+                font-size: 13px;  
+                color: #fff;      
             }
         }
+
+        .info {
+            .title {
+                font-weight: 800;
+            }
+        }
+        .el-dialog__body {
+            padding-top: 0;
+            .el-table .el-table__cell {
+                padding: 10px 0;
+            }
+        }
+        
     }
 </style>

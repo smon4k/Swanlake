@@ -139,7 +139,7 @@ class QuantifyAccount extends Base
                 $yestTotalBalance = isset($yestData['total_balance']) ? (float)$yestData['total_balance'] : 0;
                 // p($depositToday);
                 $dayProfit = self::getDayProfit($account_id, $date); //获取今日分润
-                $hasOnlyTodayData = self::hasOnlyTodayData($account_id); //获取是否只第一天
+                $hasOnlyTodayData = self::hasOnlyTodayData($account_id,$date); //获取是否只第一天
                 if(!$hasOnlyTodayData) {
                     $dailyProfit = $totalBalance - $yestTotalBalance - $depositToday + $dayProfit; //日利润 = 今日的总结余-昨日的总结余-今日入金数量+今日分润
                 } else {
@@ -378,7 +378,7 @@ class QuantifyAccount extends Base
         try {
             date_default_timezone_set("Etc/GMT-8");
             $date = date('Y-m-d');
-            $data = self::name('quantify_equity_monitoring')->where('date', $date)->select();
+            $data = self::name('quantify_equity_monitoring')->alias('a')->join('quantify_account b','a.account_id = b.id')->where(['a.date' => $date,'b.state'=>1])->select();
             $totalData = [
                 'principal' => 0,
                 'total_balance' => 0,
@@ -1132,10 +1132,10 @@ class QuantifyAccount extends Base
      * @author 
      * @since 2025-05-08
      */
-    public static function hasOnlyTodayData($account_id=0)
+    public static function hasOnlyTodayData($account_id=0, $date='')
     {
         if ($account_id) {
-            $today = date('Y-m-d');
+            $today = $date ? $date : date('Y-m-d');
             $count = self::name('quantify_equity_monitoring')
                         ->where(['account_id' => $account_id])
                         ->count();

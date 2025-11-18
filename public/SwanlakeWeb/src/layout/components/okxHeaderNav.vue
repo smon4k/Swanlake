@@ -21,7 +21,7 @@
                             <img src="@/assets/log.jpeg" alt="" v-else />
                         </router-link>
                     </div> -->
-                    <div class="title"> Swan Lake Quant </div>
+                    <div class="title"> BLOCK EARNING </div>
                 </div>
                 <div class="language">
 
@@ -71,7 +71,7 @@
                 size="320px">
                 <div class="sider-inner">
                     <!-- <div class="logo"></div> -->
-                    <div class="title"> Swan Lake Quant </div>
+                    <div class="title"> BLOCK EARNING </div>
                 </div>
                 <br><br>
 
@@ -80,7 +80,7 @@
         <div class="footer">
             <div class="container">
                 <font style="vertical-align: inherit;">
-                    <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 SwanLake Company, LLC。</font>
+                    <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 BLOCK EARNING Company, LLC。</font>
                     <!-- <font style="vertical-align: inherit;">版权所有。</font> -->
                     <a class="privacy-link" href="https://sg.godaddy.com/legal/agreements/privacy-policy?target=_blank" target="_blank" data-eid="uxp.hyd.int.pc.app_header.footer.privacy_policy.link.click">
                         <!-- <font style="vertical-align: inherit;">隐私政策</font> -->
@@ -335,7 +335,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-/deep/ {
+::v-deep  {
     .el-drawer__body {
         padding: 20px !important;
     }
@@ -455,7 +455,7 @@ export default {
         }
     }
     .language {
-        /deep/ {
+        ::v-deep  {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -508,7 +508,7 @@ export default {
         }
     }
     .carousel {
-        /deep/ {
+        ::v-deep  {
             margin-right: auto;
             width: 80%;
             height: 50px;

@@ -236,7 +236,7 @@ export default {
 </script>
 <style lang="scss" scoped>
     .container {
-        /deep/ {
+        ::v-deep  {
             .el-breadcrumb {
                 height: 25px;
                 font-size: 16px;

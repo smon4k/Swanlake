@@ -1,67 +1,40 @@
 <template>
     <div class="container">
         <div v-if="!isMobel">
-            <el-table
-                v-loading="loading"
-                :data="tableData"
-                style="width: 100%">
-                <el-table-column
-                    prop="name"
-                    label="产品名称"
-                    align="center"
-                    width="150">
+            <el-table v-loading="loading" :data="tableData" style="width: 100%">
+                <el-table-column prop="name" label="产品名称" align="center" width="150">
                 </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="预期年化收益"
-                    align="center">
+                <el-table-column prop="" label="预期年化收益" align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.annualized_rate || 0, 2) }}%</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="预期利润"
-                    align="center">
+                <el-table-column prop="" label="预期利润" align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.profit || 0, 4) }} USDT</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="预期利润率"
-                    align="center">
+                <el-table-column prop="" label="预期利润率" align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.profit_rate || 0, 2) }}%</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="服务期"
-                    align="center">
+                <el-table-column prop="" label="服务期" align="center">
                     <template slot-scope="scope">
                         <span>{{ scope.row.validity_period }} 天</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="算力"
-                    align="center">
+                <el-table-column prop="" label="算力" align="center">
                     <template slot-scope="scope">
                         <span>{{ scope.row.hash_rate }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    label="合约价格"
-                    align="center">
+                <el-table-column label="合约价格" align="center">
                     <template slot-scope="scope">
                         <span>{{ keepDecimalNotRounding(scope.row.price || 0, 4) }} USDT</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    fixed="right"
-                    label="操作"
-                    align="center">
+                <el-table-column fixed="right" label="操作" align="center">
                     <template slot-scope="scope">
                         <el-button @click="buyClick(scope.row, 1)" type="text">租赁</el-button>
                     </template>
@@ -70,27 +43,27 @@
             <el-row class="pages" v-if="total > pageSize">
                 <el-col :span="24">
                     <div style="float:right;">
-                    <wbc-page
-                        :total="total"
-                        :pageSize="pageSize"
-                        :currPage="currPage"
-                        @changeLimit="limitPaging"
-                        @changeSkip="skipPaging"
-                    ></wbc-page>
+                        <wbc-page :total="total" :pageSize="pageSize" :currPage="currPage" @changeLimit="limitPaging"
+                            @changeSkip="skipPaging"></wbc-page>
                     </div>
                 </el-col>
             </el-row>
         </div>
         <div v-else>
             <div v-if="tableData.length">
-                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
+                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData"
+                    :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="预期年化收益">{{ keepDecimalNotRounding(item.annualized_rate, 2) }}%</el-descriptions-item>
-                    <el-descriptions-item label="预期利润">{{ keepDecimalNotRounding(item.profit, 4) }} USDT</el-descriptions-item>
-                    <el-descriptions-item label="预期利润率">{{ keepDecimalNotRounding(item.profit_rate, 2) }}%</el-descriptions-item>
+                    <el-descriptions-item label="预期年化收益">{{ keepDecimalNotRounding(item.annualized_rate, 2)
+                        }}%</el-descriptions-item>
+                    <el-descriptions-item label="预期利润">{{ keepDecimalNotRounding(item.profit, 4) }}
+                        USDT</el-descriptions-item>
+                    <el-descriptions-item label="预期利润率">{{ keepDecimalNotRounding(item.profit_rate, 2)
+                        }}%</el-descriptions-item>
                     <el-descriptions-item label="服务期">{{ item.validity_period }} 天</el-descriptions-item>
                     <el-descriptions-item label="算力">{{ item.hash_rate }}</el-descriptions-item>
-                    <el-descriptions-item label="合约价格">{{ keepDecimalNotRounding(item.price, 4) }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="合约价格">{{ keepDecimalNotRounding(item.price, 4) }}
+                        USDT</el-descriptions-item>
                     <el-descriptions-item>
                         <div class="operate">
                             <el-button size="mini" type="primary" @click="buyClick(item, 1)">租赁</el-button>
@@ -129,7 +102,7 @@ export default {
     activated() { //页面进来
         this.refreshData();
     },
-    beforeRouteLeave(to, from, next){ //页面离开
+    beforeRouteLeave(to, from, next) { //页面离开
         next();
         if (this.timeInterval) {
             clearInterval(this.timeInterval);
@@ -138,12 +111,12 @@ export default {
     },
     computed: {
         ...mapState({
-            address:state=>state.base.address,
-            isConnected:state=>state.base.isConnected,
-            isMobel:state=>state.comps.isMobel,
-            mainTheme:state=>state.comps.mainTheme,
-            apiUrl:state=>state.base.apiUrl,
-            nftUrl:state=>state.base.nftUrl,
+            address: state => state.base.address,
+            isConnected: state => state.base.isConnected,
+            isMobel: state => state.comps.isMobel,
+            mainTheme: state => state.comps.mainTheme,
+            apiUrl: state => state.base.apiUrl,
+            nftUrl: state => state.base.nftUrl,
         }),
 
     },
@@ -156,8 +129,8 @@ export default {
             immediate: true,
             handler(val) {
                 if (val) {
-                    setTimeout(async() => {
-                        
+                    setTimeout(async () => {
+
                         // this.getPoolBtcData();
 
                         this.getListData();
@@ -171,7 +144,7 @@ export default {
         poolBtcData: {
             immediate: true,
             async handler(val) {
-                if(val) {
+                if (val) {
                     await this.getListData();
                 }
             },
@@ -211,7 +184,7 @@ export default {
         },
         async getPoolBtcData() { //获取BTC爬虫数据
             let data = await getPoolBtcData();
-            if(data && data.length > 0) {
+            if (data && data.length > 0) {
                 this.poolBtcData = data[0];
             }
         },
@@ -240,7 +213,7 @@ export default {
         buyClick(row, type) {
             console.log(row);
             this.$router.push({
-                name:'powerBuy',
+                name: 'powerBuy',
                 params: {
                     type: type,
                     hash_id: row.id,
@@ -257,35 +230,39 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-    .container {
-        /deep/ {
-            .el-table {
-                font-size: 16px;
-            }
-            .el-descriptions {
-                margin-bottom: 20px;
-                .el-descriptions__body {
-                    padding: 20px;
-                    border-radius: 20px;
-                    .el-descriptions-item__container {
-                        .el-descriptions-item__content {
-                            display: unset;
-                            text-align: right;
-                            .operate {
-                                text-align: center;
-                                button {
-                                    width: 80px;
-                                }
-                            }
+.container {
+    .el-table {
+        font-size: 16px;
+    }
+    .el-descriptions {
+        margin-bottom: 20px;
+
+        .el-descriptions__body {
+            padding: 20px;
+            border-radius: 20px;
+
+            .el-descriptions-item__container {
+                .el-descriptions-item__content {
+                    display: unset;
+                    text-align: right;
+
+                    .operate {
+                        text-align: center;
+
+                        button {
+                            width: 80px;
                         }
                     }
                 }
             }
-            .info {
-                .title {
-                    font-weight: 800;
-                }
-            }
         }
     }
+
+    .info {
+        .title {
+            font-weight: 800;
+        }
+    }
+
+}
 </style>

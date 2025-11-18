@@ -1,72 +1,41 @@
 <template>
     <div class="container">
         <div v-if="!isMobel">
-            <el-table
-                v-loading="loading"
-                :data="tableData"
-                style="width: 100%">
-                <el-table-column
-                    prop="name"
-                    label="产品名称"
-                    align="center"
-                    width="150">
+            <el-table v-loading="loading" :data="tableData" style="width: 100%">
+                <el-table-column prop="name" label="产品名称" align="center" width="150">
                 </el-table-column>
-                <el-table-column
-                    prop="amount"
-                    label="数量"
-                    align="center">
+                <el-table-column prop="amount" label="数量" align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.amount || 0, 2) }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    prop="total_quota"
-                    label="金额"
-                    align="center">
+                <el-table-column prop="total_quota" label="金额" align="center">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.total_quota || 0, 2) }}</span> USDT
                     </template>
                 </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="购买时间"
-                    align="center"
-                    width="200">
+                <el-table-column prop="" label="购买时间" align="center" width="200">
                     <template slot-scope="scope">
                         <span>{{ scope.row.add_time }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="到期时间"
-                    align="center"
-                    width="180">
+                <el-table-column prop="" label="到期时间" align="center" width="180">
                     <template slot-scope="scope">
                         <span>{{ scope.row.expire_date }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    prop=""
-                    label="收益"
-                    align="center"
-                    width="180">
+                <el-table-column prop="" label="收益" align="center" width="180">
                     <template slot-scope="scope">
                         <span>{{ fromSATBTCNum(scope.row.income, 2) }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    fixed="right"
-                    label="状态"
-                    align="center">
+                <el-table-column fixed="right" label="状态" align="center">
                     <template slot-scope="scope">
                         <span v-if="scope.row.state == 1">有效</span>
                         <span v-else>失效</span>
                     </template>
                 </el-table-column>
-                <el-table-column
-                    fixed="right"
-                    label="操作"
-                    align="center">
+                <el-table-column fixed="right" label="操作" align="center">
                     <template slot-scope="scope">
                         <el-button size="mini" round @click="showIncome(scope.row, 1)">查看收益</el-button>
                         <!-- <el-button @click="buyClick(scope.row, 1)" type="text">购买</el-button> -->
@@ -76,20 +45,16 @@
             <el-row class="pages" v-if="total > pageSize">
                 <el-col :span="24">
                     <div style="float:right;">
-                    <wbc-page
-                        :total="total"
-                        :pageSize="pageSize"
-                        :currPage="currPage"
-                        @changeLimit="limitPaging"
-                        @changeSkip="skipPaging"
-                    ></wbc-page>
+                        <wbc-page :total="total" :pageSize="pageSize" :currPage="currPage" @changeLimit="limitPaging"
+                            @changeSkip="skipPaging"></wbc-page>
                     </div>
                 </el-col>
             </el-row>
         </div>
         <div v-else>
             <div v-if="tableData.length">
-                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
+                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData"
+                    :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="数量">{{ toFixed(item.amount || 0, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="金额">{{ toFixed(item.total_quota || 0, 2) }} USDT</el-descriptions-item>
@@ -161,7 +126,7 @@ export default {
     activated() { //页面进来
         this.refreshData();
     },
-    beforeRouteLeave(to, from, next){ //页面离开
+    beforeRouteLeave(to, from, next) { //页面离开
         next();
         if (this.timeInterval) {
             clearInterval(this.timeInterval);
@@ -170,12 +135,12 @@ export default {
     },
     computed: {
         ...mapState({
-            address:state=>state.base.address,
-            isConnected:state=>state.base.isConnected,
-            isMobel:state=>state.comps.isMobel,
-            mainTheme:state=>state.comps.mainTheme,
-            apiUrl:state=>state.base.apiUrl,
-            nftUrl:state=>state.base.nftUrl,
+            address: state => state.base.address,
+            isConnected: state => state.base.isConnected,
+            isMobel: state => state.comps.isMobel,
+            mainTheme: state => state.comps.mainTheme,
+            apiUrl: state => state.base.apiUrl,
+            nftUrl: state => state.base.nftUrl,
         }),
 
     },
@@ -188,8 +153,8 @@ export default {
             immediate: true,
             handler(val) {
                 if (val) {
-                    setTimeout(async() => {
-                        
+                    setTimeout(async () => {
+
                         // this.getPoolBtcData();
 
                         this.getListData();
@@ -203,7 +168,7 @@ export default {
         poolBtcData: {
             immediate: true,
             async handler(val) {
-                if(val) {
+                if (val) {
                 }
             },
         }
@@ -243,7 +208,7 @@ export default {
         },
         async getPoolBtcData() { //获取BTC爬虫数据
             let data = await getPoolBtcData();
-            if(data && data.length > 0) {
+            if (data && data.length > 0) {
                 this.poolBtcData = data[0];
             }
         },
@@ -272,7 +237,7 @@ export default {
         buyClick(row, type) {
             console.log(row);
             this.$router.push({
-                name:'powerBuy',
+                name: 'powerBuy',
                 params: {
                     type: type,
                     hash_id: row.id,
@@ -320,35 +285,40 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-    .container {
-        /deep/ {
-            .el-table {
-                font-size: 16px;
-            }
-            .el-descriptions {
-                margin-bottom: 20px;
-                .el-descriptions__body {
-                    padding: 20px;
-                    border-radius: 20px;
-                    .el-descriptions-item__container {
-                        .el-descriptions-item__content {
-                            display: unset;
-                            text-align: right;
-                            .operate {
-                                text-align: center;
-                                button {
-                                    width: 80px;
-                                }
-                            }
+.container {
+    .el-table {
+        font-size: 16px;
+    }
+
+    .el-descriptions {
+        margin-bottom: 20px;
+
+        .el-descriptions__body {
+            padding: 20px;
+            border-radius: 20px;
+
+            .el-descriptions-item__container {
+                .el-descriptions-item__content {
+                    display: unset;
+                    text-align: right;
+
+                    .operate {
+                        text-align: center;
+
+                        button {
+                            width: 80px;
                         }
                     }
                 }
             }
-            .info {
-                .title {
-                    font-weight: 800;
-                }
-            }
         }
     }
+
+    .info {
+        .title {
+            font-weight: 800;
+        }
+    }
+
+}
 </style>
