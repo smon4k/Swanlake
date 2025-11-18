@@ -58,6 +58,15 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    label="日产出/T"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_output || 0, 2) }} USDT</span><br>
+                        <span>{{ fromSATBTCNum(scope.row.daily_output_btc, 2) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     label="日收益/T"
                     align="center"
                     width="">
@@ -201,7 +210,7 @@ export default {
         return {
             activeName: '1',
             timeInterval: null,
-            refreshTime: 10000, //数据刷新间隔时间
+            refreshTime: 10000, //数据刷新间隔时间 
             currPage: 1, //当前页
             pageSize: 20, //每页显示条数
             total: 100, //总条数
@@ -246,6 +255,18 @@ export default {
     },
     beforeRouteLeave(to, from, next){ //页面离开
         next();
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+    },
+    deactivated() { //页面停用（keep-alive 停用时）
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+    },
+    beforeDestroy() { //组件销毁时
         if (this.timeInterval) {
             clearInterval(this.timeInterval);
             this.timeInterval = null;
@@ -321,6 +342,10 @@ export default {
     },
     methods: {
         refreshData() { //定时刷新数据
+            // 先清除已存在的定时器，防止重复创建
+            if (this.timeInterval) {
+                clearInterval(this.timeInterval);
+            }
             this.timeInterval = setInterval(async () => {
                 this.$store.dispatch('refreshHashPowerPoolsList')
                 await this.getPoolBtcData();

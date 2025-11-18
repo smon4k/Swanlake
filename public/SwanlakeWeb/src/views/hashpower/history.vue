@@ -39,6 +39,24 @@
             </template>
           </el-table-column>
           <el-table-column
+            prop="price"
+            :label="$t('subscribe:Price')"
+            align="center"
+            width="">
+            <template slot-scope="scope">
+              <span>{{ scope.row.price }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="count_price"
+            :label="$t('subscribe:CountPrice')"
+            align="center"
+            width="">
+            <template slot-scope="scope">
+              <span>{{ scope.row.count_price }}</span>
+            </template>
+          </el-table-column>
+          <!-- <el-table-column
             prop="status"
             :label="$t('subscribe:Directions')"
             align="center"
@@ -46,7 +64,7 @@
             <template slot-scope="scope">
               <span class="bold">{{ scope.row.status == 1 ? $t('subscribe:buy') : '' }}</span>
             </template>
-          </el-table-column>
+          </el-table-column> -->
           <el-table-column
             prop="hash"
             :label="$t('subscribe:ViewBSCscan')"

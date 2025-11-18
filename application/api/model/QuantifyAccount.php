@@ -378,7 +378,7 @@ class QuantifyAccount extends Base
         try {
             date_default_timezone_set("Etc/GMT-8");
             $date = date('Y-m-d');
-            $data = self::name('quantify_equity_monitoring')->where('date', $date)->select();
+            $data = self::name('quantify_equity_monitoring')->alias('a')->join('quantify_account b','a.account_id = b.id')->where(['a.date' => $date,'b.state'=>1])->select();
             $totalData = [
                 'principal' => 0,
                 'total_balance' => 0,

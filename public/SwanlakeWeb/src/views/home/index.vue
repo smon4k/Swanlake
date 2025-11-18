@@ -118,7 +118,7 @@
             <div class="cta-content">
                 <h2>准备好开始了吗？</h2>
                 <p>加入全球数十万聪明投资者。一分钟内注册开始。</p>
-                <button class="cta-btn" @click="handleRegister">立即免费注册</button>
+                <button class="cta-btn" @click="handleRegister">立即开始挖矿</button>
             </div>
         </section>
 

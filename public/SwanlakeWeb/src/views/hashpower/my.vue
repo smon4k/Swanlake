@@ -368,6 +368,10 @@ export default {
     },
     methods: {
         refreshData() { //定时刷新数据
+            // 先清除已存在的定时器，防止重复创建
+            if (this.timeInterval) {
+                clearInterval(this.timeInterval);
+            }
             this.timeInterval = setInterval(async () => {
                 this.$store.dispatch('refreshHashPowerPoolsList')
                 await this.getPoolBtcData();

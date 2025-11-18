@@ -8,7 +8,7 @@
                     <!-- 全网最低电费 -->
                     <span>
                         {{ $t('subscribe:MinimumElectricityBill') }}
-                        <span>0.68 USDT</span> 
+                        <span>0.07 USDT</span> 
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <!-- 日产出 -->
@@ -107,6 +107,15 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    label="日产出/T"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_output_usdt || 0, decimalJudgment(scope.row.daily_output_usdt)) }} USDT</span><br>
+                        <span>{{ fromSATBTCNum(scope.row.daily_output_btc, 2) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     label="日支出/T"
                     align="center"
                     width="">
@@ -139,6 +148,7 @@
             <div v-if="hashPowerPoolsList.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
+                    <el-descriptions-item label="日产出/T">{{ toFixed(item.daily_output_usdt || 0, decimalJudgment(item.daily_output_usdt)) }} USDT / {{ fromSATBTCNum(item.daily_output_btc, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="日支出/T">{{ toFixed(item.daily_expenditure_usdt || 0, decimalJudgment(item.daily_expenditure_usdt)) }} USDT / {{ fromSATBTCNum(item.daily_expenditure_btc, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="日收益/T">{{ toFixed(item.daily_income_usdt || 0, 2) }} USDT / {{ fromSATBTCNum(item.daily_income_btc, 2) }}</el-descriptions-item>
                     <el-descriptions-item label="年化收益率">{{ toFixed(item.annualized_rate || 0, 2) }}%</el-descriptions-item>
@@ -267,6 +277,8 @@ export default {
             daily_expenditure_btc: 0,
             daily_income_usdt: 0,
             daily_income_btc: 0,
+            daily_output_usdt: 0,
+            daily_output_btc: 0,
             receiveLoading: false,
             dialogTableIncome: false,
             totalPledgePower: 0,
@@ -285,6 +297,18 @@ export default {
     },
     beforeRouteLeave(to, from, next){ //页面离开
         next();
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+    },
+    deactivated() { //页面停用（keep-alive 停用时）
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+    },
+    beforeDestroy() { //组件销毁时
         if (this.timeInterval) {
             clearInterval(this.timeInterval);
             this.timeInterval = null;
@@ -360,6 +384,10 @@ export default {
     },
     methods: {
         refreshData() { //定时刷新数据
+            // 先清除已存在的定时器，防止重复创建
+            if (this.timeInterval) {
+                clearInterval(this.timeInterval);
+            }
             this.timeInterval = setInterval(async () => {
                 this.$store.dispatch('refreshHashPowerPoolsList')
                 await this.getPoolBtcData();
@@ -381,6 +409,8 @@ export default {
                     this.daily_expenditure_btc = json.data.daily_expenditure_btc;
                     this.daily_income_usdt = json.data.daily_income_usdt;
                     this.daily_income_btc = json.data.daily_income_btc;
+                    this.daily_output_usdt = json.data.daily_output_usdt;
+                    this.daily_output_btc = json.data.daily_output_btc;
                     // this.detailData = json.data;
                 } 
                 else {

@@ -36,6 +36,11 @@
                 <!-- <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button> -->
               </div>
               <div class="text item">
+                <el-row>
+                  <el-col :span="24">
+                    <el-image src="@/assets/BTCS19Pro.png" style="width: 100%; height: 100%;"></el-image>
+                  </el-col>
+                </el-row>
                 <el-row class="content" :style="'width:' + isMobel ? '100%' : '80%'">
                   <el-col :span="24" align="right">
                     <el-button style="float: right; padding: 3px 0" type="text"
@@ -127,7 +132,7 @@
             <div class="receive-agree-item-buttom">
               <!-- <el-button>{{ '领取收益' }}</el-button> -->
               <span>{{ $t('subscribe:RequiresPledgeIncome') }}</span>
-              <el-link type="primary" @click="receiveBenefits">{{ $t('subscribe:RequiresPledgeIncomeLike') }}</el-link>
+              <el-link type="primary" @click="receiveBenefits">{{ $t('subscribe:ToDashboard') }}</el-link>
             </div>
           </el-col>
         </el-row>
@@ -1073,8 +1078,8 @@ export default {
         this.trading = false;
       });
     },
-    receiveBenefits() { //领取收益 跳转到质押页面
-      this.$router.push('/hashpower/list');
+    receiveBenefits() { //领取收益 跳转到仪表盘
+      this.$router.push('/hashpower/my');
     },
     goBack() {
       this.$router.go(-1);

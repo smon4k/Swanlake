@@ -22,7 +22,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title" v-show="screenWidth > 600"> BLOCK MINING </div>
+                    <div class="title" v-show="screenWidth > 600"> Block EARNING </div>
                 </div>
                 <!-- <div class="title" v-show="screenWidth > 600"> Swan Lake Quant<br>H2O Finance </div> -->
 
@@ -97,7 +97,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title"> BLOCK MINING </div>
+                    <div class="title"> Block EARNING </div>
                 </div>
                 <br><br>
                 <el-menu
@@ -136,7 +136,7 @@
                     风险提示：加密货币投资存在较高的市场风险。价格波动剧烈，可能导致投资本金损失。请务必充分了解相关风险，并考虑自身的经验水平和投资目标。
                 </div> -->
                 <font style="vertical-align: inherit;">
-                    <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 BLOCK EARNING Company, LLC。</font>
+                    <font style="vertical-align: inherit;">版权所有 © 1999 - 2022 Block EARNING Company, LLC。</font>
                     <!-- <font style="vertical-align: inherit;">版权所有。</font> -->
                     <a class="privacy-link" href="https://sg.godaddy.com/legal/agreements/privacy-policy?target=_blank" target="_blank" data-eid="uxp.hyd.int.pc.app_header.footer.privacy_policy.link.click">
                         <!-- <font style="vertical-align: inherit;">隐私政策</font> -->

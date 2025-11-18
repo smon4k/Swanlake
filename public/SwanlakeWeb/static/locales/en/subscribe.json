@@ -48,6 +48,7 @@
     "Time": "Time",
     "Amount": "Amount",
     "Directions": "Directions",
+    "CountPrice": "Total Amount",
     "ViewBSCscan": "View on BSCscan",
     "Buy": "Buy",
     "poolsHeader": "Pledge Hash Coins to Get BTC and H2O Earnings",
@@ -64,5 +65,6 @@
     "onlineDays": "Online Days",
     "RequiresPledgeIncome": "Requires pledge to earn income",
     "RequiresPledgeIncomeLike": "Receive Benefits",
-    "MinimumElectricityBill": "Minimum electricity bill"
+    "MinimumElectricityBill": "Minimum electricity bill",
+    "ToDashboard": "To Dashboard"
 }
