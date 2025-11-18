@@ -122,7 +122,7 @@ export const fetchAccountData = async () => {
     // console.log("Got accounts", accounts);
     let address = accounts[0];
     if (window.location.host === "localhost:8007" || window.location.host === "192.168.1.4:8008" ) {
-      address = "0x1b9c61D47a42A7A8e34D7B82835fc64C16d5EAf2";
+      // address = "0x1b9c61D47a42A7A8e34D7B82835fc64C16d5EAf2";
       // address = "0xeF2970b3d076a299888563cF76D47d6A800c6F82";
       // address = "0x6d0f1145182b91B18c663486Bb47f6Db7506eceA";
     }
