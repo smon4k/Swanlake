@@ -49,21 +49,21 @@
                     </template>
                 </el-table-column>
                 <el-table-column
+                    label="日产出/T"
+                    align="center"
+                    width="">
+                    <template slot-scope="scope">
+                        <span>{{ toFixed(scope.row.daily_output_usdt || 0, 2) }} USDT</span><br>
+                        <span>{{ fromSATBTCNum(scope.row.daily_output_btc, 2) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
                     label="日支出/T"
                     align="center"
                     width="">
                     <template slot-scope="scope">
                         <span>{{ toFixed(scope.row.daily_expenditure_usdt || 0, 2) }} USDT</span><br>
                         <span>{{ fromSATBTCNum(scope.row.daily_expenditure_btc, 2) }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    label="日产出/T"
-                    align="center"
-                    width="">
-                    <template slot-scope="scope">
-                        <span>{{ toFixed(scope.row.daily_output || 0, 2) }} USDT</span><br>
-                        <span>{{ fromSATBTCNum(scope.row.daily_output_btc, 2) }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -104,13 +104,13 @@
                     <el-descriptions-item label="价格">{{ toFixed(item.price || 0, 2) }} USDT</el-descriptions-item>
                     <el-descriptions-item label="单位">{{ item.hash_rate }} TH/s</el-descriptions-item>
                     <el-descriptions-item label="库存">{{ item.stock }}</el-descriptions-item>
+                    <el-descriptions-item label="日产出/T">
+                        {{ toFixed(item.daily_output_usdt || 0, 2) }} USDT /
+                        {{ fromSATBTCNum(item.daily_output_btc, 2) }}
+                    </el-descriptions-item>
                     <el-descriptions-item label="日支出/T">
                         {{ toFixed(item.daily_expenditure_usdt || 0, 2) }} USDT /
                         {{ fromSATBTCNum(item.daily_expenditure_btc, 2) }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="日产出/T">
-                        {{ toFixed(item.daily_output || 0, 2) }} USDT /
-                        {{ fromSATBTCNum(item.daily_output_btc, 2) }}
                     </el-descriptions-item>
                     <el-descriptions-item label="日收益/T">
                         {{ toFixed(item.daily_income_usdt || 0, 2) }} USDT /
