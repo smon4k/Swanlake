@@ -127,7 +127,7 @@
             <div class="footer-container">
                 <div class="footer-content">
                     <div class="footer-section">
-                        <h4>关于 SWAN LAKE</h4>
+                        <h4>关于 BLOCK EARNING</h4>
                         <p>我们是领先的全球云挖矿服务提供商，致力于让加密货币挖矿对所有人都可获得。</p>
                     </div>
                     <div class="footer-section">
@@ -145,7 +145,7 @@
                 </div>
                 <!-- <div class="footer-bottom">
                     <p>风险警告: 加密货币投资存在高风险。价格可能会波动，可能导致您的投资资本损失。请确保您充分了解相关风险并考虑您的经验水平和投资目标。</p>
-                    <p>&copy; 2025 SWAN LAKE. 版权所有。</p>
+                    <p>&copy; 2025 BLOCK EARNING. 版权所有。</p>
                 </div> -->
             </div>
         </footer>

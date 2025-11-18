@@ -53,7 +53,7 @@
             align="center"
             width="">
             <template slot-scope="scope">
-              <span>{{ scope.row.count_price }}</span>
+              <span>{{ toFixed(scope.row.count_price, 2) }}</span>
             </template>
           </el-table-column>
           <!-- <el-table-column

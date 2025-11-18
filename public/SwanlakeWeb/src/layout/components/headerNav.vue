@@ -24,7 +24,7 @@
                     </div>
                     <div class="title" v-show="screenWidth > 600"> Block EARNING </div>
                 </div>
-                <!-- <div class="title" v-show="screenWidth > 600"> Swan Lake Quant<br>H2O Finance </div> -->
+                <!-- <div class="title" v-show="screenWidth > 600"> BLOCK EARNING<br>H2O Finance </div> -->
 
                 <div v-show="screenWidth >= 1280">
                     <el-menu 

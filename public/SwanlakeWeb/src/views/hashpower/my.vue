@@ -98,7 +98,7 @@
                     fixed="right"
                     label="操作"
                     align="center"
-                    width="180">
+                    width="200">
                     <template slot-scope="scope">
                         <div style="margin-top:5px">
                             <el-button size="mini" round @click="toHashpowerDetail(1, scope.row)">存入</el-button>
@@ -544,8 +544,8 @@ export default {
         showHashpowerDetail() { //查看详情
             this.hashpowerDetail = true;
         },
-        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.065/美元币价
-            // let num = (24 * 29.55 * 0.065) / item.currency_price;
+        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.07/美元币价
+            // let num = (24 * 29.55 * 0.07) / item.currency_price;
             let num = item.electricity_price * item.power_consumption_ratio * 24 / 1000;
             return num.toFixed(4);
         },

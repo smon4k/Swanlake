@@ -268,7 +268,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1</span><span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">、</span>BLOCK EARNING对{{
-                  detailData.name }}以美元0.065每千瓦时为标准，向用户收取维护费（含电费和管理费），根据算力巢实际测试该矿机的功耗计算每天每TH/S的维护费，计算公式如下<span
+                  detailData.name }}以美元0.07每千瓦时为标准，向用户收取维护费（含电费和管理费），根据算力巢实际测试该矿机的功耗计算每天每TH/S的维护费，计算公式如下<span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">。</span>
                 </p>
@@ -290,7 +290,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: &quot;PingFang HK&quot;;">小时</span><span
                     data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;">X
-                    0.065USD</span>
+                    0.07USD</span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: &quot;PingFang HK&quot;; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
@@ -557,7 +557,7 @@
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: Helvetica;">&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;</span>BLOCK EARNING
                   charges users a maintenance fee (including electricity fee and management fee) for {{ detailData.name
                   }}
-                  based on USD 0.065 per kWh, and calculates the maintenance fee per TH/S per day according to the
+                  based on USD 0.07 per kWh, and calculates the maintenance fee per TH/S per day according to the
                   actual
                   power consumption of the mining machine tested by Hashnest. The calculation formula is as follows
                 </p>
@@ -565,7 +565,7 @@
                   style="margin: 0px; padding: 0px; border: 0px; font-size: 11px; vertical-align: baseline; line-height: normal; font-family: Helvetica; color: #000000; -webkit-text-stroke: #000000; background-color: #ffffff; text-decoration-thickness: initial; font-stretch: normal;">
                   <span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline; font-stretch: normal; line-height: normal; font-family: &quot;PingFang HK&quot;;"></span>Calculation
-                  formula: Power consumption per T (KW/H) X 24 hours X 0.065USD<span data-v-532aaa84=""
+                  formula: Power consumption per T (KW/H) X 24 hours X 0.07USD<span data-v-532aaa84=""
                     style="margin: 0px; padding: 0px; border: 0px; font-size: 12px; vertical-align: baseline;"></span>
                 </p>
                 <p data-v-532aaa84="" data-children-count="0"

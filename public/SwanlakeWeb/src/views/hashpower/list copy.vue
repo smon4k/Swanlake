@@ -43,7 +43,7 @@
                 </el-col>
                 <el-col :span="6" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
                 <el-col :span="6" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</el-col>
-                <el-col :span="6" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.065 USDT</el-col>
+                <el-col :span="6" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.07 USDT</el-col>
             </el-row>
 
             <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
@@ -678,8 +678,8 @@ export default {
         showHashpowerDetail() { //查看详情
             this.hashpowerDetail = true;
         },
-        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.065/美元币价
-            // let num = (24 * 29.55 * 0.065) / item.currency_price;
+        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.07/美元币价
+            // let num = (24 * 29.55 * 0.07) / item.currency_price;
             let num = item.electricity_price * item.power_consumption_ratio * 24 / 1000;
             return num.toFixed(4);
         },

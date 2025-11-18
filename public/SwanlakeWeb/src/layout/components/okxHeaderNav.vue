@@ -21,7 +21,7 @@
                             <img src="@/assets/log.jpeg" alt="" v-else />
                         </router-link>
                     </div> -->
-                    <div class="title"> Swan Lake Quant </div>
+                    <div class="title"> BLOCK EARNING </div>
                 </div>
                 <div class="language">
 
@@ -71,7 +71,7 @@
                 size="320px">
                 <div class="sider-inner">
                     <!-- <div class="logo"></div> -->
-                    <div class="title"> Swan Lake Quant </div>
+                    <div class="title"> BLOCK EARNING </div>
                 </div>
                 <br><br>
 

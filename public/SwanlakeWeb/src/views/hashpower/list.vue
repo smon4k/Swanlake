@@ -104,8 +104,18 @@
                     <el-descriptions-item label="价格">{{ toFixed(item.price || 0, 2) }} USDT</el-descriptions-item>
                     <el-descriptions-item label="单位">{{ item.hash_rate }} TH/s</el-descriptions-item>
                     <el-descriptions-item label="库存">{{ item.stock }}</el-descriptions-item>
-                    <el-descriptions-item label="日支出/T">{{ toFixed(item.daily_expenditure_usdt || 0, 2) }} USDT</el-descriptions-item>
-                    <el-descriptions-item label="日收益/T">{{ toFixed(item.daily_income_usdt || 0, 2) }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="日支出/T">
+                        {{ toFixed(item.daily_expenditure_usdt || 0, 2) }} USDT /
+                        {{ fromSATBTCNum(item.daily_expenditure_btc, 2) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="日产出/T">
+                        {{ toFixed(item.daily_output || 0, 2) }} USDT /
+                        {{ fromSATBTCNum(item.daily_output_btc, 2) }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="日收益/T">
+                        {{ toFixed(item.daily_income_usdt || 0, 2) }} USDT /
+                        {{ fromSATBTCNum(item.daily_income_btc, 2) }}
+                    </el-descriptions-item>
                     <el-descriptions-item label="年化收益率">{{ toFixed(item.annualized_rate || 0, 2) }}%</el-descriptions-item>
                     <el-descriptions-item>
                         <div style="text-align:center;">
@@ -501,8 +511,8 @@ export default {
         showHashpowerDetail() { //查看详情
             this.hashpowerDetail = true;
         },
-        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.065/美元币价
-            // let num = (24 * 29.55 * 0.065) / item.currency_price;
+        estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.07/美元币价
+            // let num = (24 * 29.55 * 0.07) / item.currency_price;
             let num = item.electricity_price * item.power_consumption_ratio * 24 / 1000;
             return num.toFixed(4);
         },
