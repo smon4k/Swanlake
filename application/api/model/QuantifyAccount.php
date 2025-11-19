@@ -925,6 +925,11 @@ class QuantifyAccount extends Base
      */
     public static function setYieldHistoryList($account_id=0, $currency='', $pos_side='', $uplRatio=0, $trade_id='', $u_time='', $c_time='', $avg_price=0, $opening_price=0, $mark_price=0, $pos_id=0, $upl=0) {
         if($account_id && $currency && $trade_id) {
+            // ✅ 只有收益率大于 0 时才记录（过滤掉无效数据）
+            if((float)$uplRatio <= 0) {
+                return true; // 返回 true 表示无需记录，调用方无需关心
+            }
+            
             $date = date('Y-m-d');
             
             // 查询该持仓今天是否已有记录
@@ -1655,6 +1660,10 @@ class QuantifyAccount extends Base
         foreach ($lists as $key => $val) {
             $lists[$key]['rate_average'] = ($val['max_rate'] + $val['min_rate']) / 2;
             $lists[$key]['closing_yield'] = $val['rate_num'];
+            // ✅ 添加这些字段，前端需要展示详细的持仓信息
+            $lists[$key]['avg_price'] = $val['avg_price'];
+            $lists[$key]['opening_price'] = $val['opening_price'];
+            $lists[$key]['upl'] = $val['upl'];
             $lists[$key]['u_time'] = date('Y-m-d H:i:s', (float)$val['u_time'] / 1000);
             $lists[$key]['c_time'] = date('Y-m-d H:i:s', (float)$val['c_time'] / 1000);
         }
