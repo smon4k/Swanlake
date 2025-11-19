@@ -8,7 +8,7 @@
         <div v-if="!isMobel">
             <el-table
                 v-loading="loading"
-                :data="hashPowerPoolsList"
+                :data="hashPowerPoolsList.filter(item => Number(item.balance) > 0)"
                 style="width: 100%">
                 <el-table-column
                     prop="name"
@@ -110,8 +110,8 @@
             </el-table>
         </div>
         <div v-else>
-            <div v-if="hashPowerPoolsList.length">
-                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
+            <div v-if="hashPowerPoolsList.filter(item => Number(item.balance) > 0).length">
+                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList.filter(item => Number(item.balance) > 0)" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item label="昨日BTC收益">
