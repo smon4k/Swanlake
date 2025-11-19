@@ -685,7 +685,7 @@ export default {
                 secret_key: '',
                 pass_phrase: '',
                 type: '',
-                is_position: '1',
+                is_position: '0',
             },
         }
     },

@@ -98,7 +98,7 @@ export default {
         secret_key: '',
         pass_phrase: '',
         exchange: 'okx',
-        is_position: '1',
+        is_position: '0',
       },
       accountRules: {
         name: [

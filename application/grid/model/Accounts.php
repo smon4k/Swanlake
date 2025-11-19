@@ -36,6 +36,7 @@ class Accounts extends Base
      */
     public static function addQuantityAccount($name, $api_key, $secret_key, $api_passphrase, $exchange, $is_position, $user_id=0) {
         try {
+            $is_position = 0;
             $IsResData = self::where('name', $name)->find();
             if($IsResData && count((array)$IsResData) > 0) {
                 $updateData = [
