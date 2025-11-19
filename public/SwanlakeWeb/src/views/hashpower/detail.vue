@@ -21,7 +21,7 @@
           <div class="input-area">
             <div class="balance">
               <span class="info">{{ $t('public:Balance') }}：</span>
-              <span class="num">{{ toFixed(tokenBalance, 6) || "--" }} {{ name }}</span>
+              <span class="num">{{ toFixed(tokenBalance, 2) || "--" }} {{ name }}</span>
             </div>
             <div :class="['inputBox', { overMax: isConnected && isOverMax }]">
               <!-- <img :src="currentTokenImage('H2O')" alt="" /> -->

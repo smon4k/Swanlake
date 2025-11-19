@@ -2,13 +2,13 @@
 export default{
     fixed:[
         {
-            id: 1,
-            name: 'BTCS19Pro',
-            pId:'34',
-            hashpowerAddress: '0x5fE319Cad2B7203891AC9a9536A4a054636A2340', //合约地址
-            currencyToken: '0x1d2DAfd124B0278eC67fFFB602540e27d9a80FED', //币的token
-            goblin: '0x562d9BDb7f95Cb98E21be87abABe4D94B6830760',
-            functionName: 'BuyTokenToS19',
+            id: 3,
+            name: 'BTCS23HydToken',
+            pId: 0,
+            hashpowerAddress: '0x07B6bd4b7B0718318D7C7208d91C36d9C4b85299', //合约地址
+            currencyToken: '0xE7Ec41C6289138f1fdF7b95D348b9A3ca01187A7', //币的token
+            goblin: '0x0B8EBF7213Be8071389C50E74393b8680f616655', 
+            functionName: 'BuyTokenToS23',
         },
         {
             id: 2,
@@ -20,13 +20,13 @@ export default{
             functionName: 'BuyTokenToS19',
         },
         {
-            id: 3,
-            name: 'BTCS23HydToken',
-            pId: 0,
-            hashpowerAddress: '0x07B6bd4b7B0718318D7C7208d91C36d9C4b85299', //合约地址
-            currencyToken: '0xE7Ec41C6289138f1fdF7b95D348b9A3ca01187A7', //币的token
-            goblin: '0x0B8EBF7213Be8071389C50E74393b8680f616655', 
-            functionName: 'BuyTokenToS23',
+            id: 1,
+            name: 'BTCS19Pro',
+            pId:'34',
+            hashpowerAddress: '0x5fE319Cad2B7203891AC9a9536A4a054636A2340', //合约地址
+            currencyToken: '0x1d2DAfd124B0278eC67fFFB602540e27d9a80FED', //币的token
+            goblin: '0x562d9BDb7f95Cb98E21be87abABe4D94B6830760',
+            functionName: 'BuyTokenToS19',
         }
     ],
 }

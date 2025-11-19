@@ -202,7 +202,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
     // let btcbPrice = await getSwapPoolsAmountsOut(publicAddress.routerContractAddress, Address.BTCB , Address.BUSDT ); //获取水价格
     btcbPrice = await getToken2TokenPrice(Address.BTCB, Address.BUSDT) //获取btcb价格
-    console.log(btcbPrice);
+    // console.log(btcbPrice);
     // console.log(reptileBtcData);
     btcb19ProBalance = await getBalance(currencyToken, 18); //获取购买算力币余额
     cost_revenue = HashpowerDetail.cost_revenue; //估值
