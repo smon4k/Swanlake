@@ -11,6 +11,15 @@ export default{
             functionName: 'BuyTokenToS23',
         },
         {
+            id: 4,
+            name: 'BTCS23HydRToken',
+            pId: 0,
+            hashpowerAddress: '', //合约地址
+            currencyToken: '0xae2c1e3De0F320445C999B8e19a9A16470Da6db7', //币的token
+            goblin: '0x7A6Bad0Fb6De1086219E40E840A16F84F1202f13', 
+            functionName: 'BuyTokenToS23',
+        },
+        {
             id: 2,
             name: 'BTCS19XP',
             pId: 0,

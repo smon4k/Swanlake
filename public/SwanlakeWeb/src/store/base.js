@@ -1,5 +1,5 @@
 import router from '@/router'
-import { getUserAddressInfo, getPoolBtcData, getHashPowerPoolsTokensData, getHashpowerDetail } from '@/wallet/serve'
+import { getUserAddressInfo, getPoolBtcData, getHashPowerPoolsTokensData, getHashpowerDetail, getHashpowerList } from '@/wallet/serve'
 import {
     deepCopy,
     fromWei,
@@ -8,7 +8,7 @@ import {
     accordingToAprSeekApy,
     calcDaily
 } from '@/utils/tools'
-import hashPoolsList from '@/wallet/hashpower_pools.js'
+// import hashPoolsList from '@/wallet/hashpower_pools.js'
 import Address from '@/wallet/address.json'
 import Web3 from 'web3'
 import Vue from 'vue'
@@ -129,16 +129,21 @@ export default {
         },
         setHashPowerPoolsList(state, {fixed}){
             state.hashPowerPoolsList = [];
-            // console.log(fixed);
+            // console.log(hashPoolsList);
             if(fixed.length > 0) {
                 fixed.forEach(async item => {
                     state.hashPowerPoolsList.push({
                         id: item.id,
-                        hashpowerAddress: item.hashpowerAddress,
-                        currencyToken: item.currencyToken,
-                        goblin: item.goblin,
+                        hashpowerAddress: item.hashpower_address,
+                        currencyToken: item.currency_token,
+                        goblin: item.goblin_address,
+                        functionName: item.function_name,
+
+                        // hashpowerAddress: item.hashpowerAddress,
+                        // currencyToken: item.currencyToken,
+                        // goblin: item.goblin,
                         address:item.originToken,
-                        pId:item.pId,
+                        pId:0,
                         name:item.name,
                         decimals:18,
                         balance:'',
@@ -168,7 +173,7 @@ export default {
                         loading:false,
                         btcbPrice: 0,
                         h2oPrice: 0,
-                        chain_address: item.currencyToken,
+                        // chain_address: item.currencyToken,
                         yest_income_h2o: 0,
                         yest_income_h2ousdt: 0,
                         yest_total_income: 0,
@@ -296,31 +301,36 @@ export default {
         },
         // 获取算力币Pools数据
         async getHashPowerPoolsList({commit , state}, isLoding){
-            if(state.hashPowerPoolsList.loading) return 
-            if(!isLoding || isLoding == undefined) {
+            if(state.hashPowerPoolsList.loading && !isLoding) return 
+
+            let fixedList = state.hashPowerPoolsList;
+
+            // Only fetch the list from API if it's not in the state yet
+            if (!fixedList || fixedList.length === 0) {
                 commit('setHashPowerPoolsListLoading' , true);
+                try {
+                    const freshList = await getHashpowerList();
+                    commit('setHashPowerPoolsList' , {fixed: freshList} );
+                    fixedList = state.hashPowerPoolsList; // Use the newly populated list from state
+                } catch (error) {
+                    console.error("Failed to fetch initial hash power pools list:", error);
+                    commit("setHashPowerPoolsListLoading" , false);
+                    return;
+                }
             }
-            const { fixed } = hashPoolsList;
-            if(!isLoding || isLoding == undefined) {
-                // console.log(fixed);
-                commit('setHashPowerPoolsList' , {fixed} )
-            }
-            // console.log(fixed);
-            if(fixed.length) {
-                let poolBtcData = await getPoolBtcData();
-                // console.log(poolBtcData);
-                let fixedList = [...fixed]
-                fixedList.forEach(async item => {
-                    // console.log(item);
-                    let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId, item.id);
-                    // console.log(item.id, info);
-                    if(info) {
-                        if(info.is_give_income && info.is_give_income > 0) { //大于第一次购买 第二天 给收益
-                            let yest_income_usdt = Number(info.userBalance) * Number(info.daily_income); //昨日收益 usdt
-                            let yest_income_btcb = keepDecimalNotRounding(Number(info.userBalance) * (Number(info.daily_income) / Number(poolBtcData[0].currency_price))); //昨日收益 btcb
-                            info.yest_income_usdt = yest_income_usdt < 0 ? 0 : yest_income_usdt; //昨日BTCB收益转USDT
-                            info.yest_income_btcb = yest_income_btcb < 0 ? 0 : yest_income_btcb; //昨日BTCB收益
-                            // if(item.id == 2) {
+            
+            try {
+                if(fixedList.length) {
+                    const poolBtcData = await getPoolBtcData();
+                    
+                    await Promise.all(fixedList.map(async item => {
+                        const info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.id);
+                        if(info) {
+                            if(info.is_give_income && info.is_give_income > 0) { //大于第一次购买 第二天 给收益
+                                let yest_income_usdt = Number(info.userBalance) * Number(info.daily_income); //昨日收益 usdt
+                                let yest_income_btcb = keepDecimalNotRounding(Number(info.userBalance) * (Number(info.daily_income) / Number(poolBtcData[0].currency_price))); //昨日收益 btcb
+                                info.yest_income_usdt = yest_income_usdt < 0 ? 0 : yest_income_usdt; //昨日BTCB收益转USDT
+                                info.yest_income_btcb = yest_income_btcb < 0 ? 0 : yest_income_btcb; //昨日BTCB收益
                                 let hashpower_price = (Number(info.hashpower_price) / Number(info.hash_rate));
                                 let yest_income_h2o =  keepDecimalNotRounding(Number(info.h2o_income_number) * Number(info.userBalance) / Number(info.totalTvl)); //昨日H2O收益
                                 let yest_income_h2ousdt =  keepDecimalNotRounding(yest_income_h2o * Number(info.h2oPrice));//昨日H2O收益usdt
@@ -331,7 +341,6 @@ export default {
                                 info.yest_total_income = yest_total_income < 0 ? 0 : yest_total_income;
                                 info.yest_total_incomerate = yest_total_incomerate < 0 ? 0 : yest_total_incomerate;
                                 
-                                // let yest_income_h2o_total = Number(info.totalTvl) * Number(info.daily_income); //昨日总质押算力收益 H2O
                                 info.annualized_rate = info.annualized_income;
                                 if(item.id == 2) {
                                     let btcb_number = keepDecimalNotRounding(Number(info.totalTvl) * Number(info.daily_income_btc)); // BTCB数量 = 总质押算力 * 日收益/T
@@ -340,19 +349,23 @@ export default {
                                     info.annualized_rate = annualized_rate_xp * 365 * 100;
                                 }
                                 console.log(info);
-                            // }
+                            }
+                            let countIncome = keepDecimalNotRounding(Number(info.btcbReward) + Number(info.harvest_btcb_amount)); // 总的收益 = 奖励收益数量 + 已收割奖励数量
+                            info.total_income_btcb = countIncome; //btcb总收益
+                            let total_income_usdt = countIncome * Number(poolBtcData[0].currency_price); //usdt总收益
+                            info.total_income_usdt = total_income_usdt;
+                            info.t = item.goblin;
+                            commit('setHashPowerPoolsBalance', info);
                         }
-                        let countIncome = keepDecimalNotRounding(Number(info.btcbReward) + Number(info.harvest_btcb_amount)); // 总的收益 = 奖励收益数量 + 已收割奖励数量
-                        info.total_income_btcb = countIncome; //btcb总收益
-                        let total_income_usdt = countIncome * Number(poolBtcData[0].currency_price); //usdt总收益
-                        info.total_income_usdt = total_income_usdt;
-                        info.t = item.goblin
-                        commit('setHashPowerPoolsBalance', info)
-                    }
-                })
+                    }));
+                }
+            } catch (error) {
+                console.error("Failed to get hash power pools list:", error);
+            } finally {
+                 if (state.hashPowerPoolsList.loading) {
+                    commit("setHashPowerPoolsListLoading" , false);
+                }
             }
-            commit("setHashPowerPoolsListLoading" , false)
-            // console.log('state.poolsList' , state.poolsList);
         },
         async refreshHashPowerPoolsList({commit , state , dispatch}){
             console.log('更新算力数据')

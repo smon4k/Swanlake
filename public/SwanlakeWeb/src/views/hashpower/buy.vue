@@ -881,7 +881,7 @@ export default {
       }
       let hashId = this.$route.params.hash_id;
       this.functionName = this.$route.params.functionName;
-      console.log(hashId, hashpowerAddress);
+      // console.log(hashId, hashpowerAddress);
       let recomeCode = getUrlParams('refc');
       if (recomeCode && recomeCode !== '') {
         this.is_recomme_code = true;
