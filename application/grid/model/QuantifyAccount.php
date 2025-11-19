@@ -588,7 +588,7 @@ class QuantifyAccount extends Base
                 $positionsList = self::getOkxRequesInfo($accountInfo, $url, true);
                 if($positionsList) {
                     // @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info'], $exchange);
-                    self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'BTC', $positionsList);
+                    // self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'BTC', $positionsList);
                 }
             }
             $returnArray = ['usdtBalance' => $usdtBalance];
