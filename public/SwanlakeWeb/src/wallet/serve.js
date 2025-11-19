@@ -147,7 +147,7 @@ export const getToken2TokenPrice = async function (token0 , token1 ,type , amoun
 
 
 //获取 HashPowerPools 池子数据
-export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, pId, id){
+export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, id){
   const address = __ownInstance__.$store.state.base.address
   const decimals = __ownInstance__.$store.state.base.tokenDecimals
   let HashpowerDetail = await getHashpowerDetail(id); //获取算力币详情
@@ -196,7 +196,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
       h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
       // console.log(pId, h2oReward, btcbReward)
     }
-    // console.log(pId, totalTvl, tokenPrice, userBalance)
+    console.log(id, totalTvl, tokenPrice, userBalance)
     // let bonusPerShare = await getH2OAccBonusPerShare(goblinAddress); //累计收益
     // let lastAccBonusPerShare = await getH2OLastAccBonusPerShare(goblinAddress); //上次累计收益
     // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
@@ -345,7 +345,7 @@ export async function getH2OUserInfo(contractAddr, userAddress) {
   let balance = 0;
   const Gwei1 = 1000000000;
   await contract.methods.userInfo(address).call(function (error, result) {
-    // console.log(result);
+    console.log(contractAddr, result);
     if (!error) {
       if(result && result['shares']) {
         balance = keepDecimalNotRounding(byDecimals(result['shares'], 18), 6, true)
@@ -477,6 +477,17 @@ export const getFillingIncreasingId = async function(){
   let data = await $get('https://pacx.h2opower.site/getPoolBtc')
   if(data) {
     result = data;
+  }
+  return result;
+}
+
+//获取算力币列表
+export const getHashpowerList = async function(){
+  const nftUrl = __ownInstance__.$store.state.base.nftUrl;
+  let result = [];
+  let data = await $get(nftUrl + '/Hashpower/Hashpower/getHashpowerData?page=1&limit=100');
+  if(data && data.code == 10000) {
+    result = data.data.lists;
   }
   return result;
 }

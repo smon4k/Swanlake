@@ -16,7 +16,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <el-link type="primary" :href="'https://bscscan.com/token/' + scope.row.chain_address" target='_blank'>
+                        <el-link type="primary" :href="nftUrl + '/Hashpower/Hashpower/detail?id=' + scope.row.id" target='_blank'>
                             <span>{{ scope.row.name }}</span><br>
                             <span>{{ scope.row.power_consumption_ratio }}W/THS</span>
                         </el-link>
@@ -338,8 +338,8 @@ export default {
         hashPowerPoolsList: {
             immediate: true,
             handler(val) {
-                if(val) {
-                    console.log(val);
+                // console.log('hashPowerPoolsList updated:', val);
+                if(val && val.length > 0) {
                     let totalTvl = 0;
                     val.forEach(element => {
                         totalTvl += Number(element.total);
