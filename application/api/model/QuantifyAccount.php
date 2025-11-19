@@ -924,11 +924,29 @@ class QuantifyAccount extends Base
      * @since 2023-05-03
      */
     public static function setYieldHistoryList($account_id=0, $currency='', $pos_side='', $uplRatio=0, $trade_id='', $u_time='', $c_time='', $avg_price=0, $opening_price=0, $mark_price=0, $pos_id=0, $upl=0) {
-        if($account_id && $currency) {
-            // $max_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->max('upl_ratio');
-            // $min_upl_rate = self::name('quantify_account_positions')->where(['account_id' => $account_id, 'currency' => $currency])->min('upl_ratio');
-            // $rate_average = ($max_upl_rate + $min_upl_rate) / 2;
-            $insertId = self::name('quantify_account_positions_rate')->insertGetId([
+        if($account_id && $currency && $trade_id) {
+            $date = date('Y-m-d');
+            
+            // 查询该持仓今天是否已有记录
+            $existingRecord = self::name('quantify_account_positions_rate')->where([
+                'account_id' => $account_id,
+                'currency' => $currency,
+                'pos_side' => $pos_side,
+                'trade_id' => $trade_id,
+                'date' => $date
+            ])->find();
+            
+            // 获取该 trade_id 整个历史上的最大最小收益率
+            $historyData = self::name('quantify_account_positions_rate')->where([
+                'account_id' => $account_id,
+                'currency' => $currency,
+                'trade_id' => $trade_id
+            ])->field('MAX(rate_num) as max_rate, MIN(rate_num) as min_rate')->find();
+            
+            $maxRate = max((float)($historyData['max_rate'] ?? 0), (float)$uplRatio);
+            $minRate = min((float)($historyData['min_rate'] ?? 0), (float)$uplRatio);
+            
+            $recordData = [
                 'account_id' => $account_id,
                 'currency' => $currency,
                 'pos_side' => $pos_side,
@@ -941,10 +959,22 @@ class QuantifyAccount extends Base
                 'pos_id' => $pos_id,
                 'u_time' => $u_time,
                 'c_time' => $c_time,
+                'max_rate' => $maxRate,
+                'min_rate' => $minRate,
+                'date' => $date,
                 'time' => date('Y-m-d H:i:s')
-            ]);
-            if($insertId) {
-                return true;
+            ];
+            
+            if($existingRecord && count((array)$existingRecord) > 0) {
+                // 今天已有记录，则更新
+                $updateId = self::name('quantify_account_positions_rate')
+                    ->where('id', $existingRecord['id'])
+                    ->update($recordData);
+                return $updateId !== false;
+            } else {
+                // 新建记录
+                $insertId = self::name('quantify_account_positions_rate')->insertGetId($recordData);
+                return $insertId ? true : false;
             }
         }
         return false;
@@ -980,23 +1010,37 @@ class QuantifyAccount extends Base
      */
     public static function getPosIdYieldHistory($account_id=0, $currency='', $trade_id=0) {
         if($trade_id) {
-            $max_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $trade_id])->max('rate_num');
-            $min_rate = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency, 'trade_id' => $trade_id])->min('rate_num');
-            if($max_rate && $min_rate) {
-                return ['max_rate' => $max_rate, 'min_rate' => $min_rate];
+            // 查询该 trade_id 最新一条日记录（包含已统计的max/min）
+            $latestRecord = self::name('quantify_account_positions_rate')->where([
+                'account_id' => $account_id,
+                'currency' => $currency,
+                'trade_id' => $trade_id
+            ])->order('date desc')->find();
+            
+            if($latestRecord && isset($latestRecord['max_rate']) && isset($latestRecord['min_rate'])) {
+                return [
+                    'max_rate' => $latestRecord['max_rate'], 
+                    'min_rate' => $latestRecord['min_rate']
+                ];
             }
         }
+        return [];
     }
 
     /**
      * 持仓信息
-     * 获取最新的最大最小收益率
+     * 获取最新的最大最小收益率 - 按日期获取当前持仓的最新记录
      * @author qinlh
      * @since 2023-05-03
      */
     public static function getNewPositionsRate($account_id=0, $currency='') {
         if($account_id && $currency) {
-            $data = self::name('quantify_account_positions_rate')->where(['account_id' => $account_id, 'currency' => $currency])->order('id desc')->find();
+            // 优先获取最新日期的记录
+            $data = self::name('quantify_account_positions_rate')
+                ->where(['account_id' => $account_id, 'currency' => $currency])
+                ->order('date desc, id desc')
+                ->find();
+            
             if($data) {
                 return $data->toArray();
             }
@@ -1581,37 +1625,40 @@ class QuantifyAccount extends Base
         if ($limits == 0) {
             $limits = config('paginate.list_rows');// 获取总条数
         }
-        // // p($where);
-        // $count = self::name("quantify_account_positions_rate")
-        //             ->where($where)
-        //             ->count();//计算总页面
-        // // p($count);
-        // $allpage = intval(ceil($count / $limits));
-        // $lists = self::name("quantify_account_positions_rate")
-        //             ->where($where)
-        //             ->page($page, $limits)
-        //             ->field('*')
-        //             ->order("id desc")
-        //             ->select()
-        //             ->toArray();
+        
         $begin = ($page - 1) * $limits;
-        $count_sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(NULLIF(IF(mark_price = 0, NULL, mark_price), 0)) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id`";
-        $countRes = self::query($count_sql);
-        $count = count((array)$countRes);
+        
+        // 改进：按照最新日期分组，而不是只按 trade_id 分组
+        // 先获取每个 trade_id 最新日期的记录
+        $count_sql = "SELECT DISTINCT `trade_id`, MAX(`date`) as latest_date FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id`";
+        $tradeLatestDates = self::query($count_sql);
+        $count = count((array)$tradeLatestDates);
         $allpage = intval(ceil($count / $limits));
-        $sql = "SELECT `account_id`,`currency`,`trade_id`,max(`rate_num`) AS max_rate, min(`rate_num`) AS min_rate, max(`mark_price`) AS max_make_price, min(NULLIF(IF(mark_price = 0, NULL, mark_price), 0)) AS min_make_price, `time`, `pos_side` FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} GROUP BY `trade_id` ORDER BY `time` DESC LIMIT {$begin},{$limits}";
+        
+        // 获取每个 trade_id 最新日期的完整数据
+        $tradeIds = [];
+        foreach ($tradeLatestDates as $item) {
+            $tradeIds[] = $item['trade_id'];
+        }
+        
+        if(count($tradeIds) == 0) {
+            return ['count'=>0,'allpage'=>0,'lists'=>[]];
+        }
+        
+        $tradeIdStr = implode(',', $tradeIds);
+        $sql = "SELECT * FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} AND `trade_id` IN ({$tradeIdStr}) AND `date` IN (
+            SELECT MAX(`date`) FROM s_quantify_account_positions_rate WHERE `account_id` = {$account_id} AND `trade_id` IN ({$tradeIdStr}) GROUP BY `trade_id`
+        ) ORDER BY `date` DESC, `time` DESC LIMIT {$begin},{$limits}";
+        
         $lists = self::query($sql);
+        
         foreach ($lists as $key => $val) {
             $lists[$key]['rate_average'] = ($val['max_rate'] + $val['min_rate']) / 2;
-            $closingYieldRes = self::name('quantify_account_positions_rate')->where('trade_id', $val['trade_id'])->order('time desc')->find();
-            $lists[$key]['closing_yield'] = $closingYieldRes['rate_num'];
-            $lists[$key]['avg_price'] = $closingYieldRes['avg_price'];
-            $lists[$key]['opening_price'] = $closingYieldRes['opening_price'];
-            $lists[$key]['upl'] = $closingYieldRes['upl'];
-            $lists[$key]['u_time'] = date('Y-m-d H:i:s', (float)$closingYieldRes['u_time'] / 1000);
-            $lists[$key]['c_time'] = date('Y-m-d H:i:s', (float)$closingYieldRes['c_time'] / 1000);
+            $lists[$key]['closing_yield'] = $val['rate_num'];
+            $lists[$key]['u_time'] = date('Y-m-d H:i:s', (float)$val['u_time'] / 1000);
+            $lists[$key]['c_time'] = date('Y-m-d H:i:s', (float)$val['c_time'] / 1000);
         }
-        // p($lists);
+        
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
 
