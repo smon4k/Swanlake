@@ -16,7 +16,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <el-link type="primary" :href="scope.row.chain_address" target='_blank'>
+                        <el-link type="primary" :href="'https://bscscan.com/token/' + scope.row.chain_address" target='_blank'>
                             <span>{{ scope.row.name }}</span><br>
                             <span>{{ scope.row.power_consumption_ratio }}W/THS</span>
                         </el-link>

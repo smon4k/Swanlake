@@ -137,7 +137,6 @@ export default {
                         hashpowerAddress: item.hashpowerAddress,
                         currencyToken: item.currencyToken,
                         goblin: item.goblin,
-                        functionName: item.functionName,
                         address:item.originToken,
                         pId:item.pId,
                         name:item.name,
@@ -169,7 +168,7 @@ export default {
                         loading:false,
                         btcbPrice: 0,
                         h2oPrice: 0,
-                        chain_address: '',
+                        chain_address: item.currencyToken,
                         yest_income_h2o: 0,
                         yest_income_h2ousdt: 0,
                         yest_total_income: 0,
@@ -219,7 +218,7 @@ export default {
                 state.hashPowerPoolsList[index].daily_output_usdt = info.daily_output_usdt
                 state.hashPowerPoolsList[index].daily_output_btc = info.daily_output_btc
                 state.hashPowerPoolsList[index].power_consumption_ratio = info.power_consumption_ratio
-                state.hashPowerPoolsList[index].chain_address = info.chain_address
+                // state.hashPowerPoolsList[index].chain_address = info.chain_address
                 state.hashPowerPoolsList[index].yest_income_h2o = info.yest_income_h2o;
                 state.hashPowerPoolsList[index].yest_income_h2ousdt = info.yest_income_h2ousdt;
                 state.hashPowerPoolsList[index].yest_total_income = info.yest_total_income;
@@ -314,7 +313,7 @@ export default {
                 fixedList.forEach(async item => {
                     // console.log(item);
                     let info = await getHashPowerPoolsTokensData(item.goblin, item.currencyToken, item.pId, item.id);
-                    // console.log(info);
+                    // console.log(item.id, info);
                     if(info) {
                         if(info.is_give_income && info.is_give_income > 0) { //大于第一次购买 第二天 给收益
                             let yest_income_usdt = Number(info.userBalance) * Number(info.daily_income); //昨日收益 usdt
