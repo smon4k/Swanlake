@@ -137,6 +137,7 @@ export default {
                         hashpowerAddress: item.hashpowerAddress,
                         currencyToken: item.currencyToken,
                         goblin: item.goblin,
+                        functionName: item.functionName,
                         address:item.originToken,
                         pId:item.pId,
                         name:item.name,

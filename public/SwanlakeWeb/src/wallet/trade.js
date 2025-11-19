@@ -225,15 +225,16 @@ export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimal
 }
 
 // 算力币购买
-export const BuyTokenToS19 = function (hashpowerAddress='', amount=0, decimals=18) {
+export const BuyTokenToSFunction = function (hashpowerAddress='', amount=0, functionName='BuyTokenToS19', decimals=18) {
   // console.log(amount);
+  console.log(functionName);
   // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
   const address = __ownInstance__.$store.state.base.address;
   const contractAddress = hashpowerAddress || __ownInstance__.$store.state.base.hashpowerAddress;
   console.log(contractAddress);
   const contract = new web3.eth.Contract(hashpowerABI, contractAddress);
   const depositAmount = toWei(amount, decimals);
-  let encodedABI = contract.methods.BuyTokenToS19(depositAmount).encodeABI();
+  let encodedABI = contract.methods[functionName](depositAmount).encodeABI();
 
   let timestamp = new Date().getTime().toString()
   __ownInstance__.$store.dispatch('createOrderForm' , {val:0 ,id:timestamp })
