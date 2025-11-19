@@ -845,7 +845,7 @@
 </template>
 <script>
 import axios from 'axios'
-import { approve, BuyTokenToS19 } from "@/wallet/trade";
+import { approve, BuyTokenToSFunction } from "@/wallet/trade";
 import { getBalance, isApproved, setStatiscData } from "@/wallet/serve";
 import Address from "@/wallet/address.json";
 import { keepDecimalNotRounding, getUrlParams } from "@/utils/tools";
@@ -869,6 +869,7 @@ export default {
       usdtBalance: 0,
       is_recomme_code: false,
       recomme_code: '',
+      functionName: '',
     };
   },
   created() {
@@ -879,6 +880,7 @@ export default {
         this.type = type;
       }
       let hashId = this.$route.params.hash_id;
+      this.functionName = this.$route.params.functionName;
       console.log(hashId, hashpowerAddress);
       let recomeCode = getUrlParams('refc');
       if (recomeCode && recomeCode !== '') {
@@ -1019,7 +1021,7 @@ export default {
       // console.log(this.hashpowerAddress);
       let amount = this.num * Number(this.detailData.hash_rate);
       if (this.hashpowerAddress && this.hashpowerAddress !== '') {
-        BuyTokenToS19(this.hashpowerAddress, amount).then(async (hash) => {
+        BuyTokenToSFunction(this.hashpowerAddress, amount, this.functionName).then(async (hash) => {
           if (hash) {
             await this.setPurchaseLog(hash);
             await setStatiscData(2, this.hashId);

@@ -627,7 +627,8 @@ export default {
                 params: {
                     type: type,
                     hash_id: row.id,
-                    hashpowerAddress: row.hashpowerAddress
+                    hashpowerAddress: row.hashpowerAddress,
+                    functionName: row.functionName
                 }
             })
         },
