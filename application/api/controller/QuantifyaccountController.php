@@ -142,7 +142,7 @@ class QuantifyaccountController extends QuantifybaseController
         if($external) {
             $where['a.external'] = 1;
         }
-        if($user_id) {
+        if($user_id && $user_id > 1) {
             $where['a.user_id'] = $user_id;
         }
         $result = QuantifyAccount::getAccountPrincipalList($where);

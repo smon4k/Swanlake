@@ -378,77 +378,96 @@ class QuantifyAccount extends Base
         try {
             date_default_timezone_set("Etc/GMT-8");
             $date = date('Y-m-d');
-            $data = self::name('quantify_equity_monitoring')->alias('a')->join('quantify_account b','a.account_id = b.id')->where(['a.date' => $date,'b.state'=>1])->select();
-            $totalData = [
+            // 获取所有状态为1的账户的今日数据，并关联user_id
+            $data = self::name('quantify_equity_monitoring')
+                ->alias('a')
+                ->join('quantify_account b', 'a.account_id = b.id')
+                ->where(['a.date' => $date, 'b.state' => 1])
+                ->field('a.*, b.user_id')
+                ->select();
+
+            // 按 user_id 分组统计数据
+            $userTotalMap = [];
+            $globalTotal = [
                 'principal' => 0,
                 'total_balance' => 0,
                 'yubibao_balance' => 0,
                 'daily_profit' => 0,
-                // 'daily_profit_rate' => 0,
                 'average_day_rate' => 0,
                 'average_year_rate' => 0,
                 'profit' => 0,
-                // 'profit_rate' => 0,
                 'price' => 0,
                 'total_share_profit' => 0,
                 'total_profit' => 0,
             ];
 
-            $countStandardPrincipal = 0; // Initialize count for standard principal
-            $totalProfit = 0; // Initialize total profit
+            $globalCountStandardPrincipal = 0;
+            $globalTotalProfit = 0;
 
             foreach ($data as $item) {
-                foreach ($totalData as $key => &$value) {
+                $userId = $item['user_id'];
+
+                // 初始化该user_id的数据
+                if (!isset($userTotalMap[$userId])) {
+                    $userTotalMap[$userId] = [
+                        'totalData' => [
+                            'principal' => 0,
+                            'total_balance' => 0,
+                            'yubibao_balance' => 0,
+                            'daily_profit' => 0,
+                            'average_day_rate' => 0,
+                            'average_year_rate' => 0,
+                            'profit' => 0,
+                            'price' => 0,
+                            'total_share_profit' => 0,
+                            'total_profit' => 0,
+                        ],
+                        'countStandardPrincipal' => 0,
+                        'totalProfit' => 0,
+                    ];
+                }
+
+                // 累加该user下的数据
+                foreach ($userTotalMap[$userId]['totalData'] as $key => &$value) {
                     $value += (float)$item[$key];
                 }
-                $countStandardPrincipal += (float)$item['principal']; // Accumulate standard principal count
-                $totalProfit += (float)$item['total_profit']; // Accumulate total profit
+                $userTotalMap[$userId]['countStandardPrincipal'] += (float)$item['principal'];
+                $userTotalMap[$userId]['totalProfit'] += (float)$item['total_profit'];
+
+                // 累加全局数据
+                foreach ($globalTotal as $key => &$value) {
+                    $value += (float)$item[$key];
+                }
+                $globalCountStandardPrincipal += (float)$item['principal'];
+                $globalTotalProfit += (float)$item['total_profit'];
             }
 
-            // Calculate daily profit rate
-            $dailyProfitRate = $countStandardPrincipal > 0 ? $totalData['daily_profit'] / $countStandardPrincipal * 100 : 0; //总 日利润率 = 总日利润 / 总本金
-            $totalData['daily_profit_rate'] = $dailyProfitRate;
+            // 保存每个用户的统计数据
+            foreach ($userTotalMap as $userId => $userData) {
+                $totalData = $userData['totalData'];
+                $countStandardPrincipal = $userData['countStandardPrincipal'];
+                $totalProfit = $userData['totalProfit'];
 
-            // Calculate profit rate
-            $profitRate = $countStandardPrincipal > 0 ? $totalProfit / $countStandardPrincipal : 0; //利润率 = 总利润 / 本金
-            $totalData['profit_rate'] = $profitRate; // Update profit rate in total data
+                // Calculate daily profit rate
+                $dailyProfitRate = $countStandardPrincipal > 0 ? $totalData['daily_profit'] / $countStandardPrincipal * 100 : 0;
+                $totalData['daily_profit_rate'] = $dailyProfitRate;
 
-            // Update the total data for the current date
-            $existingData = self::name('quantify_equity_monitoring_total')->where('date', $date)->find();
-            if ($existingData) {
-                self::name('quantify_equity_monitoring_total')->where('date', $date)->update([
-                    'principal' => $totalData['principal'],
-                    'total_balance' => $totalData['total_balance'],
-                    'yubibao_balance' => $totalData['yubibao_balance'],
-                    'daily_profit' => $totalData['daily_profit'],
-                    'daily_profit_rate' => $totalData['daily_profit_rate'],
-                    'average_day_rate' => $totalData['average_day_rate'],
-                    'average_year_rate' => $totalData['average_year_rate'],
-                    'profit' => $totalData['profit'],
-                    'profit_rate' => $totalData['profit_rate'],
-                    'price' => $totalData['price'],
-                    'total_share_profit' => $totalData['total_share_profit'],
-                    'total_profit' => $totalData['total_profit'],
-                    'up_time' => date('Y-m-d H:i:s'),
-                ]);
-            } else {
-                self::name('quantify_equity_monitoring_total')->insert([
-                    'date' => $date,
-                    'principal' => $totalData['principal'],
-                    'total_balance' => $totalData['total_balance'],
-                    'yubibao_balance' => $totalData['yubibao_balance'],
-                    'daily_profit' => $totalData['daily_profit'],
-                    'daily_profit_rate' => $totalData['daily_profit_rate'],
-                    'average_day_rate' => $totalData['average_day_rate'],
-                    'average_year_rate' => $totalData['average_year_rate'],
-                    'profit' => $totalData['profit'],
-                    'profit_rate' => $totalData['profit_rate'],
-                    'price' => $totalData['price'],
-                    'total_share_profit' => $totalData['total_share_profit'],
-                    'total_profit' => $totalData['total_profit'],
-                    'up_time' => date('Y-m-d H:i:s'),
-                ]);
+                // Calculate profit rate
+                $profitRate = $countStandardPrincipal > 0 ? $totalProfit / $countStandardPrincipal : 0;
+                $totalData['profit_rate'] = $profitRate;
+
+                // 按 user_id 和 date 保存/更新
+                self::saveOrUpdateTotal($totalData, $date, $userId);
             }
+
+            // 保存全局汇总（user_id = 0 表示全局，汇总所有user下所有account的数据）
+            $dailyProfitRate = $globalCountStandardPrincipal > 0 ? $globalTotal['daily_profit'] / $globalCountStandardPrincipal * 100 : 0;
+            $globalTotal['daily_profit_rate'] = $dailyProfitRate;
+
+            $profitRate = $globalCountStandardPrincipal > 0 ? $globalTotalProfit / $globalCountStandardPrincipal : 0;
+            $globalTotal['profit_rate'] = $profitRate;
+
+            self::saveOrUpdateTotal($globalTotal, $date, 0);
 
             // self::commit();
             return true;
@@ -462,6 +481,32 @@ class QuantifyAccount extends Base
             echo $error_msg . "\r\n";
             // self::rollback();
             return false;
+        }
+    }
+
+    /**
+     * 保存或更新统计数据
+     * @param array $totalData 统计数据
+     * @param string $date 日期
+     * @param int $userId 用户ID（0表示全局）
+     * @author qinlh
+     * @since 2025-11-20
+     */
+    private static function saveOrUpdateTotal($totalData, $date, $userId) {
+        $totalData['up_time'] = date('Y-m-d H:i:s');
+
+        $existingData = self::name('quantify_equity_monitoring_total')
+            ->where(['user_id' => $userId, 'date' => $date])
+            ->find();
+
+        if ($existingData) {
+            self::name('quantify_equity_monitoring_total')
+                ->where(['user_id' => $userId, 'date' => $date])
+                ->update($totalData);
+        } else {
+            $totalData['user_id'] = $userId;
+            $totalData['date'] = $date;
+            self::name('quantify_equity_monitoring_total')->insert($totalData);
         }
     }
 
