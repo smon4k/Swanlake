@@ -75,6 +75,10 @@ class QuantifyaccountController extends QuantifybaseController
         // $standard = $request->request('standard', 0, 'intval');
         $where = [];
         // $where['state'] = 1;
+        $user_id = self::$_uid;
+        if($user_id && $user_id > 1) {
+            $where['user_id'] = $user_id;
+        }
         $data = QuantifyAccount::getQuantifyAccountDateAllList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
