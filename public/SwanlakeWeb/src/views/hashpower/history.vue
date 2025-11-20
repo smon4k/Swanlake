@@ -13,7 +13,11 @@
           @click="changeNav('ding')">Time stake</div> -->
       </div>
     </div>
-    <div class="app-inner">
+    <!-- ✅ 如果没有连接钱包地址则不显示 -->
+    <div v-if="!isConnected" class="no-wallet">
+      <el-empty :description="$t('public:pleaseConnectWallet')"></el-empty>
+    </div>
+    <div v-else class="app-inner">
       <!-- 桌面端表格布局 -->
       <div v-if="!isMobel">
         <el-table
@@ -137,7 +141,10 @@ export default {
   },
   activated() {
     //页面进来
-    //   this.refreshData();
+    // ✅ 页面激活时，如果已连接钱包，自动获取订单数据
+    if (this.isConnected && this.address) {
+      this.getListData();
+    }
   },
   beforeRouteLeave(to, from, next) {
     //页面离开
@@ -147,13 +154,23 @@ export default {
     isConnected: {
       immediate: true,
       async handler(val) {
-        if (val) {
+        // ✅ 只有连接钱包时才请求接口
+        if (val && this.address) {
           this.getListData();
+        } else {
+          // 未连接时清空列表
+          this.hashPowerList = [];
+          this.listLoading = false;
         }
       }
     }
   },
-  mounted() { },
+  mounted() {
+    // ✅ 页面挂载时，如果已连接钱包，自动获取订单数据
+    if (this.isConnected && this.address) {
+      this.getListData();
+    }
+  },
   computed: {
     ...mapState({
       isConnected: state => state.base.isConnected,
@@ -168,6 +185,13 @@ export default {
   },
   methods: {
     getListData(ServerWhere) {
+      // ✅ 未连接钱包或没有地址时不请求
+      if (!this.isConnected || !this.address) {
+        this.hashPowerList = [];
+        this.listLoading = false;
+        return;
+      }
+      
       if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
         ServerWhere = {
           limit: this.pageSize,
@@ -381,6 +405,22 @@ export default {
     }
     .el-pager li.active {
       color: #fff !important;
+    }
+  }
+  
+  // ✅ 未连接钱包的样式
+  .no-wallet {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    
+    ::v-deep .el-empty {
+      color: #fff;
+      
+      .el-empty__description {
+        color: #999;
+      }
     }
   }
 }
