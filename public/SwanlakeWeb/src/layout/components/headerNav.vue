@@ -281,12 +281,12 @@ export default {
                     link: "https://t.me/h2ofinanceofficial",
                     children: [],
                 },
-                {
-                    name: '白皮书',
-                    path: "",
-                    link: "https://h2ofinance.gitbook.io/h2o-finance-en/",
-                    children: [],
-                },
+                // {
+                //     name: '白皮书',
+                //     path: "",
+                //     link: "https://h2ofinance.gitbook.io/h2o-finance-en/",
+                //     children: [],
+                // },
                 {
                     name: '购买H2O',
                     path: "",
