@@ -138,7 +138,7 @@ export default {
                         currencyToken: item.currency_token,
                         goblin: item.goblin_address,
                         functionName: item.function_name,
-
+                        updatePricefun: item.update_pricefun,
                         // hashpowerAddress: item.hashpowerAddress,
                         // currencyToken: item.currencyToken,
                         // goblin: item.goblin,

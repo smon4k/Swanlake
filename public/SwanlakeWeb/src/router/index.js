@@ -102,6 +102,12 @@ export const constantRoutes = [
         },
         //算力收益
         {
+          path: 'hashpower/admin',
+          name: 'hashpowerAdmin',
+          component: () => import('@/views/hashpower/admin'),
+          meta: { title: 'hashpowerAdmin', keepAlive: false }
+        },
+        {
           path: 'hashpower/list',
           name: 'hashpowerList',
           component: () => import('@/views/hashpower/list'),

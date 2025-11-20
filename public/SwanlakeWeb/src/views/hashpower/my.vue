@@ -16,8 +16,7 @@
                     align="center"
                     width="">
                     <template slot-scope="scope">
-                        <el-link type="primary" :href="nftUrl + '/Hashpower/Hashpower/detail?id=' + scope.row.id" target='_blank'>
-                            <span>{{ scope.row.name }}</span><br>
+                        <el-link type="primary" :href="'https://bscscan.com/token/' + scope.row.hashpowerAddress" target='_blank'>                            <span>{{ scope.row.name }}</span><br>
                             <span>{{ scope.row.power_consumption_ratio }}W/THS</span>
                         </el-link>
                     </template>

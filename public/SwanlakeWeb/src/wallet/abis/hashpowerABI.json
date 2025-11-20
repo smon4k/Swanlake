@@ -84,6 +84,19 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_Ratio",
+          "type": "uint256"
+        }
+      ],
+      "name": "setBuyTokenToS23Ratio",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "S19",
       "outputs": [

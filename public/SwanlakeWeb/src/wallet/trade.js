@@ -285,6 +285,66 @@ export const BuyTokenToSFunction = function (hashpowerAddress='', amount=0, func
   })
 }
 
+// 设置算力币价格
+export const setBuyTokenToSRatio = function (hashpowerAddress='', price=0, updatePricefun='', decimals=18) {
+  // console.log(amount);
+  // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
+  const address = __ownInstance__.$store.state.base.address;
+  const contractAddress = hashpowerAddress || __ownInstance__.$store.state.base.hashpowerAddress;
+  console.log(contractAddress);
+  const contract = new web3.eth.Contract(hashpowerABI, contractAddress);
+  const depositAmount = toWei(price, decimals);
+  let encodedABI = contract.methods[updatePricefun](depositAmount).encodeABI();
+
+  let timestamp = new Date().getTime().toString()
+  __ownInstance__.$store.dispatch('createOrderForm' , {val:0 ,id:timestamp })
+  return new Promise((resolve, reject) => {
+    let hashInfo
+    web3.eth.getTransactionCount(address).then(async transactionNonce => {
+      let gasPrice = await web3.eth.getGasPrice();
+      let estimateGas = await web3.eth.estimateGas({
+        from: address,
+        to: contractAddress, // 池地址
+        data: encodedABI, // Required
+      })
+      console.log('estimateGas' ,estimateGas)
+      const params = [{
+        from: address,
+        to: contractAddress, // 池地址
+        data: encodedABI, // Required
+        gasPrice: web3.utils.toHex(gasPrice), // Optional
+        gas: web3.utils.toHex(estimateGas), // Optional
+        // gas: web3.utils.toHex(400000), // Optional
+      }];
+      web3.eth.sendTransaction(params[0])
+        .on('transactionHash', function (hash) {
+          console.log('hash', hash);
+          if (hash) {
+            hashInfo = hash
+          }
+        })
+        .on('receipt', function (receipt) {
+          // 交易成功
+          __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:1 , hash:hashInfo})
+          resolve(hashInfo)
+        })
+        .on('confirmation', function (confirmationNumber, receipt) {
+        })
+        .on('error', function (err) {
+          let isUserDeny = err.code === 4001 
+          __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:2 , isUserDeny, hash:hashInfo})
+          console.log('err' , err)
+          reject(err)
+        })
+    })
+    .catch(err=>{
+      console.log('receiveAirdrop_err',err)
+      __ownInstance__.$store.dispatch('changeTradeStatus' , {  id:timestamp , val:2, hash:hashInfo})
+      reject(err)
+    })
+  })
+}
+
 
 // 算力币 存款存入
 export const depositPoolsIn = function (goblinAddress, decimals, amount){
