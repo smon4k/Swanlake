@@ -196,7 +196,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
       h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
       // console.log(pId, h2oReward, btcbReward)
     }
-    console.log(id, totalTvl, tokenPrice, userBalance)
+    // console.log(id, totalTvl, tokenPrice, userBalance)
     // let bonusPerShare = await getH2OAccBonusPerShare(goblinAddress); //累计收益
     // let lastAccBonusPerShare = await getH2OLastAccBonusPerShare(goblinAddress); //上次累计收益
     // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
@@ -345,7 +345,7 @@ export async function getH2OUserInfo(contractAddr, userAddress) {
   let balance = 0;
   const Gwei1 = 1000000000;
   await contract.methods.userInfo(address).call(function (error, result) {
-    console.log(contractAddr, result);
+    // console.log(contractAddr, result);
     if (!error) {
       if(result && result['shares']) {
         balance = keepDecimalNotRounding(byDecimals(result['shares'], 18), 6, true)

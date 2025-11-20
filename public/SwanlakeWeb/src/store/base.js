@@ -170,7 +170,7 @@ export default {
                         daily_output_btc: 0,
                         power_consumption_ratio: 0,
                         currency: 0,
-                        loading:false,
+                        loading: true,
                         btcbPrice: 0,
                         h2oPrice: 0,
                         // chain_address: item.currencyToken,

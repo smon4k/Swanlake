@@ -7,7 +7,7 @@
         </div>
         <div v-if="!isMobel">
             <el-table
-                v-loading="loading"
+                v-loading="hashPowerPoolsList.some(item => item.loading)"
                 :data="hashPowerPoolsList.filter(item => Number(item.balance) > 0)"
                 style="width: 100%">
                 <el-table-column
@@ -263,7 +263,7 @@ export default {
             PageIncomeSearchWhere: [],
 
             poolBtcData: {},
-            loading: false,
+            loading: true,
             hashpowerDetail: false,
 
             count_output: 0,
@@ -338,8 +338,9 @@ export default {
         hashPowerPoolsList: {
             immediate: true,
             handler(val) {
-                // console.log('hashPowerPoolsList updated:', val);
+                // console.log('hashPowerPoolsList updated:', val);                
                 if(val && val.length > 0) {
+                    // this.loading = false;
                     let totalTvl = 0;
                     val.forEach(element => {
                         totalTvl += Number(element.total);
