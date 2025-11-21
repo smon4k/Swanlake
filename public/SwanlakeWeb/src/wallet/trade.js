@@ -291,7 +291,7 @@ export const setBuyTokenToSRatio = function (hashpowerAddress='', price=0, updat
   // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
   const address = __ownInstance__.$store.state.base.address;
   const contractAddress = hashpowerAddress || __ownInstance__.$store.state.base.hashpowerAddress;
-  console.log(contractAddress);
+  // console.log(contractAddress);
   const contract = new web3.eth.Contract(hashpowerABI, contractAddress);
   const depositAmount = toWei(price, decimals);
   let encodedABI = contract.methods[updatePricefun](depositAmount).encodeABI();

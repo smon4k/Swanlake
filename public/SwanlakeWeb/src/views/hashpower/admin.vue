@@ -58,7 +58,8 @@
 
 <script>
 import { mapState } from "vuex";
-import { setBuyTokenToSRatio } from "@/wallet/trade"; // 复用 buy 页面使用的合约调用方法
+import { setBuyTokenToSRatio } from "@/wallet/trade"; 
+import { getHashpowerPrice } from "@/wallet/serve";
 import axios from "axios";
 
 export default {
@@ -69,7 +70,7 @@ export default {
       dialogVisible: false,
       currentEditRow: {},
       newPrice: '',
-      submitting: false
+      submitting: false,
     };
   },
   computed: {
@@ -94,10 +95,12 @@ export default {
     }
   },
   methods: {
-    handleEdit(row) {
+    async handleEdit(row) {
       this.currentEditRow = { ...row }; // 复制对象，避免直接修改列表显示
       this.newPrice = row.price; // 默认显示当前价格
       this.dialogVisible = true;
+      // const currentPrice = await getHashpowerPrice(row.hashpowerAddress, 'US23Ratio', 18);
+      // console.log(currentPrice);
     },
     async confirmEdit() {
       if (!this.newPrice || parseFloat(this.newPrice) <= 0) {

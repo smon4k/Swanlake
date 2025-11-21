@@ -7,7 +7,7 @@ import fairLaunchABI from './abis/fairLaunch.json'
 import H2OPoolsABI from './abis/H2OPoolsABI.json'
 import cakeRouterABI from './abis/cakeRouter.json'
 import mdexABI from './abis/mdexABI.json'
-
+import hashpowerABI from './abis/hashpowerABI.json'
 import { get, post } from "@/common/axios.js";
 import { $get } from '@/utils/request'
 import axios from 'axios'
@@ -389,6 +389,17 @@ export const getSwapPoolsAmountsOut = async function (routerContractAddress, tk0
   return amountsOut;
 }
 
+//获取算力币价格
+export async function getHashpowerPrice(hashpowerAddress, functionName='US23Ratio', decimals=18) {
+  const contract = new web3.eth.Contract(hashpowerABI, hashpowerAddress);
+  let price = 0;
+  await contract.methods[functionName]().call(function (error, result) {
+    if (!error) {
+      price = fromWei(result, decimals);
+    }
+  });
+  return price;
+}
 
 //获取游戏-充提系统-充提余额
 export async function getGameFillingBalance(decimals=18, gamesFillingAddress='') {

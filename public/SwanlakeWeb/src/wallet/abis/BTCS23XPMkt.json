@@ -20,7 +20,7 @@
     },
     {
       "inputs": [],
-      "name": "BNBS19Ratio",
+      "name": "BNBS23Ratio",
       "outputs": [
         {
           "internalType": "uint256",
@@ -35,11 +35,11 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "_S19Amt",
+          "name": "_S23Amt",
           "type": "uint256"
         }
       ],
-      "name": "BNBToS19",
+      "name": "BNBToS23",
       "outputs": [],
       "stateMutability": "payable",
       "type": "function"
@@ -61,20 +61,7 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "_S19Amt",
-          "type": "uint256"
-        }
-      ],
-      "name": "BuyTokenToS19",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_S19Amt",
+          "name": "_S23Amt",
           "type": "uint256"
         }
       ],
@@ -84,16 +71,16 @@
       "type": "function"
     },
     {
-      "inputs": [
+      "inputs": [],
+      "name": "S23",
+      "outputs": [
         {
-          "internalType": "uint256",
-          "name": "_Ratio",
-          "type": "uint256"
+          "internalType": "address",
+          "name": "",
+          "type": "address"
         }
       ],
-      "name": "setBuyTokenToS23Ratio",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -110,26 +97,19 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "S19",
-      "outputs": [
+      "inputs": [
         {
           "internalType": "address",
           "name": "",
           "type": "address"
         }
       ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "US19Ratio",
+      "name": "Whitelist",
       "outputs": [
         {
-          "internalType": "uint256",
+          "internalType": "bool",
           "name": "",
-          "type": "uint256"
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -204,7 +184,7 @@
           "type": "uint256"
         }
       ],
-      "name": "setBNBS19Ratioo",
+      "name": "setBNBS23Ratioo",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -217,7 +197,7 @@
           "type": "uint256"
         }
       ],
-      "name": "setBuyTokenToS19Ratio",
+      "name": "setBuyTokenToS23Ratio",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -239,11 +219,29 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_S19",
+          "name": "_S23",
           "type": "address"
         }
       ],
-      "name": "setS19Token",
+      "name": "setS23Token",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "status",
+          "type": "bool"
+        }
+      ],
+      "name": "setWhitelist",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
