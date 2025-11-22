@@ -412,6 +412,7 @@ export default {
             if(this.address && this.address !== undefined && this.address !== '') {
                 this.$disconnect();
             } else {
+                console.log(111);
                 this.$connect();
             }
         },

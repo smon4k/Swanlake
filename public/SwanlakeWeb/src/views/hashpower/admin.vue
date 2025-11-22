@@ -85,14 +85,24 @@ export default {
        return this.hashPowerPoolsList.filter(item => item.hashpowerAddress && item.updatePricefun);
     }
   },
+  watch: {
+    address: {
+      immediate: true,
+      async handler(val) {
+        if(val) {
+          if (this.hashPowerPoolsList.length === 0) {
+              this.loading = true;
+              this.$store.dispatch("getHashPowerPoolsList").finally(() => {
+                  this.loading = false;
+              });
+          }
+        } else {
+          this.loading = false;
+        }
+      },
+    },
+  },
   created() {
-    // 如果列表为空，尝试加载
-    if (this.hashPowerPoolsList.length === 0) {
-        this.loading = true;
-        this.$store.dispatch("getHashPowerPoolsList").finally(() => {
-            this.loading = false;
-        });
-    }
   },
   methods: {
     async handleEdit(row) {

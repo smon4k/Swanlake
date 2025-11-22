@@ -66,7 +66,6 @@ export default {
             ]
           }
           console.log('state',state)
-          
         },
         copyDefaultState(state){
             copyBaseState = deepCopy(state)
@@ -153,7 +152,7 @@ export default {
                         yearPer: 0,
                         h2oYearPer: 0,
                         btcbYearPer: 0,
-                        btcb19ProBalance: 0,
+                        hashpowerBalance: 0,
                         cost_revenue: 0,
                         annualized_income: 0,
                         daily_income: 0,
@@ -206,7 +205,7 @@ export default {
                 state.hashPowerPoolsList[index].yearPer = info.yearPer
                 state.hashPowerPoolsList[index].h2oYearPer = info.h2oYearPer
                 state.hashPowerPoolsList[index].btcbYearPer = info.btcbYearPer
-                state.hashPowerPoolsList[index].btcb19ProBalance = info.btcb19ProBalance
+                state.hashPowerPoolsList[index].hashpowerBalance = info.hashpowerBalance
                 state.hashPowerPoolsList[index].cost_revenue = info.cost_revenue
                 state.hashPowerPoolsList[index].annualized_income = info.annualized_income
                 state.hashPowerPoolsList[index].daily_income = info.daily_income
@@ -348,7 +347,7 @@ export default {
                                     let annualized_rate_xp = keepDecimalNotRounding(((btcb_number * Number(poolBtcData[0].currency_price)) + (h2o_number * Number(info.h2oPrice))) / (Number(info.totalTvl) * hashpower_price));
                                     info.annualized_rate = annualized_rate_xp * 365 * 100;
                                 }
-                                console.log(info);
+                                // console.log(info);
                             }
                             let countIncome = keepDecimalNotRounding(Number(info.btcbReward) + Number(info.harvest_btcb_amount)); // 总的收益 = 奖励收益数量 + 已收割奖励数量
                             info.total_income_btcb = countIncome; //btcb总收益

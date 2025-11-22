@@ -8,7 +8,7 @@
         <div v-if="!isMobel">
             <el-table
                 v-loading="hashPowerPoolsList.some(item => item.loading)"
-                :data="hashPowerPoolsList.filter(item => Number(item.balance) > 0)"
+                :data="hashPowerPoolsList.filter(item => Number(item.hashpowerBalance) > 0)"
                 style="width: 100%">
                 <el-table-column
                     prop="name"
@@ -356,12 +356,6 @@ export default {
                 }
             },
         },
-        totalPledgePower: {
-            immediate: true,
-            handler(val) {
-                console.log(val);
-            }
-        }
     },
     components: {
         "wbc-page": Page, //加载分页组件
@@ -382,7 +376,7 @@ export default {
             axios.get(this.nftUrl + "/hashpower/hashpower/getHashpowerOutput",{
                 params: {}
             }).then((json) => {
-                console.log(json);
+                // console.log(json);
                 if (json.code == 10000) {
                     this.count_output = json.data.count_output;
                     this.count_btc_output = json.data.count_btc_output;

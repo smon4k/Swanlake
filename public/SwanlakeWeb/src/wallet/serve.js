@@ -165,7 +165,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
   let H2OYearPer = 0
   let BTCBYearPer = 0
   let btcbPrice = 0
-  let btcb19ProBalance = 0
+  let hashpowerBalance = 0
   let cost_revenue = 0
   let daily_income = 0
   let currency = 0
@@ -196,7 +196,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
       h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
       // console.log(pId, h2oReward, btcbReward)
     }
-    // console.log(id, totalTvl, tokenPrice, userBalance)
+    // console.log(id, userBalance)
     // let bonusPerShare = await getH2OAccBonusPerShare(goblinAddress); //累计收益
     // let lastAccBonusPerShare = await getH2OLastAccBonusPerShare(goblinAddress); //上次累计收益
     // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
@@ -204,7 +204,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     btcbPrice = await getToken2TokenPrice(Address.BTCB, Address.BUSDT) //获取btcb价格
     // console.log(btcbPrice);
     // console.log(reptileBtcData);
-    btcb19ProBalance = await getBalance(currencyToken, 18); //获取购买算力币余额
+    hashpowerBalance = await getBalance(currencyToken, 18); //获取购买算力币余额
     cost_revenue = HashpowerDetail.cost_revenue; //估值
     daily_income = HashpowerDetail.daily_income; //日收益率
     currency = HashpowerDetail.currency; //交易币种
@@ -237,7 +237,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     btcbYearPer: BTCBYearPer,
     btcbPrice: btcbPrice,
     h2oPrice: h2oPrice,
-    btcb19ProBalance: btcb19ProBalance,
+    hashpowerBalance: hashpowerBalance,
     cost_revenue: cost_revenue,
     daily_income: daily_income,
     currency: currency,
