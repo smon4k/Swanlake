@@ -66,5 +66,6 @@
     "RequiresPledgeIncome": "Requires pledge to earn income",
     "RequiresPledgeIncomeLike": "Receive Benefits",
     "MinimumElectricityBill": "Minimum electricity bill",
-    "ToDashboard": "To Dashboard"
+    "ToDashboard": "To Dashboard",
+    "ProductName": "Product Name"
 }

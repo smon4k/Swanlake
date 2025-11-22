@@ -34,6 +34,15 @@
             </template>
           </el-table-column>
           <el-table-column
+            prop="hash_name"
+            :label="$t('subscribe:ProductName')"
+            align="center"
+            width="">
+            <template slot-scope="scope">
+              <span>{{ scope.row.hash_name }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
             prop="amount"
             :label="$t('subscribe:Amount')"
             align="center"

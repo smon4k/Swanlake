@@ -66,5 +66,6 @@
     "RequiresPledgeIncome": "需要质押才有收益",
     "RequiresPledgeIncomeLike": "领取收益",
     "MinimumElectricityBill": "电费",
-    "ToDashboard": "跳转到仪表板"
+    "ToDashboard": "跳转到仪表板",
+    "ProductName": "产品名称"
 }
