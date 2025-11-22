@@ -199,7 +199,7 @@ export default {
           address: this.address,
         };
       }
-      axios.get(this.nftUrl + "/hashpower/Hashpower/getHashPowerList", {
+      axios.get(this.nftUrl + "/hashpower/Hashpower/getHashPowerLogList", {
         params: ServerWhere
       }).then((json) => {
         // console.log(json);
