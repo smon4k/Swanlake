@@ -309,7 +309,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-/deep/ {
+::v-deep {
     .pages {
         margin-top: 0!important;
         margin-bottom: 80px !important;

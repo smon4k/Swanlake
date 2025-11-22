@@ -205,6 +205,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     // console.log(btcbPrice);
     // console.log(reptileBtcData);
     hashpowerBalance = await getBalance(currencyToken, 18); //获取购买算力币余额
+    console.log(id, hashpowerBalance);
     cost_revenue = HashpowerDetail.cost_revenue; //估值
     daily_income = HashpowerDetail.daily_income; //日收益率
     currency = HashpowerDetail.currency; //交易币种

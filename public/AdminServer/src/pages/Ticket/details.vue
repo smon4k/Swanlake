@@ -380,7 +380,7 @@ export default {
   background-color: #d3dce6;
 }
 
-/deep/ {
+::v-deep {
   .preview-class {
     img {
       width: 100%;

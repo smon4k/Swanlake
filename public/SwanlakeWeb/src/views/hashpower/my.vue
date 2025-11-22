@@ -8,7 +8,7 @@
         <div v-if="!isMobel">
             <el-table
                 v-loading="hashPowerPoolsList.some(item => item.loading)"
-                :data="hashPowerPoolsList.filter(item => Number(item.hashpowerBalance) > 0)"
+                :data="hashPowerPoolsList.filter(item => Number(item.hashpowerBalance) > 0 || Number(item.balance) > 0)"
                 style="width: 100%">
                 <el-table-column
                     prop="name"

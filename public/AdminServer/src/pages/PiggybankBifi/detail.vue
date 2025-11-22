@@ -180,7 +180,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
- /deep/ {
+ ::v-deep {
   .el-row {
     margin-top: 20px;
   }

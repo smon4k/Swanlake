@@ -1193,7 +1193,7 @@ export default {
 </script>
 <style lang="scss" scoped>
      .container {
-        /deep/ {
+        ::v-deep {
             width: 100%;
             padding-top: 0;
             .el-table {
