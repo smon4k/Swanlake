@@ -396,7 +396,9 @@ export async function getHashpowerPrice(hashpowerAddress, functionName='US23Rati
   let price = 0;
   await contract.methods[functionName]().call(function (error, result) {
     if (!error) {
-      price = fromWei(result, decimals);
+      // console.log(result);
+      price = result;
+      // price = fromWei(result, decimals);
     }
   });
   return price;

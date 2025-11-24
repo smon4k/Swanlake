@@ -92,7 +92,7 @@
         <div v-if="!isMobel">
             <el-table
                 v-loading="loading"
-                :data="hashPowerPoolsList"
+                :data="filteredHashPowerPoolsList"
                 style="width: 100%">
                 <el-table-column
                     prop="name"
@@ -145,7 +145,7 @@
             </el-table>
         </div>
         <div v-else>
-            <div v-if="hashPowerPoolsList.length">
+            <div v-if="filteredHashPowerPoolsList.length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item label="日产出/T">{{ toFixed(item.daily_output_usdt || 0, decimalJudgment(item.daily_output_usdt)) }} USDT / {{ fromSATBTCNum(item.daily_output_btc, 2) }}</el-descriptions-item>
@@ -324,7 +324,9 @@ export default {
             nftUrl:state=>state.base.nftUrl,
             hashPowerPoolsList:state=>state.base.hashPowerPoolsList
         }),
-
+        filteredHashPowerPoolsList() {
+            return this.hashPowerPoolsList.filter(item => item.hashpowerAddress);
+        }
     },
     created() {
         setTimeout(async() => {

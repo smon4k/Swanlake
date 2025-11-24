@@ -42,7 +42,13 @@
            <el-input v-model="currentEditRow.price" disabled></el-input>
         </el-form-item>
         <el-form-item label="新价格 (USDT)">
-          <el-input v-model="newPrice" type="number" placeholder="请输入新价格"></el-input>
+          <el-input 
+            v-model="newPrice" 
+            type="number" 
+            placeholder="请输入新价格" 
+            :min="0.1"
+            @blur="validatePrice"
+          ></el-input>
           <div style="font-size: 12px; color: #999; margin-top: 5px;">
             注意：点击确定将唤起钱包调用合约 setBuyTokenToS23Ratio 方法
           </div>
@@ -66,7 +72,7 @@ export default {
   name: "HashpowerAdmin",
   data() {
     return {
-      loading: false,
+      loading: true,
       dialogVisible: false,
       currentEditRow: {},
       newPrice: '',
@@ -101,20 +107,34 @@ export default {
         }
       },
     },
+    hashPowerPoolsList: {
+      immediate: true,
+      handler(val) {
+        if(val.length > 0) {
+          this.loading = false;
+        }
+      }
+    }
   },
   created() {
   },
   methods: {
+    validatePrice() {
+      if (this.newPrice && parseFloat(this.newPrice) < 0.1) {
+        this.newPrice = 0.1;
+        this.$message.warning('价格不能低于 0.1');
+      }
+    },
     async handleEdit(row) {
       this.currentEditRow = { ...row }; // 复制对象，避免直接修改列表显示
       this.newPrice = row.price; // 默认显示当前价格
       this.dialogVisible = true;
-      // const currentPrice = await getHashpowerPrice(row.hashpowerAddress, 'US23Ratio', 18);
-      // console.log(currentPrice);
+      const currentPrice = await getHashpowerPrice(row.hashpowerAddress, 'US23Ratio', 18);
+      console.log(currentPrice);
     },
     async confirmEdit() {
-      if (!this.newPrice || parseFloat(this.newPrice) <= 0) {
-        this.$message.warning("请输入有效的新价格");
+      if (!this.newPrice || parseFloat(this.newPrice) < 0.1) {
+        this.$message.warning("请输入有效的新价格（不能低于 0.1）");
         return;
       }
 

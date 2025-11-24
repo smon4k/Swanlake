@@ -63,7 +63,7 @@ export function toWei(amount, decimal) {
       str = 'mwei';
       break;
   }
-  return web3.utils.toWei(amount.toString(), str)
+  return web3.utils.toWei(amount.toString(), str) 
 }
 export function fromWei(amount, decimal) {
   let str = 'ether'

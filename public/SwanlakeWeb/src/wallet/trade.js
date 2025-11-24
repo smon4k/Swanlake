@@ -227,13 +227,14 @@ export const gamesGTokenToBuyToken = function (gTokenAmt=0, buyToken='', decimal
 // 算力币购买
 export const BuyTokenToSFunction = function (hashpowerAddress='', amount=0, functionName='BuyTokenToS19', decimals=18) {
   // console.log(amount);
-  console.log(functionName);
+  // console.log(functionName);
   // const tokenAddress = __ownInstance__.$store.state.base.tokenAddress
   const address = __ownInstance__.$store.state.base.address;
   const contractAddress = hashpowerAddress || __ownInstance__.$store.state.base.hashpowerAddress;
-  console.log(contractAddress);
+  // console.log(contractAddress);
   const contract = new web3.eth.Contract(hashpowerABI, contractAddress);
   const depositAmount = toWei(amount, decimals);
+  // const depositAmount = Math.floor(Number(amount) * 10);
   let encodedABI = contract.methods[functionName](depositAmount).encodeABI();
 
   let timestamp = new Date().getTime().toString()
@@ -293,7 +294,9 @@ export const setBuyTokenToSRatio = function (hashpowerAddress='', price=0, updat
   const contractAddress = hashpowerAddress || __ownInstance__.$store.state.base.hashpowerAddress;
   // console.log(contractAddress);
   const contract = new web3.eth.Contract(hashpowerABI, contractAddress);
-  const depositAmount = toWei(price, decimals);
+  // const depositAmount = toWei(Number(price), decimals);
+  const depositAmount = Math.floor(Number(price) * 10);
+  // console.log(depositAmount);
   let encodedABI = contract.methods[updatePricefun](depositAmount).encodeABI();
 
   let timestamp = new Date().getTime().toString()
