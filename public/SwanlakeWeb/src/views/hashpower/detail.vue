@@ -7,7 +7,7 @@
       </el-breadcrumb> -->
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <el-page-header @back="goBack"></el-page-header>
+        <el-page-header :title="$t('public:Back')" @back="goBack"></el-page-header>
       </div>
       <el-row class="app-left">
         <el-col :span="24">

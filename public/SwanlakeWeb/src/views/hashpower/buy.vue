@@ -7,10 +7,10 @@
     </el-breadcrumb> -->
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <el-page-header @back="goBack" :content="detailData.name">
+        <el-page-header :title="$t('public:Back')" @back="goBack" :content="detailData.name">
           <template slot="content">
             <span>{{ detailData.name }}</span>
-            <el-link type="primary" :href="detailData.chain_address" target='_blank'>{{ '查看合约' }}</el-link>
+            <el-link type="primary" :href="detailData.chain_address" target='_blank'>{{ $t('hashpower:ViewContract') }}</el-link>
           </template>
         </el-page-header>
       </div>
@@ -44,7 +44,7 @@
                 <el-row class="content" :style="'width:' + isMobel ? '100%' : '80%'">
                   <el-col :span="24" align="center">
                     <el-button style="padding: 3px 0" type="text"
-                      @click="hashpowerPanelShow = true">算力规模</el-button>
+                      @click="hashpowerPanelShow = true">{{ $t('hashpower:HashpowerScale') }}</el-button>
                   </el-col>
                   <el-col :span="isMobel ? 12 : 8" align="center">
                     <p class="desc">{{ $t('subscribe:Specific') }}</p>
@@ -86,7 +86,7 @@
                 <el-col :span="24">
                   <!-- {{ $t('subscribe:Amount(T)') }}({{ detailData.hash_rate }}T)： -->
                   <el-input v-model.trim="num" type="number" onkeyup="value=value.replace(/[^1-9]/g, '')" :main="1"
-                    placeholder="请输入数量">
+                    :placeholder="$t('hashpower:PleaseEnterQuantity')">
                     <template slot="prepend">{{ $t('subscribe:Amount(T)') }} ({{ detailData.hash_rate }}T)</template>
                     <!-- <template slot="append">
                               <el-button v-if="type == 1" type="primary" @click="allfunBetClick()">全投</el-button>
@@ -98,7 +98,7 @@
               <el-row>
                 <el-col :span="24">
                   <span style="float: right;">
-                    <span>账户余额：<el-link type="primary" style="font-size:14px;" @click="clickUsdtBalance()">{{
+                    <span>{{ $t('hashpower:AccountBalance') }}：<el-link type="primary" style="font-size:14px;" @click="clickUsdtBalance()">{{
                         keepDecimalNotRounding(usdtBalance, 2) }} USDT</el-link></span>&nbsp;&nbsp;
                     <span>USDT: $ {{ detailData.price * num }}</span>
                   </span>
@@ -106,9 +106,9 @@
               </el-row>
               <el-row class="recomme">
                 <el-col :span="24">
-                  <el-checkbox v-model="is_recomme_code">我有推荐码</el-checkbox>
-                  <el-input v-if="is_recomme_code" v-model.trim="recomme_code" type="text" minlength=”4“ maxlength="8"
-                    placeholder="请输入推荐码" @keyup.native="recommeCodeCheck"
+                  <el-checkbox v-model="is_recomme_code">{{ $t('hashpower:IHaveReferralCode') }}</el-checkbox>
+                  <el-input v-if="is_recomme_code" v-model.trim="recomme_code" type="text" minlength="4" maxlength="8"
+                    :placeholder="$t('hashpower:PleaseEnterReferralCode')" @keyup.native="recommeCodeCheck"
                     @keydown.native="extraordinaryCheck"></el-input>
                 </el-col>
               </el-row>
@@ -772,7 +772,7 @@
     </el-card>
 
 
-    <el-dialog title="算力规模" :visible.sync="hashpowerPanelShow" :width="isMobel ? '80%' : '50%'" center>
+    <el-dialog :title="$t('hashpower:HashpowerScale')" :visible.sync="hashpowerPanelShow" :width="isMobel ? '80%' : '50%'" center>
       <div class="info" v-if="poolBtcData">
         <!-- <el-row style="line-height:30px;">
                   <el-col :span="12" align="center">
@@ -1004,12 +1004,12 @@ export default {
       }
       if (this.is_recomme_code) {
         if (this.recomme_code == "") {
-          this.$message.error("推荐码不能为空");
+          this.$message.error(this.$t('hashpower:ReferralCodeCannotBeEmpty'));
           this.trading = false;
           return false;
         } else {
           if (this.recomme_code.length < 4) {
-            this.$message.error("推荐码长度不能低于4位，最长不超过8位");
+            this.$message.error(this.$t('hashpower:ReferralCodeLength'));
             this.trading = false;
             return false;
           }
@@ -1046,7 +1046,7 @@ export default {
           this.agree = false;
           this.$message({
             type: 'success',
-            message: '购买成功!'
+            message: this.$t('hashpower:PurchaseSuccessful')
           });
           setTimeout(() => {
             this.$router.push({ path: '/hashpower/list' })

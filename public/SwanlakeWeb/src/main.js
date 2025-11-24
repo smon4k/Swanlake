@@ -55,7 +55,7 @@ Vue.config.productionTip = false
 i18next.use(XHR).use(LngDetector).init({
   // lng: 'en', // 设定语言
   fallbackLng: 'zh', // 默认语言包
-  ns: ['public', 'nav', 'subscribe'],
+  ns: ['public', 'nav', 'subscribe', 'hashpower', 'home'],
   defaultNS: 'public',
   backend: {
       loadPath: '../static/locales/{{lng}}/{{ns}}.json'

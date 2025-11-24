@@ -2,7 +2,7 @@
     <div class="container">
         <div class="commin-title">
             <div class="title-inner">
-                <span class="tit">质押算力币获取BTC收益</span>
+                <span class="tit">{{ $t('hashpower:StakingHashpowerCoin') }}</span>
             </div>
         </div>
         <div v-if="!isMobel">
@@ -12,7 +12,7 @@
                 style="width: 100%">
                 <el-table-column
                     prop="name"
-                    label="产品名称"
+                    :label="$t('hashpower:ProductName')"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -22,7 +22,7 @@
                     </template>
                 </el-table-column>
                 <el-table-column
-                    label="我的质押"
+                    :label="$t('hashpower:MyStake')"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -31,7 +31,7 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="昨日BTC收益"
+                    :label="$t('hashpower:YesterdayBTCIncome')"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -43,7 +43,7 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="昨日H2O收益"
+                    :label="$t('hashpower:YesterdayH2OIncome')"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -53,7 +53,7 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="BTC累计收益"
+                    :label="$t('hashpower:BTCCumulativeIncome')"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -65,7 +65,7 @@
                 </el-table-column>
                 <el-table-column
                     prop=""
-                    label="昨日总收益"
+                    :label="$t('hashpower:YesterdayTotalIncome')"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -74,7 +74,7 @@
                 </el-table-column>
                 <!-- <el-table-column
                     prop=""
-                    label="昨日总收益率"
+                    :label="$t('hashpower:YesterdayIncomeRate')"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -83,7 +83,7 @@
                 </el-table-column> -->
                 <el-table-column
                     prop=""
-                    label="可领取收益"
+                    :label="$t('hashpower:ClaimableRewards')"
                     align="center"
                     width="">
                     <template slot-scope="scope">
@@ -95,14 +95,14 @@
                 </el-table-column>
                 <el-table-column
                     fixed="right"
-                    label="操作"
+                    :label="$t('hashpower:Operation')"
                     align="center"
                     width="200">
                     <template slot-scope="scope">
                         <div style="margin-top:5px">
-                            <el-button size="mini" round @click="toHashpowerDetail(1, scope.row)">存入</el-button>
-                            <el-button size="mini" round @click="toHashpowerDetail(2, scope.row)" >提取</el-button>
-                            <el-button size="mini" round @click="receiveBTCBReward(scope.row)" :loading="receiveLoading" :disabled="!Number(scope.row.btcbReward)">收获</el-button>
+                            <el-button size="mini" round @click="toHashpowerDetail(1, scope.row)">{{ $t('hashpower:Deposit') }}</el-button>
+                            <el-button size="mini" round @click="toHashpowerDetail(2, scope.row)" >{{ $t('hashpower:Withdraw') }}</el-button>
+                            <el-button size="mini" round @click="receiveBTCBReward(scope.row)" :loading="receiveLoading" :disabled="!Number(scope.row.btcbReward)">{{ $t('hashpower:Harvest') }}</el-button>
                         </div>
                     </template>
                 </el-table-column>
@@ -111,33 +111,33 @@
         <div v-else>
             <div v-if="hashPowerPoolsList.filter(item => Number(item.balance) > 0).length">
                 <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList.filter(item => Number(item.balance) > 0)" :key="index">
-                    <el-descriptions-item label="产品名称">{{ item.name }}</el-descriptions-item>
-                    <el-descriptions-item label="我的质押">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
-                    <el-descriptions-item label="昨日BTC收益">
+                    <el-descriptions-item :label="$t('hashpower:ProductName')">{{ item.name }}</el-descriptions-item>
+                    <el-descriptions-item :label="$t('hashpower:MyStake')">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
+                    <el-descriptions-item :label="$t('hashpower:YesterdayBTCIncome')">
                         <el-link type="primary" @click="getHashpowerDetail(item.id)">
                             {{ toFixed(item.yest_income_usdt || 0, decimalJudgment(item.yest_income_usdt)) }} USDT /
                             {{ fromSATBTCNum(item.yest_income_btcb, 2) }}
                         </el-link>
                     </el-descriptions-item>
-                    <el-descriptions-item label="昨日H2O收益">
+                    <el-descriptions-item :label="$t('hashpower:YesterdayH2OIncome')">
                         {{ toFixed(item.yest_income_h2ousdt || 0, decimalJudgment(item.yest_income_h2ousdt)) }} USDT / {{ toFixed(item.yest_income_h2o, 4) }} H2O
                     </el-descriptions-item>
-                    <el-descriptions-item label="BTC总收益">
+                    <el-descriptions-item :label="$t('hashpower:BTCCumulativeIncome')">
                         <!-- <el-link type="primary" @click="showHashpowerIncomeList(item.id)"> -->
                             {{ toFixed(item.total_income_usdt || 0, decimalJudgment(item.total_income_usdt)) }} USDT /
                             {{ fromSATBTCNum(item.total_income_btcb, 2) }}
                         <!-- </el-link> -->
                     </el-descriptions-item>
-                    <el-descriptions-item label="昨日总收益">
+                    <el-descriptions-item :label="$t('hashpower:YesterdayTotalIncome')">
                             {{ toFixed(item.yest_total_income || 0, decimalJudgment(item.yest_total_income)) }} USDT
                     </el-descriptions-item>
-                    <!-- <el-descriptions-item label="昨日总收益率">
+                    <!-- <el-descriptions-item :label="$t('hashpower:YesterdayIncomeRate')">
                             {{ toFixed(item.yest_total_incomerate || 0, 2) }} %
                     </el-descriptions-item> -->
-                    <el-descriptions-item label="年化收益率">
+                    <el-descriptions-item :label="$t('hashpower:AnnualizedRate')">
                             {{ toFixed(item.annualized_rate || 0, 2) }} %
                     </el-descriptions-item>
-                    <el-descriptions-item label="可领取收益">
+                    <el-descriptions-item :label="$t('hashpower:ClaimableRewards')">
                         <span>
                             {{ fromSATBTCNum(item.btcbReward, 2) }}
                             {{ toFixed(item.h2oReward, 2) }} H2O
@@ -145,9 +145,9 @@
                     </el-descriptions-item>
                     <el-descriptions-item>
                         <div class="mobile-button-group">
-                            <el-button size="small" type="primary" @click="toHashpowerDetail(2, item)">提取</el-button>
-                            <el-button size="small" type="primary" @click="toHashpowerDetail(1, item)">存入</el-button>
-                            <el-button size="small" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">收获</el-button>
+                            <el-button size="small" type="primary" @click="toHashpowerDetail(2, item)">{{ $t('hashpower:Withdraw') }}</el-button>
+                            <el-button size="small" type="primary" @click="toHashpowerDetail(1, item)">{{ $t('hashpower:Deposit') }}</el-button>
+                            <el-button size="small" type="primary" @click="receiveBTCBReward(item)" :loading="receiveLoading" :disabled="!Number(item.btcbReward)">{{ $t('hashpower:Harvest') }}</el-button>
                         </div>
                     </el-descriptions-item>
                 </el-descriptions>
@@ -160,7 +160,7 @@
         <div style="float:right;color: #409EFF;">1 SAT = 0.00000001 BTC</div>
 
         <el-dialog
-            :title="detailData.name + ' 算力规模'"
+            :title="detailData.name + ' ' + $t('hashpower:TotalStakingHashpower')"
             :visible.sync="hashpowerPanelShow"
             :width="isMobel ? '80%' : '50%'"
             center>
@@ -206,11 +206,11 @@
             </div>
         </el-dialog>
 
-        <el-dialog title="预估历史收益" :visible.sync="dialogTableIncome" width="50%">
+        <el-dialog :title="$t('hashpower:ChainRevenueQuery')" :visible.sync="dialogTableIncome" width="50%">
             <el-table :data="hashpowerIncomeList" v-loading="incomeLoading" max-height="500">
-                <!-- <el-table-column type="index" width="50" label="ID"></el-table-column> -->
-                <el-table-column property="date" label="日期" align="center"></el-table-column>
-                <el-table-column property="name" label="收益" align="center">
+                <!-- <el-table-column type="index" width="50" :label="$t('hashpower:Operation')"></el-table-column> -->
+                <el-table-column property="date" :label="$t('hashpower:Date')" align="center"></el-table-column>
+                <el-table-column property="name" :label="$t('hashpower:Income')" align="center">
                     <template slot-scope="scope">
                         <span>
                             <!-- {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_btc || 0, 10) }} BTC -->

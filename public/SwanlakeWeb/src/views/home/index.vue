@@ -3,9 +3,9 @@
         <!-- 英雄区 -->
         <section id="hero" class="hero-section">
             <div class="hero-content">
-                <h1 class="hero-title">自动化您的加密收益</h1>
-                <p class="hero-subtitle">加入我们的全球领先云挖矿服务平台。无需昂贵硬件，每日稳定被动收入。</p>
-                <button class="hero-btn" @click="handleRegister">立即开始挖矿</button>
+                <h1 class="hero-title">{{ $t('home:HeroTitle') }}</h1>
+                <p class="hero-subtitle">{{ $t('home:HeroSubtitle') }}</p>
+                <button class="hero-btn" @click="handleRegister">{{ $t('home:StartMining') }}</button>
             </div>
         </section>
 
@@ -13,7 +13,7 @@
         <section id="stats" class="stats-section">
             <div class="stats-content">
                 <div class="stats-number">{{ userCount | formatNumber }}</div>
-                <div class="stats-label">购买算力币的人数</div>
+                <div class="stats-label">{{ $t('home:BuyHashpowerCount') }}</div>
             </div>
         </section>
 
@@ -21,25 +21,25 @@
         <section class="features">
             <div class="section-container">
                 <div class="section-title">
-                    <h2>为什么选择我们？</h2>
-                    <p>我们提供安全、高效、透明的云挖矿服务，帮助您轻松增加财富。</p>
+                    <h2>{{ $t('home:WhyChooseUs') }}</h2>
+                    <p>{{ $t('home:WhyChooseUsDesc') }}</p>
                 </div>
                 <div class="features-grid">
                     <div class="feature-card">
-                        <h3>顶级技术</h3>
-                        <p>采用最新一代矿机，确保最大哈希率效率和稳定性</p>
+                        <h3>{{ $t('home:TopTechnology') }}</h3>
+                        <p>{{ $t('home:TopTechnologyDesc') }}</p>
                     </div>
                     <div class="feature-card">
-                        <h3>每日结算</h3>
-                        <p>挖矿收益每天自动结算，及时发放到您的钱包</p>
+                        <h3>{{ $t('home:DailySettlement') }}</h3>
+                        <p>{{ $t('home:DailySettlementDesc') }}</p>
                     </div>
                     <div class="feature-card">
-                        <h3>完全透明</h3>
-                        <p>实时算力监控和详细收益报告，让您完全掌控</p>
+                        <h3>{{ $t('home:FullyTransparent') }}</h3>
+                        <p>{{ $t('home:FullyTransparentDesc') }}</p>
                     </div>
                     <div class="feature-card">
-                        <h3>安全可靠</h3>
-                        <p>多层安全保护和24/7专家维护，保护您的资产</p>
+                        <h3>{{ $t('home:SafeReliable') }}</h3>
+                        <p>{{ $t('home:SafeReliableDesc') }}</p>
                     </div>
                 </div>
             </div>
@@ -49,26 +49,26 @@
         <section class="how-it-works">
             <div class="section-container">
                 <div class="section-title">
-                    <h2>仅需三个简单步骤</h2>
-                    <p>我们设计了一个非常简单的流程，让您的挖矿体验更加轻松</p>
+                    <h2>{{ $t('home:ThreeSimpleSteps') }}</h2>
+                    <p>{{ $t('home:ThreeSimpleStepsDesc') }}</p>
                 </div>
                 <div class="steps-container">
                     <div class="step-card">
                         <div class="step-number">1</div>
-                        <h3>一秒钟注册</h3>
-                        <p>仅需web3钱包</p>
+                        <h3>{{ $t('home:OneSecondRegister') }}</h3>
+                        <p>{{ $t('home:OneSecondRegisterDesc') }}</p>
                     </div>
                     <!-- <div class="step-connector"></div> -->
                     <div class="step-card">
                         <div class="step-number">2</div>
-                        <h3>选择方案</h3>
-                        <p>我们提供多种灵活的算力合约，满足不同投资需求</p>
+                        <h3>{{ $t('home:ChoosePlan') }}</h3>
+                        <p>{{ $t('home:ChoosePlanDesc') }}</p>
                     </div>
                     <!-- <div class="step-connector"></div> -->
                     <div class="step-card">
                         <div class="step-number">3</div>
-                        <h3>每日收益</h3>
-                        <p>系统自动为您挖矿和结算，收益每日存入钱包</p>
+                        <h3>{{ $t('home:DailyRewards') }}</h3>
+                        <p>{{ $t('home:DailyRewardsDesc') }}</p>
                     </div>
                 </div>
             </div>
@@ -79,34 +79,34 @@
         <section class="faq-section">
             <div class="section-container">
                 <div class="section-title">
-                    <h2>常见问题</h2>
+                    <h2>{{ $t('home:FAQ') }}</h2>
                 </div>
                 <div class="faq-container">
                     <div class="faq-item">
                         <div class="faq-question" @click="toggleFaq(0)">
-                            <span>云挖矿是什么？</span>
+                            <span>{{ $t('home:Q1') }}</span>
                             <i :class="faqOpen[0] ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
                         </div>
                         <div class="faq-answer" v-show="faqOpen[0]">
-                            <p>云挖矿是一种远程挖矿模式。用户通过平台租用算力来赚取加密货币挖矿奖励，无需购买和维护物理矿机。</p>
+                            <p>{{ $t('home:A1') }}</p>
                         </div>
                     </div>
                     <div class="faq-item">
                         <div class="faq-question" @click="toggleFaq(1)">
-                            <span>我的收益是如何计算和分配的？</span>
+                            <span>{{ $t('home:Q2') }}</span>
                             <i :class="faqOpen[1] ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
                         </div>
                         <div class="faq-answer" v-show="faqOpen[1]">
-                            <p>每日收益 = (您的算力 / 网络总算力) × 每日区块奖励 - 平台服务费(包括电费、维护等)。计算完全透明，收益每日自动分配到账户。</p>
+                            <p>{{ $t('home:A2') }}</p>
                         </div>
                     </div>
                     <div class="faq-item">
                         <div class="faq-question" @click="toggleFaq(2)">
-                            <span>云挖矿有风险吗？</span>
+                            <span>{{ $t('home:Q3') }}</span>
                             <i :class="faqOpen[2] ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
                         </div>
                         <div class="faq-answer" v-show="faqOpen[2]">
-                            <p>是的，所有投资都存在风险。云挖矿收益受加密货币价格、挖矿难度和网络状况等多种因素影响，可能会波动。我们建议您在充分了解风险并确保符合您的风险承受能力后再投资。</p>
+                            <p>{{ $t('home:A3') }}</p>
                         </div>
                     </div>
                 </div>
@@ -116,9 +116,9 @@
         <!-- 行动号召 -->
         <section class="cta-section">
             <div class="cta-content">
-                <h2>准备好开始了吗？</h2>
-                <p>加入全球数十万聪明投资者。一分钟内注册开始。</p>
-                <button class="cta-btn" @click="handleRegister">立即开始挖矿</button>
+                <h2>{{ $t('home:ReadyToStart') }}</h2>
+                <p>{{ $t('home:ReadyToStartDesc') }}</p>
+                <button class="cta-btn" @click="handleRegister">{{ $t('home:StartMining') }}</button>
             </div>
         </section>
 
@@ -127,25 +127,25 @@
             <div class="footer-container">
                 <div class="footer-content">
                     <div class="footer-section">
-                        <h4>关于 BLOCK EARNING</h4>
-                        <p>我们是领先的全球云挖矿服务提供商，致力于让加密货币挖矿对所有人都可获得。</p>
+                        <h4>{{ $t('home:AboutBlockEarning') }}</h4>
+                        <p>{{ $t('home:AboutBlockEarningDesc') }}</p>
                     </div>
                     <div class="footer-section">
-                        <h4>法律</h4>
+                        <h4>{{ $t('home:Legal') }}</h4>
                         <ul>
-                            <li><a href="#">服务条款</a></li>
-                            <li><a href="#">隐私政策</a></li>
+                            <li><a href="#">{{ $t('home:TermsOfService') }}</a></li>
+                            <li><a href="#">{{ $t('home:PrivacyPolicy') }}</a></li>
                         </ul>
                     </div>
                     <div class="footer-section">
-                        <h4>联系我们</h4>
-                        <p>Email: <a href="mailto:support@BLOCK EARNING.com">support@BLOCK EARNING.com</a></p>
-                        <p>地址: 英国伦敦科文特花园谢尔顿街71-75号，邮编WC2H 9JQ</p>
+                        <h4>{{ $t('home:ContactUs') }}</h4>
+                        <p>{{ $t('home:ContactEmail') }}</p>
+                        <p>{{ $t('home:ContactAddress') }}</p>
                     </div>
                 </div>
                 <!-- <div class="footer-bottom">
-                    <p>风险警告: 加密货币投资存在高风险。价格可能会波动，可能导致您的投资资本损失。请确保您充分了解相关风险并考虑您的经验水平和投资目标。</p>
-                    <p>&copy; 2025 BLOCK EARNING. 版权所有。</p>
+                    <p>{{ $t('home:RiskWarning') }}</p>
+                    <p>&copy; {{ $t('home:Copyright') }}</p>
                 </div> -->
             </div>
         </footer>

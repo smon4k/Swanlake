@@ -64,6 +64,18 @@
                     </el-menu>
                 </div>
                 <div class="nav-right">
+                    <div class="language">
+                        <el-dropdown @command="clickLanguageDropdown" popper-class="popper-select" trigger="click">
+                            <span class="el-dropdown-link">
+                                {{ language === 'zh' ? '中文' : 'EN' }}
+                                <i class="el-icon-arrow-down"></i>
+                            </span>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item command="en">EN</el-dropdown-item>
+                                <el-dropdown-item command="zh">中文</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
+                    </div>
                     <div class="connectWallet pending" v-if="isConnected && pendingOrderAmount" >
                         <span>Trading</span>
                         <img src="@/assets/shuaxin.png" alt="">
@@ -136,7 +148,7 @@
                     风险提示：加密货币投资存在较高的市场风险。价格波动剧烈，可能导致投资本金损失。请务必充分了解相关风险，并考虑自身的经验水平和投资目标。
                 </div> -->
                 <font style="vertical-align: inherit;">
-                    <font style="vertical-align: inherit;">版权所有 © 2017 - 2032 Block EARNING Company, LLC。</font>
+                    <font style="vertical-align: inherit;">{{ $t('nav:Copyright') }} © 2017 - 2032 Block EARNING Company, LLC。</font>
                     <!-- <font style="vertical-align: inherit;">版权所有。</font> -->
                     <a class="privacy-link" href="https://sg.godaddy.com/legal/agreements/privacy-policy?target=_blank" target="_blank" data-eid="uxp.hyd.int.pc.app_header.footer.privacy_policy.link.click">
                         <!-- <font style="vertical-align: inherit;">隐私政策</font> -->
@@ -241,22 +253,22 @@ export default {
                 //     children: [],
                 // },
                 {
-                    name: '仪表板',
+                    name: this.$t('nav:Dashboard'),
                     path: "/hashpower/my",
                     children: [],
                 },
                 {
-                    name: '订单',
+                    name: this.$t('nav:Order'),
                     path: "/hashpower/history",
                     children: [],
                 },
                 {
-                    name: '算力总览',
+                    name: this.$t('nav:HashpowerOverview'),
                     path: "/hashpower/overview",
                     children: [],
                 },
                 {
-                    name: '开始挖矿',
+                    name: this.$t('nav:StartMining'),
                     path: "/hashpower/list",
                     children: [
                         // {
@@ -270,32 +282,32 @@ export default {
                     ]
                 },
                 {
-                    name: '推特',
+                    name: this.$t('nav:Twitter'),
                     path: "",
                     link: "https://twitter.com/FinanceH2O",
                     children: [],
                 },
                 {
-                    name: '电报',
+                    name: this.$t('nav:Telegram'),
                     path: "",
                     link: "https://t.me/h2ofinanceofficial",
                     children: [],
                 },
                 // {
-                //     name: '白皮书',
+                //     name: this.$t('nav:Whitepaper'),
                 //     path: "",
                 //     link: "https://h2ofinance.gitbook.io/h2o-finance-en/",
                 //     children: [],
                 // },
                 {
-                    name: '购买H2O',
+                    name: this.$t('nav:BuyH2O'),
                     path: "",
                     // link: "https://h2o.h2ohash.live/#/Swap?inputCurrency=0x55d398326f99059fF775485246999027B3197955&outputCurrency=H2O",
                     link: "https://pancakeswap.finance/swap?outputCurrency=BNB&inputCurrency=0x80ce4734F7C46De0b7f97527Cbc7EC189f668984",
                     children: [],
                 },
                 {
-                    name: 'Price: $ ' + this.toFixed(this.h2oPrice, 5),
+                    name: this.$t('nav:Price') + ': $ ' + this.toFixed(this.h2oPrice, 5),
                     path: "",
                     link: "",
                     isText: true,
@@ -351,14 +363,14 @@ export default {
         document.documentElement.setAttribute( "data-theme", theme )
 
         let language = "zh";
-        localStorage.setItem('i18nextLng', language);
+        // localStorage.setItem('i18nextLng', language);
         setTimeout(async () => {
             this.h2oPrice = await getToken2TokenPrice(Address.H2O, Address.BUSDT);
         }, 400);
-        // language = localStorage.getItem('i18nextLng');
-        // if(language && language !== undefined) {
-        //     this.language = language;
-        // }
+        language = localStorage.getItem('i18nextLng');
+        if(language && language !== undefined) {
+            this.language = language;
+        }
         // if(this.currentPath.indexOf('Liquidation')){
         //     let subNav = this.currentPath.replace('/Liquidation/' , '')
         //     console.log('subNav' , subNav);
@@ -654,59 +666,6 @@ export default {
             height: 29px;
         }
     }
-    .language {
-        ::v-deep  {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            // width: 40px;
-            margin-right: 15px;
-            button {
-                height: 30px;
-                line-height: 1px;
-            }
-            .el-dropdown {
-                font-size: 18px;
-            }
-            .el-dropdown-link {
-                @include mainFont($color-mainFont-light);
-                cursor: pointer;
-                // color: #409EFF;
-            }
-            .el-icon-arrow-down {
-                font-size: 12px;
-            }
-            .popper-select {
-                position: absolute !important;
-                top: 23px !important;
-                left: -40px !important;
-                @include tooltipPopperBgcTwo($color-tooltipPopper-2-dark);
-                border: 0;
-            }
-            .el-dropdown-menu__item {
-                @include mainFont($color-mainFont-light);
-            }
-            .el-dropdown-menu__item:hover {
-                @include sideBarBgc($color-bgc-sideBar-dark);
-            }
-            img {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .popper__arrow {
-                left: 45px !important;
-            }
-            .el-popper[x-placement^=bottom] {
-                .popper__arrow::after {
-                    @include tooltipPopperBorderBottom($color-tooltipPopper-dark)
-                }
-                .popper__arrow {
-                    @include tooltipPopperBorderBottom($color-tooltipPopper-dark)
-                }
-            }
-        }
-    }
     .carousel {
         ::v-deep  {
             margin-right: auto;
@@ -767,5 +726,69 @@ export default {
     align-items: center;
     justify-content: space-between;
     min-height: 80px;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: flex-end;
+}
+
+.language {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // margin-right: 15px;
+
+    // ::v-deep {
+        .el-dropdown {
+            font-size: 16px;
+        }
+        .el-dropdown-link {
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.3s ease;
+
+            &:hover {
+                color: #0096ff;
+            }
+        }
+        .el-icon-arrow-down {
+            font-size: 12px;
+        }
+        .popper-select {
+            position: absolute !important;
+            top: 23px !important;
+            left: -40px !important;
+            background-color: #1C1C1C !important;
+            border: 0;
+        }
+        .el-dropdown-menu__item {
+            background-color: #1a1a1a;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            padding: 10px 20px;
+
+            &:hover {
+                background-color: #333333;
+            }
+        }
+        .popper__arrow {
+            left: 45px !important;
+        }
+        .el-popper[x-placement^=bottom] {
+            .popper__arrow::after {
+                border-bottom-color: #1C1C1C !important;
+            }
+            .popper__arrow {
+                border-bottom-color: #1C1C1C !important;
+            }
+        }
+    // }
 }
 </style>

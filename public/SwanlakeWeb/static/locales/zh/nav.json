@@ -26,5 +26,12 @@
     "MyLiquidatedPositions": "我的平仓",
     "OrderHistory": "订单历史",
     "Subscribe": "认购",
-    "shortVideo": "短视频"
+    "shortVideo": "短视频",
+    "Dashboard": "仪表板",
+    "Order": "订单",
+    "HashpowerOverview": "算力总览",
+    "StartMining": "开始挖矿",
+    "BuyH2O": "购买H2O",
+    "Price": "价格",
+    "Copyright": "版权所有"
 }

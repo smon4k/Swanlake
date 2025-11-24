@@ -924,3 +924,26 @@ section._135editor {
         background-color: #0a0f0d !important;
     }
 }
+
+.el-dropdown-menu {
+    background-color: #1a1a1a;
+    border: none;
+    .el-dropdown-menu__item {
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        // padding: 10px 20px;
+    
+        &:hover {
+            background-color: #333333;
+        }
+    }
+}
+.el-popper[x-placement^=bottom] {
+    .popper__arrow::after {
+        border-bottom-color: #1C1C1C !important;
+    }
+    .popper__arrow {
+        border-bottom-color: #1C1C1C !important;
+    }
+}
