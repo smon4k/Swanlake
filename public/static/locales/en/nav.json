@@ -26,5 +26,12 @@
     "MyLiquidatedPositions": "My Liquidated Positions",
     "OrderHistory": "Order History",
     "Subscribe": "Subscribe",
-    "shortVideo": "Short Video"
+    "shortVideo": "Short Video",
+    "Dashboard": "Dashboard",
+    "Order": "Order",
+    "HashpowerOverview": "Hashpower Overview",
+    "StartMining": "Start Mining",
+    "BuyH2O": "Buy H2O",
+    "Price": "Price",
+    "Copyright": "Copyright"
 }
