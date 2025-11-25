@@ -65,7 +65,7 @@
     "onlineDays": "Online Days",
     "RequiresPledgeIncome": "Requires pledge to earn income",
     "RequiresPledgeIncomeLike": "Receive Benefits",
-    "MinimumElectricityBill": "Minimum electricity bill",
+    "MinimumElectricityBill": "Electricity Price",
     "ToDashboard": "To Dashboard",
     "ProductName": "Product Name"
 }
