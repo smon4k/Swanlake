@@ -192,6 +192,7 @@ export default {
     },
     created() {
         this.getListData();
+        this.getUserPurchaseCount();
     },
     watch: {
         isConnected: {
@@ -263,6 +264,13 @@ export default {
         },
         routeMyOrder() {
             this.$router.push('/order/record');
+        },
+        getUserPurchaseCount() {
+            get(this.nftUrl + "/hashpower/hashpower/getUserPurchaseCount", {}, json => {
+                if (json.code == 10000) {
+                    this.userCount = json.data;
+                }
+            });
         }
     },
 }
