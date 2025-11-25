@@ -191,6 +191,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
       userBalance = await getH2OUserInfo(goblinAddress);
     }
     btcbReward = await getBTCBPendingBonus(goblinAddress, 8); //获取BTCB奖励
+    console.log(id, btcbReward);
     if(id == 2) {
       h2oPrice = await getToken2TokenPrice(Address.H2O, Address.BUSDT) //获取btcb价格
       h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
