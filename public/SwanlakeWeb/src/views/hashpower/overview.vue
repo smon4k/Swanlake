@@ -84,11 +84,12 @@
                     <el-col :span="isMobel ? 12 : 6" align="center">
                         {{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}
                         <br>
+                        <el-link v-if="!isMobel" type="primary" style="font-size:16px;" href="https://bscscan.com/address/0x8f4bdA5080fE2A97E54c9B5277D9D6b0A9e9124F#tokentxns" target='_blank'>{{ $t('hashpower:ChainRevenueQuery') }}</el-link>
                     </el-col>
 
-                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.07 USDT</el-col>
+                    <el-col v-if="isMobel" :span="12" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.07 USDT</el-col>
                     <!-- 电费 -->
-                    <el-col :span="isMobel ? 12 : 6" align="center">
+                    <el-col v-if="isMobel" :span="12" align="center">
                         <el-link type="primary" style="font-size:16px;" href="https://bscscan.com/address/0x8f4bdA5080fE2A97E54c9B5277D9D6b0A9e9124F#tokentxns" target='_blank'>{{ $t('hashpower:ChainRevenueQuery') }}</el-link>
                     </el-col>
                 </el-row>
