@@ -11,7 +11,7 @@
               <span>
                   {{ $t('subscribe:DailyEarnings') }}/T
                   <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
-                  <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}} BTC</span>
+                  <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.transaction_price, 8)}} BTC</span>
               </span>
               &nbsp;&nbsp;&nbsp;&nbsp;
               <span>
@@ -21,7 +21,7 @@
               &nbsp;&nbsp;&nbsp;&nbsp;
               <span>
                 {{ $t('subscribe:CurrencyPrice') }}
-                <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
+                <span> $ {{toFixed(Number(poolBtcData.transaction_price), 2) || "--"}}</span> 
               </span>
         </el-col>
         </el-row>
@@ -32,12 +32,12 @@
                     <el-col :span="5" align="center">{{ $t('subscribe:outputYesterday') }}<br /> 
                       <span>{{toFixed(Number(yester_output), 2) || "--"}} USDT</span>
                       <br>
-                       <span>{{toFixed(Number(yester_output) / Number(poolBtcData.currency_price), 8)}} BTC</span>
+                       <span>{{toFixed(Number(yester_output) / Number(poolBtcData.transaction_price), 8)}} BTC</span>
                     </el-col>
                     <el-col :span="5" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
                       <span>{{toFixed(Number(count_output), 2) || "--"}} USDT</span>
                       <br>
-                      <span>{{toFixed(Number(count_output) / Number(poolBtcData.currency_price), 8) || "--"}} BTC</span>
+                      <span>{{toFixed(Number(count_output) / Number(poolBtcData.transaction_price), 8) || "--"}} BTC</span>
                     </el-col>
                     <el-col :span="5" align="center">{{ $t('subscribe:EstimatedElectricityCharge') }}/T<br /> 
                     <span>{{ estimatedElectricityCharge(poolBtcData) }} USDT</span>
@@ -157,7 +157,7 @@
                       &nbsp;
                     </span>
                     <br />
-                    <span class="bold">${{toFixed(Number(item.btcbReward) * Number(poolBtcData.currency_price ? poolBtcData.currency_price : item.btcbPrice), 2) || "--"}}
+                    <span class="bold">${{toFixed(Number(item.btcbReward) * Number(poolBtcData.transaction_price ? poolBtcData.transaction_price : item.btcbPrice), 2) || "--"}}
                       <!-- <span>{{'BTCB'}}</span> -->
                       &nbsp;
                     </span>
@@ -399,12 +399,12 @@ export default {
       }
     },
     estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.07/美元币价
-      // let num = (24 * 29.55 * 0.07) / item.currency_price;
+      // let num = (24 * 29.55 * 0.07) / item.transaction_price;
       let num = 0.07 * 29.55 * 24 / 1000;
       return num.toFixed(4);
     },
     dailyExpenditure(item) { //日支出 BTC数量
-      let num = this.estimatedElectricityCharge(item) / item.currency_price;
+      let num = this.estimatedElectricityCharge(item) / item.transaction_price;
       return this.toFixed(num, 8);
     },
     netProfit(item) { //净收益 = 收益-电费
@@ -417,7 +417,7 @@ export default {
       }
     },
     netProfitBtcNumber(item) { // 净收益 BTC 数量
-      let num = this.netProfit(item) / item.currency_price;
+      let num = this.netProfit(item) / item.transaction_price;
       if(num > 0) {
         return num.toFixed(8);
       } else {
@@ -431,7 +431,7 @@ export default {
         }
     },
     BTCQuantity(item) { //获取BTC数量
-      let num = 0.0461 / item.currency_price
+      let num = 0.0461 / item.transaction_price
       return this.toFixed(num, 8);
     },
     buyHashpower() { //购买算力币

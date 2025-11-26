@@ -783,7 +783,7 @@
                   <el-col :span="12" align="center">
                       <span class="title">{{ $t('subscribe:CurrencyPrice') }}</span>
                       <br>
-                      <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
+                      <span> $ {{toFixed(Number(poolBtcData.transaction_price), 2) || "--"}}</span> 
                   </el-col>
               </el-row>
               <br>
@@ -796,7 +796,7 @@
                       <span>
                           <span class="title">{{ $t('subscribe:DailyEarnings') }}/T </span><br>
                           <span>{{toFixed(Number(poolBtcData.daily_income), 4) || "--"}} USDT</span> 
-                          <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.currency_price, 8)}} BTC</span>
+                          <span>{{ toFixed(poolBtcData.daily_income / poolBtcData.transaction_price, 8)}} BTC</span>
                       </span>
                   </el-col>
               </el-row> -->

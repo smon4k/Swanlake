@@ -15,7 +15,7 @@
                     <span>
                         {{ $t('subscribe:DailyEarnings') }}/T
                         <span>{{toFixed(Number(poolBtcData.daily_income), decimalJudgment(poolBtcData.daily_income)) || "--"}} USDT</span> 
-                        <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.currency_price, 2) }}</span>
+                        <span>{{ fromSATBTCNum(poolBtcData.daily_income / poolBtcData.transaction_price, 2) }}</span>
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <!-- 全网算力  -->
@@ -27,7 +27,7 @@
                     <!-- 币价 -->
                     <span>
                         {{ $t('subscribe:CurrencyPrice') }}
-                        <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
+                        <span> $ {{toFixed(Number(poolBtcData.transaction_price), 2) || "--"}}</span> 
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <!-- 结算币价 -->
@@ -42,10 +42,10 @@
                 <el-col :span="12" align="center">{{ $t('subscribe:DailyEarnings') }} /T<br /> 
                     <span>{{toFixed(Number(poolBtcData.daily_income), decimalJudgment(poolBtcData.daily_income)) || "--"}} USDT</span> 
                     /
-                    <span>{{ fromSATBTCNum(poolBtcData.daily_income/poolBtcData.currency_price, 2)}}</span>
+                    <span>{{ fromSATBTCNum(poolBtcData.daily_income/poolBtcData.transaction_price, 2)}}</span>
                 </el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
-                <el-col :span="12" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.currency_price), 0) || "--"}}</el-col>
+                <el-col :span="12" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.transaction_price), 0) || "--"}}</el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:TransactionPrice') }}<br /> ${{toFixed(Number(poolBtcData.transaction_price), 0) || "--"}}</el-col>
                 <!-- <el-col :span="12" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.07 USDT</el-col> -->
             </el-row>
@@ -57,13 +57,13 @@
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }} <br /> 
                         <!-- <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
                         <br> -->
-                        <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.currency_price), 2) }}</span>
+                        <span>{{ fromSATBTCNum(Number(yester_output) / Number(poolBtcData.transaction_price), 2) }}</span>
                     </el-col>
                     <!-- 平台累计产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:cumulativeOutput') }}<br /> 
                         <!-- <span>{{toFixed(Number(count_output), 4) || "--"}} USDT</span>
                         <br> -->
-                        <!-- <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.currency_price), 2) || "--" }}</span> -->
+                        <!-- <span>{{ fromSATBTCNum(Number(count_output) / Number(poolBtcData.transaction_price), 2) || "--" }}</span> -->
                         <span>{{ fromSATBTCNum(Number(count_btc_output), 2) || "--" }}</span>
                     </el-col>
                     <!-- 总质押算力 -->
@@ -229,7 +229,7 @@
                     <template slot-scope="scope">
                         <span>
                             <!-- {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_btc || 0, 10) }} BTC -->
-                            {{ toFixed(scope.row.income_usdt || 0, 4) }} USDT / {{ fromSATBTCNum(scope.row.income_usdt / poolBtcData.currency_price, 2)}}
+                            {{ toFixed(scope.row.income_usdt || 0, 4) }} USDT / {{ fromSATBTCNum(scope.row.income_usdt / poolBtcData.transaction_price, 2)}}
                         </span>
                     </template>
                 </el-table-column>
@@ -561,12 +561,12 @@ export default {
             this.hashpowerDetail = true;
         },
         estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.07/美元币价
-            // let num = (24 * 29.55 * 0.07) / item.currency_price;
+            // let num = (24 * 29.55 * 0.07) / item.transaction_price;
             let num = item.electricity_price * item.power_consumption_ratio * 24 / 1000;
             return num.toFixed(4);
         },
         dailyExpenditure(item) { //日支出 BTC数量
-            let num = this.estimatedElectricityCharge(item) / item.currency_price;
+            let num = this.estimatedElectricityCharge(item) / item.transaction_price;
             return this.toFixed(num, 8);
         },
         netProfit(item) { //净收益 = 收益-电费
@@ -579,7 +579,7 @@ export default {
             }
         },
         netProfitBtcNumber(item) { // 净收益 BTC 数量
-            let num = this.netProfit(item) / item.currency_price;
+            let num = this.netProfit(item) / item.transaction_price;
             if(num > 0) {
                 return num.toFixed(8);
             } else {

@@ -217,7 +217,7 @@
                     <template slot-scope="scope">
                         <span>
                             <!-- {{ toFixed(scope.row.income_usdt || 0, 6) }} USDT / {{ toFixed(scope.row.income_btc || 0, 10) }} BTC -->
-                            {{ toFixed(scope.row.income_usdt || 0, 4) }} USDT / {{ fromSATBTCNum(scope.row.income_usdt / poolBtcData.currency_price, 2)}}
+                            {{ toFixed(scope.row.income_usdt || 0, 4) }} USDT / {{ fromSATBTCNum(scope.row.income_usdt / poolBtcData.transaction_price, 2)}}
                         </span>
                     </template>
                 </el-table-column>
@@ -542,12 +542,12 @@ export default {
             this.hashpowerDetail = true;
         },
         estimatedElectricityCharge(item) { //预估电费->日支出 预估电费=29.55*0.07/美元币价
-            // let num = (24 * 29.55 * 0.07) / item.currency_price;
+            // let num = (24 * 29.55 * 0.07) / item.transaction_price;
             let num = item.electricity_price * item.power_consumption_ratio * 24 / 1000;
             return num.toFixed(4);
         },
         dailyExpenditure(item) { //日支出 BTC数量
-            let num = this.estimatedElectricityCharge(item) / item.currency_price;
+            let num = this.estimatedElectricityCharge(item) / item.transaction_price;
             return this.toFixed(num, 8);
         },
         netProfit(item) { //净收益 = 收益-电费
@@ -560,7 +560,7 @@ export default {
             }
         },
         netProfitBtcNumber(item) { // 净收益 BTC 数量
-            let num = this.netProfit(item) / item.currency_price;
+            let num = this.netProfit(item) / item.transaction_price;
             if(num > 0) {
                 return num.toFixed(8);
             } else {
