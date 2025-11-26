@@ -51,6 +51,7 @@
                         {{ toFixed(scope.row.yest_income_h2o, 4) }} H2O
                     </template>
                 </el-table-column>
+                <!-- BTC总收益 -->
                 <el-table-column
                     prop=""
                     :label="$t('hashpower:BTCCumulativeIncome')"
@@ -63,6 +64,7 @@
                         </el-link>
                     </template>
                 </el-table-column>
+                <!-- 昨日总收益 -->
                 <el-table-column
                     prop=""
                     :label="$t('hashpower:YesterdayTotalIncome')"
@@ -81,6 +83,7 @@
                         {{ toFixed(scope.row.yest_total_incomerate || 0, 2) }}%
                     </template>
                 </el-table-column> -->
+                <!-- 可领取收益 -->
                 <el-table-column
                     prop=""
                     :label="$t('hashpower:ClaimableRewards')"

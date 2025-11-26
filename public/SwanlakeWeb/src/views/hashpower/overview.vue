@@ -21,13 +21,19 @@
                     <!-- 全网算力  -->
                     <span>
                         {{ $t('subscribe:Hashrate') }}
-                        <span> {{toFixed(Number(poolBtcData.power),3) || "--"}}EH/s</span> 
+                        <span> {{toFixed(Number(poolBtcData.power),2) || "--"}} EH/s</span> 
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <!-- 币价 -->
                     <span>
                         {{ $t('subscribe:CurrencyPrice') }}
                         <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
+                    </span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <!-- 结算币价 -->
+                    <span>
+                        {{ $t('subscribe:TransactionPrice') }}
+                        <span> $ {{toFixed(Number(poolBtcData.transaction_price), 2) || "--"}}</span> 
                     </span>
                 </el-col>
             </el-row>
@@ -40,12 +46,13 @@
                 </el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.currency_price), 0) || "--"}}</el-col>
-                <el-col :span="12" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.07 USDT</el-col>
+                <el-col :span="12" align="center">{{ $t('subscribe:TransactionPrice') }}<br /> ${{toFixed(Number(poolBtcData.transaction_price), 0) || "--"}}</el-col>
+                <!-- <el-col :span="12" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.07 USDT</el-col> -->
             </el-row>
 
                         
             <div :class="[isMobel ? 'model-info' : 'info']" v-if="poolBtcData">
-                <el-row style="line-height:30px;">
+                <el-row style="line-height:25px;">
                     <!-- 平台昨日产出 -->
                     <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:outputYesterday') }} <br /> 
                         <!-- <span>{{toFixed(Number(yester_output), 4) || "--"}} USDT</span>
@@ -77,6 +84,11 @@
                     <el-col :span="isMobel ? 12 : 6" align="center">
                         {{ $t('subscribe:onlineDays') }}<br /> {{Number(online_days) || "--"}}
                         <br>
+                    </el-col>
+
+                    <el-col :span="isMobel ? 12 : 6" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.07 USDT</el-col>
+                    <!-- 电费 -->
+                    <el-col :span="isMobel ? 12 : 6" align="center">
                         <el-link type="primary" style="font-size:16px;" href="https://bscscan.com/address/0x8f4bdA5080fE2A97E54c9B5277D9D6b0A9e9124F#tokentxns" target='_blank'>{{ $t('hashpower:ChainRevenueQuery') }}</el-link>
                     </el-col>
                 </el-row>
