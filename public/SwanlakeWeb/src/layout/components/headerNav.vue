@@ -22,7 +22,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title" v-show="screenWidth > 600"> Block EARNING </div>
+                    <div class="title" v-show="screenWidth > 600"> BLOCK EARNING </div>
                 </div>
                 <!-- <div class="title" v-show="screenWidth > 600"> BLOCK EARNING<br>H2O Finance </div> -->
 
@@ -109,7 +109,7 @@
                         <!-- <br /> -->
                         </router-link>
                     </div>
-                    <div class="title"> Block EARNING </div>
+                    <div class="title"> BLOCK EARNING </div>
                 </div>
                 <br><br>
                 <el-menu

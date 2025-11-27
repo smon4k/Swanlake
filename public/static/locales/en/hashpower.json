@@ -49,7 +49,7 @@
     "NetworkHashrate": "Network Hashrate",
     "PlatformYesterdayOutput": "Platform Output Yesterday",
     "PlatformCumulativeOutput": "Platform Cumulative Output",
-    "MinimumElectricityFee": "Electricity Price",
+    "MinimumElectricityFee": "Settlement Price",
     "TotalStakingHashpower": "Total Staking Hashpower",
     "DaysOnline": "Days Online",
     "SelectProduct": "Select Product",
