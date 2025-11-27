@@ -389,7 +389,7 @@ class SignalProcessingTask:
                     funding_balance = await get_account_balance(exchange, signal['symbol'], 'funding')
                     funding_balance_size = funding_balance.quantize(
                         Decimal(market_precision['amount']), rounding="ROUND_DOWN"
-                    )
+                    ) 
                     if funding_balance_size > 0:
                         logging.info(f"开始赎回资金账户余额到交易账户: {account_id} {funding_balance_size}")
                         await savings_task.transfer("USDT", funding_balance_size, from_acct="6", to_acct="18")

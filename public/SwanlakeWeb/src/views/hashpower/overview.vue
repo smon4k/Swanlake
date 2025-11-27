@@ -27,7 +27,7 @@
                     <!-- 币价 -->
                     <span>
                         {{ $t('subscribe:CurrencyPrice') }}
-                        <span> $ {{toFixed(Number(poolBtcData.transaction_price), 2) || "--"}}</span> 
+                        <span> $ {{toFixed(Number(poolBtcData.currency_price), 2) || "--"}}</span> 
                     </span>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <!-- 结算币价 -->
@@ -45,7 +45,7 @@
                     <span>{{ fromSATBTCNum(poolBtcData.daily_income/poolBtcData.transaction_price, 2)}}</span>
                 </el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:Hashrate') }}<br /> {{toFixed(Number(poolBtcData.power),3) || "--"}} EH/s</el-col>
-                <el-col :span="12" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.transaction_price), 0) || "--"}}</el-col>
+                <el-col :span="12" align="center">{{ $t('subscribe:CurrencyPrice') }}<br /> ${{toFixed(Number(poolBtcData.currency_price), 0) || "--"}}</el-col>
                 <el-col :span="12" align="center">{{ $t('subscribe:TransactionPrice') }}<br /> ${{toFixed(Number(poolBtcData.transaction_price), 0) || "--"}}</el-col>
                 <!-- <el-col :span="12" align="center">{{ $t('subscribe:MinimumElectricityBill') }}<br /> 0.07 USDT</el-col> -->
             </el-row>
