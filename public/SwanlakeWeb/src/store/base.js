@@ -331,7 +331,8 @@ export default {
                                 info.yest_income_usdt = yest_income_usdt < 0 ? 0 : yest_income_usdt; //昨日BTCB收益转USDT
                                 info.yest_income_btcb = yest_income_btcb < 0 ? 0 : yest_income_btcb; //昨日BTCB收益
                                 let hashpower_price = (Number(info.hashpower_price) / Number(info.hash_rate));
-                                let yest_income_h2o =  keepDecimalNotRounding(Number(info.h2o_income_number) * Number(info.userBalance) / Number(info.totalTvl)); //昨日H2O收益
+                                // let yest_income_h2o =  keepDecimalNotRounding(Number(info.h2o_income_number) * Number(info.userBalance) / Number(info.totalTvl)); //昨日H2O收益
+                                let yest_income_h2o =  Number(info.userBalance); //昨日H2O收益
                                 let yest_income_h2ousdt =  keepDecimalNotRounding(yest_income_h2o * Number(info.h2oPrice));//昨日H2O收益usdt
                                 let yest_total_income = keepDecimalNotRounding(Number(yest_income_usdt) + Number(yest_income_h2ousdt));//昨日总收益
                                 let yest_total_incomerate = keepDecimalNotRounding(Number(yest_total_income) / (Number(info.userBalance) * hashpower_price));// 昨日总收益率=昨日总收益/（我的质押*算力币价格；  

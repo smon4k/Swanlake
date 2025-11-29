@@ -155,6 +155,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     return false;
   }
   let totalTvl = await getPoolsTotalShare(goblinAddress, decimals);
+  console.log(id, 'totalTvl' , totalTvl);
   let tokenPrice = 50;
   // tokenPrice = await getToken2TokenPrice(currencyToken, Address.BUSDT) //获取池子价格
   let userBalance = 0;
