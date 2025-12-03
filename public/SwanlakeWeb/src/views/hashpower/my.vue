@@ -112,8 +112,8 @@
             </el-table>
         </div>
         <div v-else>
-            <div v-if="hashPowerPoolsList.filter(item => Number(item.balance) > 0).length">
-                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList.filter(item => Number(item.balance) > 0)" :key="index">
+            <div v-if="hashPowerPoolsList.filter(item => Number(item.hashpowerBalance) > 0 || Number(item.balance) > 0).length">
+                <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in hashPowerPoolsList" :key="index">
                     <el-descriptions-item :label="$t('hashpower:ProductName')">{{ item.name }}</el-descriptions-item>
                     <el-descriptions-item :label="$t('hashpower:MyStake')">{{ toFixed(item.balance || 0, 2) }} {{ item.currency === 'BTCB' ? 'T' : item.currency }}</el-descriptions-item>
                     <el-descriptions-item :label="$t('hashpower:YesterdayBTCIncome')">

@@ -155,7 +155,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
     return false;
   }
   let totalTvl = await getPoolsTotalShare(goblinAddress, decimals);
-  console.log(id, 'totalTvl' , totalTvl);
+  // console.log(id, 'totalTvl' , totalTvl);
   let tokenPrice = 50;
   // tokenPrice = await getToken2TokenPrice(currencyToken, Address.BUSDT) //获取池子价格
   let userBalance = 0;
@@ -192,8 +192,8 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
       userBalance = await getH2OUserInfo(goblinAddress);
     }
     btcbReward = await getBTCBPendingBonus(goblinAddress, 8); //获取BTCB奖励
-    console.log(id, btcbReward);
-    if(id == 2) {
+    // console.log(id, btcbReward);
+    if(id >= 2) {
       h2oPrice = await getToken2TokenPrice(Address.H2O, Address.BUSDT) //获取btcb价格
       h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
       // console.log(pId, h2oReward, btcbReward)
