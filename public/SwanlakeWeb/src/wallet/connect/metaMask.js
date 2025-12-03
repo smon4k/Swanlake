@@ -10,7 +10,7 @@ const isInstalled = () => {
   } = window;
   return Boolean(ethereum);
 };
-console.log();
+// console.log();
 const Web3Modal = window.Web3Modal.default;
 const WalletConnectProvider = window.WalletConnectProvider.default;
 

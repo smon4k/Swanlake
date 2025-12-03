@@ -340,7 +340,7 @@ export default {
         hashPowerPoolsList: {
             immediate: true,
             handler(val) {
-                // console.log('hashPowerPoolsList updated:', val);                
+                console.log('hashPowerPoolsList updated:', val);                
                 if(val && val.length > 0) {
                     // this.loading = false;
                     let totalTvl = 0;
