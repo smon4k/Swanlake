@@ -2,6 +2,7 @@ import asyncio
 from decimal import Decimal
 import json
 import logging
+import random
 import uuid
 from common_functions import (
     get_account_balance,
@@ -129,7 +130,7 @@ class PriceMonitoringTask:
 
             try:
                 all_positions = await exchange.fetch_positions("", {"instType": "SWAP"})
-                # logging.info(f"🔍 账户 {account_id} 持仓数: {len(all_positions)}")
+                logging.debug(f"✅ 账户 {account_id} 持仓数: {len(all_positions)}")
 
                 # 分类整理：symbol => [pos1, pos2, ...]
                 for pos in all_positions:
@@ -139,7 +140,18 @@ class PriceMonitoringTask:
                     positions_dict.setdefault(sym, []).append(pos)
 
             except Exception as e:
-                logging.error(f"⚠️ 获取所有持仓失败 {account_id}: {e}")
+                error_msg = str(e)
+                # ✅ 针对限流错误特殊处理
+                if "Too Many Requests" in error_msg or "50011" in error_msg:
+                    wait_time = 5 + random.uniform(1, 3)
+                    logging.warning(
+                        f"⚠️ 账户 {account_id} 获取持仓限流，等待 {wait_time:.1f}s 后跳过本次检查"
+                    )
+                    await asyncio.sleep(wait_time)
+                    return  # 跳过本次检查，下次再试
+                else:
+                    logging.error(f"⚠️ 获取所有持仓失败 {account_id}: {e}")
+                    return
 
             # --------------------------
             # 2. 并发获取订单详情（带限流 + 重试机制）
@@ -214,11 +226,14 @@ class PriceMonitoringTask:
 
             # ✅ 后续逻辑不变
             if process_grid and latest_order:
-                # symbol = latest_order['symbol']
+                symbol = latest_order["symbol"]
                 logging.info(
                     f"✅ 订单已成交: 用户={account_id}, 币种={symbol}, 方向={latest_order['side']}, 价格={executed_price}"
                 )
-                managed = await self.manage_grid_orders(latest_order, account_id)
+                # ✅ 传递已查询的持仓数据，避免重复查询
+                managed = await self.manage_grid_orders(
+                    latest_order, account_id, positions_dict.get(symbol, [])
+                )
                 if managed:
                     await self.db.update_order_by_id(
                         account_id,
@@ -326,8 +341,16 @@ class PriceMonitoringTask:
             if exchange:
                 await exchange.close()
 
-    async def manage_grid_orders(self, order: dict, account_id: int):
-        """网格订单管理（逻辑不变，仅优化并发安全性）"""
+    async def manage_grid_orders(
+        self, order: dict, account_id: int, cached_positions: list = None
+    ):
+        """网格订单管理（优化：复用持仓数据，避免重复查询）
+
+        Args:
+            order: 订单信息
+            account_id: 账户ID
+            cached_positions: 缓存的持仓数据，如果提供则不再重复查询
+        """
         try:
             exchange = await get_exchange(self, account_id)
             if not exchange:
@@ -356,17 +379,26 @@ class PriceMonitoringTask:
             buy_price = filled_price * (1 - grid_step)
             sell_price = filled_price * (1 + grid_step)
 
-            positions = await exchange.fetch_positions_for_symbol(
-                symbol, {"instType": "SWAP"}
-            )
+            # ✅ 使用缓存的持仓数据，避免重复查询
+            if cached_positions is None:
+                # 如果没有传入缓存，才查询（兼容旧代码）
+                positions = await exchange.fetch_positions_for_symbol(
+                    symbol, {"instType": "SWAP"}
+                )
+            else:
+                positions = cached_positions
+                logging.debug(f"✅ 使用缓存持仓数据: {len(positions)} 条")
+
             if not positions:
                 print("🚫 网格下单：无持仓")
                 return True
 
-            total_position_value = await get_total_positions(
-                self, account_id, symbol, "SWAP"
+            # ✅ 直接从持仓数据计算总持仓，不再调用 get_total_positions
+            total_position_value = sum(
+                abs(Decimal(str(pos["info"]["pos"]))) for pos in positions
             )
             if total_position_value <= 0:
+                logging.info(f"📊 用户 {account_id} 总持仓为0，跳过网格下单")
                 return True
 
             balance = await get_account_balance(exchange, symbol)

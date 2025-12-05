@@ -550,10 +550,33 @@ async def fetch_current_positions(
 
 # 获取账户总持仓数
 async def get_total_positions(
-    self, account_id: int, symbol: str, inst_type: str = "SWAP"
+    self,
+    account_id: int,
+    symbol: str,
+    inst_type: str = "SWAP",
+    cached_positions: list = None,
 ) -> Decimal:
-    """获取账户总持仓数"""
+    """获取账户总持仓数
+
+    Args:
+        account_id: 账户ID
+        symbol: 交易对
+        inst_type: 交易类型
+        cached_positions: 缓存的持仓数据，如果提供则不再查询
+
+    Returns:
+        总持仓数量
+    """
     try:
+        # ✅ 优先使用缓存的持仓数据
+        if cached_positions is not None:
+            total_positions = sum(
+                abs(Decimal(position["info"]["pos"])) for position in cached_positions
+            )
+            logging.debug(f"✅ 使用缓存计算总持仓: {total_positions}")
+            return total_positions
+
+        # 如果没有缓存，才查询
         positions = await fetch_current_positions(self, account_id, symbol, inst_type)
         total_positions = sum(
             abs(Decimal(position["info"]["pos"])) for position in positions
@@ -562,6 +585,7 @@ async def get_total_positions(
 
     except Exception as e:
         print(f"获取账户总持仓数失败: {e}")
+        logging.error(f"获取账户总持仓数失败: {e}")
         return Decimal("0")
 
 

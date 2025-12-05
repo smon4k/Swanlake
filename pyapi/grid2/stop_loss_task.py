@@ -85,66 +85,95 @@ class StopLossTask:
                     )
                     # print(f"检查止损单: {symbol} {side} 持仓均价: {entry_price}, 最新标记价格: {mark_price}, 止损价: {stop_loss_price}, 数量: {amount}, 已有止损单: {order_sl_order['order_id'] if order_sl_order else '无'}")
                     if order_sl_order:
-                        # 先判断是否已经成交或者取消
-                        order_info = await exchange.fetch_order(
-                            order_sl_order["order_id"],
-                            symbol,
-                            {"instType": "SWAP", "trigger": "true"},
-                        )
-                        # print("order_info", order_info)
-                        if order_info["info"]["state"] in [
-                            "pause",
-                            "effective",
-                            "canceled",
-                            "order_failed",
-                            "partially_failed",
-                        ]:
-                            print(
-                                f"已有止损单状态为 {account_id} {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}"
-                            )
-                            logging.info(
-                                f"已有止损单状态为 {account_id} {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}"
-                            )
-                            fill_date_time = await milliseconds_to_local_datetime(
-                                order_info["lastUpdateTimestamp"]
-                            )  # 格式化成交时间
-                            # print(f"止损单成交时间: {fill_date_time}")
-                            await self.db.update_order_by_id(
-                                account_id,
+                        try:
+                            # 先判断是否已经成交或者取消
+                            order_info = await exchange.fetch_order(
                                 order_sl_order["order_id"],
-                                {
-                                    "status": order_info["info"]["state"],
-                                    "executed_price": float(
-                                        order_info["info"]["slTriggerPx"]
-                                    ),
-                                    "fill_time": fill_date_time,
-                                },
+                                symbol,
+                                {"instType": "SWAP", "trigger": "true"},
                             )
-                            await self._open_position(
-                                account_id,
-                                full_symbol,
-                                sl_side,
-                                amount,
-                                stop_loss_price,
-                                pos_side,
-                            )
-                        else:
-                            # 如果止损单存在，且状态是 live 或者 partially_effective，则修改止损单
-                            print(
-                                f"已有未完成止损单，更新: {account_id} {symbol} {str(order_sl_order.get('order_id'))}"
-                            )
-                            logging.info(
-                                f"已有未完成止损单，更新: {account_id} {symbol} {str(order_sl_order.get('order_id'))}"
-                            )
-                            await self._amend_algos_order(
-                                account_id,
-                                order_sl_order["order_id"],
-                                full_symbol,
-                                sl_side,
-                                amount,
-                                stop_loss_price,
-                                pos_side,
-                            )
+                            # print("order_info", order_info)
+                            if order_info["info"]["state"] in [
+                                "pause",
+                                "effective",
+                                "canceled",
+                                "order_failed",
+                                "partially_failed",
+                            ]:
+                                print(
+                                    f"已有止损单状态为 {account_id} {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}"
+                                )
+                                logging.info(
+                                    f"已有止损单状态为 {account_id} {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}"
+                                )
+                                fill_date_time = await milliseconds_to_local_datetime(
+                                    order_info["lastUpdateTimestamp"]
+                                )  # 格式化成交时间
+                                # print(f"止损单成交时间: {fill_date_time}")
+                                await self.db.update_order_by_id(
+                                    account_id,
+                                    order_sl_order["order_id"],
+                                    {
+                                        "status": order_info["info"]["state"],
+                                        "executed_price": float(
+                                            order_info["info"]["slTriggerPx"]
+                                        ),
+                                        "fill_time": fill_date_time,
+                                    },
+                                )
+                                await self._open_position(
+                                    account_id,
+                                    full_symbol,
+                                    sl_side,
+                                    amount,
+                                    stop_loss_price,
+                                    pos_side,
+                                )
+                            else:
+                                # 如果止损单存在，且状态是 live 或者 partially_effective，则修改止损单
+                                print(
+                                    f"已有未完成止损单，更新: {account_id} {symbol} {str(order_sl_order.get('order_id'))}"
+                                )
+                                logging.info(
+                                    f"已有未完成止损单，更新: {account_id} {symbol} {str(order_sl_order.get('order_id'))}"
+                                )
+                                await self._amend_algos_order(
+                                    account_id,
+                                    order_sl_order["order_id"],
+                                    full_symbol,
+                                    sl_side,
+                                    amount,
+                                    stop_loss_price,
+                                    pos_side,
+                                )
+                        except Exception as e:
+                            error_msg = str(e)
+                            # ✅ 如果订单不存在（已被交易所删除或过期）
+                            if (
+                                "51603" in error_msg
+                                or "Order does not exist" in error_msg
+                            ):
+                                logging.warning(
+                                    f"⚠️ 订单不存在，标记为取消并创建新止损单: {account_id} {order_sl_order['order_id']}"
+                                )
+                                # 更新数据库状态为取消
+                                await self.db.update_order_by_id(
+                                    account_id,
+                                    order_sl_order["order_id"],
+                                    {"status": "canceled"},
+                                )
+                                # 重新创建止损单
+                                await self._open_position(
+                                    account_id,
+                                    full_symbol,
+                                    sl_side,
+                                    amount,
+                                    stop_loss_price,
+                                    pos_side,
+                                )
+                            else:
+                                logging.error(f"❌ 查询止损单失败: {account_id} {e}")
+                                raise
                     else:
                         print(
                             f"持仓方向: {account_id} {side}, 交易对: {symbol}, 持仓均价: {entry_price}, 最新标记价格: {mark_price}"
