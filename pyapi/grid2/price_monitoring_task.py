@@ -40,6 +40,7 @@ class PriceMonitoringTask:
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.account_semaphore = asyncio.Semaphore(3)  # 限制 3 个账户并发
         self.order_semaphore = asyncio.Semaphore(5)  # 订单查询并发限流
+        self.market_precision_cache = {}  # 市场精度缓存
 
     async def price_monitoring_task(self):
         """价格监控主任务（支持并发账户）"""
