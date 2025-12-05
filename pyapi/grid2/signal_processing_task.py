@@ -49,6 +49,7 @@ class SignalProcessingTask:
         self.account_locks = account_locks  # 外部传入的账户锁
         self.busy_accounts = busy_accounts  # 外部传入的忙碌账户集合
         self.active_tasks: set[asyncio.Task] = set()  # 用于跟踪正在运行的任务
+        self.market_precision_cache = {}  # 市场精度缓存
 
     async def signal_processing_task(self):
         """信号调度任务，支持多个信号并发"""
