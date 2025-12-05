@@ -315,6 +315,51 @@ async def get_latest_filled_price_from_position_history(
         await exchange.close()
 
 
+async def fetch_order_with_retry(
+    exchange,
+    account_id: int,
+    order_id: str,
+    symbol: str,
+    params: dict = None,
+    retries: int = 3,
+):
+    """
+    带重试机制的单个订单查询（防止API限流）
+
+    :param exchange: ccxt 交易所实例
+    :param account_id: 账户 ID
+    :param order_id: 订单 ID
+    :param symbol: 交易对
+    :param params: 查询参数（如 {"instType": "SWAP"}）
+    :param retries: 重试次数
+    :return: 订单信息或 None
+    """
+    if params is None:
+        params = {}
+
+    for attempt in range(retries):
+        try:
+            order_info = await exchange.fetch_order(order_id, symbol, params)
+            return order_info
+        except Exception as e:
+            if "Too Many Requests" in str(e) and attempt < retries - 1:
+                # 使用指数退避 + 随机抖动来缓解限流
+                delay = (attempt + 1) * 0.5 + random.uniform(0.1, 0.3)
+                logging.warning(
+                    f"⏳ 用户 {account_id} 查询订单请求过多，等待 {delay:.2f}s 后重试 ({attempt+1}/{retries})... order_id={order_id}"
+                )
+                await asyncio.sleep(delay)
+                continue
+            else:
+                logging.error(
+                    f"⚠️ 用户 {account_id} 查询订单失败 {order_id}/{symbol}: {e}"
+                )
+                return None
+
+    logging.error(f"用户 {account_id} 查询订单 {order_id} 多次重试仍失败")
+    return None
+
+
 async def cancel_all_orders(
     self,
     exchange,

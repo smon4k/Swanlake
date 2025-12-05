@@ -22,6 +22,7 @@ class StopLossTask:
         self.config = config
         self.running = True
         self.signal_lock = signal_lock
+        self.market_precision_cache = {}  # 市场精度缓存
 
     async def stop_loss_task(self):
         """价格监控任务"""

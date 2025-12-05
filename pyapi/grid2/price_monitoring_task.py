@@ -15,6 +15,7 @@ from common_functions import (
     get_max_position_value,
     open_position,
     milliseconds_to_local_datetime,
+    fetch_order_with_retry,
 )
 from database import Database
 from trading_bot_config import TradingBotConfig
@@ -141,24 +142,31 @@ class PriceMonitoringTask:
                 logging.error(f"⚠️ 获取所有持仓失败 {account_id}: {e}")
 
             # --------------------------
-            # 2. 并发获取订单详情（带限流）
+            # 2. 并发获取订单详情（带限流 + 重试机制）
             # --------------------------
             order_infos = {}
 
-            async def fetch_order_info(order):
-                async with self.order_semaphore:  # ← 添加限流
-                    try:
-                        info = await exchange.fetch_order(
-                            order["order_id"], order["symbol"], {"instType": "SWAP"}
-                        )
-                        order_infos[order["order_id"]] = info
-                    except Exception as e:
-                        logging.error(
-                            f"⚠️ 查询订单失败 {account_id}/{order['symbol']}: {e}"
-                        )
-                        order_infos[order["order_id"]] = None
+            # 使用信号量限制并发，避免触发 API 限流
+            fetch_semaphore = asyncio.Semaphore(2)  # 同时最多 2 个订单查询
 
-            await asyncio.gather(*[fetch_order_info(o) for o in open_orders])
+            async def fetch_order_info(order):
+                async with fetch_semaphore:
+                    # 使用带重试的订单查询函数
+                    info = await fetch_order_with_retry(
+                        exchange,
+                        account_id,
+                        order["order_id"],
+                        order["symbol"],
+                        {"instType": "SWAP"},
+                        retries=3,
+                    )
+                    order_infos[order["order_id"]] = info
+                    # 每个查询后延迟，进一步缓解限流
+                    await asyncio.sleep(0.1)
+
+            await asyncio.gather(
+                *[fetch_order_info(o) for o in open_orders], return_exceptions=True
+            )
 
             # --------------------------
             # 3. 遍历订单（逻辑不变）
