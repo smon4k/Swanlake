@@ -74,6 +74,27 @@ class StopLossTask:
                         if side == "buy"
                         else entry_price * (1 + stop_loss_percent / 100)
                     )  # 止损价 做多时更低，做空时更高
+
+                    # ✅ 验证止损价是否符合OKX规则
+                    if side == "buy":  # 做多持仓
+                        # 止损价必须 < 当前市价
+                        if stop_loss_price >= mark_price:
+                            old_price = stop_loss_price
+                            # 调整为市价的 99.9%（留一点余量）
+                            stop_loss_price = mark_price * 0.999
+                            logging.warning(
+                                f"⚠️ 用户 {account_id} 做多止损价不符合规则: 原始={old_price:.2f}, 市价={mark_price:.2f}, 调整后={stop_loss_price:.2f}"
+                            )
+                    else:  # 做空持仓
+                        # 止损价必须 > 当前市价
+                        if stop_loss_price <= mark_price:
+                            old_price = stop_loss_price
+                            # 调整为市价的 100.1%（留一点余量）
+                            stop_loss_price = mark_price * 1.001
+                            logging.warning(
+                                f"⚠️ 用户 {account_id} 做空止损价不符合规则: 原始={old_price:.2f}, 市价={mark_price:.2f}, 调整后={stop_loss_price:.2f}"
+                            )
+
                     # pos_side = 'short' if pos['side'] == 'long' else 'long'  # 持仓方向与开仓方向相反
                     pos_side = pos["side"]  # 持仓方向与开仓方向相反
                     sl_side = (
@@ -83,7 +104,12 @@ class StopLossTask:
                     order_sl_order = await self.db.get_unclosed_orders(
                         account_id, full_symbol, "conditional"
                     )
-                    # print(f"检查止损单: {symbol} {side} 持仓均价: {entry_price}, 最新标记价格: {mark_price}, 止损价: {stop_loss_price}, 数量: {amount}, 已有止损单: {order_sl_order['order_id'] if order_sl_order else '无'}")
+                    # 启用调试日志以便排查问题
+                    logging.info(
+                        f"📊 检查止损单: 用户={account_id}, 币种={symbol}, 方向={side}, 入场价={entry_price:.2f}, "
+                        f"市价={mark_price:.2f}, 止损价={stop_loss_price:.2f}, 数量={amount}, "
+                        f"已有止损单={'存在' if order_sl_order else '无'}"
+                    )
                     if order_sl_order:
                         try:
                             # 先判断是否已经成交或者取消
@@ -241,22 +267,44 @@ class StopLossTask:
                 # print(f"使用默认精度: {amount}")
 
             client_order_id = await get_client_order_id("SL")
+
+            # 先获取市场价格进行验证
+            symbol_tactics = full_symbol.replace("-SWAP", "")
+            market_price = await get_market_price(
+                exchange, symbol_tactics
+            )  # 获取最新市场价格
+
+            # ✅ 验证止损价是否符合OKX规则
+            original_price = price
+            if side == "sell":  # 做多持仓，止损是卖单
+                # 止损价必须 < 当前市价
+                if price >= float(market_price):
+                    price = float(market_price) * 0.999
+                    logging.warning(
+                        f"⚠️ 用户 {account_id} 创建做多止损单，价格不符合规则: 原始={original_price:.2f}, 市价={float(market_price):.2f}, 调整后={price:.2f}"
+                    )
+            else:  # 做空持仓，止损是买单
+                # 止损价必须 > 当前市价
+                if price <= float(market_price):
+                    price = float(market_price) * 1.001
+                    logging.warning(
+                        f"⚠️ 用户 {account_id} 创建做空止损单，价格不符合规则: 原始={original_price:.2f}, 市价={float(market_price):.2f}, 调整后={price:.2f}"
+                    )
+
+            logging.info(
+                f"📝 创建止损单: 用户={account_id}, 币种={full_symbol}, 方向={side}, 数量={amount}, 止损价={price:.2f}, 市价={float(market_price):.2f}"
+            )
+
             params = {
                 "posSide": pos_side,  # 持仓方向
                 "attachAlgoClOrdId": client_order_id,  # 客户端订单ID
-                "slTriggerPx": str(price),  # 止损触发价
+                "slTriggerPx": str(price),  # 止损触发价（已验证）
                 "slTriggerPxType": "last",  # 止损触发价类型
                 "slOrdPx": "-1",  # 止损委托价 -1表示市价
                 "cxlOnClosePos": True,  # 平仓时取消订单
                 "reduceOnly": True,  # 仅减仓
             }
 
-            # 打印参数以便调试
-            # print(f"开仓参数: 交易对={full_symbol}, 方向={side}, 数量={amount}, 价格={price}")
-            symbol_tactics = full_symbol.replace("-SWAP", "")
-            market_price = await get_market_price(
-                exchange, symbol_tactics
-            )  # 获取最新市场价格
             # 创建止损订单
             order = await exchange.create_order(
                 symbol=full_symbol,
@@ -346,7 +394,28 @@ class StopLossTask:
                 # print(f"使用默认精度: {amount}")
 
             market_price = await get_market_price(exchange, symbol)  # 获取最新市场价格
-            # print(f"修改止损单: {symbol}, {side}, {amount}, 新止损价: {price}")
+
+            # ✅ 验证修改后的止损价是否符合OKX规则
+            original_price = price
+            if side == "sell":  # 做多持仓，止损是卖单
+                # 止损价必须 < 当前市价
+                if price >= float(market_price):
+                    price = float(market_price) * 0.999
+                    logging.warning(
+                        f"⚠️ 用户 {account_id} 修改做多止损价不符合规则: 原始={original_price:.2f}, 市价={float(market_price):.2f}, 调整后={price:.2f}"
+                    )
+            else:  # 做空持仓，止损是买单
+                # 止损价必须 > 当前市价
+                if price <= float(market_price):
+                    price = float(market_price) * 1.001
+                    logging.warning(
+                        f"⚠️ 用户 {account_id} 修改做空止损价不符合规则: 原始={original_price:.2f}, 市价={float(market_price):.2f}, 调整后={price:.2f}"
+                    )
+
+            logging.info(
+                f"📝 修改止损单: 用户={account_id}, 币种={symbol}, 方向={side}, 数量={amount}, 新止损价={price:.2f}, 市价={float(market_price):.2f}"
+            )
+
             params = {
                 "newSlTriggerPx": str(price),  # 止损触发价
                 "newSlOrdPx": "-1",  # 新止损委托价 -1表示市价
