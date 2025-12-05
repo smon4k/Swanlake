@@ -5,7 +5,8 @@
 </template>
 
 <script>
-import { connectInfo,fetchAccountData } from '@/wallet/connect/metaMask'
+// import { connectInfo,fetchAccountData } from '@/wallet/connect/metaMask'
+import { walletConnect } from '@/wallet/connect/walletConnect'
 export default {
   name: 'App',
   // data(){
@@ -19,8 +20,8 @@ export default {
   // },
   mounted(){
     setTimeout(()=>{
-      fetchAccountData()
-      // connectInfo()
+      // fetchAccountData()
+      walletConnect()
     }, 300)
   },
 }

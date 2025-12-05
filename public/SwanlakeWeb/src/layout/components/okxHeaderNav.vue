@@ -91,8 +91,6 @@
     </div>
 </template>
 <script>
-import axios from 'axios'
-import { connectInfo , connect } from '@/wallet/connect/metaMask'
 import { mapGetters, mapState } from "vuex";
 import { getToken2TokenPrice } from "@/wallet/serve";
 import Address from "@/wallet/address.json";

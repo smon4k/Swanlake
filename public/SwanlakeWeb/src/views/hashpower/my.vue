@@ -29,6 +29,7 @@
                         <span>{{ toFixed(scope.row.balance || 0, 4) }} {{ scope.row.currency === 'BTCB' ? 'T' : scope.row.currency}}</span>
                     </template>
                 </el-table-column>
+                <!-- 昨日BTC收益 -->
                 <el-table-column
                     prop=""
                     :label="$t('hashpower:YesterdayBTCIncome')"

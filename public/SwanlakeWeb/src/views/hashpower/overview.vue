@@ -107,6 +107,7 @@
                 v-loading="loading"
                 :data="filteredHashPowerPoolsList"
                 style="width: 100%">
+                <!-- 产品名称 -->
                 <el-table-column
                     prop="name"
                     :label="$t('hashpower:ProductName')"
@@ -119,6 +120,7 @@
                         </el-link>
                     </template>
                 </el-table-column>
+                <!-- 日产出 -->
                 <el-table-column
                     :label="$t('hashpower:DailyOutput')"
                     align="center"
@@ -128,6 +130,7 @@
                         <span>{{ fromSATBTCNum(scope.row.daily_output_btc, 2) }}</span>
                     </template>
                 </el-table-column>
+                <!-- 日支出 -->
                 <el-table-column
                     :label="$t('hashpower:DailyExpenditure')"
                     align="center"
@@ -137,6 +140,7 @@
                         <span>{{ fromSATBTCNum(scope.row.daily_expenditure_btc, 2) }}</span>
                     </template>
                 </el-table-column>
+                <!-- 日收益 -->
                 <el-table-column
                     :label="$t('hashpower:DailyIncome')"
                     align="center"
