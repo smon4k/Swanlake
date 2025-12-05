@@ -4,8 +4,9 @@ from decimal import Decimal
 import logging
 import os
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import redis
+import ccxt.async_support as ccxt
 from database import Database
 from stop_loss_task import StopLossTask
 from trading_bot_config import TradingBotConfig
@@ -320,31 +321,39 @@ class SignalProcessingTask:
         :param account_info: 账户信息 dict
         :return: None
         """
+        exchange = None
         try:
             start_time = time.time()
             logging.info(
                 f"🟢 [开仓] {account_id} {signal['symbol']} size={signal['size']}"
             )
+            # 创建 exchange 实例，整个流程复用
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 return
             # TODO: 调用交易 API 下单
             strategy_info = await self.db.get_strategy_info(signal["name"])
+
             # 1.1 开仓前先平掉反向仓位
             await self.cleanup_opposite_positions(
                 account_id, signal["symbol"], signal["direction"]
             )
+
+            await asyncio.sleep(0.1)  # API 调用间隔，避免速率限制
 
             # 1.2 取消所有未成交的订单
             await cancel_all_orders(
                 self, exchange, account_id, signal["symbol"]
             )  # 取消所有未成交的订单
 
+            await asyncio.sleep(0.1)  # API 调用间隔，避免速率限制
+
             if os.getenv("IS_LOCAL", "0") == "2":  # 本地调试不执行理财
                 # 1.3 处理理财数据进行赎回操作
                 await self.handle_financing_redeem(
                     signal, account_id, account_info, exchange
                 )
+                await asyncio.sleep(0.1)  # API 调用间隔，避免速率限制
 
             # 理财状态为2时不开仓
             if account_info.get("financ_state") == 2:
@@ -352,7 +361,8 @@ class SignalProcessingTask:
             end_time = time.time()
             # print(f"🟢 账户 {account_id} 信号 {signal['id']} {end_time - start_time:.2f} 秒")
             side = "buy" if signal["direction"] == "long" else "sell"  # 'buy' 或 'sell'
-            # 1.3 开仓
+
+            # 1.3 开仓 - 传入 exchange 实例复用
             open_position = await self.handle_open_position(
                 account_id,
                 signal["symbol"],
@@ -360,6 +370,7 @@ class SignalProcessingTask:
                 side,
                 signal["price"],
                 strategy_info["open_coefficient"],
+                exchange=exchange,  # 传入 exchange 避免重复创建
             )
 
             if not open_position:
@@ -384,6 +395,11 @@ class SignalProcessingTask:
             # await asyncio.sleep(0.1)  # 模拟耗时
         except Exception as e:
             logging.error(f"❌ 开仓异常: {e}", exc_info=True)
+        finally:
+            # 确保关闭 exchange，避免资源泄漏
+            if exchange:
+                await exchange.close()
+                logging.debug(f"✅ 账户 {account_id} exchange 已关闭")
 
     async def _close_position(self, account_id, signal, account_info):
         """
@@ -706,14 +722,19 @@ class SignalProcessingTask:
         side: str,
         price: Decimal,
         open_coefficient: Decimal,
+        exchange: Optional[ccxt.Exchange] = None,
     ):
+        """处理开仓"""
+        should_close_exchange = False  # 标记是否需要关闭 exchange
         try:
-            """处理开仓"""
             # print(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
             logging.info(
                 f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}"
             )
-            exchange = await get_exchange(self, account_id)
+            # 如果没有传入 exchange，则创建一个
+            if exchange is None:
+                exchange = await get_exchange(self, account_id)
+                should_close_exchange = True  # 标记需要关闭
             # 1. 平掉反向仓位
             # await self.cleanup_opposite_positions(account_id, symbol, pos_side)
             total_position_value = await get_total_positions(
@@ -725,6 +746,9 @@ class SignalProcessingTask:
                 # print(f"总持仓数获取失败")
                 logging.error(f"用户 {account_id} 总持仓数获取失败")
                 return
+
+            await asyncio.sleep(0.1)  # API 调用间隔，避免速率限制
+
             market_precision = await get_market_precision(
                 self, exchange, symbol
             )  # 获取市场精度
@@ -754,6 +778,8 @@ class SignalProcessingTask:
                 price = price - price_float  # 信号价 - 价格浮动比例
             elif pos_side == "long":  # 做多
                 price = price + price_float  # 信号价 + 价格浮动比例
+
+            await asyncio.sleep(0.1)  # API 调用间隔，避免速率限制
 
             balance = await get_account_balance(exchange, symbol, "trading")
             # print(f"账户余额: {balance}")
@@ -833,6 +859,9 @@ class SignalProcessingTask:
 
             # 3. 获取市场价格
             client_order_id = await get_client_order_id()
+
+            await asyncio.sleep(0.1)  # API 调用间隔，避免速率限制
+
             # 4. 下单并记录
             order = await open_position(
                 self,
@@ -874,7 +903,9 @@ class SignalProcessingTask:
             logging.error(f"用户 {account_id} 开仓异常: {e}")
             return False
         finally:
-            await exchange.close()
+            # 只关闭自己创建的 exchange
+            if should_close_exchange and exchange:
+                await exchange.close()
 
     # 计算仓位大小
     async def calculate_position_size(

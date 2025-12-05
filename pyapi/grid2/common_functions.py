@@ -53,21 +53,19 @@ async def get_exchange(self, account_id: int) -> Optional[ccxt.Exchange]:
 
 
 async def get_market_price(exchange: ccxt.Exchange, symbol: str) -> Decimal:
-    """获取当前市场价格"""
+    """获取当前市场价格（不关闭 exchange，由调用者负责）"""
     try:
         ticker = await exchange.fetch_ticker(symbol)
         return Decimal(str(ticker["last"]))
     except Exception as e:
         print(f"获取市场价格失败: {e}")
         return Decimal("0")
-    finally:
-        await exchange.close()  # ✅ 用完就关
 
 
 async def get_market_precision(
     self, exchange: ccxt.Exchange, symbol: str, instType: str = "SWAP"
 ) -> dict:
-    """获取市场的价格和数量精度（带缓存）"""
+    """获取市场的价格和数量精度（带缓存，不关闭 exchange）"""
     # ✅ 先检查缓存
     cache_key = f"{symbol}:{instType}"
     if cache_key in self.market_precision_cache:
@@ -103,8 +101,6 @@ async def get_market_precision(
             "price": Decimal("0.0001"),
             "amount": Decimal("0.0001"),
         }
-    finally:
-        await exchange.close()  # ✅ 用完就关
 
 
 async def get_client_order_id(prefix: str = "Zx"):
@@ -126,8 +122,9 @@ async def open_position(
     order_type: str,
     client_order_id: str = None,
     is_reduce_only: bool = False,
+    max_retries: int = 3,
 ):
-    """开仓、平仓下单"""
+    """开仓、平仓下单（带速率限制重试）"""
     exchange = await get_exchange(self, account_id)
     if not exchange:
         return None
@@ -139,22 +136,57 @@ async def open_position(
         "reduceOnly": is_reduce_only,
     }
 
+    retry_count = 0
+    last_error = None
+
     try:
-        # print("create_order", symbol, direction, price, amount)
-        order = await exchange.create_order(
-            symbol=symbol,
-            type=order_type,
-            side=side,
-            amount=float(amount),
-            price=price,
-            params=params,
-        )
-        # print("order", order)
-        if order["info"].get("sCode") == "0":
-            return order
-        else:
-            print(f"开仓失败: {order['info'].get('sMsg', '未知错误')}")
-            return None
+        while retry_count < max_retries:
+            try:
+                # print("create_order", symbol, direction, price, amount)
+                order = await exchange.create_order(
+                    symbol=symbol,
+                    type=order_type,
+                    side=side,
+                    amount=float(amount),
+                    price=price,
+                    params=params,
+                )
+                # print("order", order)
+                if order["info"].get("sCode") == "0":
+                    if retry_count > 0:
+                        logging.info(
+                            f"✅ 账户 {account_id} 重试成功（第 {retry_count} 次重试）"
+                        )
+                    return order
+                else:
+                    print(f"开仓失败: {order['info'].get('sMsg', '未知错误')}")
+                    return None
+            except Exception as e:
+                last_error = e
+                error_msg = str(e)
+                # 检查是否是速率限制错误
+                if "50011" in error_msg or "Too Many Requests" in error_msg:
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        wait_time = retry_count * 2  # 递增等待：2秒、4秒、6秒
+                        logging.warning(
+                            f"⚠️ 账户 {account_id} 速率限制，等待 {wait_time} 秒后重试 ({retry_count}/{max_retries})..."
+                        )
+                        await asyncio.sleep(wait_time)
+                        continue
+                    else:
+                        logging.error(
+                            f"❌ 账户 {account_id} 达到最大重试次数，放弃重试"
+                        )
+                        raise
+                else:
+                    # 其他错误直接抛出，不重试
+                    raise
+
+        # 如果循环结束仍未成功
+        if last_error:
+            raise last_error
+
     except Exception as e:
         print(f"开仓失败: {account_id} {e}")
         logging.error(f"开仓失败: {account_id} {e}")
@@ -167,7 +199,7 @@ async def open_position(
 async def get_account_balance(
     exchange: ccxt.Exchange, symbol: str, marketType: str = "trading"
 ) -> Decimal:
-    """获取账户余额"""
+    """获取账户余额（不关闭 exchange，由调用者负责）"""
     try:
         params = {}
         if symbol:
@@ -179,8 +211,6 @@ async def get_account_balance(
     except Exception as e:
         print(f"获取账户余额失败: {e}")
         return Decimal("0")
-    finally:
-        await exchange.close()
 
 
 async def cleanup_opposite_positions(
