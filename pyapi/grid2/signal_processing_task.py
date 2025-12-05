@@ -168,9 +168,15 @@ class SignalProcessingTask:
             task_results = {}  # account_id -> result dict or exception
             task_lock = asyncio.Lock()  # 保护 task_results 写入
 
-            # ✅ 并发执行每个账户
+            # ✅ 并发执行每个账户（错开延迟，避免 API 峰值）
             start_time = time.time()
-            for account_id in account_tactics_list:
+            stagger_delay = 0.005  # 5 毫秒间隔
+            for idx, account_id in enumerate(account_tactics_list):
+                # 为不同账户错开执行，避免 API 调用峰值
+                # idx=0 延迟 0ms, idx=1 延迟 5ms, idx=2 延迟 10ms...
+                if idx > 0:
+                    await asyncio.sleep(stagger_delay * idx)
+
                 task = asyncio.create_task(
                     self._run_single_account_signal(signal, account_id)
                 )
@@ -427,7 +433,7 @@ class SignalProcessingTask:
             if financ_state in (1, 2):
                 yubibao_balance = await savings_task.get_saving_balance("USDT")
                 market_precision = await get_market_precision(
-                    exchange, signal["symbol"]
+                    self, exchange, signal["symbol"]
                 )
 
                 logging.info(f"余币宝余额: {account_id} {yubibao_balance}")
@@ -480,7 +486,7 @@ class SignalProcessingTask:
                     exchange, signal["symbol"], "trading"
                 )
                 market_precision = await get_market_precision(
-                    exchange, signal["symbol"]
+                    self, exchange, signal["symbol"]
                 )
                 trading_balance_size = trading_balance.quantize(
                     Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
@@ -719,7 +725,7 @@ class SignalProcessingTask:
                 logging.error(f"用户 {account_id} 总持仓数获取失败")
                 return
             market_precision = await get_market_precision(
-                exchange, symbol
+                self, exchange, symbol
             )  # 获取市场精度
 
             total_position_quantity = 0

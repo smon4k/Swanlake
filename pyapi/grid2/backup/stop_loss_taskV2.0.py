@@ -179,7 +179,7 @@ class StopLossTask:
         try:
             exchange = await get_exchange(self, account_id)
             market_precision = await get_market_precision(
-                self, exchange, full_symbol
+                exchange, full_symbol
             )  # 获取市场精度
 
             # 处理数量精度 - 更安全的方法
@@ -288,7 +288,7 @@ class StopLossTask:
         try:
             exchange = await get_exchange(self, account_id)
             market_precision = await get_market_precision(
-                self, exchange, symbol
+                exchange, symbol
             )  # 获取市场精度
             # 处理数量精度 - 更安全的方法
             try:

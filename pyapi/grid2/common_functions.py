@@ -65,9 +65,15 @@ async def get_market_price(exchange: ccxt.Exchange, symbol: str) -> Decimal:
 
 
 async def get_market_precision(
-    exchange: ccxt.Exchange, symbol: str, instType: str = "SWAP"
-) -> Tuple[Decimal, Decimal]:
-    """获取市场的价格和数量精度"""
+    self, exchange: ccxt.Exchange, symbol: str, instType: str = "SWAP"
+) -> dict:
+    """获取市场的价格和数量精度（带缓存）"""
+    # ✅ 先检查缓存
+    cache_key = f"{symbol}:{instType}"
+    if cache_key in self.market_precision_cache:
+        logging.debug(f"使用缓存市场精度: {cache_key}")
+        return self.market_precision_cache[cache_key]
+
     try:
         markets = await exchange.fetch_markets_by_type(
             instType, {"instId": f"{symbol}"}
@@ -77,15 +83,26 @@ async def get_market_precision(
         price_precision = Decimal(str(markets[0]["precision"]["price"]))
         amount_precision = Decimal(str(markets[0]["precision"]["amount"]))
         min_amount = Decimal(str(markets[0]["limits"]["amount"]["min"]))  # 最小下单量
-        return {
+
+        result = {
             "min_amount": min_amount,
             "contract_size": contract_size,
             "price": price_precision,
             "amount": amount_precision,
         }
+
+        # ✅ 保存到缓存
+        self.market_precision_cache[cache_key] = result
+
+        return result
     except Exception as e:
         print(f"获取市场精度失败: {e}")
-        return Decimal("0.0001"), Decimal("0.0001")  # 设置默认精度值
+        return {
+            "min_amount": Decimal("0.001"),
+            "contract_size": Decimal("1"),
+            "price": Decimal("0.0001"),
+            "amount": Decimal("0.0001"),
+        }
     finally:
         await exchange.close()  # ✅ 用完就关
 

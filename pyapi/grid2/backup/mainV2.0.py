@@ -49,7 +49,6 @@ class OKXTradingBot:
         # 🔐 新增：记录哪些账户正在被 signal 处理
         self.busy_accounts: set[int] = set()
         self.account_locks = defaultdict(asyncio.Lock)  # 每个账户独立锁
-        self.market_precision_cache = {}  # 市场精度缓存
 
         self.signal_task = SignalProcessingTask(
             config,
