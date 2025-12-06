@@ -9,6 +9,7 @@ from signal_processing_task import SignalProcessingTask
 from price_monitoring_task import PriceMonitoringTask
 from stop_loss_task import StopLossTask
 from common_functions import get_exchange
+from api_rate_limiter import SimpleRateLimiter
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
@@ -44,7 +45,13 @@ class OKXTradingBot:
         self.db = Database(config.db_config)
         self.signal_lock = asyncio.Lock()
         self.signal_queue = asyncio.Queue()
-        self.stop_loss_task = StopLossTask(config, self.db, self.signal_lock)
+
+        # ✅ 创建全局API限流器
+        self.api_limiter = SimpleRateLimiter(max_requests=60, time_window=2.0)
+
+        self.stop_loss_task = StopLossTask(
+            config, self.db, self.signal_lock, self.api_limiter
+        )
 
         # 🔐 新增：记录哪些账户正在被 signal 处理
         self.busy_accounts: set[int] = set()
@@ -58,9 +65,15 @@ class OKXTradingBot:
             self.stop_loss_task,
             self.account_locks,
             self.busy_accounts,
+            self.api_limiter,
         )
         self.price_task = PriceMonitoringTask(
-            config, self.db, self.signal_lock, self.stop_loss_task, self.busy_accounts
+            config,
+            self.db,
+            self.signal_lock,
+            self.stop_loss_task,
+            self.busy_accounts,
+            self.api_limiter,
         )
 
         # API Server 可选

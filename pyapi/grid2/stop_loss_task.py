@@ -16,12 +16,17 @@ class StopLossTask:
     """交易信号处理类"""
 
     def __init__(
-        self, config: TradingBotConfig, db: Database, signal_lock: asyncio.Lock
+        self,
+        config: TradingBotConfig,
+        db: Database,
+        signal_lock: asyncio.Lock,
+        api_limiter=None,
     ):
         self.db = db
         self.config = config
         self.running = True
         self.signal_lock = signal_lock
+        self.api_limiter = api_limiter  # 全局API限流器
         self.market_precision_cache = {}  # 市场精度缓存
 
     async def stop_loss_task(self):
@@ -42,6 +47,11 @@ class StopLossTask:
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 return
+
+            # ✅ 调用全局API限流器
+            if self.api_limiter:
+                await self.api_limiter.check_and_wait()
+
             positions = await exchange.fetch_positions("", {"instType": "SWAP"})
             # print(positions)
             # return
@@ -271,7 +281,7 @@ class StopLossTask:
             # 先获取市场价格进行验证
             symbol_tactics = full_symbol.replace("-SWAP", "")
             market_price = await get_market_price(
-                exchange, symbol_tactics
+                exchange, symbol_tactics, self.api_limiter
             )  # 获取最新市场价格
 
             # ✅ 验证止损价是否符合OKX规则
@@ -393,7 +403,9 @@ class StopLossTask:
                 amount = round(amount, 8)
                 # print(f"使用默认精度: {amount}")
 
-            market_price = await get_market_price(exchange, symbol)  # 获取最新市场价格
+            market_price = await get_market_price(
+                exchange, symbol, self.api_limiter
+            )  # 获取最新市场价格
 
             # ✅ 验证修改后的止损价是否符合OKX规则
             original_price = price
