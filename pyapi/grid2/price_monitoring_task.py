@@ -101,7 +101,7 @@ class PriceMonitoringTask:
             # ✅ 获取账户配置
             account_config = self.db.account_config_cache.get(account_id)
             if not account_config:
-                logging.info(f"⚠️ 账户未配置: {account_id}")
+                # logging.info(f"⚠️ 账户未配置: {account_id}")
                 return
 
             max_position_list = account_config.get("max_position_list", "[]")
