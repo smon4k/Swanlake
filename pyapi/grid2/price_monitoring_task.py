@@ -41,8 +41,8 @@ class PriceMonitoringTask:
         self.running = True  # 控制运行状态
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
-        # ✅ 移除 account_semaphore(3) 限制，改用全局限流器
-        # self.account_semaphore = asyncio.Semaphore(3)  # 限制 3 个账户并发
+        # ✅ 恢复账户并发限制，防止20个账户同时查询持仓
+        self.account_semaphore = asyncio.Semaphore(5)  # 限制 5 个账户并发
         self.order_semaphore = asyncio.Semaphore(5)  # 订单查询并发限流
         self.market_precision_cache = {}  # 市场精度缓存
 
@@ -63,10 +63,14 @@ class PriceMonitoringTask:
                     await asyncio.sleep(self.config.check_interval)
                     continue
 
-                # ✅ 移除了 account_semaphore 限制，改用全局API限流器
-                # 直接并发执行每个账户的持仓检查
+                # ✅ 使用 account_semaphore 限制并发账户数，配合全局API限流器
+                # 避免20个账户同时调用 fetch_positions 导致瞬间请求过多
+                async def limited_check_positions(account_id):
+                    async with self.account_semaphore:
+                        await self._safe_check_positions(account_id)
+
                 tasks = [
-                    self._safe_check_positions(account_id) for account_id in account_ids
+                    limited_check_positions(account_id) for account_id in account_ids
                 ]
                 await asyncio.gather(*tasks, return_exceptions=True)
 

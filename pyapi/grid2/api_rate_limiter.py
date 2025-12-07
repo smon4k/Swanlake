@@ -71,9 +71,9 @@ class SimpleRateLimiter:
 
             current_count = len(self.request_times)
 
-            # 如果接近限制（比如>50次），就延迟一下
-            if current_count > 50:
-                wait_time = 0.1  # 等100ms
+            # 如果接近限制（比如>35次），就延迟一下（更保守的阈值）
+            if current_count > 35:
+                wait_time = 0.15  # 等150ms
                 logging.debug(
                     f"⏳ API 请求接近限制 ({current_count}/{self.max_requests})，"
                     f"延迟 {wait_time*1000:.0f}ms"
@@ -115,7 +115,7 @@ class SimpleRateLimiter:
                 "max_requests": self.max_requests,
                 "time_window": self.time_window,
                 "utilization": utilization,
-                "near_limit": current_count > 50,
+                "near_limit": current_count > 35,
             }
 
     def reset(self):
