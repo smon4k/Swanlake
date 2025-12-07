@@ -64,7 +64,8 @@ async def get_market_price(
         ticker = await exchange.fetch_ticker(symbol)
         return Decimal(str(ticker["last"]))
     except Exception as e:
-        print(f"获取市场价格失败: {e}")
+        # print(f"获取市场价格失败: {e}")
+        logging.error(f"获取市场价格失败: {e}")
         return Decimal("0")
     finally:
         await exchange.close()  # ✅ 用完就关
@@ -106,7 +107,8 @@ async def get_market_precision(
 
         return result
     except Exception as e:
-        print(f"获取市场精度失败: {e}")
+        # print(f"获取市场精度失败: {e}")
+        logging.error(f"获取市场精度失败: {e}")
         return {
             "min_amount": Decimal("0.001"),
             "contract_size": Decimal("1"),
@@ -168,9 +170,10 @@ async def open_position(
             return order
         else:
             print(f"开仓失败: {order['info'].get('sMsg', '未知错误')}")
+            logging.error(f"开仓失败: {order['info'].get('sMsg', '未知错误')}")
             return None
     except Exception as e:
-        print(f"开仓失败: {account_id} {e}")
+        # print(f"开仓失败: {account_id} {e}")
         logging.error(f"开仓失败: {account_id} {e}")
         return None
     finally:
@@ -195,7 +198,8 @@ async def get_account_balance(
         total_equity = Decimal(str(balance["USDT"]["total"]))
         return total_equity
     except Exception as e:
-        print(f"获取账户余额失败: {e}")
+        # print(f"获取账户余额失败: {e}")
+        logging.error(f"获取账户余额失败: {e}")
         return Decimal("0")
     finally:
         await exchange.close()
@@ -210,9 +214,11 @@ async def cleanup_opposite_positions(
         unclosed_opposite_orders = await self.db.get_unclosed_opposite_orders(
             account_id, symbol, direction
         )
-        print("未平仓的反向订单数据:", unclosed_opposite_orders)
+        # print("未平仓的反向订单数据:", unclosed_opposite_orders)
+        logging.info(f"未平仓的反向订单数据: {unclosed_opposite_orders}")
         if not unclosed_opposite_orders:
-            print("未找到未平仓的反向订单")
+            # print("未找到未平仓的反向订单")
+            logging.info(f"未找到未平仓的反向订单")
             return
         for order in unclosed_opposite_orders:
             order_id = order["id"]
@@ -224,7 +230,7 @@ async def cleanup_opposite_positions(
             )
 
             if order_side != direction and order_size > 0:
-                print("orderId:", order_id)
+                # print("orderId:", order_id)
                 close_side = "sell" if order_side == "long" else "buy"
                 market_price = await get_market_price(exchange, symbol)
                 client_order_id = await get_client_order_id()
@@ -275,7 +281,8 @@ async def cleanup_opposite_positions(
                 await asyncio.sleep(0.2)
 
     except Exception as e:
-        print(f"清理仓位失败: {e}")
+        # print(f"清理仓位失败: {e}")
+        logging.error(f"清理仓位失败: {e}")
     finally:
         await exchange.close()  # ✅ 用完就关
 
@@ -311,7 +318,8 @@ async def get_latest_filled_price_from_position_history(
         positions = await exchange.fetch_position_history(symbol, None, 1)
 
         if not positions:
-            print("⚠️ 没有历史持仓记录")
+            # print("⚠️ 没有历史持仓记录")
+            logging.error(f"没有历史持仓记录")
             return Decimal("0")
 
         pos = positions[0]
@@ -327,7 +335,8 @@ async def get_latest_filled_price_from_position_history(
         return Decimal(avg_px)
 
     except Exception as e:
-        print(f"❌ 获取最新持仓历史失败: {e}")
+        # print(f"❌ 获取最新持仓历史失败: {e}")
+        logging.error(f"获取最新持仓历史失败: {e}")
         return Decimal("0")
     finally:
         await exchange.close()
@@ -554,7 +563,8 @@ async def fetch_positions_history(
             return result
 
         except Exception as e:
-            print(f"获取历史持仓失败: {e}")
+            # print(f"获取历史持仓失败: {e}")
+            logging.error(f"获取历史持仓失败: {e}")
             break
         finally:
             await exchange.close()
@@ -578,7 +588,8 @@ async def fetch_current_positions(
         return positions
 
     except Exception as e:
-        print(f"获取当前持仓信息失败: {e}")
+        # print(f"获取当前持仓信息失败: {e}")
+        logging.error(f"获取当前持仓信息失败: {e}")
         return []
     finally:
         await exchange.close()
@@ -620,7 +631,7 @@ async def get_total_positions(
         return total_positions
 
     except Exception as e:
-        print(f"获取账户总持仓数失败: {e}")
+        # print(f"获取账户总持仓数失败: {e}")
         logging.error(f"获取账户总持仓数失败: {e}")
         return Decimal("0")
 
@@ -637,7 +648,8 @@ async def update_order_status(
     # exchange = await get_exchange(self, account_id)
     # if not exchange:
     #     return
-    print("开始匹配订单")
+    # print("开始匹配订单")
+    logging.info(f"开始匹配订单")
     side = "sell" if order["side"] == "buy" else "buy"
     get_order_by_price_diff = await self.db.get_order_by_price_diff_v2(
         account_id, order["info"]["instId"], executed_price, side
@@ -672,7 +684,7 @@ async def update_order_status(
                 Decimal(get_order_by_price_diff["executed_price"])
                 - Decimal(executed_price)
             ) * Decimal(min(order["amount"], get_order_by_price_diff["quantity"]))
-            print(f"配对订单成交，利润 sell: {profit}")
+            # print(f"配对订单成交，利润 sell: {profit}")
             logging.info(f"配对订单成交，利润 sell: {profit}")
         if profit != 0:
             await self.db.update_order_by_id(

@@ -69,7 +69,8 @@ class SignalProcessingTask:
                     1,  # timeout
                 )
                 if message:
-                    print("📩 收到通知:", message)
+                    # print("📩 收到通知:", message)
+                    logging.info(f"📩 收到通知: {message}")
                     asyncio.create_task(self.dispatch_signals())
 
                 await asyncio.sleep(self.config.check_interval)
@@ -134,7 +135,7 @@ class SignalProcessingTask:
                 }
 
             except Exception as e:
-                print(f"❌ 账户 {account_id} 信号处理失败: {e}")
+                # print(f"❌ 账户 {account_id} 信号处理失败: {e}")
                 logging.error(f"❌ 账户 {account_id} 信号处理失败: {e}")
                 return {"success": False, "msg": str(e), "account_id": account_id}
             finally:
@@ -920,4 +921,5 @@ class SignalProcessingTask:
             return position_size
         except Exception as e:
             print(f"用户 {account_id} 计算仓位失败: {e}")
+            logging.error(f"用户 {account_id} 计算仓位失败: {e}")
             return Decimal("0")

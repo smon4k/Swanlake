@@ -71,10 +71,10 @@ class SimpleRateLimiter:
 
             current_count = len(self.request_times)
 
-            # 如果接近限制（比如>35次），就延迟一下（更保守的阈值）
-            if current_count > 35:
-                wait_time = 0.15  # 等150ms
-                logging.debug(
+            # 如果接近限制（比如>50次），就延迟一下
+            if current_count > 50:
+                wait_time = 0.1  # 等100ms
+                logging.info(
                     f"⏳ API 请求接近限制 ({current_count}/{self.max_requests})，"
                     f"延迟 {wait_time*1000:.0f}ms"
                 )
@@ -91,7 +91,7 @@ class SimpleRateLimiter:
 
             # 输出调试信息（可选）
             if len(self.request_times) % 10 == 0:
-                logging.debug(
+                logging.info(
                     f"📊 当前API调用计数: {len(self.request_times)}/{self.max_requests}"
                 )
 

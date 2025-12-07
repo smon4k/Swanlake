@@ -389,6 +389,7 @@ class PriceMonitoringTask:
             )
             if not tactics:
                 print(f"🚫 未找到策略: {account_id} {symbol_tactics}")
+                logging.error(f"🚫 未找到策略: {account_id} {symbol_tactics}")
                 return False
 
             signal = await self.db.get_latest_signal(symbol, tactics)
