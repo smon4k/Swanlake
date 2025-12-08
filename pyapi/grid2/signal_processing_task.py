@@ -219,7 +219,8 @@ class SignalProcessingTask:
                         all_success = False
 
             # ✅ 如果是平仓信号，且全部成功，才执行后续逻辑
-            # print(f"平仓信号: {is_close_signal}, 全部成功: {all_success}")
+            print(f"平仓信号: {is_close_signal}, 全部成功: {all_success}")
+            logging.info(f"平仓信号: {is_close_signal}, 全部成功: {all_success}")
             if is_close_signal:
                 if all_success:
                     await self.handle_close_position_update(signal)
@@ -542,6 +543,7 @@ class SignalProcessingTask:
 
                 # 获取策略表连续几次亏损
                 strategy_info = await self.db.get_strategy_info(name)
+                logging.info(f"策略信息: {strategy_info}")
                 # 计算总盈亏
                 count_profit_loss = strategy_info.get("count_profit_loss", 0)  # 总盈亏
                 stage_profit_loss = strategy_info.get(
@@ -551,26 +553,39 @@ class SignalProcessingTask:
                 stage_profit_loss_num = float(stage_profit_loss) + float(
                     loss_profit_normal
                 )  # 阶段性盈亏累加
+                logging.info(f"阶段性盈亏累加: {stage_profit_loss_num}")
                 if stage_profit_loss_num > 0:
                     stage_profit_loss_num = 0  # 如果阶段性盈亏大于0才清0
 
                 if float(loss_profit_normal) > 0:  # 盈利
+                    logging.info(f"盈利: {loss_profit_normal}")
                     profit_loss = float(count_profit_loss) + float(loss_profit_normal)
                     if profit_loss > 0:
+                        logging.info(f"盈利累加大于0: {profit_loss}")
                         count_profit_loss = profit_loss
                     else:
                         count_profit_loss = float(loss_profit_normal)
+                        logging.info(f"盈利累加小于0: {count_profit_loss}")
                 else:
+                    logging.info(f"亏损: {loss_profit_normal}")
                     profit_loss = float(count_profit_loss) + float(loss_profit_normal)
+                    logging.info(f"亏损累加: {profit_loss}")
                     count_profit_loss = profit_loss
+                    logging.info(f"亏损累加小于0: {count_profit_loss}")
 
                 await self.db.update_max_position_by_tactics(
-                    name, is_profit, sign_id, loss_profit_normal, open_price
+                    name,
+                    is_profit,
+                    sign_id,
+                    loss_profit_normal,
+                    open_price,
+                    stage_profit_loss_num,
                 )  # 批量更新指定策略所有账户最大仓位数据
 
+                # 更新盈亏策略记录
                 await self.db.update_strategy_loss_number(
                     name, count_profit_loss, stage_profit_loss_num
-                )  # 更新盈亏策略记录
+                )
                 print(
                     f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss_num}"
                 )
