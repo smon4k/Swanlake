@@ -59,8 +59,8 @@ class PriceMonitoringTask:
 
                 # 获取所有账户 IDƒ
                 account_ids = list(self.db.account_cache.keys())
-                logging.info(f"🔍 账户列表: {account_ids}")
-                logging.info(f"🔍 本次监控需要检测的账户总数: {len(account_ids)}")
+                # logging.info(f"🔍 账户列表: {account_ids}")
+                # logging.info(f"🔍 本次监控需要检测的账户总数: {len(account_ids)}")
                 if not account_ids:
                     await asyncio.sleep(self.config.check_interval)
                     continue
@@ -86,7 +86,7 @@ class PriceMonitoringTask:
 
     async def _safe_check_positions(self, account_id: int):
         """安全封装的账户检查（防止一个账户崩溃影响整体）"""
-        logging.info(f"✓ 开始检查账户: {account_id}")
+        # logging.info(f"✓ 开始检查账户: {account_id}")
         if account_id in self.busy_accounts:
             # print(f"⏸️ 账户 {account_id} 正在被信号处理，跳过本次价格监控")
             # logging.info(f"⏸️ 账户 {account_id} 正在被信号处理，跳过本次价格监控")
@@ -128,7 +128,7 @@ class PriceMonitoringTask:
             # ✅ 一次获取所有未成交订单
             open_orders = await self.db.get_active_orders(account_id)
             if not open_orders:
-                logging.warning(f"⚠️ 账户 {account_id} 无未成交订单")
+                # logging.warning(f"⚠️ 账户 {account_id} 无未成交订单")
                 return
 
             # --------------------------
