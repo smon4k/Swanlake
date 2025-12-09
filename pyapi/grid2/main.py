@@ -25,7 +25,7 @@ if os.path.exists(log_file_path):
 
 class InfoAndErrorFilter(logging.Filter):
     def filter(self, record):
-        return record.levelname in ["INFO", "ERROR"]
+        return record.levelname in ["INFO", "ERROR", "WARNING"]
 
 
 log_handler = TimedRotatingFileHandler(
