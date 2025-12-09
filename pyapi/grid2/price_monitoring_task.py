@@ -103,11 +103,13 @@ class PriceMonitoringTask:
         try:
             exchange = await get_exchange(self, account_id)
             if not exchange:
+                logging.warning(f"⚠️ 账户 {account_id} 无法创建交易所实例")
                 return
 
             # ✅ 获取账户配置
             account_config = self.db.account_config_cache.get(account_id)
             if not account_config:
+                logging.warning(f"⚠️ 账户 {account_id} 未配置（account_config_cache）")
                 # logging.info(f"⚠️ 账户未配置: {account_id}")
                 return
 
@@ -125,6 +127,7 @@ class PriceMonitoringTask:
             # ✅ 一次获取所有未成交订单
             open_orders = await self.db.get_active_orders(account_id)
             if not open_orders:
+                logging.warning(f"⚠️ 账户 {account_id} 无未成交订单")
                 return
 
             # --------------------------
