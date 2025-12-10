@@ -353,10 +353,17 @@ class PriceMonitoringTask:
 
         try:
             # 转换为时间对象（支持不同格式）
-            if isinstance(order_timestamp, str):
+            if isinstance(order_timestamp, datetime):
+                # 已经是 datetime 对象，直接使用
+                order_time = order_timestamp
+            elif isinstance(order_timestamp, str):
                 order_time = datetime.strptime(order_timestamp, "%Y-%m-%d %H:%M:%S")
             else:
-                order_time = datetime.fromtimestamp(order_timestamp)
+                # 假设是时间戳（秒或毫秒）
+                if order_timestamp > 1e10:  # 毫秒时间戳
+                    order_time = datetime.fromtimestamp(order_timestamp / 1000)
+                else:  # 秒时间戳
+                    order_time = datetime.fromtimestamp(order_timestamp)
 
             current_time = datetime.now()
             time_diff_minutes = (current_time - order_time).total_seconds() / 60
