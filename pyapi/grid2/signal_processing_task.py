@@ -73,7 +73,7 @@ class SignalProcessingTask:
                     logging.info(f"📩 收到通知: {message}")
                     asyncio.create_task(self.dispatch_signals())
 
-                await asyncio.sleep(self.config.check_interval)
+                await asyncio.sleep(self.config.signal_check_interval)
 
             except Exception as e:
                 print(f"信号调度异常: {e}")
@@ -108,7 +108,7 @@ class SignalProcessingTask:
                 tasks = [self.handle_single_signal(signal) for signal in signals]
                 await asyncio.gather(*tasks)
             else:
-                await asyncio.sleep(self.config.check_interval)
+                await asyncio.sleep(self.config.signal_check_interval)
         except Exception as e:
             if conn:
                 conn.rollback()  # 回滚事务
