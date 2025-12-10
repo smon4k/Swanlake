@@ -45,6 +45,7 @@ class GridController extends BaseController
         $account_id = $request->request('account_id', 0, 'intval');
         $order_number = $request->request('order_number', '', 'trim');
         $tactics_name = $request->request('strategy_name', '', 'trim');
+        $status = $request->request('status', '', 'trim');
         $where = [];
         $where['a.status'] = ['in', ['live', 'filled']];
         if($account_id) {
@@ -57,7 +58,9 @@ class GridController extends BaseController
             $accountIds = Config::getAccountIdByTacticsName($tactics_name);
             $where['a.account_id'] = ['in', $accountIds];
         }
-        
+        if($status && $status !== "") {
+            $where['a.status'] = $status;
+        }
         $data = Orders::getOrderList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];

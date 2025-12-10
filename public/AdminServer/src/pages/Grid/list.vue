@@ -11,6 +11,11 @@
         <el-option v-for="(item, index) in accountList" :key="index" :label="item.name" :value="item.id">
         </el-option>
       </el-select>
+      <!-- 添加成交状态 -->
+      <el-select v-model="status" clearable placeholder="选择成交状态" @change="statusChange" @clear="statusClear">
+        <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value">
+        </el-option>
+      </el-select>
       <!-- &nbsp;&nbsp;
       <el-select v-model="strategy_name" clearable placeholder="选择策略" @change="strategyChange" @clear="strategyClear">
         <el-option v-for="item in strategyOptions" :key="item.name" :label="item.name" :value="item.name">
@@ -198,6 +203,12 @@ export default {
       totalProfit: 0,
       strategyOptions: [], // 策略列表
       strategy_name: '', // 策略名称
+      statusList: [
+        { value: 'live', label: '待成交' },
+        { value: 'filled', label: '已成交' },
+        { value: 'partially_filled', label: '部分成交' },
+        { value: 'canceled', label: '已撤单' },
+      ],
     };
   },
   mounted() {
@@ -229,6 +240,7 @@ export default {
         page: this.currPage,
         account_id: val,
         strategy_name: this.strategy_name,
+        status: this.status,
       }
       this.getListData(this.PageSearchWhere);
     },
@@ -238,6 +250,17 @@ export default {
         page: this.currPage,
         strategy_name: val,
         account_id: this.account_id,
+        status: this.status,
+      }
+      this.getListData(this.PageSearchWhere);
+    },
+    statusChange(val) {
+      this.PageSearchWhere = {
+        limit: this.pageSize,
+        page: this.currPage,
+        account_id: this.account_id,
+        strategy_name: this.strategy_name,
+        status: val,
       }
       this.getListData(this.PageSearchWhere);
     },
@@ -249,6 +272,10 @@ export default {
       this.strategy_name = '';
       this.getListData();
     },
+    statusClear() {
+      this.status = '';
+      this.getListData();
+    },
     getListData(ServerWhere) {
       var that = this.$data;
       if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
@@ -257,6 +284,7 @@ export default {
           page: that.currPage,
           account_id: that.account_id,
           strategy_name: that.strategy_name,
+          status: that.status,
         };
       }
       get("/Grid/grid/getOrderList", ServerWhere, json => {
