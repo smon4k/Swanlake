@@ -44,7 +44,8 @@
             <template slot-scope="scope">
               <span v-if="scope.row.order_type">
                 <span v-if="scope.row.order_type == 'market'">市价单</span>
-                <span v-else>限价单</span>
+                <span v-else-if="scope.row.order_type == 'limit'">限价单</span>
+                <span v-else-if="scope.row.order_type == 'conditional'">止损单</span>
               </span>
               <span v-else>——</span>
             </template>
