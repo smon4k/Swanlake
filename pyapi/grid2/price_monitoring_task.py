@@ -686,7 +686,7 @@ class PriceMonitoringTask:
                 if managed:
                     logging.info(
                         f"✅ 网格订单管理成功，更新订单状态: 账户={account_id}, "
-                        f"订单={order_info['ordId']}, 币种={symbol}, "
+                        f"订单={latest_order['id']}, 币种={symbol}, "
                         f"方向={latest_order['side']}, 成交价={executed_price}"
                     )
                     await self.db.update_order_by_id(

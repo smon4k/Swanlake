@@ -44,7 +44,8 @@ class StopLossTask:
     # 检查单个账户的止损
     async def accounts_stop_loss_task(self, account_id: int):
         try:
-            logging.debug(f"🛡️ 开始检查止损: 账户={account_id}")
+            # print(f"🛡️ 开始检查止损: 账户={account_id}")
+            logging.info(f"🛡️ 开始检查止损: 账户={account_id}")
             exchange = await get_exchange(self, account_id)
             if not exchange:
                 logging.error(
@@ -61,11 +62,11 @@ class StopLossTask:
             # 统计有持仓的币种
             position_count = sum(1 for pos in positions if pos["contracts"] != 0)
             if position_count > 0:
-                logging.debug(
+                logging.info(
                     f"📊 账户 {account_id} 检查到 {position_count} 个持仓需要止损保护"
                 )
             else:
-                logging.debug(f"📊 账户 {account_id} 无持仓，跳过止损检查")
+                logging.info(f"📊 账户 {account_id} 无持仓，跳过止损检查")
                 return
 
             for pos in positions:
@@ -83,7 +84,7 @@ class StopLossTask:
                         account_id, symbol_tactics
                     )  # 获取账户币种策略配置名称
                     if not tactics:
-                        print(f"未找到策略配置: {account_id} {symbol_tactics}")
+                        # print(f"未找到策略配置: {account_id} {symbol_tactics}")
                         logging.info(f"未找到策略配置: {account_id} {symbol_tactics}")
                         return False
                     # 计算止损价
@@ -135,7 +136,7 @@ class StopLossTask:
                     if order_sl_order:
                         try:
                             # 先判断是否已经成交或者取消
-                            logging.debug(
+                            logging.info(
                                 f"🔍 查询止损单状态: 账户={account_id}, "
                                 f"订单ID={order_sl_order['order_id'][:15]}..."
                             )

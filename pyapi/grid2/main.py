@@ -25,7 +25,7 @@ if os.path.exists(log_file_path):
 
 class InfoAndErrorFilter(logging.Filter):
     def filter(self, record):
-        return record.levelname in ["INFO", "ERROR", "WARNING"]
+        return record.levelname in ["INFO", "ERROR", "WARNING", "DEBUG"]
 
 
 log_handler = TimedRotatingFileHandler(
@@ -33,7 +33,7 @@ log_handler = TimedRotatingFileHandler(
 )
 log_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(log_handler)
 logger.addFilter(InfoAndErrorFilter())
 
