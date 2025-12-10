@@ -6,8 +6,10 @@ from datetime import datetime
 
 TABLE_PREFIX = "g_"
 
+
 def table(name: str) -> str:
     return f"{TABLE_PREFIX}{name}"
+
 
 class Database:
     def __init__(self, db_config: Dict):
@@ -27,9 +29,12 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT * FROM {table('config')} WHERE account_id=%s
-                """, (account_id,))
+                """,
+                    (account_id,),
+                )
                 config = cursor.fetchone()
                 if config:
                     # print(f'配置已经缓存: {account_id}, {config}')
@@ -46,10 +51,13 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT id, exchange, api_key, api_secret, api_passphrase, financ_state, status, auto_loan
                     FROM {table('accounts')} WHERE id=%s AND status=%s
-                """, (account_id, 1))
+                """,
+                    (account_id, 1),
+                )
                 account = cursor.fetchone()
                 if account:
                     self.account_cache[account_id] = account
@@ -61,7 +69,7 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
+
     async def update_account_info(self, account_id: int, updates: Dict):
         """更新用户是否开启自动借币功能"""
         conn = None
@@ -94,18 +102,21 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     INSERT INTO {table('signals')} (name, timestamp, symbol, direction, price, size, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    signal_data['name'],
-                    signal_data['timestamp'],
-                    signal_data['symbol'],
-                    signal_data['direction'],
-                    signal_data['price'],
-                    signal_data['size'],
-                    signal_data['status'],
-                ))
+                """,
+                    (
+                        signal_data["name"],
+                        signal_data["timestamp"],
+                        signal_data["symbol"],
+                        signal_data["direction"],
+                        signal_data["price"],
+                        signal_data["size"],
+                        signal_data["status"],
+                    ),
+                )
                 conn.commit()
                 return {"status": "success", "message": "Signal inserted successfully"}
         except Exception as e:
@@ -115,9 +126,14 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
-    #获取信号表数据最新的一条数据
-    async def get_latest_signal(self, symbol: Optional[str] = None, name: Optional[str] = None, status: Optional[str] = None) -> Optional[Dict]:
+
+    # 获取信号表数据最新的一条数据
+    async def get_latest_signal(
+        self,
+        symbol: Optional[str] = None,
+        name: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> Optional[Dict]:
         """获取信号表数据最新的一条数据，如果 symbol 为空则返回所有的最新一条"""
         conn = None
         try:
@@ -125,7 +141,7 @@ class Database:
             with conn.cursor() as cursor:
                 query = f"SELECT * FROM {table('signals')} WHERE 1=1"
                 params = []
-                
+
                 if symbol:
                     query += " AND symbol = %s"
                     params.append(symbol)
@@ -135,21 +151,33 @@ class Database:
                 if status:
                     query += " AND status = %s"
                     params.append(status)
-                
+
                 query += " ORDER BY id DESC LIMIT 1"
                 cursor.execute(query, tuple(params))
                 signal = cursor.fetchone()
+
+                if signal:
+                    logging.debug(
+                        f"📡 查询到信号: symbol={symbol}, name={name}, "
+                        f"方向={signal.get('direction', 'N/A')}, 大小={signal.get('size', 'N/A')}"
+                    )
+                else:
+                    logging.warning(
+                        f"⚠️ 未找到信号: symbol={symbol}, name={name}, status={status}"
+                    )
+
                 return signal
         except Exception as e:
-            print(f"获取最新信号失败: {e}")
-            logging.error(f"获取最新信号失败: {e}")
+            logging.error(
+                f"❌ 获取最新信号失败: symbol={symbol}, name={name}, 错误={e}",
+                exc_info=True,
+            )
             return None
         finally:
             if conn:
                 conn.close()
-    
-    #获取最近一次
 
+    # 获取最近一次
 
     # 获取信号表中做多和做空的最新一条记录
     async def get_latest_signal_by_direction(self) -> Optional[Dict]:
@@ -158,11 +186,13 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT * FROM {table('signals')}
                     WHERE (direction='long' AND size=1) OR (direction='short' AND size=-1)
                     ORDER BY id DESC LIMIT 1
-                """)
+                """
+                )
                 signal = cursor.fetchone()
                 return signal
         except Exception as e:
@@ -172,15 +202,25 @@ class Database:
         finally:
             if conn:
                 conn.close()
-                
-    async def record_order(self, account_id: int, order_id: str, price: float, quantity: float, symbol: str, order_info: Dict, is_clopos: int = 0):
+
+    async def record_order(
+        self,
+        account_id: int,
+        order_id: str,
+        price: float,
+        quantity: float,
+        symbol: str,
+        order_info: Dict,
+        is_clopos: int = 0,
+    ):
         """记录订单到数据库"""
         conn = None
         try:
             print("order_info:", order_info)
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     INSERT INTO {table('orders')}
                     (account_id, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -188,19 +228,21 @@ class Database:
                     executed_price = VALUES(executed_price),
                     status = VALUES(status),
                     is_clopos = VALUES(is_clopos)
-                """, (
-                    account_id,
-                    symbol,
-                    order_id,
-                    order_info['side'],
-                    order_info['info']['ordType'],
-                    order_info['info']['posSide'],
-                    quantity,
-                    price,
-                    order_info['info']['fillPx'],
-                    order_info['info']['state'],
-                    is_clopos
-                ))
+                """,
+                    (
+                        account_id,
+                        symbol,
+                        order_id,
+                        order_info["side"],
+                        order_info["info"]["ordType"],
+                        order_info["info"]["posSide"],
+                        quantity,
+                        price,
+                        order_info["info"]["fillPx"],
+                        order_info["info"]["state"],
+                        is_clopos,
+                    ),
+                )
             conn.commit()
         except Exception as e:
             print(f"订单记录失败: {e}")
@@ -208,40 +250,61 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
+
         # 添加订单数据，只添加订单一些基本的信息数据
+
     async def add_order(self, order_info: Dict):
         """添加订单数据"""
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     INSERT INTO {table('orders')}
                     (account_id, symbol, position_group_id, profit, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
                     status = VALUES(status)
-                """, (
-                    order_info['account_id'],
-                    order_info['symbol'],
-                    order_info['position_group_id'] if 'position_group_id' in order_info else '',
-                    order_info.get('profit') if order_info.get('profit') is not None else 0,
-                    order_info['order_id'],
-                    order_info['clorder_id'],
-                    order_info['side'],
-                    order_info['order_type'],
-                    order_info['pos_side'],
-                    order_info['quantity'],
-                    order_info['price'],
-                    order_info['executed_price'],
-                    order_info['status'],
-                ))
+                """,
+                    (
+                        order_info["account_id"],
+                        order_info["symbol"],
+                        (
+                            order_info["position_group_id"]
+                            if "position_group_id" in order_info
+                            else ""
+                        ),
+                        (
+                            order_info.get("profit")
+                            if order_info.get("profit") is not None
+                            else 0
+                        ),
+                        order_info["order_id"],
+                        order_info["clorder_id"],
+                        order_info["side"],
+                        order_info["order_type"],
+                        order_info["pos_side"],
+                        order_info["quantity"],
+                        order_info["price"],
+                        order_info["executed_price"],
+                        order_info["status"],
+                    ),
+                )
             conn.commit()
+            logging.info(
+                f"✅ 添加订单: 账户={order_info['account_id']}, "
+                f"订单ID={order_info['order_id']}, 币种={order_info['symbol']}, "
+                f"方向={order_info['side']}, 价格={order_info['price']}, "
+                f"数量={order_info['quantity']}, 状态={order_info['status']}"
+            )
         except Exception as e:
-            print(f"添加订单数据失败: {e}")
-            logging.error(f"添加订单数据失败: {e}")
+            logging.error(
+                f"❌ 添加订单失败: 账户={order_info.get('account_id', 'N/A')}, "
+                f"订单={order_info.get('order_id', 'N/A')}, 错误={e}",
+                exc_info=True,
+            )
             return {"status": "error", "message": str(e)}
         finally:
             if conn:
@@ -253,9 +316,12 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT * FROM {table('orders')} WHERE account_id=%s AND order_id=%s
-                """, (account_id, order_id))
+                """,
+                    (account_id, order_id),
+                )
                 order = cursor.fetchone()
                 return order
         except Exception as e:
@@ -270,7 +336,13 @@ class Database:
         """根据订单ID更新订单信息"""
         conn = None
         try:
-            # print("更新订单信息:", account_id, order_id, updates)
+            # 记录更新内容
+            update_fields = ", ".join([f"{k}={v}" for k, v in updates.items()])
+            logging.info(
+                f"📝 更新订单: 账户={account_id}, 订单={order_id}, "
+                f"更新字段=[{update_fields}]"
+            )
+
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
@@ -281,10 +353,22 @@ class Database:
                     WHERE account_id=%s AND order_id=%s
                 """
                 cursor.execute(query, values)
+                affected_rows = cursor.rowcount
+
             conn.commit()
+
+            if affected_rows > 0:
+                logging.debug(f"✅ 订单更新成功: 账户={account_id}, 订单={order_id}")
+            else:
+                logging.warning(
+                    f"⚠️ 订单更新无影响: 账户={account_id}, 订单={order_id} (可能不存在)"
+                )
+
         except Exception as e:
-            print(f"更新订单信息失败: {e}")
-            logging.error(f"更新订单信息失败: {e}")
+            logging.error(
+                f"❌ 更新订单失败: 账户={account_id}, 订单={order_id}, 错误={e}",
+                exc_info=True,
+            )
         finally:
             if conn:
                 conn.close()
@@ -319,22 +403,40 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT * FROM {table('orders')} 
                     WHERE account_id=%s AND (status = 'live' OR status = 'partially_filled') AND (side = 'buy' OR side = 'sell') AND order_type = 'limit'  ORDER BY id DESC
-                """, (account_id))
+                """,
+                    (account_id),
+                )
                 results = cursor.fetchall()
+
+                if results:
+                    order_summary = []
+                    for order in results[:5]:  # 只显示前5个
+                        order_summary.append(
+                            f"{order['order_id'][:10]}...({order['side']}@{order['price']})"
+                        )
+                    logging.debug(
+                        f"📋 账户 {account_id} 查询到 {len(results)} 个活跃订单: "
+                        f"{', '.join(order_summary)}"
+                    )
+                else:
+                    logging.debug(f"📋 账户 {account_id} 无活跃订单")
+
                 return results
         except Exception as e:
-            print(f"获取订单失败: {e}")
-            logging.error(f"获取订单失败: {e}")
+            logging.error(f"❌ 账户 {account_id} 获取订单失败: {e}", exc_info=True)
             return []
         finally:
             if conn:
                 conn.close()
-    
+
     # 获取订单表中最新成交的一条记录
-    async def get_latest_filled_order(self, account_id: int, symbol: str) -> Optional[Dict]:
+    async def get_latest_filled_order(
+        self, account_id: int, symbol: str
+    ) -> Optional[Dict]:
         """
         获取指定账户和交易对的最新成交订单记录
 
@@ -368,13 +470,16 @@ class Database:
                 conn.close()
 
     # 获取未成交的委托订单数据
-    async def get_unclosed_orders(self, account_id: int, symbol: str, order_type: str) -> List[Dict]:
+    async def get_unclosed_orders(
+        self, account_id: int, symbol: str, order_type: str
+    ) -> List[Dict]:
         """获取未成交的委托订单数据"""
         conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT * FROM {table('orders')}
                     WHERE account_id = %s 
                     AND symbol = %s 
@@ -382,20 +487,37 @@ class Database:
                     AND order_type = %s
                     ORDER BY id DESC
                     LIMIT 1
-                """, (account_id, symbol, order_type))
+                """,
+                    (account_id, symbol, order_type),
+                )
                 results = cursor.fetchone()
+
+                if results:
+                    logging.debug(
+                        f"📋 查询到未成交订单: 账户={account_id}, 币种={symbol}, "
+                        f"类型={order_type}, 订单ID={results.get('order_id', 'N/A')}"
+                    )
+                else:
+                    logging.debug(
+                        f"📋 无未成交订单: 账户={account_id}, 币种={symbol}, 类型={order_type}"
+                    )
+
                 return results
         except Exception as e:
-            print(f"获取未成交的委托订单数据失败: {e}")
-            logging.error(f"获取未成交的委托订单数据失败: {e}")
+            logging.error(
+                f"❌ 查询未成交订单失败: 账户={account_id}, 币种={symbol}, "
+                f"类型={order_type}, 错误={e}",
+                exc_info=True,
+            )
             return []
         finally:
             if conn:
                 conn.close()
 
-
     # 获取未平仓的反向订单数据
-    async def get_unclosed_opposite_quantity(self, account_id, symbol, direction) -> float:
+    async def get_unclosed_opposite_quantity(
+        self, account_id, symbol, direction
+    ) -> float:
         """
         获取未平仓反向订单的总数量（quantity总和）
         :param account_id: 账户ID
@@ -403,7 +525,7 @@ class Database:
         :param direction: 目标方向（long/short）
         :return: 总未平仓反向订单的数量（float）
         """
-        opposite_direction = 'short' if direction == 'long' else 'long'
+        opposite_direction = "short" if direction == "long" else "long"
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
@@ -429,12 +551,14 @@ class Database:
         finally:
             if conn:
                 conn.close()
+
     async def mark_orders_as_closed(self, account_id: int, symbol: str, direction: str):
         """将某账户某交易对指定方向的未平仓订单标记为已平仓"""
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     UPDATE {table('orders')}
                     SET is_clopos = 1
                     WHERE account_id = %s
@@ -442,7 +566,9 @@ class Database:
                     AND pos_side = %s 
                     AND status != 'cancelled'
                     AND is_clopos = 0
-                """, (account_id, symbol, direction))
+                """,
+                    (account_id, symbol, direction),
+                )
                 conn.commit()
         except Exception as e:
             print(f"标记订单为已平仓失败: {e}")
@@ -451,8 +577,6 @@ class Database:
             if conn:
                 conn.close()
 
-
-    
     # 获取最新订单方向以及持仓方向的已成交订单数据
     async def get_completed_order(self, account_id, symbol, direction):
         """
@@ -481,8 +605,10 @@ class Database:
             return []
         finally:
             conn.close()
-    
-    async def get_order_by_price_diff(self, account_id, symbol, direction, latest_price: float):
+
+    async def get_order_by_price_diff(
+        self, account_id, symbol, direction, latest_price: float
+    ):
         """
         查询订单表中买入或卖出已成交的position_group_id为空的，按照成交时间降序排序，成交价格和最新价格之差的绝对值升序排序的一条数据
         :param account_id: 账户ID
@@ -513,8 +639,10 @@ class Database:
             return []
         finally:
             conn.close()
-    
-    async def get_order_by_price_diff_v2(self, account_id: int, symbol: str, latest_price: float, mode: str = 'sell') -> Optional[Dict]:
+
+    async def get_order_by_price_diff_v2(
+        self, account_id: int, symbol: str, latest_price: float, mode: str = "sell"
+    ) -> Optional[Dict]:
         """
         根据基准订单，查询符合条件的一条订单（做多找卖，做空找买）
         :param account_id: 账户ID
@@ -526,18 +654,19 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                if mode == 'sell':
+                if mode == "sell":
                     # 找价格高于买单成交价的卖单
                     condition = "executed_price > %s"
-                    order_side = 'sell'
+                    order_side = "sell"
                     sort_order = "executed_price ASC"
                 else:
                     # 找价格低于卖单成交价的买单
                     condition = "executed_price < %s"
-                    order_side = 'buy'
+                    order_side = "buy"
                     sort_order = "executed_price DESC"
 
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT * FROM {table('orders')}
                     WHERE account_id = %s 
                     AND symbol = %s 
@@ -549,19 +678,36 @@ class Database:
                     AND {condition}
                     ORDER BY {sort_order}, fill_time DESC
                     LIMIT 1
-                """, (account_id, symbol, order_side, latest_price))
+                """,
+                    (account_id, symbol, order_side, latest_price),
+                )
                 match_order = cursor.fetchone()
+
+                if match_order:
+                    logging.debug(
+                        f"✅ 查询到配对订单: 账户={account_id}, 币种={symbol}, "
+                        f"查找方向={mode}, 订单ID={match_order['order_id'][:15]}..., "
+                        f"价格={match_order.get('executed_price', 'N/A')}"
+                    )
+                else:
+                    logging.debug(
+                        f"📭 未找到配对订单: 账户={account_id}, 币种={symbol}, "
+                        f"查找方向={mode}, 基准价={latest_price}"
+                    )
 
             return match_order
         except Exception as e:
-            print(f"查询配对订单失败: {e}")
-            logging.error(f"查询配对订单失败: {e}")
+            logging.error(
+                f"❌ 查询配对订单失败: 账户={account_id}, 币种={symbol}, "
+                f"方向={mode}, 错误={e}",
+                exc_info=True,
+            )
             return None
         finally:
             if conn:
                 conn.close()
-    
-    #生成一个获取币种最大仓位配置数据，获取g_config里面的max_position_list策略字段数据（[{"symbol":"ETH-USDT","value":"1000","tactics":"Y1.1"},{"symbol":"BTC-USDT","value":"1000","tactics":"Q2.4"}]），检索所有配置数据，将对应的策略对应到指定的用户Id 例如：Y1.1：[account_1, account_2]
+
+    # 生成一个获取币种最大仓位配置数据，获取g_config里面的max_position_list策略字段数据（[{"symbol":"ETH-USDT","value":"1000","tactics":"Y1.1"},{"symbol":"BTC-USDT","value":"1000","tactics":"Q2.4"}]），检索所有配置数据，将对应的策略对应到指定的用户Id 例如：Y1.1：[account_1, account_2]
     async def get_account_max_position(self) -> Optional[Dict]:
         """
         获取指定账户的最大仓位配置数据
@@ -570,18 +716,21 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT a.id as account_id, c.max_position_list as max_position_list
                     FROM {table('accounts')} a
                     INNER JOIN {table('config')} c ON a.id = c.account_id
                     WHERE a.status = %s
-                """, (1))
+                """,
+                    (1),
+                )
                 result = cursor.fetchall()
                 if result:
                     tactics_accounts = {}
                     for row in result:
-                        account_id = row.get('account_id')
-                        max_position_list = row.get('max_position_list')
+                        account_id = row.get("account_id")
+                        max_position_list = row.get("max_position_list")
                         if not max_position_list:
                             continue
                         max_position_list_arr = json.loads(max_position_list)
@@ -589,7 +738,9 @@ class Database:
                         for pos in max_position_list_arr:
                             tactic = pos.get("tactics")
                             if tactic:
-                                tactics_accounts.setdefault(tactic, []).append(account_id)
+                                tactics_accounts.setdefault(tactic, []).append(
+                                    account_id
+                                )
                     self.tactics_accounts_cache = tactics_accounts
                     return tactics_accounts
                 else:
@@ -602,7 +753,9 @@ class Database:
             if conn:
                 conn.close()
 
-    async def get_tactics_by_account_and_symbol(self, account_id: int, symbol: str) -> Optional[str]:
+    async def get_tactics_by_account_and_symbol(
+        self, account_id: int, symbol: str
+    ) -> Optional[str]:
         """
         获取配置表中指定用户和指定币种的max_position_list下面对应的tactics
         :param account_id: 用户ID
@@ -612,27 +765,41 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT max_position_list
                     FROM {table('config')}
                     WHERE account_id = %s
-                """, (account_id,))
+                """,
+                    (account_id,),
+                )
                 result = cursor.fetchone()
-                if result and result.get('max_position_list'):
-                    max_position_list = json.loads(result['max_position_list'])
+                if result and result.get("max_position_list"):
+                    max_position_list = json.loads(result["max_position_list"])
                     for item in max_position_list:
-                        if item.get('symbol') == symbol:
-                            return item.get('tactics')
+                        if item.get("symbol") == symbol:
+                            tactics = item.get("tactics")
+                            logging.debug(
+                                f"✅ 找到策略配置: 账户={account_id}, 币种={symbol}, "
+                                f"策略={tactics}"
+                            )
+                            return tactics
+
+                logging.warning(f"⚠️ 未找到策略配置: 账户={account_id}, 币种={symbol}")
                 return None
         except Exception as e:
-            print(f"获取tactics失败: {e}")
-            logging.error(f"获取tactics失败: {e}")
+            logging.error(
+                f"❌ 获取策略配置失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+                exc_info=True,
+            )
             return None
         finally:
             if conn:
                 conn.close()
-    
-    async def get_config_by_account_and_symbol(self, account_id: int, symbol: str) -> Optional[Dict]:
+
+    async def get_config_by_account_and_symbol(
+        self, account_id: int, symbol: str
+    ) -> Optional[Dict]:
         """
         获取配置表中指定用户和指定币种的max_position_list下面对应的配置数据
         :param account_id: 用户ID
@@ -640,21 +807,24 @@ class Database:
         :return: 对应的配置数据，如果没有则返回None
         """
         symbol_tactics = symbol
-        if symbol.endswith('-SWAP'):
-            symbol_tactics = symbol.replace('-SWAP', '')
+        if symbol.endswith("-SWAP"):
+            symbol_tactics = symbol.replace("-SWAP", "")
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT max_position_list
                     FROM {table('config')}
                     WHERE account_id = %s
-                """, (account_id,))
+                """,
+                    (account_id,),
+                )
                 result = cursor.fetchone()
-                if result and result.get('max_position_list'):
-                    max_position_list = json.loads(result['max_position_list'])
+                if result and result.get("max_position_list"):
+                    max_position_list = json.loads(result["max_position_list"])
                     for item in max_position_list:
-                        if item.get('symbol') == symbol_tactics:
+                        if item.get("symbol") == symbol_tactics:
                             return item
                 return None
         except Exception as e:
@@ -664,7 +834,6 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
 
     async def insert_strategy_trade(self, trade_data: Dict) -> Dict:
         """
@@ -676,24 +845,30 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     INSERT INTO {table('strategy_trade')}
                     (strategy_name, open_time, open_side, open_price, close_time, close_side, close_price, loss_profit, symbol, exchange)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    trade_data.get('strategy_name'),
-                    trade_data.get('open_time'),
-                    trade_data.get('open_side'),
-                    trade_data.get('open_price'),
-                    trade_data.get('close_time'),
-                    trade_data.get('close_side'),
-                    trade_data.get('close_price'),
-                    trade_data.get('loss_profit'),
-                    trade_data.get('symbol'),
-                    trade_data.get('exchange')
-                ))
+                """,
+                    (
+                        trade_data.get("strategy_name"),
+                        trade_data.get("open_time"),
+                        trade_data.get("open_side"),
+                        trade_data.get("open_price"),
+                        trade_data.get("close_time"),
+                        trade_data.get("close_side"),
+                        trade_data.get("close_price"),
+                        trade_data.get("loss_profit"),
+                        trade_data.get("symbol"),
+                        trade_data.get("exchange"),
+                    ),
+                )
                 conn.commit()
-                return {"status": "success", "message": "Strategy trade inserted successfully"}
+                return {
+                    "status": "success",
+                    "message": "Strategy trade inserted successfully",
+                }
         except Exception as e:
             print(f"写入策略交易记录失败: {e}")
             logging.error(f"写入策略交易记录失败: {e}")
@@ -701,8 +876,10 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
-    async def get_latest_signal_by_name_and_direction(self, name: str, direction: str) -> Optional[Dict]:
+
+    async def get_latest_signal_by_name_and_direction(
+        self, name: str, direction: str
+    ) -> Optional[Dict]:
         """
         获取g_signals表中指定name和direction的最新一条数据
         :param name: 信号名称
@@ -713,11 +890,14 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT * FROM {table('signals')}
                     WHERE name = %s AND direction = %s
                     ORDER BY id DESC LIMIT 1
-                """, (name, direction))
+                """,
+                    (name, direction),
+                )
                 result = cursor.fetchone()
                 return result
         except Exception as e:
@@ -727,7 +907,7 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
+
     async def update_signals_trade_by_id(self, sign_id: int, updates: Dict) -> bool:
         """
         根据id更新策略交易记录（g_signals表）
@@ -756,32 +936,52 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
+
     # 获取g_config里面所有用户数据，然后根据策略名称进行筛选出对应的max_postion_list里面对应的value值，进行修改，增加5%或者减少5%
-    async def update_max_position_by_tactics(self, tactics_name: str, increase: bool = True, sign_id: int = 0, loss_profit_normal: str = '', open_price: str = '', stage_profit_loss: float = 0) -> bool:
+    async def update_max_position_by_tactics(
+        self,
+        tactics_name: str,
+        increase: bool = True,
+        sign_id: int = 0,
+        loss_profit_normal: str = "",
+        open_price: str = "",
+        stage_profit_loss: float = 0,
+    ) -> bool:
         """
         根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
         :param tactics_name: 策略名称
-        :param increase: True为盈利 减少5%，False为亏损 增加5% 
+        :param increase: True为盈利 减少5%，False为亏损 增加5%
         :return: 是否全部更新成功
         """
         try:
             # print(f"开始批量更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
-            logging.info(f"开始批量更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
+            logging.info(
+                f"开始批量更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}"
+            )
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 获取所有用户的max_position_list
                 strategy_info = await self.get_strategy_info(tactics_name)
-                max_position = strategy_info.get('max_position') # 最大仓位
-                min_position = strategy_info.get('min_position') # 最小仓位
+                max_position = strategy_info.get("max_position")  # 最大仓位
+                min_position = strategy_info.get("min_position")  # 最小仓位
                 # stage_profit_loss = strategy_info.get('stage_profit_loss', 0) # 阶段性盈亏
-                logging.info(f"最大仓位: {max_position}, 最小仓位: {min_position}, 阶段性盈亏: {stage_profit_loss}")
+                logging.info(
+                    f"最大仓位: {max_position}, 最小仓位: {min_position}, 阶段性盈亏: {stage_profit_loss}"
+                )
 
-                cursor.execute(f"SELECT account_id, max_position_list FROM {table('config')} AS c INNER JOIN {table('accounts')} AS a ON c.account_id=a.id WHERE a.status = 1")
+                cursor.execute(
+                    f"SELECT account_id, max_position_list FROM {table('config')} AS c INNER JOIN {table('accounts')} AS a ON c.account_id=a.id WHERE a.status = 1"
+                )
                 configs = cursor.fetchall()
                 for row in configs:
-                    account_id = row.get('account_id') if isinstance(row, dict) else row[0]
-                    max_position_list = row.get('max_position_list') if isinstance(row, dict) else row[1]
+                    account_id = (
+                        row.get("account_id") if isinstance(row, dict) else row[0]
+                    )
+                    max_position_list = (
+                        row.get("max_position_list")
+                        if isinstance(row, dict)
+                        else row[1]
+                    )
                     if not max_position_list:
                         continue
                     try:
@@ -792,50 +992,98 @@ class Database:
                     updated = False
                     position_cache = -1
                     for item in max_position_arr:
-                        #增减比例
+                        # 增减比例
                         # max_position = float(item.get('value')) if item.get('value') else 2000 # 最大仓位
                         # increase_ratio = float(item.get('increase_ratio')) if item.get('increase_ratio') else 5 # 盈利增加比例 5%
-                        decrease_ratio = float(item.get('decrease_ratio')) if item.get('decrease_ratio') else 5 # 亏损减少比例 5%
-                        loss_number = int(item.get('loss_number')) if item.get('loss_number') else 0 # 连续亏损次数
-                        max_loss_number = float(item.get('max_loss_number')) if item.get('max_loss_number') else 5 # 最大亏损次数
-                        min_loss_ratio = float(item.get('min_loss_ratio')) if item.get('min_loss_ratio') else 0.001 # 最小亏损比例
-                        clear_value = float(item.get('clear_value')) if item.get('clear_value') else max_position # 清0值
-                        #2.1 如果C/开仓价的绝对值小于0.1%，不增不减（可配置）。
-                        loss_ratio = abs(float(loss_profit_normal)) / float(open_price) #亏损/开仓价的绝对值，小于0.1%就认为可以忽略 0.1可配置
+                        decrease_ratio = (
+                            float(item.get("decrease_ratio"))
+                            if item.get("decrease_ratio")
+                            else 5
+                        )  # 亏损减少比例 5%
+                        loss_number = (
+                            int(item.get("loss_number"))
+                            if item.get("loss_number")
+                            else 0
+                        )  # 连续亏损次数
+                        max_loss_number = (
+                            float(item.get("max_loss_number"))
+                            if item.get("max_loss_number")
+                            else 5
+                        )  # 最大亏损次数
+                        min_loss_ratio = (
+                            float(item.get("min_loss_ratio"))
+                            if item.get("min_loss_ratio")
+                            else 0.001
+                        )  # 最小亏损比例
+                        clear_value = (
+                            float(item.get("clear_value"))
+                            if item.get("clear_value")
+                            else max_position
+                        )  # 清0值
+                        # 2.1 如果C/开仓价的绝对值小于0.1%，不增不减（可配置）。
+                        loss_ratio = abs(float(loss_profit_normal)) / float(
+                            open_price
+                        )  # 亏损/开仓价的绝对值，小于0.1%就认为可以忽略 0.1可配置
                         if loss_ratio < min_loss_ratio:
                             # print(f"账户{account_id}亏损{loss_profit_normal}/开仓价{open_price}的绝对值小于{min_loss_ratio}")
-                            logging.info(f"账户{account_id}亏损{loss_profit_normal}/开仓价{open_price}的绝对值小于{min_loss_ratio}")
+                            logging.info(
+                                f"账户{account_id}亏损{loss_profit_normal}/开仓价{open_price}的绝对值小于{min_loss_ratio}"
+                            )
                             continue
 
                         add_loss_number = loss_number + 1
-                        if(not increase and add_loss_number > max_loss_number): # 如果继续亏损且连续亏损5次，不更新最大仓位
+                        if (
+                            not increase and add_loss_number > max_loss_number
+                        ):  # 如果继续亏损且连续亏损5次，不更新最大仓位
                             # print(f"账户{account_id}连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
-                            logging.info(f"账户{account_id}连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位")
+                            logging.info(
+                                f"账户{account_id}连续亏损{add_loss_number}次大于最大仓位{max_loss_number}，不更新最大仓位"
+                            )
                             continue
 
                         # logging.info(f"账户{account_id}开始更新max_position_list，策略名称: {tactics_name}, 增加: {increase}, 关联信号ID: {sign_id}, 亏损: {loss_profit_normal}, 开仓价: {open_price}")
 
-                        if item.get('tactics') == tactics_name and item.get('value') is not None and item.get('value') != '':
+                        if (
+                            item.get("tactics") == tactics_name
+                            and item.get("value") is not None
+                            and item.get("value") != ""
+                        ):
                             try:
-                                value = float(item.get('value'))
+                                value = float(item.get("value"))
                                 # logging.info(f"账户{account_id} 当前最大仓位: {value}, 盈利增加比例: {increase_ratio}%, 亏损减少比例: {decrease_ratio}%, 连续亏损次数: {loss_number}, 最大亏损次数: {max_loss_number}, 最小亏损比例: {min_loss_ratio}, 清0值: {clear_value}, 阶段性盈亏: {stage_profit_loss}")
-                                if stage_profit_loss == 0 or abs(float(loss_profit_normal)) > abs(stage_profit_loss): # 如果阶段盈亏小于等于0或者单次盈亏超过阶段性盈亏绝对值 重置最大仓位
-                                    logging.info(f"账户{account_id}单次盈亏{loss_profit_normal}超过阶段性盈亏{stage_profit_loss:.8f}，重置最大仓位为初始值{clear_value}")
+                                if stage_profit_loss == 0 or abs(
+                                    float(loss_profit_normal)
+                                ) > abs(
+                                    stage_profit_loss
+                                ):  # 如果阶段盈亏小于等于0或者单次盈亏超过阶段性盈亏绝对值 重置最大仓位
+                                    logging.info(
+                                        f"账户{account_id}单次盈亏{loss_profit_normal}超过阶段性盈亏{stage_profit_loss:.8f}，重置最大仓位为初始值{clear_value}"
+                                    )
                                     value = clear_value
                                     loss_number = 0
                                 else:
-                                    logging.info(f"账户{account_id}单次盈亏{loss_profit_normal}未超过阶段性盈亏{stage_profit_loss:.8f}，按规则调整最大仓位")
-                                    if increase: # 盈利 减少百分比
-                                        logging.info(f"账户{account_id}盈利，次数保持不变")
+                                    logging.info(
+                                        f"账户{account_id}单次盈亏{loss_profit_normal}未超过阶段性盈亏{stage_profit_loss:.8f}，按规则调整最大仓位"
+                                    )
+                                    if increase:  # 盈利 减少百分比
+                                        logging.info(
+                                            f"账户{account_id}盈利，次数保持不变"
+                                        )
                                         # value = round(value * (1 - increase_ratio / 100), 8)
                                         # 盈利时次数保持不变
                                         pass
-                                    else: # 亏损 增加百分比
-                                        logging.info(f"账户{account_id}亏损，按比例{decrease_ratio}%增加最大仓位, value值：{value}")
-                                        value = round(value * (1 + decrease_ratio / 100), 8)
+                                    else:  # 亏损 增加百分比
+                                        logging.info(
+                                            f"账户{account_id}亏损，按比例{decrease_ratio}%增加最大仓位, value值：{value}"
+                                        )
+                                        value = round(
+                                            value * (1 + decrease_ratio / 100), 8
+                                        )
                                         loss_number = add_loss_number
-                                        logging.info(f"账户{account_id}亏损，按比例{decrease_ratio}%增加最大仓位, 连续亏损次数：{loss_number}")
-                                    
+                                        logging.info(
+                                            f"账户{account_id}亏损，按比例{decrease_ratio}%增加最大仓位, 连续亏损次数：{loss_number}"
+                                        )
+
                                 # 仓位最大值不能超过仓位最大仓位数
                                 if value > max_position:
                                     value = max_position
@@ -843,23 +1091,31 @@ class Database:
                                 # 仓位最小值不能低于仓位最小仓位数
                                 if value < min_position:
                                     value = min_position
-                                item['value'] = value
-                                item['loss_number'] = loss_number
+                                item["value"] = value
+                                item["loss_number"] = loss_number
                                 position_cache = value
                                 updated = True
                             except Exception as e:
                                 logging.error(f"更新value失败: {e}")
                     if updated:
-                        new_max_position_list = json.dumps(max_position_arr, ensure_ascii=False)
+                        new_max_position_list = json.dumps(
+                            max_position_arr, ensure_ascii=False
+                        )
                         cursor.execute(
                             f"UPDATE {table('config')} SET max_position_list=%s WHERE account_id=%s",
-                            (new_max_position_list, account_id)
+                            (new_max_position_list, account_id),
                         )
-                        logging.info(f"账户{account_id}更新max_position_list成功: {new_max_position_list}")
+                        logging.info(
+                            f"账户{account_id}更新max_position_list成功: {new_max_position_list}"
+                        )
                         # 记录仓位变更记录
                         if position_cache != -1:
-                            logging.info(f"账户{account_id}记录仓位变更记录: {position_cache}")
-                            await self.record_account_position_change(account_id, position_cache, sign_id)
+                            logging.info(
+                                f"账户{account_id}记录仓位变更记录: {position_cache}"
+                            )
+                            await self.record_account_position_change(
+                                account_id, position_cache, sign_id
+                            )
                 conn.commit()
             return True
         except Exception as e:
@@ -870,10 +1126,15 @@ class Database:
             if conn:
                 conn.close()
 
-
     # 根据指定账户和策略名称修改对应账户配置数据
     # 暂时未启用
-    async def update_max_position_by_account_tactics(self, account_id: int, tactics_name: str, increase: bool = True, sign_id: int = 0) -> bool:
+    async def update_max_position_by_account_tactics(
+        self,
+        account_id: int,
+        tactics_name: str,
+        increase: bool = True,
+        sign_id: int = 0,
+    ) -> bool:
         """
         根据策略名称调整指定账户的max_position_list中对应策略的value值，增加或减少5%
         :param account_id: 账户id
@@ -890,19 +1151,23 @@ class Database:
                 if not strategy_info:
                     logging.error(f"未找到策略信息: {tactics_name}")
                     return False
-                max_position = strategy_info.get('max_position')
-                min_position = strategy_info.get('min_position')
+                max_position = strategy_info.get("max_position")
+                min_position = strategy_info.get("min_position")
 
                 cursor.execute(
                     f"SELECT account_id, max_position_list FROM {table('config')} WHERE account_id = %s",
-                    (account_id,)
+                    (account_id,),
                 )
                 config = cursor.fetchone()
                 if not config:
                     logging.error(f"未找到账户配置: {account_id}")
                     return False
 
-                max_position_list = config.get('max_position_list') if isinstance(config, dict) else config[1]
+                max_position_list = (
+                    config.get("max_position_list")
+                    if isinstance(config, dict)
+                    else config[1]
+                )
                 if not max_position_list:
                     logging.error(f"账户配置 max_position_list 为空: {account_id}")
                     return False
@@ -916,12 +1181,12 @@ class Database:
                 updated = False
                 position_cache = -1
                 for item in max_position_arr:
-                    if item.get('tactics') == tactics_name and item.get('value'):
+                    if item.get("tactics") == tactics_name and item.get("value"):
                         try:
-                            value = float(item['value'])
-                            increase_ratio = float(item.get('increase_ratio', 5))
-                            decrease_ratio = float(item.get('decrease_ratio', 5))
-                            loss_number = int(item.get('loss_number', 0))
+                            value = float(item["value"])
+                            increase_ratio = float(item.get("increase_ratio", 5))
+                            decrease_ratio = float(item.get("decrease_ratio", 5))
+                            loss_number = int(item.get("loss_number", 0))
                             if increase:
                                 value = round(value * (1 - increase_ratio / 100), 8)
                                 loss_number = 0
@@ -929,25 +1194,31 @@ class Database:
                                 value = round(value * (1 + decrease_ratio / 100), 8)
                                 loss_number += 1
                             value = min(max(value, min_position), max_position)
-                            item['value'] = str(value)
-                            item['loss_number'] = loss_number
+                            item["value"] = str(value)
+                            item["loss_number"] = loss_number
                             position_cache = value
                             updated = True
                         except Exception as e:
                             logging.error(f"更新value失败: {e}")
 
                 if updated:
-                    new_max_position_list = json.dumps(max_position_arr, ensure_ascii=False)
+                    new_max_position_list = json.dumps(
+                        max_position_arr, ensure_ascii=False
+                    )
                     cursor.execute(
                         f"UPDATE {table('config')} SET max_position_list=%s WHERE account_id=%s",
-                        (new_max_position_list, account_id)
+                        (new_max_position_list, account_id),
                     )
                     if position_cache != -1:
-                        await self.record_account_position_change(account_id, position_cache, sign_id)
+                        await self.record_account_position_change(
+                            account_id, position_cache, sign_id
+                        )
                     conn.commit()
                     return True
                 else:
-                    logging.info(f"未找到匹配策略或未更新: {account_id}, {tactics_name}")
+                    logging.info(
+                        f"未找到匹配策略或未更新: {account_id}, {tactics_name}"
+                    )
                     return False
         except Exception as e:
             print(f"更新max_position_list失败: {e}")
@@ -956,7 +1227,7 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
+
     async def get_strategy_info(self, strategy_name: str) -> Optional[Dict]:
         """
         根据策略名称获取策略信息
@@ -967,10 +1238,13 @@ class Database:
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(f"""
+                cursor.execute(
+                    f"""
                     SELECT * FROM {table('strategy')}
                     WHERE name = %s
-                """, (strategy_name,))
+                """,
+                    (strategy_name,),
+                )
                 result = cursor.fetchone()
                 return result
         except Exception as e:
@@ -980,10 +1254,11 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
-    #修改指定策略亏损记录
-    async def update_strategy_loss_number(self, strategy_name: str, count_profit_loss: float, stage_profit_loss: float) -> bool:
 
+    # 修改指定策略亏损记录
+    async def update_strategy_loss_number(
+        self, strategy_name: str, count_profit_loss: float, stage_profit_loss: float
+    ) -> bool:
         """
         根据策略名称更新策略亏损次数
         :param strategy_name: 策略名称
@@ -995,7 +1270,12 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute(
                     f"UPDATE {table('strategy')} SET count_profit_loss=%s, stage_profit_loss=%s, updated_at=%s WHERE name=%s",
-                    (count_profit_loss, stage_profit_loss, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), strategy_name)
+                    (
+                        count_profit_loss,
+                        stage_profit_loss,
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        strategy_name,
+                    ),
                 )
                 conn.commit()
                 return True
@@ -1006,9 +1286,11 @@ class Database:
         finally:
             if conn:
                 conn.close()
-    
-    # 记录每个账户仓位变更记录数据到 g_account_histor_position 表，字段包括 account_id、amount、sign_id、datetime 
-    async def record_account_position_change(self, account_id: int, amount: float, sign_id: int) -> bool:
+
+    # 记录每个账户仓位变更记录数据到 g_account_histor_position 表，字段包括 account_id、amount、sign_id、datetime
+    async def record_account_position_change(
+        self, account_id: int, amount: float, sign_id: int
+    ) -> bool:
         """
         记录每个账户仓位变更记录数据到 g_account_histor_position 表，字段包括 account_id、amount、sign_id
         :param account_id: 账户ID
@@ -1022,7 +1304,12 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute(
                     f"INSERT INTO {table('account_histor_position')} (account_id, amount, sign_id, datetime) VALUES (%s, %s, %s, %s)",
-                    (account_id, amount, sign_id, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    (
+                        account_id,
+                        amount,
+                        sign_id,
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    ),
                 )
                 conn.commit()
                 return True
@@ -1033,7 +1320,3 @@ class Database:
         finally:
             if conn:
                 conn.close()
-
-
-
-        

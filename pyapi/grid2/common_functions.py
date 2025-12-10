@@ -15,9 +15,11 @@ async def get_exchange(self, account_id: int) -> Optional[ccxt.Exchange]:
     """获取交易所实例（通过account_id）"""
     account_info = await self.db.get_account_info(account_id)
     if not account_info:
+        logging.debug(f"📭 账户 {account_id} 未配置或已禁用，跳过")
         return None
 
     exchange_id = account_info["exchange"]
+    logging.debug(f"🔗 创建交易所实例: 账户={account_id}, 交易所={exchange_id}")
     exchange_class = getattr(ccxt, exchange_id)
 
     # 统一转成字符串，避免 None / int 之类的问题
@@ -62,10 +64,11 @@ async def get_market_price(
             await api_limiter.check_and_wait()
 
         ticker = await exchange.fetch_ticker(symbol)
-        return Decimal(str(ticker["last"]))
+        price = Decimal(str(ticker["last"]))
+        logging.debug(f"💰 获取市场价格: {symbol} = {price}")
+        return price
     except Exception as e:
-        # print(f"获取市场价格失败: {e}")
-        logging.error(f"获取市场价格失败: {e}")
+        logging.error(f"❌ 获取市场价格失败: 币种={symbol}, 错误={e}", exc_info=True)
         return Decimal("0")
     finally:
         await exchange.close()  # ✅ 用完就关
@@ -78,7 +81,7 @@ async def get_market_precision(
     # ✅ 先检查缓存
     cache_key = f"{symbol}:{instType}"
     if cache_key in self.market_precision_cache:
-        logging.debug(f"使用缓存市场精度: {cache_key}")
+        logging.debug(f"✅ 使用缓存市场精度: {cache_key}")
         return self.market_precision_cache[cache_key]
 
     try:
@@ -89,11 +92,20 @@ async def get_market_precision(
         markets = await exchange.fetch_markets_by_type(
             instType, {"instId": f"{symbol}"}
         )
-        # print("markets:", markets)
+
+        if not markets or len(markets) == 0:
+            logging.error(f"❌ 未找到市场信息: {symbol}")
+            return {}
+
         contract_size = Decimal(str(markets[0]["contractSize"]))  # 默认是1，适用于BTC
         price_precision = Decimal(str(markets[0]["precision"]["price"]))
         amount_precision = Decimal(str(markets[0]["precision"]["amount"]))
         min_amount = Decimal(str(markets[0]["limits"]["amount"]["min"]))  # 最小下单量
+
+        logging.info(
+            f"📏 获取市场精度: {symbol}, 合约大小={contract_size}, "
+            f"价格精度={price_precision}, 数量精度={amount_precision}, 最小数量={min_amount}"
+        )
 
         result = {
             "min_amount": min_amount,
@@ -107,8 +119,8 @@ async def get_market_precision(
 
         return result
     except Exception as e:
-        # print(f"获取市场精度失败: {e}")
-        logging.error(f"获取市场精度失败: {e}")
+        logging.error(f"❌ 获取市场精度失败: 币种={symbol}, 错误={e}", exc_info=True)
+        logging.warning(f"⚠️ 使用默认市场精度: {symbol}")
         return {
             "min_amount": Decimal("0.001"),
             "contract_size": Decimal("1"),
@@ -142,6 +154,7 @@ async def open_position(
     """开仓、平仓下单"""
     exchange = await get_exchange(self, account_id)
     if not exchange:
+        logging.error(f"❌ 开仓失败：无法获取交易所实例 - 账户={account_id}")
         return None
 
     params = {
@@ -151,12 +164,17 @@ async def open_position(
         "reduceOnly": is_reduce_only,
     }
 
+    logging.info(
+        f"📝 准备下单: 账户={account_id}, 币种={symbol}, 方向={side}, "
+        f"持仓方向={pos_side}, 数量={amount}, 价格={price}, "
+        f"订单类型={order_type}, 仅减仓={is_reduce_only}"
+    )
+
     try:
         # ✅ 调用全局API限流器
         if hasattr(self, "api_limiter") and self.api_limiter:
             await self.api_limiter.check_and_wait()
 
-        # print("create_order", symbol, direction, price, amount)
         order = await exchange.create_order(
             symbol=symbol,
             type=order_type,
@@ -165,16 +183,28 @@ async def open_position(
             price=price,
             params=params,
         )
-        # print("order", order)
+
         if order["info"].get("sCode") == "0":
+            order_id = order.get("id", "N/A")
+            logging.info(
+                f"✅ 下单成功: 账户={account_id}, 订单ID={order_id}, "
+                f"币种={symbol}, 方向={side}, 数量={amount}, 价格={price}"
+            )
             return order
         else:
-            print(f"开仓失败: {order['info'].get('sMsg', '未知错误')}")
-            logging.error(f"开仓失败: {order['info'].get('sMsg', '未知错误')}")
+            error_msg = order["info"].get("sMsg", "未知错误")
+            error_code = order["info"].get("sCode", "N/A")
+            logging.error(
+                f"❌ 下单失败: 账户={account_id}, 币种={symbol}, "
+                f"错误码={error_code}, 错误信息={error_msg}"
+            )
+            print(f"开仓失败: {error_msg}")
             return None
     except Exception as e:
-        # print(f"开仓失败: {account_id} {e}")
-        logging.error(f"开仓失败: {account_id} {e}")
+        logging.error(
+            f"❌ 下单异常: 账户={account_id}, 币种={symbol}, " f"方向={side}, 错误={e}",
+            exc_info=True,
+        )
         return None
     finally:
         await exchange.close()  # ✅ 用完就关
@@ -366,6 +396,8 @@ async def fetch_order_with_retry(
     if params is None:
         params = {}
 
+    logging.debug(f"🔍 查询订单: 账户={account_id}, 订单ID={order_id}, 币种={symbol}")
+
     for attempt in range(retries):
         try:
             # ✅ 调用全局API限流器
@@ -373,23 +405,32 @@ async def fetch_order_with_retry(
                 await api_limiter.check_and_wait()
 
             order_info = await exchange.fetch_order(order_id, symbol, params)
+
+            # 记录订单详细信息
+            state = order_info.get("info", {}).get("state", "unknown")
+            filled = order_info.get("filled", 0)
+            amount = order_info.get("amount", 0)
+            logging.debug(
+                f"✅ 查询订单成功: 账户={account_id}, 订单={order_id}, "
+                f"状态={state}, 已成交={filled}/{amount}"
+            )
             return order_info
         except Exception as e:
             if "Too Many Requests" in str(e) and attempt < retries - 1:
                 # 使用指数退避 + 随机抖动来缓解限流
                 delay = (attempt + 1) * 0.5 + random.uniform(0.1, 0.3)
                 logging.warning(
-                    f"⏳ 用户 {account_id} 查询订单请求过多，等待 {delay:.2f}s 后重试 ({attempt+1}/{retries})... order_id={order_id}"
+                    f"⏳ 账户 {account_id} 查询订单请求过多，等待 {delay:.2f}s 后重试 ({attempt+1}/{retries})... order_id={order_id}"
                 )
                 await asyncio.sleep(delay)
                 continue
             else:
                 logging.error(
-                    f"⚠️ 用户 {account_id} 查询订单失败 {order_id}/{symbol}: {e}"
+                    f"❌ 账户 {account_id} 查询订单失败: 订单={order_id}, 币种={symbol}, 错误={e}"
                 )
                 return None
 
-    logging.error(f"用户 {account_id} 查询订单 {order_id} 多次重试仍失败")
+    logging.error(f"❌ 账户 {account_id} 查询订单 {order_id} 多次重试仍失败")
     return None
 
 
@@ -438,43 +479,62 @@ async def cancel_all_orders(
 
     async def cancel_orders(order_list: list, params: dict):
         """批量撤销订单"""
+        canceled_count = 0
         for order in order_list:
-            # order_side = order.get('side', '').lower()
-            # if side != 'all' and order_side != side:
-            #     continue
             try:
                 # ✅ 调用全局API限流器
                 if hasattr(self, "api_limiter") and self.api_limiter:
                     await self.api_limiter.check_and_wait()
 
-                cancel_order = await exchange.cancel_order(order["id"], symbol, params)
-                logging.info(
-                    f"用户 {account_id} 取消订单: {order['id']} params={params}"
-                )
+                order_id = order["id"]
+                logging.debug(f"🗑️ 取消订单: 账户={account_id}, 订单={order_id[:15]}...")
+
+                cancel_order = await exchange.cancel_order(order_id, symbol, params)
+
                 if cancel_order.get("info", {}).get("sCode") == "0":
-                    existing_order = await self.db.get_order_by_id(
-                        account_id, order["id"]
+                    canceled_count += 1
+                    logging.info(
+                        f"✅ 订单取消成功: 账户={account_id}, 订单={order_id[:15]}..."
                     )
+
+                    existing_order = await self.db.get_order_by_id(account_id, order_id)
                     if existing_order:
                         await self.db.update_order_by_id(
-                            account_id, order["id"], {"status": "canceled"}
+                            account_id, order_id, {"status": "canceled"}
                         )
-                        logging.info(
-                            f"用户 {account_id} 订单 {order['id']} 更新状态为 canceled"
-                        )
+                        logging.debug(f"✅ 数据库订单状态已更新为 canceled")
+                else:
+                    error_msg = cancel_order.get("info", {}).get("sMsg", "未知错误")
+                    logging.warning(
+                        f"⚠️ 订单取消失败: 账户={account_id}, 订单={order_id[:15]}..., "
+                        f"错误={error_msg}"
+                    )
             except Exception as e:
                 logging.error(
-                    f"用户 {account_id} 取消订单失败: {order['id']} params={params}, error={e}"
+                    f"❌ 取消订单异常: 账户={account_id}, 订单={order.get('id', 'N/A')[:15]}..., "
+                    f"错误={e}"
                 )
 
+        if canceled_count > 0:
+            logging.info(f"✅ 成功取消 {canceled_count}/{len(order_list)} 个订单")
+
     try:
+        logging.info(
+            f"🗑️ 开始取消订单: 账户={account_id}, 币种={symbol}, "
+            f"方向={side}, 包含条件单={cancel_conditional}"
+        )
+
         # 1️⃣ 取消普通订单（永续合约）
         normal_params = {"instType": "SWAP"}
         normal_orders = await fetch_orders(normal_params)
         if normal_orders:
+            logging.info(
+                f"📝 账户 {account_id} 找到 {len(normal_orders)} 个普通订单待取消: "
+                f"{[o['id'] for o in normal_orders[:5]]}"
+            )
             await cancel_orders(normal_orders, normal_params)
         else:
-            logging.info(f"用户 {account_id} 无普通订单需要取消")
+            logging.debug(f"账户 {account_id} 无普通订单需要取消")
 
         # 2️⃣ 取消条件单（策略单）—— 由 cancel_conditional 控制
         if cancel_conditional:
@@ -485,13 +545,25 @@ async def cancel_all_orders(
             }
             conditional_orders = await fetch_orders(conditional_params)
             if conditional_orders:
+                logging.info(
+                    f"📝 账户 {account_id} 找到 {len(conditional_orders)} 个条件单待取消"
+                )
+            else:
+                logging.debug(f"账户 {account_id} 无条件单需要取消")
+            if conditional_orders:
                 await cancel_orders(conditional_orders, conditional_params)
             else:
-                logging.info(f"用户 {account_id} 无条件单需要取消")
+                logging.debug(f"账户 {account_id} 无条件单需要取消")
         else:
-            logging.info(f"用户 {account_id} 跳过取消条件单")
+            logging.debug(f"账户 {account_id} 跳过取消条件单")
+
+        logging.info(f"✅ 取消订单完成: 账户={account_id}, 币种={symbol}")
+
     except Exception as e:
-        logging.error(f"用户 {account_id} 取消所有订单失败: {e}")
+        logging.error(
+            f"❌ 取消订单失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+            exc_info=True,
+        )
     finally:
         await exchange.close()
 
@@ -581,15 +653,38 @@ async def fetch_current_positions(
 
         exchange = await get_exchange(self, account_id)
         if not exchange:
+            logging.error(f"❌ 获取持仓失败：无法获取交易所对象 - 账户={account_id}")
             raise Exception("无法获取交易所对象")
+
+        logging.debug(f"🔍 查询当前持仓: 账户={account_id}, 币种={symbol}")
         positions = await exchange.fetch_positions_for_symbol(
             symbol, {"instType": inst_type}
         )
+
+        # 统计持仓信息
+        position_summary = []
+        for pos in positions:
+            contracts = pos.get("contracts", 0)
+            if contracts != 0:
+                side = pos.get("side", "unknown")
+                entry_price = pos.get("entryPrice", 0)
+                position_summary.append(f"{side}:{contracts}@{entry_price}")
+
+        if position_summary:
+            logging.debug(
+                f"📊 查询到持仓: 账户={account_id}, 币种={symbol}, "
+                f"详情=[{', '.join(position_summary)}]"
+            )
+        else:
+            logging.debug(f"📭 无持仓: 账户={account_id}, 币种={symbol}")
+
         return positions
 
     except Exception as e:
-        # print(f"获取当前持仓信息失败: {e}")
-        logging.error(f"获取当前持仓信息失败: {e}")
+        logging.error(
+            f"❌ 获取当前持仓失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+            exc_info=True,
+        )
         return []
     finally:
         await exchange.close()
@@ -617,22 +712,45 @@ async def get_total_positions(
     try:
         # ✅ 优先使用缓存的持仓数据
         if cached_positions is not None:
-            total_positions = sum(
-                abs(Decimal(position["info"]["pos"])) for position in cached_positions
+            position_details = []
+            total_positions = Decimal("0")
+            for position in cached_positions:
+                pos = abs(Decimal(position["info"]["pos"]))
+                side = position.get("side", "unknown")
+                total_positions += pos
+                if pos > 0:
+                    position_details.append(f"{side}:{pos}")
+
+            logging.info(
+                f"📊 使用缓存计算总持仓: 账户={account_id}, 币种={symbol}, "
+                f"总持仓={total_positions}, 详情=[{', '.join(position_details)}]"
             )
-            logging.debug(f"✅ 使用缓存计算总持仓: {total_positions}")
             return total_positions
 
         # 如果没有缓存，才查询
+        logging.info(f"🔍 查询持仓: 账户={account_id}, 币种={symbol}")
         positions = await fetch_current_positions(self, account_id, symbol, inst_type)
-        total_positions = sum(
-            abs(Decimal(position["info"]["pos"])) for position in positions
+
+        position_details = []
+        total_positions = Decimal("0")
+        for position in positions:
+            pos = abs(Decimal(position["info"]["pos"]))
+            side = position.get("side", "unknown")
+            total_positions += pos
+            if pos > 0:
+                position_details.append(f"{side}:{pos}")
+
+        logging.info(
+            f"📊 查询到总持仓: 账户={account_id}, 币种={symbol}, "
+            f"总持仓={total_positions}, 详情=[{', '.join(position_details)}]"
         )
         return total_positions
 
     except Exception as e:
-        # print(f"获取账户总持仓数失败: {e}")
-        logging.error(f"获取账户总持仓数失败: {e}")
+        logging.error(
+            f"❌ 获取账户总持仓数失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+            exc_info=True,
+        )
         return Decimal("0")
 
 

@@ -344,10 +344,15 @@ class PriceMonitoringTask:
         # 🔑 获取订单创建时间进行判断
         order_timestamp = order.get("timestamp")  # 数据库中的创建时间
 
+        logging.debug(
+            f"🔍 检查无持仓订单: 账户={account_id}, 订单={order['order_id'][:15]}..., "
+            f"币种={symbol}, 方向={order['side']}, 状态={state}"
+        )
+
         if not order_timestamp:
             # 没有时间戳信息，记录警告后跳过
             logging.warning(
-                f"⚠️ 订单无timestamp字段: {account_id} {order['order_id']} {symbol}"
+                f"⚠️ 订单无timestamp字段: 账户={account_id}, 订单={order['order_id'][:15]}..., 币种={symbol}"
             )
             return True
 
@@ -374,22 +379,29 @@ class PriceMonitoringTask:
             if time_diff_minutes < TIME_THRESHOLD:
                 # 订单刚创建，可能是刚下单未成交的情况，继续等待
                 logging.info(
-                    f"📝 订单刚创建 {time_diff_minutes:.1f}分钟，暂无持仓是正常的: "
-                    f"{account_id} {order['order_id']} {symbol} {order['side']}"
+                    f"⏳ 订单创建 {time_diff_minutes:.1f}分钟，等待成交: "
+                    f"账户={account_id}, 订单={order['order_id'][:15]}..., "
+                    f"币种={symbol}, 方向={order['side']}"
                 )
                 return True
             else:
                 # 订单创建超过阈值时间，还没有持仓，可能有问题
                 logging.warning(
                     f"⚠️ 订单已创建 {time_diff_minutes:.1f}分钟但无持仓: "
-                    f"{account_id} {order['order_id']} {symbol} {order['side']} 状态={state}"
+                    f"账户={account_id}, 订单={order['order_id'][:15]}..., "
+                    f"币种={symbol}, 方向={order['side']}, 状态={state}"
                 )
 
                 # 进一步检查订单状态
                 if state in ("filled", "partially_filled"):
                     # 已成交但无持仓，说明持仓被平掉了
-                    logging.warning(
-                        f"⚠️ 订单已成交但无持仓，可能已被平仓: {account_id} {order['order_id']}"
+                    filled_amount = order_info.get("filled", 0)
+                    total_amount = order_info.get("amount", 0)
+                    logging.error(
+                        f"🚨 严重异常：订单已成交但无持仓！账户={account_id}, "
+                        f"订单={order['order_id'][:15]}..., 币种={symbol}, "
+                        f"方向={order['side']}, 成交量={filled_amount}/{total_amount}, "
+                        f"状态={state}，持仓可能已被平掉"
                     )
                     await self.db.update_order_by_id(
                         account_id, order_info["id"], {"status": state}
@@ -399,13 +411,18 @@ class PriceMonitoringTask:
                 else:
                     # 未成交但等待时间过长
                     logging.warning(
-                        f"⚠️ 订单长时间未成交: {account_id} {order['order_id']}"
+                        f"⚠️ 订单长时间未成交: 账户={account_id}, "
+                        f"订单={order['order_id'][:15]}..., 已等待={time_diff_minutes:.1f}分钟"
                     )
 
                 return True
 
         except Exception as e:
-            logging.error(f"⚠️ 解析订单时间失败: {account_id} {order['order_id']} - {e}")
+            logging.error(
+                f"❌ 解析订单时间失败: 账户={account_id}, "
+                f"订单={order['order_id'][:15]}..., 错误={e}",
+                exc_info=True,
+            )
             return True
 
     async def _safe_check_positions(self, account_id: int):
@@ -447,8 +464,12 @@ class PriceMonitoringTask:
             # ✅ 一次获取所有未成交订单
             open_orders = await self.db.get_active_orders(account_id)
             if not open_orders:
-                logging.warning(f"⚠️ 账户 {account_id} 无未成交订单")
+                logging.debug(f"📭 账户 {account_id} 无未成交订单")
                 return
+
+            logging.info(
+                f"📋 账户 {account_id} 有 {len(open_orders)} 个未成交订单待检查"
+            )
 
             # --------------------------
             # 1. 缓存 symbol -> positions
@@ -465,19 +486,35 @@ class PriceMonitoringTask:
                 all_positions = await asyncio.wait_for(
                     exchange.fetch_positions("", {"instType": "SWAP"}), timeout=10.0
                 )
-                # logging.info(f"🔍 账户 {account_id} 持仓数: {len(all_positions)}")
+
+                logging.info(
+                    f"📊 账户 {account_id} 获取到持仓总数: {len(all_positions)}"
+                )
 
                 # 分类整理：symbol => [pos1, pos2, ...]
+                position_summary = []
                 for pos in all_positions:
                     sym = pos["info"].get("instId")
                     if not sym:
                         continue
+                    contracts = pos.get("contracts", 0)
+                    if contracts != 0:
+                        position_summary.append(f"{sym}={contracts}")
                     positions_dict.setdefault(sym, []).append(pos)
 
+                if position_summary:
+                    logging.info(
+                        f"📊 账户 {account_id} 有持仓的币种: {', '.join(position_summary)}"
+                    )
+                else:
+                    logging.warning(f"⚠️ 账户 {account_id} 当前无任何持仓")
+
             except asyncio.TimeoutError:
-                logging.error(f"⏱️ 获取所有持仓超时(10秒) {account_id}")
+                logging.error(f"⏱️ 账户 {account_id} 获取所有持仓超时(10秒)")
             except Exception as e:
-                logging.error(f"⚠️ 获取所有持仓失败 {account_id}: {e}")
+                logging.error(
+                    f"❌ 账户 {account_id} 获取所有持仓失败: {e}", exc_info=True
+                )
 
             # --------------------------
             # 2. 并发获取订单详情（带限流 + 重试机制 + 超时控制）
@@ -538,42 +575,103 @@ class PriceMonitoringTask:
                 symbol = order["symbol"]
                 order_info = order_infos.get(order["order_id"])
                 positions = positions_dict.get(symbol, [])
-                # logging.info(f"🔍 账户 {account_id} 持仓信息: {positions}")
+
                 if not order_info:
+                    logging.warning(
+                        f"⚠️ 无订单信息，跳过订单: 账户={account_id}, 订单={order['order_id']}, "
+                        f"币种={symbol}, 方向={order['side']}"
+                    )
                     continue
 
                 # ⚡ 处理无持仓情况
                 if not positions:
+                    position_contracts = sum(
+                        p.get("contracts", 0) for p in positions_dict.get(symbol, [])
+                    )
+                    logging.warning(
+                        f"⚠️ 无持仓但有挂单: 账户={account_id}, 订单={order['order_id']}, "
+                        f"币种={symbol}, 方向={order['side']}, "
+                        f"持仓数量={position_contracts}, 订单创建时间={order.get('timestamp', 'N/A')}"
+                    )
                     should_skip = await self._handle_no_position_order(
                         order, order_info, account_id, symbol, exchange
                     )
                     if should_skip:
                         continue
+                else:
+                    # 记录持仓详情
+                    position_details = []
+                    for pos in positions:
+                        contracts = pos.get("contracts", 0)
+                        side = pos.get("side", "unknown")
+                        entry_price = pos.get("entryPrice", 0)
+                        if contracts != 0:
+                            position_details.append(f"{side}:{contracts}@{entry_price}")
+                    if position_details:
+                        logging.debug(
+                            f"📊 账户 {account_id} 币种 {symbol} 持仓详情: {', '.join(position_details)}"
+                        )
 
                 state = order_info["info"]["state"]
                 logging.info(
                     f"🔍 订单状态: {account_id} {order['order_id']} {symbol} {order['side']} {state}"
                 )
                 if state == "canceled":
+                    logging.info(
+                        f"🔍 订单已撤销，跳过订单: {account_id} {order['order_id']} {symbol} {order['side']}"
+                    )
                     await self.db.update_order_by_id(
                         account_id, order_info["id"], {"status": state}
                     )
                     continue
 
                 elif state in ("filled", "partially_filled"):
+                    logging.info(
+                        f"🔍 订单已成交，处理订单: {account_id} {order['order_id']} {symbol} {order['side']} {state}"
+                    )
                     if state == "partially_filled":
                         total_amount = Decimal(order_info["amount"])
                         filled_amount = Decimal(order_info["filled"])
+                        fill_ratio = (
+                            (filled_amount / total_amount * 100)
+                            if total_amount > 0
+                            else 0
+                        )
+                        logging.warning(
+                            f"⚠️ 订单部分成交: 账户={account_id}, 订单={order['order_id']}, "
+                            f"币种={symbol}, 方向={order['side']}, "
+                            f"总量={total_amount}, 已成交={filled_amount}, "
+                            f"成交率={fill_ratio:.2f}%, 价格={order_info['info'].get('fillPx', 'N/A')}"
+                        )
                         if filled_amount < total_amount * Decimal("0.7"):
+                            logging.warning(
+                                f"🚫 订单部分成交率低于70%阈值，跳过处理: {account_id} {order['order_id']} "
+                                f"成交率={fill_ratio:.2f}% < 70%"
+                            )
                             continue
+                        else:
+                            logging.info(
+                                f"✅ 订单部分成交率达到70%阈值，继续处理: {account_id} {order['order_id']} "
+                                f"成交率={fill_ratio:.2f}% >= 70%"
+                            )
 
                     fill_time = float(order_info["info"].get("fillTime", 0))
                     if fill_time > latest_fill_time:
+                        logging.info(
+                            f"✅ 更新最新成交订单: 账户={account_id}, 订单={order['order_id'][:15]}..., "
+                            f"币种={symbol}, 方向={order['side']}, 成交价={order_info['info']['fillPx']}, "
+                            f"成交时间={await milliseconds_to_local_datetime(fill_time)}"
+                        )
                         latest_fill_time = fill_time
                         latest_order = order_info
                         executed_price = order_info["info"]["fillPx"]
                         fill_date_time = await milliseconds_to_local_datetime(fill_time)
                         process_grid = True
+                    else:
+                        logging.debug(
+                            f"📅 订单成交时间较早，跳过: 账户={account_id}, "
+                            f"订单={order['order_id'][:15]}..., 成交时间={fill_time}"
+                        )
 
             # ✅ 后续逻辑不变
             if process_grid and latest_order:
@@ -581,8 +679,16 @@ class PriceMonitoringTask:
                 logging.info(
                     f"✅ 订单已成交: 用户={account_id}, 币种={symbol}, 方向={latest_order['side']}, 价格={executed_price}"
                 )
+
+                logging.info(f"🔧 开始管理网格订单: 账户={account_id}, 币种={symbol}")
                 managed = await self.manage_grid_orders(latest_order, account_id)
+
                 if managed:
+                    logging.info(
+                        f"✅ 网格订单管理成功，更新订单状态: 账户={account_id}, "
+                        f"订单={latest_order['order_id']}, 币种={symbol}, "
+                        f"方向={latest_order['side']}, 成交价={executed_price}"
+                    )
                     await self.db.update_order_by_id(
                         account_id,
                         latest_order["id"],
@@ -592,10 +698,17 @@ class PriceMonitoringTask:
                             "fill_time": fill_date_time,
                         },
                     )
+                    logging.info(f"🔄 开始订单配对和利润计算: 账户={account_id}")
                     await self.update_order_status(
                         latest_order, account_id, executed_price, fill_date_time, symbol
                     )
+                    logging.info(f"🛡️ 触发止损任务: 账户={account_id}")
                     await self.stop_loss_task.accounts_stop_loss_task(account_id)
+                else:
+                    logging.error(
+                        f"❌ 网格订单管理失败: 账户={account_id}, "
+                        f"订单={latest_order['order_id']}, 币种={symbol}"
+                    )
 
         except Exception as e:
             logging.error(f"❌ 账户 {account_id} 检查持仓失败: {e}", exc_info=True)
@@ -615,24 +728,40 @@ class PriceMonitoringTask:
         try:
             exchange = await get_exchange(self, account_id)
             if not exchange:
+                logging.error(
+                    f"❌ 订单配对失败：无法获取交易所实例 - 账户={account_id}"
+                )
                 return
 
+            logging.info(
+                f"🔄 开始匹配订单: 账户={account_id}, 币种={symbol}, "
+                f"订单ID={order['id'][:15]}..., 方向={order['side']}, 成交价={executed_price}"
+            )
             print("🔄 开始匹配订单")
-            logging.info(f"🔄 账户 {account_id} 开始匹配订单")
 
             side = "sell" if order["side"] == "buy" else "buy"
+            logging.debug(
+                f"🔍 查找配对订单: 账户={account_id}, 币种={order['info']['instId']}, "
+                f"成交价={executed_price}, 查找方向={side}"
+            )
             matched_order = await self.db.get_order_by_price_diff_v2(
                 account_id, order["info"]["instId"], executed_price, side
             )
-            logging.info(
-                f"配对订单: {matched_order['order_id'] if matched_order else '无'}"
-            )
+
+            if matched_order:
+                logging.info(
+                    f"✅ 找到配对订单: {matched_order['order_id'][:15]}..., "
+                    f"方向={matched_order['side']}, 价格={matched_order.get('executed_price', 'N/A')}"
+                )
+            else:
+                logging.info(f"📭 无配对订单: 账户={account_id}, 币种={symbol}")
 
             profit = 0
             group_id = ""
             market_precision = await get_market_precision(self, exchange, symbol)
 
             if matched_order:
+                logging.info(f"💰 开始计算配对利润: 账户={account_id}, 币种={symbol}")
                 qty = min(float(order["amount"]), float(matched_order["quantity"]))
                 contract_size = market_precision["contract_size"]
 
@@ -646,8 +775,12 @@ class PriceMonitoringTask:
                         * Decimal(str(contract_size))
                         * Decimal("0.99998")
                     )
+                    logging.info(
+                        f"💰 配对利润(卖单): 账户={account_id}, "
+                        f"卖价={executed_price}, 买价={matched_order['executed_price']}, "
+                        f"数量={qty}, 利润={profit}"
+                    )
                     print(f"📊 用户 {account_id} 配对利润 (buy): {profit}")
-                    logging.info(f"📊 用户 {account_id} 配对利润 (buy): {profit}")
 
                 elif order["side"] == "buy":
                     profit = (
@@ -659,17 +792,28 @@ class PriceMonitoringTask:
                         * Decimal(str(contract_size))
                         * Decimal("0.99998")
                     )
+                    logging.info(
+                        f"💰 配对利润(买单): 账户={account_id}, "
+                        f"卖价={matched_order['executed_price']}, 买价={executed_price}, "
+                        f"数量={qty}, 利润={profit}"
+                    )
                     print(f"📊 配对利润 用户 {account_id} (sell): {profit}")
-                    logging.info(f"📊 用户 {account_id} 配对利润 (sell): {profit}")
 
                 if profit != 0:
                     group_id = str(uuid.uuid4())
+                    logging.info(
+                        f"📦 创建配对组: 账户={account_id}, 组ID={group_id[:15]}..., 利润={profit}"
+                    )
                     await self.db.update_order_by_id(
                         account_id,
                         matched_order["order_id"],
                         {"profit": profit, "position_group_id": group_id},
                     )
 
+                logging.info(
+                    f"📝 更新当前订单配对信息: 账户={account_id}, "
+                    f"订单={order['id'][:15]}..., 利润={profit}, 组ID={group_id[:15] if group_id else 'N/A'}..."
+                )
                 await self.db.update_order_by_id(
                     account_id,
                     order["id"],
@@ -683,8 +827,11 @@ class PriceMonitoringTask:
                 )
 
         except Exception as e:
+            logging.error(
+                f"❌ 配对利润计算失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+                exc_info=True,
+            )
             print(f"❌ 配对利润计算失败: {e}")
-            logging.error(f"❌ 配对利润计算失败: {e}")
         finally:
             if exchange:
                 await exchange.close()
@@ -730,14 +877,27 @@ class PriceMonitoringTask:
                 return False
 
             if not positions:
-                print("🚫 网格下单：无持仓")
+                logging.warning(
+                    f"🚫 网格下单失败：无持仓 - 账户={account_id}, 币种={symbol}, "
+                    f"成交价={filled_price}, 市价={price}"
+                )
+                print(f"🚫 用户 {account_id} 网格下单：无持仓")
                 return True
 
             total_position_value = await get_total_positions(
                 self, account_id, symbol, "SWAP"
             )
             if total_position_value <= 0:
+                logging.warning(
+                    f"⚠️ 持仓价值为0，跳过网格下单: 账户={account_id}, 币种={symbol}, "
+                    f"持仓价值={total_position_value}"
+                )
                 return True
+
+            logging.info(
+                f"📊 网格下单准备: 账户={account_id}, 币种={symbol}, "
+                f"持仓价值={total_position_value}, 市价={price}, 网格步长={grid_step}"
+            )
 
             balance = await get_account_balance(exchange, symbol)
             # print(f"💰 账户余额: {balance}")
@@ -750,7 +910,6 @@ class PriceMonitoringTask:
                 account_id, symbol_tactics
             )
             if not tactics:
-                print(f"🚫 未找到策略: {account_id} {symbol_tactics}")
                 logging.error(f"🚫 未找到策略: {account_id} {symbol_tactics}")
                 return False
 
@@ -763,6 +922,7 @@ class PriceMonitoringTask:
                 * Decimal(market_precision["amount"])
                 * price
             )
+            logging.info(f"🗑️ 取消所有挂单: 账户={account_id}, 币种={symbol}")
             await cancel_all_orders(self, exchange, account_id, symbol)
 
             percent_list = await get_grid_percent_list(
@@ -771,11 +931,15 @@ class PriceMonitoringTask:
             buy_percent = percent_list.get("buy")
             sell_percent = percent_list.get("sell")
 
+            logging.info(
+                f"📊 网格比例配置: 账户={account_id}, 方向={signal['direction']}, "
+                f"买单比例={buy_percent}, 卖单比例={sell_percent}"
+            )
+
             buy_size = (total_position_value * Decimal(str(buy_percent))).quantize(
                 Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
             )
             if buy_size < market_precision["min_amount"]:
-                print(f"📉 用户 {account_id} 买单过小: {buy_size}")
                 logging.info(f"📉 用户 {account_id} 买单过小: {buy_size}")
                 return False
 
@@ -783,7 +947,6 @@ class PriceMonitoringTask:
                 Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
             )
             if sell_size < market_precision["min_amount"]:
-                print(f"📉 用户 {account_id} 卖单过小: {sell_size}")
                 logging.info(f"📉 用户 {account_id} 卖单过小: {sell_size}")
                 return False
 
@@ -794,7 +957,6 @@ class PriceMonitoringTask:
                 - sell_size * market_precision["amount"] * sell_price
             )
             if buy_total >= max_position:
-                print(f"⚠️ 用户 {account_id} 超过最大持仓，取消挂单")
                 logging.info(f"⚠️ 用户 {account_id} 超过最大持仓，取消挂单")
                 return False
 
@@ -804,15 +966,28 @@ class PriceMonitoringTask:
                 pos_side = "long"
             if side == "sell" and signal["size"] == -1:  # 开空
                 pos_side = "short"
-            # print("📈 开仓方向:", pos_side)
+
+            logging.info(
+                f"📈 确定开仓方向: 账户={account_id}, 信号方向={signal['direction']}, "
+                f"信号大小={signal['size']}, 持仓方向={pos_side}"
+            )
 
             buy_order = None
             sell_order = None
 
             buy_client_order_id = ""
             sell_client_order_id = ""
+
+            logging.info(
+                f"📝 开始下网格订单: 账户={account_id}, 币种={symbol}, "
+                f"买单={buy_size}@{buy_price}, 卖单={sell_size}@{sell_price}"
+            )
+
             if buy_size > 0:
                 buy_client_order_id = await get_client_order_id()
+                logging.debug(
+                    f"📝 下买单: 账户={account_id}, 客户端订单ID={buy_client_order_id}"
+                )
                 buy_order = await open_position(
                     self,
                     account_id,
@@ -828,6 +1003,9 @@ class PriceMonitoringTask:
 
             if sell_size > 0:
                 sell_client_order_id = await get_client_order_id()
+                logging.debug(
+                    f"📝 下卖单: 账户={account_id}, 客户端订单ID={sell_client_order_id}"
+                )
                 sell_order = await open_position(
                     self,
                     account_id,
@@ -874,9 +1052,6 @@ class PriceMonitoringTask:
                         "position_group_id": "",
                     }
                 )
-                print(
-                    f"✅ 用户 {account_id} 已挂单: 买{buy_price}({buy_size}) 卖{sell_price}({sell_size})"
-                )
                 logging.info(
                     f"✅ 用户 {account_id} 已挂单: 买{buy_price}({buy_size}) 卖{sell_price})"
                 )
@@ -888,8 +1063,10 @@ class PriceMonitoringTask:
                 return False
 
         except Exception as e:
-            # print(f"❌ 网格管理失败: {e}")
-            logging.error(f"❌ 用户 {account_id} 网格管理失败: {e}")
+            logging.error(
+                f"❌ 网格管理失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+                exc_info=True,
+            )
             traceback.print_exc()
             return False
         finally:
