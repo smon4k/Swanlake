@@ -11,6 +11,7 @@
         <el-option v-for="(item, index) in accountList" :key="index" :label="item.name" :value="item.id">
         </el-option>
       </el-select>
+      &nbsp;&nbsp;
       <!-- 添加成交状态 -->
       <el-select v-model="status" clearable placeholder="选择成交状态" @change="statusChange" @clear="statusClear">
         <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value">
