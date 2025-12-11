@@ -414,6 +414,9 @@ class PriceMonitoringTask:
                         f"⚠️ 订单长时间未成交: 账户={account_id}, "
                         f"订单={order['order_id'][:15]}..., 已等待={time_diff_minutes:.1f}分钟"
                     )
+                    await self.db.update_order_by_id(
+                        account_id, order_info["id"], {"status": "canceled"}
+                    )
 
                 return True
 
