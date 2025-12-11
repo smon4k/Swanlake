@@ -33,7 +33,7 @@ log_handler = TimedRotatingFileHandler(
 )
 log_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.addHandler(log_handler)
 logger.addFilter(InfoAndErrorFilter())
 
@@ -49,14 +49,19 @@ class OKXTradingBot:
         # ✅ 创建全局API限流器
         self.api_limiter = SimpleRateLimiter(max_requests=60, time_window=2.0)
 
-        self.stop_loss_task = StopLossTask(
-            config, self.db, self.signal_lock, self.api_limiter
-        )
-
         # 🔐 新增：记录哪些账户正在被 signal 处理
         self.busy_accounts: set[int] = set()
         self.account_locks = defaultdict(asyncio.Lock)  # 每个账户独立锁
         self.market_precision_cache = {}  # 市场精度缓存
+
+        self.stop_loss_task = StopLossTask(
+            config,
+            self.db,
+            self.signal_lock,
+            self.api_limiter,
+            self.account_locks,
+            self.busy_accounts,
+        )
 
         self.signal_task = SignalProcessingTask(
             config,

@@ -439,7 +439,6 @@ async def cancel_all_orders(
     exchange,
     account_id: int,
     symbol: str,
-    side: str = "all",
     cancel_conditional: bool = False,
 ):
     """
@@ -520,8 +519,7 @@ async def cancel_all_orders(
 
     try:
         logging.info(
-            f"🗑️ 开始取消订单: 账户={account_id}, 币种={symbol}, "
-            f"方向={side}, 包含条件单={cancel_conditional}"
+            f"🗑️ 开始取消订单: 账户={account_id}, 币种={symbol}, 包含条件单={cancel_conditional}"
         )
 
         # 1️⃣ 取消普通订单（永续合约）

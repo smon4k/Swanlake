@@ -1,5 +1,6 @@
 import asyncio
 from decimal import Decimal
+from datetime import datetime, timedelta
 import logging
 from database import Database
 from trading_bot_config import TradingBotConfig
@@ -21,6 +22,8 @@ class StopLossTask:
         db: Database,
         signal_lock: asyncio.Lock,
         api_limiter=None,
+        account_locks=None,
+        busy_accounts=None,
     ):
         self.db = db
         self.config = config
@@ -28,6 +31,8 @@ class StopLossTask:
         self.signal_lock = signal_lock
         self.api_limiter = api_limiter  # 全局API限流器
         self.market_precision_cache = {}  # 市场精度缓存
+        self.account_locks = account_locks  # 账户锁字典
+        self.busy_accounts = busy_accounts  # 忙碌账户集合
 
     async def stop_loss_task(self):
         """价格监控任务"""
@@ -171,24 +176,114 @@ class StopLossTask:
                                     order_info["lastUpdateTimestamp"]
                                 )  # 格式化成交时间
 
+                                # 如果止损单状态是 effective（已触发），检查持仓是否已被平掉
+                                final_status = order_info["info"]["state"]
+                                if order_state == "effective":
+                                    # 检查当前持仓，如果持仓已被平掉，说明止损单已成交
+                                    try:
+                                        current_positions_check = (
+                                            await exchange.fetch_positions(
+                                                "", {"instType": "SWAP"}
+                                            )
+                                        )
+                                        symbol_positions_check = [
+                                            p
+                                            for p in current_positions_check
+                                            if p["symbol"] == symbol
+                                            and p["contracts"] != 0
+                                        ]
+                                        # 如果当前无持仓，说明止损单已生效，更新状态为 filled
+                                        if not symbol_positions_check:
+                                            final_status = "filled"
+                                            logging.info(
+                                                f"✅ 止损单已生效（持仓已平）: 账户={account_id}, "
+                                                f"订单={order_sl_order['order_id'][:15]}..., 币种={symbol}"
+                                            )
+                                    except Exception as e:
+                                        logging.warning(
+                                            f"⚠️ 检查持仓失败，使用原始状态: 账户={account_id}, 错误={e}"
+                                        )
+
                                 logging.info(
                                     f"📝 更新止损单状态: 账户={account_id}, "
                                     f"订单={order_sl_order.get('order_id')[:15]}..., "
-                                    f"新状态={order_info['info']['state']}, 触发价={order_info['info'].get('slTriggerPx', 'N/A')}, "
+                                    f"原始状态={order_info['info']['state']}, 最终状态={final_status}, "
+                                    f"触发价={order_info['info'].get('slTriggerPx', 'N/A')}, "
                                     f"更新时间={fill_date_time}"
                                 )
 
-                                await self.db.update_order_by_id(
-                                    account_id,
-                                    order_sl_order["order_id"],
-                                    {
-                                        "status": order_info["info"]["state"],
+                                # 更新数据库状态
+                                try:
+                                    update_data = {
+                                        "status": final_status,
                                         "executed_price": float(
                                             order_info["info"]["slTriggerPx"]
                                         ),
                                         "fill_time": fill_date_time,
-                                    },
+                                    }
+                                    await self.db.update_order_by_id(
+                                        account_id,
+                                        order_sl_order["order_id"],
+                                        update_data,
+                                    )
+                                    logging.info(
+                                        f"✅ 止损单状态已更新: 账户={account_id}, "
+                                        f"订单={order_sl_order['order_id'][:15]}..., "
+                                        f"状态={final_status}"
+                                    )
+                                except Exception as e:
+                                    logging.error(
+                                        f"❌ 更新止损单状态失败: 账户={account_id}, "
+                                        f"订单={order_sl_order['order_id'][:15]}..., "
+                                        f"错误={e}",
+                                        exc_info=True,
+                                    )
+                                    # 即使更新失败，也继续后续流程
+
+                                # 🔐 使用账户锁，防止与新信号处理冲突
+                                lock = (
+                                    self.account_locks.get(account_id)
+                                    if self.account_locks
+                                    else None
                                 )
+                                if lock:
+                                    async with lock:
+                                        # 检查账户是否正在被信号处理
+                                        if (
+                                            self.busy_accounts
+                                            and account_id in self.busy_accounts
+                                        ):
+                                            logging.info(
+                                                f"⏸️ 账户 {account_id} 正在处理信号，跳过撤销挂单"
+                                            )
+                                        else:
+                                            # 再次确认无持仓
+                                            try:
+                                                current_positions = (
+                                                    await exchange.fetch_positions(
+                                                        "", {"instType": "SWAP"}
+                                                    )
+                                                )
+                                                symbol_positions = [
+                                                    p
+                                                    for p in current_positions
+                                                    if p["symbol"] == symbol
+                                                    and p["contracts"] != 0
+                                                ]
+
+                                                if not symbol_positions:
+                                                    # 无持仓，撤销反向的旧网格挂单
+                                                    await self._cancel_opposite_orders(
+                                                        account_id,
+                                                        exchange,
+                                                        full_symbol,
+                                                        symbol,
+                                                        sl_side,
+                                                    )
+                                            except Exception as e:
+                                                logging.error(
+                                                    f"❌ 检查持仓或撤销订单失败: 账户={account_id}, 错误={e}"
+                                                )
 
                                 logging.info(
                                     f"🔄 准备重新创建止损单: 账户={account_id}, 币种={full_symbol}"
@@ -540,3 +635,185 @@ class StopLossTask:
             return None
         finally:
             await exchange.close()
+
+    async def _cancel_opposite_orders(
+        self,
+        account_id: int,
+        exchange,
+        full_symbol: str,
+        symbol: str,
+        stop_loss_side: str,
+    ):
+        """
+        撤销反向的旧网格挂单
+
+        Args:
+            account_id: 账户ID
+            exchange: 交易所实例
+            full_symbol: 完整交易对（如 BTC-USDT-SWAP）
+            symbol: 交易对（如 BTC/USDT:USDT）
+            stop_loss_side: 止损单方向（buy/sell）
+        """
+        try:
+            # 1. 查询该币种的所有 limit 挂单
+            pending_orders = await self.db.get_active_orders(account_id)
+            if not pending_orders:
+                return
+
+            symbol_orders = [
+                o
+                for o in pending_orders
+                if o["symbol"] == full_symbol and o["order_type"] == "limit"
+            ]
+
+            if not symbol_orders:
+                logging.debug(f"📭 账户 {account_id} 币种 {full_symbol} 无 limit 挂单")
+                return
+
+            # 2. 找到反方向的订单
+            opposite_side = "sell" if stop_loss_side == "buy" else "buy"
+            opposite_orders = [o for o in symbol_orders if o["side"] == opposite_side]
+
+            if not opposite_orders:
+                logging.debug(f"📭 账户 {account_id} 币种 {full_symbol} 无反向挂单")
+                return
+
+            # 3. 检查订单时间戳，只撤销"旧的"网格挂单（创建时间 > 5分钟）
+            now = datetime.now()
+            time_threshold = timedelta(minutes=5)
+            canceled_count = 0
+
+            for order in opposite_orders:
+                order_time = order.get("timestamp")
+                if not order_time:
+                    # 没有时间戳，跳过（可能是旧数据）
+                    logging.warning(
+                        f"⚠️ 订单无时间戳，跳过: 账户={account_id}, "
+                        f"订单={order['order_id'][:15]}..."
+                    )
+                    continue
+
+                # 解析时间戳
+                try:
+                    if isinstance(order_time, str):
+                        order_time = datetime.strptime(order_time, "%Y-%m-%d %H:%M:%S")
+                    elif isinstance(order_time, datetime):
+                        pass
+                    else:
+                        logging.warning(
+                            f"⚠️ 订单时间戳格式异常: 账户={account_id}, "
+                            f"订单={order['order_id'][:15]}..., 时间戳={order_time}"
+                        )
+                        continue
+                except Exception as e:
+                    logging.error(
+                        f"❌ 解析订单时间戳失败: 账户={account_id}, "
+                        f"订单={order['order_id'][:15]}..., 错误={e}"
+                    )
+                    continue
+
+                # 计算订单存在时长
+                order_age = now - order_time
+                age_minutes = order_age.total_seconds() / 60
+
+                # 只撤销创建时间超过5分钟的订单（旧的网格挂单）
+                if order_age > time_threshold:
+                    logging.info(
+                        f"🔄 撤销旧的网格挂单: 账户={account_id}, "
+                        f"订单={order['order_id'][:15]}..., "
+                        f"方向={order['side']}, 创建时间={order_time.strftime('%Y-%m-%d %H:%M:%S')}, "
+                        f"已存在={age_minutes:.1f}分钟"
+                    )
+
+                    try:
+                        # ✅ 调用全局API限流器
+                        if self.api_limiter:
+                            await self.api_limiter.check_and_wait()
+
+                        # 撤销订单
+                        cancel_result = await exchange.cancel_order(
+                            order["order_id"], symbol
+                        )
+
+                        if cancel_result.get("info", {}).get("sCode") == "0":
+                            # 更新数据库状态
+                            await self.db.update_order_by_id(
+                                account_id,
+                                order["order_id"],
+                                {"status": "canceled"},
+                            )
+                            canceled_count += 1
+                            logging.info(
+                                f"✅ 已撤销反向挂单: 账户={account_id}, "
+                                f"订单={order['order_id'][:15]}..."
+                            )
+                        else:
+                            error_msg = cancel_result.get("info", {}).get(
+                                "sMsg", "未知错误"
+                            )
+                            error_code = cancel_result.get("info", {}).get("sCode", "")
+                            # 订单已成交、取消或不存在（51400错误码）
+                            if (
+                                error_code == "51400"
+                                or "filled" in error_msg.lower()
+                                or "canceled" in error_msg.lower()
+                                or "does not exist" in error_msg.lower()
+                            ):
+                                logging.info(
+                                    f"ℹ️ 订单已不存在或已处理，更新数据库状态: 账户={account_id}, "
+                                    f"订单={order['order_id'][:15]}..., 错误={error_msg}"
+                                )
+                                await self.db.update_order_by_id(
+                                    account_id,
+                                    order["order_id"],
+                                    {"status": "canceled"},
+                                )
+                                canceled_count += 1
+                            else:
+                                logging.warning(
+                                    f"⚠️ 撤销订单失败: 账户={account_id}, "
+                                    f"订单={order['order_id'][:15]}..., 错误={error_msg}"
+                                )
+                    except Exception as e:
+                        error_msg = str(e)
+                        # 如果订单不存在（已被交易所删除或过期）
+                        if (
+                            "51603" in error_msg
+                            or "51400" in error_msg
+                            or "Order does not exist" in error_msg
+                            or "filled" in error_msg.lower()
+                            or "canceled" in error_msg.lower()
+                        ):
+                            logging.info(
+                                f"ℹ️ 订单已不存在或已处理，更新数据库状态: 账户={account_id}, "
+                                f"订单={order['order_id'][:15]}..."
+                            )
+                            await self.db.update_order_by_id(
+                                account_id,
+                                order["order_id"],
+                                {"status": "canceled"},
+                            )
+                            canceled_count += 1
+                        else:
+                            logging.error(
+                                f"❌ 撤销订单异常: 账户={account_id}, "
+                                f"订单={order['order_id'][:15]}..., 错误={e}"
+                            )
+                else:
+                    logging.info(
+                        f"⏭️ 跳过新订单: 账户={account_id}, "
+                        f"订单={order['order_id'][:15]}..., "
+                        f"方向={order['side']}, 创建时间={order_time.strftime('%Y-%m-%d %H:%M:%S')}, "
+                        f"仅存在={age_minutes:.1f}分钟（可能是新开单）"
+                    )
+
+            if canceled_count > 0:
+                logging.info(
+                    f"✅ 账户 {account_id} 币种 {full_symbol} 已撤销 {canceled_count} 个反向挂单"
+                )
+
+        except Exception as e:
+            logging.error(
+                f"❌ 撤销反向挂单失败: 账户={account_id}, 币种={full_symbol}, 错误={e}",
+                exc_info=True,
+            )

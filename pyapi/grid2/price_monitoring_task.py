@@ -568,6 +568,14 @@ class PriceMonitoringTask:
                 logging.warning(f"⏱️ 账户 {account_id} 订单批量查询总超时(15秒)")
 
             # --------------------------
+            # 2.5 异常状态检测：无持仓但有挂单和止损单
+            # --------------------------
+            # 检查是否有异常状态：无持仓 + 有挂单 + 有止损单
+            await self._check_abnormal_state(
+                account_id, exchange, positions_dict, open_orders
+            )
+
+            # --------------------------
             # 3. 遍历订单（逻辑不变）
             # --------------------------
             latest_fill_time = 0
@@ -1074,6 +1082,241 @@ class PriceMonitoringTask:
             return False
         finally:
             await exchange.close()
+
+    async def _check_abnormal_state(
+        self,
+        account_id: int,
+        exchange,
+        positions_dict: dict,
+        open_orders: list,
+    ):
+        """
+        检测异常状态：无持仓但有挂单和止损单
+
+        Args:
+            account_id: 账户ID
+            exchange: 交易所实例
+            positions_dict: 持仓字典 {symbol: [positions]}
+            open_orders: 未成交订单列表
+        """
+        try:
+            # 按币种分组检查
+            symbols_to_check = set()
+            for order in open_orders:
+                symbol = order["symbol"]
+                positions = positions_dict.get(symbol, [])
+                # 检查该币种是否有持仓
+                has_position = any(p.get("contracts", 0) != 0 for p in positions if p)
+                if not has_position:
+                    symbols_to_check.add(symbol)
+
+            if not symbols_to_check:
+                return
+
+            # 对每个无持仓的币种进行检查
+            for symbol in symbols_to_check:
+                # 检查是否有 limit 挂单
+                symbol_limit_orders = [
+                    o
+                    for o in open_orders
+                    if o["symbol"] == symbol and o["order_type"] == "limit"
+                ]
+
+                if not symbol_limit_orders:
+                    continue
+
+                # 检查是否有止损单
+                try:
+                    stop_loss_order = await self.db.get_unclosed_orders(
+                        account_id, symbol, "conditional"
+                    )
+                except Exception as e:
+                    logging.error(
+                        f"❌ 查询止损单失败: 账户={account_id}, 币种={symbol}, 错误={e}"
+                    )
+                    stop_loss_order = None
+
+                if stop_loss_order:
+                    logging.warning(
+                        f"🚨 异常状态检测: 账户={account_id}, 币种={symbol}, "
+                        f"无持仓但有挂单({len(symbol_limit_orders)}个)和止损单，开始清理..."
+                    )
+
+                    # 检查账户是否正在被信号处理
+                    if account_id in self.busy_accounts:
+                        logging.info(f"⏸️ 账户 {account_id} 正在处理信号，跳过清理")
+                        continue
+
+                    # 再次确认无持仓（双重检查）
+                    try:
+                        if self.api_limiter:
+                            await self.api_limiter.check_and_wait()
+
+                        current_positions = await exchange.fetch_positions(
+                            "", {"instType": "SWAP"}
+                        )
+                        symbol_positions = [
+                            p
+                            for p in current_positions
+                            if p["symbol"] == symbol and p["contracts"] != 0
+                        ]
+
+                        if symbol_positions:
+                            logging.info(
+                                f"ℹ️ 账户 {account_id} 币种 {symbol} 有持仓，跳过清理"
+                            )
+                            continue
+                    except Exception as e:
+                        logging.error(
+                            f"❌ 再次检查持仓失败: 账户={account_id}, 币种={symbol}, 错误={e}"
+                        )
+                        continue
+
+                    # 🔍 在撤销止损单之前，先检查并更新止损单状态
+                    try:
+                        if self.api_limiter:
+                            await self.api_limiter.check_and_wait()
+
+                        # 查询止损单的实际状态
+                        # 将 symbol 转换为交易所格式（BTC-USDT-SWAP -> BTC/USDT:USDT）
+                        exchange_symbol = (
+                            symbol.replace("-SWAP", "").replace("-", "/") + ":USDT"
+                        )
+
+                        logging.info(
+                            f"🔍 查询止损单状态: 账户={account_id}, "
+                            f"订单ID={stop_loss_order['order_id'][:15]}..., 币种={symbol}"
+                        )
+
+                        stop_loss_order_info = await fetch_order_with_retry(
+                            exchange,
+                            account_id,
+                            stop_loss_order["order_id"],
+                            exchange_symbol,
+                            {"instType": "SWAP", "trigger": "true"},
+                            retries=2,
+                            api_limiter=self.api_limiter,
+                        )
+
+                        if stop_loss_order_info:
+                            order_state = stop_loss_order_info["info"]["state"]
+                            logging.info(
+                                f"📊 止损单状态: 账户={account_id}, "
+                                f"订单={stop_loss_order['order_id'][:15]}..., 状态={order_state}"
+                            )
+
+                            # 如果止损单状态是 effective（已触发）或其他异常状态，更新数据库
+                            if order_state in [
+                                "pause",
+                                "effective",
+                                "canceled",
+                                "order_failed",
+                                "partially_failed",
+                            ]:
+                                # 如果状态是 effective，检查持仓是否已被平掉
+                                final_status = order_state
+                                if order_state == "effective":
+                                    # 无持仓说明止损单已生效
+                                    final_status = "filled"
+                                    logging.info(
+                                        f"✅ 止损单已生效（持仓已平）: 账户={account_id}, "
+                                        f"订单={stop_loss_order['order_id'][:15]}..., 币种={symbol}"
+                                    )
+
+                                fill_date_time = await milliseconds_to_local_datetime(
+                                    stop_loss_order_info.get("lastUpdateTimestamp", 0)
+                                )
+
+                                logging.info(
+                                    f"📝 更新止损单状态: 账户={account_id}, "
+                                    f"订单={stop_loss_order['order_id'][:15]}..., "
+                                    f"原始状态={order_state}, 最终状态={final_status}, "
+                                    f"触发价={stop_loss_order_info['info'].get('slTriggerPx', 'N/A')}"
+                                )
+
+                                # 更新数据库状态
+                                try:
+                                    await self.db.update_order_by_id(
+                                        account_id,
+                                        stop_loss_order["order_id"],
+                                        {
+                                            "status": final_status,
+                                            "executed_price": float(
+                                                stop_loss_order_info["info"].get(
+                                                    "slTriggerPx", 0
+                                                )
+                                            ),
+                                            "fill_time": fill_date_time,
+                                        },
+                                    )
+                                    logging.info(
+                                        f"✅ 止损单状态已更新: 账户={account_id}, "
+                                        f"订单={stop_loss_order['order_id'][:15]}..., "
+                                        f"状态={final_status}"
+                                    )
+                                except Exception as e:
+                                    logging.error(
+                                        f"❌ 更新止损单状态失败: 账户={account_id}, "
+                                        f"订单={stop_loss_order['order_id'][:15]}..., "
+                                        f"错误={e}",
+                                        exc_info=True,
+                                    )
+                    except Exception as e:
+                        logging.warning(
+                            f"⚠️ 查询止损单状态失败，继续清理: 账户={account_id}, "
+                            f"订单={stop_loss_order['order_id'][:15]}..., 错误={e}"
+                        )
+                        # 即使查询失败，也继续清理流程
+
+                    # 使用 cancel_all_orders 撤销所有挂单和止损单
+                    # 将 symbol 转换为交易所需要的格式（BTC-USDT-SWAP -> BTC/USDT:USDT）
+                    exchange_symbol = (
+                        symbol.replace("-SWAP", "").replace("-", "/") + ":USDT"
+                    )
+
+                    logging.info(
+                        f"🗑️ 开始清理异常状态: 账户={account_id}, 币种={symbol}, "
+                        f"挂单数={len(symbol_limit_orders)}, 有止损单=True"
+                    )
+
+                    # 撤销所有普通订单和条件单（止损单）
+                    await cancel_all_orders(
+                        self, exchange, account_id, exchange_symbol, True
+                    )
+
+                    # ✅ 【新增】直接更新所有 limit 挂单的数据库状态为 canceled
+                    logging.info(
+                        f"📝 更新所有 limit 挂单状态为 canceled: 账户={account_id}, "
+                        f"币种={symbol}, 挂单数={len(symbol_limit_orders)}"
+                    )
+
+                    for limit_order in symbol_limit_orders:
+                        try:
+                            await self.db.update_order_by_id(
+                                account_id,
+                                limit_order["order_id"],
+                                {"status": "canceled"},
+                            )
+                            logging.debug(
+                                f"✅ Limit 挂单已更新为 canceled: "
+                                f"账户={account_id}, 订单={limit_order['order_id'][:15]}..."
+                            )
+                        except Exception as e:
+                            logging.error(
+                                f"❌ 更新 limit 挂单状态失败: "
+                                f"账户={account_id}, 订单={limit_order['order_id'][:15]}..., 错误={e}",
+                                exc_info=True,
+                            )
+
+                    logging.info(
+                        f"✅ 账户 {account_id} 币种 {symbol} 异常状态已清理完成"
+                    )
+
+        except Exception as e:
+            logging.error(
+                f"❌ 异常状态检测失败: 账户={account_id}, 错误={e}",
+                exc_info=True,
+            )
 
     # 其他方法保持不变（get_order_info, check_and_close_position 等）
     async def get_order_info(self, account_id: int, order_id: str):
