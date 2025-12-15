@@ -48,6 +48,34 @@ class StopLossTask:
 
     # 检查单个账户的止损
     async def accounts_stop_loss_task(self, account_id: int):
+        """检查单个账户的止损（带账户锁保护，防止重复创建）"""
+        # 🔐 添加账户锁保护，防止与信号处理任务冲突
+        lock = self.account_locks.get(account_id) if self.account_locks else None
+
+        if lock:
+            # 检查锁是否被占用
+            if lock.locked():
+                logging.info(
+                    f"⏸️ 账户 {account_id} 正在被其他任务处理（锁已被占用），跳过止损检查"
+                )
+                return
+
+            # 获取锁并执行检查
+            async with lock:
+                # 再次检查账户是否正在被信号处理占用
+                if self.busy_accounts and account_id in self.busy_accounts:
+                    logging.info(f"⏸️ 账户 {account_id} 正在处理信号，跳过止损检查")
+                    return
+
+                # 执行实际的止损检查
+                await self._do_stop_loss_check(account_id)
+        else:
+            # 无锁情况下直接执行（向后兼容）
+            logging.debug(f"⚠️ 账户 {account_id} 无锁保护，直接执行止损检查")
+            await self._do_stop_loss_check(account_id)
+
+    async def _do_stop_loss_check(self, account_id: int):
+        """实际的止损检查逻辑（从 accounts_stop_loss_task 中提取）"""
         try:
             # print(f"🛡️ 开始检查止损: 账户={account_id}")
             logging.info(f"🛡️ 开始检查止损: 账户={account_id}")
@@ -366,7 +394,7 @@ class StopLossTask:
             logging.error(
                 f"❌ 止损任务失败: 账户={account_id}, 错误={e}", exc_info=True
             )
-            print(f"止损任务失败: {e}")
+            # print(f"止损任务失败: {e}")
             return False
         finally:
             await exchange.close()
@@ -444,6 +472,17 @@ class StopLossTask:
                 f"📝 创建止损单: 用户={account_id}, 币种={full_symbol}, 方向={side}, 数量={amount}, 止损价={price:.2f}, 市价={float(market_price):.2f}"
             )
 
+            # 🔒 二次确认：创建前再次检查是否已有止损单（双重检查，防止并发重复创建）
+            double_check_order = await self.db.get_unclosed_orders(
+                account_id, full_symbol, "conditional"
+            )
+            if double_check_order:
+                logging.warning(
+                    f"⚠️ 二次检查发现已有止损单，取消创建: 账户={account_id}, "
+                    f"币种={full_symbol}, 已有订单ID={double_check_order['order_id'][:15]}..."
+                )
+                return None
+
             params = {
                 "posSide": pos_side,  # 持仓方向
                 "attachAlgoClOrdId": client_order_id,  # 客户端订单ID
@@ -469,7 +508,7 @@ class StopLossTask:
                     f"✅ 止损单创建成功: 账户={account_id}, 订单ID={order['id'][:15]}..., "
                     f"币种={full_symbol}, 方向={side}, 止损价={price:.2f}, 数量={amount}"
                 )
-                print(f"止损单创建成功: {account_id} {order['id']}")
+                # print(f"止损单创建成功: {account_id} {order['id']}")
                 await self.db.add_order(
                     {
                         "account_id": account_id,
