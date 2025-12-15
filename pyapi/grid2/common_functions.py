@@ -151,63 +151,97 @@ async def open_position(
     client_order_id: str = None,
     is_reduce_only: bool = False,
 ):
-    """开仓、平仓下单"""
-    exchange = await get_exchange(self, account_id)
-    if not exchange:
-        logging.error(f"❌ 开仓失败：无法获取交易所实例 - 账户={account_id}")
-        return None
+    """开仓、平仓下单（带重试机制）"""
+    max_retries = 3
+    retry_delay = 0.5  # 初始延迟0.5秒
 
-    params = {
-        "posSide": pos_side,
-        "tdMode": "cross",
-        "clOrdId": client_order_id,
-        "reduceOnly": is_reduce_only,
-    }
-
-    logging.info(
-        f"📝 准备下单: 账户={account_id}, 币种={symbol}, 方向={side}, "
-        f"持仓方向={pos_side}, 数量={amount}, 价格={price}, "
-        f"订单类型={order_type}, 仅减仓={is_reduce_only}"
-    )
-
-    try:
-        # ✅ 调用全局API限流器
-        if hasattr(self, "api_limiter") and self.api_limiter:
-            await self.api_limiter.check_and_wait()
-
-        order = await exchange.create_order(
-            symbol=symbol,
-            type=order_type,
-            side=side,
-            amount=float(amount),
-            price=price,
-            params=params,
-        )
-
-        if order["info"].get("sCode") == "0":
-            order_id = order.get("id", "N/A")
-            logging.info(
-                f"✅ 下单成功: 账户={account_id}, 订单ID={order_id}, "
-                f"币种={symbol}, 方向={side}, 数量={amount}, 价格={price}"
-            )
-            return order
-        else:
-            error_msg = order["info"].get("sMsg", "未知错误")
-            error_code = order["info"].get("sCode", "N/A")
-            logging.error(
-                f"❌ 下单失败: 账户={account_id}, 币种={symbol}, "
-                f"错误码={error_code}, 错误信息={error_msg}"
-            )
-            print(f"开仓失败: {error_msg}")
+    for attempt in range(max_retries):
+        exchange = await get_exchange(self, account_id)
+        if not exchange:
+            logging.error(f"❌ 开仓失败：无法获取交易所实例 - 账户={account_id}")
             return None
-    except Exception as e:
-        logging.error(
-            f"❌ 下单异常: 账户={account_id}, 币种={symbol}, " f"方向={side}, 错误={e}",
-            exc_info=True,
-        )
-        return None
-    finally:
-        await exchange.close()  # ✅ 用完就关
+
+        params = {
+            "posSide": pos_side,
+            "tdMode": "cross",
+            "clOrdId": client_order_id,
+            "reduceOnly": is_reduce_only,
+        }
+
+        if attempt == 0:  # 只在第一次尝试时记录日志
+            logging.info(
+                f"📝 准备下单: 账户={account_id}, 币种={symbol}, 方向={side}, "
+                f"持仓方向={pos_side}, 数量={amount}, 价格={price}, "
+                f"订单类型={order_type}, 仅减仓={is_reduce_only}"
+            )
+
+        try:
+            # ✅ 调用全局API限流器
+            if hasattr(self, "api_limiter") and self.api_limiter:
+                await self.api_limiter.check_and_wait()
+
+            order = await exchange.create_order(
+                symbol=symbol,
+                type=order_type,
+                side=side,
+                amount=float(amount),
+                price=price,
+                params=params,
+            )
+
+            if order["info"].get("sCode") == "0":
+                order_id = order.get("id", "N/A")
+                logging.info(
+                    f"✅ 下单成功: 账户={account_id}, 订单ID={order_id}, "
+                    f"币种={symbol}, 方向={side}, 数量={amount}, 价格={price}"
+                )
+                return order
+            else:
+                error_msg = order["info"].get("sMsg", "未知错误")
+                error_code = order["info"].get("sCode", "N/A")
+
+                # 检查是否是频率限制错误
+                if error_code == "50011" and attempt < max_retries - 1:
+                    wait_time = retry_delay * (2**attempt)  # 指数退避：0.5s, 1s, 2s
+                    logging.warning(
+                        f"⚠️ 账户 {account_id} 下单触发频率限制，{wait_time:.1f}秒后重试 (尝试 {attempt+1}/{max_retries})"
+                    )
+                    await asyncio.sleep(wait_time)
+                    continue  # 继续重试
+
+                logging.error(
+                    f"❌ 下单失败: 账户={account_id}, 币种={symbol}, "
+                    f"错误码={error_code}, 错误信息={error_msg}"
+                )
+                logging.error(
+                    f"开仓失败: {account_id} {order['info'].get('data', [{}])[0].get('sCode', 'N/A')} {error_msg}"
+                )
+                return None
+
+        except Exception as e:
+            error_msg = str(e)
+            # 检查是否是频率限制错误
+            if (
+                "50011" in error_msg or "Too Many Requests" in error_msg
+            ) and attempt < max_retries - 1:
+                wait_time = retry_delay * (2**attempt)  # 指数退避
+                logging.warning(
+                    f"⚠️ 账户 {account_id} 下单触发频率限制，{wait_time:.1f}秒后重试 (尝试 {attempt+1}/{max_retries})"
+                )
+                await asyncio.sleep(wait_time)
+                continue  # 继续重试
+
+            logging.error(
+                f"❌ 下单异常: 账户={account_id}, 币种={symbol}, 方向={side}, 错误={e}",
+                exc_info=True,
+            )
+            return None
+        finally:
+            await exchange.close()  # ✅ 用完就关
+
+    # 所有重试都失败
+    logging.error(f"❌ 账户 {account_id} 下单失败：已达到最大重试次数 {max_retries}")
+    return None
 
 
 # 获取账户余额

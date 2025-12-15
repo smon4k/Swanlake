@@ -148,8 +148,9 @@ class PriceMonitoringTask:
         # 🎯 优先级队列（方案3）
         self.priority_queue = PriorityAccountQueue()
         self.round_counter = 0  # 轮次计数器
-        self.priority_update_interval = 8  # 每8轮更新一次优先级
-        self.low_priority_check_interval = 8  # 低优先级账户每8轮检查一次
+        self.priority_update_interval = 3  # 每3轮更新一次优先级（20账户优化）
+        self.low_priority_check_interval = 2  # 低优先级账户每2轮检查一次（20账户优化）
+        self._skip_count = 0  # 连续跳过计数器（用于优化日志）
 
         # 📊 统计信息
         self.stats = {
@@ -227,10 +228,28 @@ class PriceMonitoringTask:
                 )
 
                 if not accounts_to_check:
-                    logging.info("📭 本轮无需检查的账户，跳过")
+                    # 动态调整：无账户检查时，缩短睡眠时间快速进入下一轮
+                    self._skip_count += 1
+                    rounds_until_next_check = self.low_priority_check_interval - (
+                        self.round_counter % self.low_priority_check_interval
+                    )
+                    sleep_time = 1.0  # 空转时只睡眠1秒，而不是完整的check_interval
+
+                    # 只在连续跳过多次时记录日志，减少噪音
+                    if self._skip_count % 5 == 1:  # 每5次记录一次
+                        logging.info(
+                            f"📭 无需检查的账户，{rounds_until_next_check}轮后检查 "
+                            f"(已连续跳过 {self._skip_count} 次)"
+                        )
+
                     self.round_counter += 1
-                    await asyncio.sleep(self.config.check_interval)
+                    await asyncio.sleep(sleep_time)
                     continue
+
+                # 重置跳过计数器（有账户需要检查时）
+                if self._skip_count > 0:
+                    logging.info(f"✅ 恢复检查，共跳过了 {self._skip_count} 轮")
+                    self._skip_count = 0
 
                 # 记录本轮检查信息
                 logging.info(
@@ -467,6 +486,7 @@ class PriceMonitoringTask:
             # ✅ 一次获取所有未成交订单
             open_orders = await self.db.get_active_orders(account_id)
             if not open_orders:
+                # 改为 debug 级别，减少日志噪音
                 logging.debug(f"📭 账户 {account_id} 无未成交订单")
                 return
 

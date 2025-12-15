@@ -43,7 +43,6 @@ class SignalProcessingTask:
         self.running = True
         self.signal_lock = signal_lock
         self.stop_loss_task = stop_loss_task  # 保存引用
-        self.max_workers = 5  # 并发 worker 数，可调节
         # self.account_locks = defaultdict(asyncio.Lock)  # 每个 account_id 一个锁
         self.redis = redis.Redis(host="localhost", port=6379, decode_responses=True)
         self.pubsub = self.redis.pubsub()
@@ -174,12 +173,12 @@ class SignalProcessingTask:
 
             # ✅ 并发执行每个账户（错开延迟，避免 API 峰值）
             start_time = time.time()
-            stagger_delay = 0.005  # 5 毫秒间隔
             for idx, account_id in enumerate(account_tactics_list):
                 # 为不同账户错开执行，避免 API 调用峰值
-                # idx=0 延迟 0ms, idx=1 延迟 5ms, idx=2 延迟 10ms...
+                # 使用随机延迟 100-300ms，避免触发交易所频率限制
                 if idx > 0:
-                    await asyncio.sleep(stagger_delay * idx)
+                    delay = 0.1 + (idx * 0.05) + (0.1 * (idx % 3))  # 100-300ms 动态延迟
+                    await asyncio.sleep(delay)
 
                 task = asyncio.create_task(
                     self._run_single_account_signal(signal, account_id)
@@ -628,93 +627,119 @@ class SignalProcessingTask:
         self, account_id: int, symbol: str, direction: str
     ):
         """平掉一个方向的仓位（双向持仓），并更新数据库订单为已平仓"""
-        exchange = await get_exchange(self, account_id)
-        if not exchange:
-            return
+        max_retries = 3
+        retry_delay = 1.0  # 初始延迟1秒
 
-        try:
-            positions = await fetch_current_positions(self, account_id, symbol, "SWAP")
-            if not positions:
-                print(f"无持仓信息 用户 {account_id}")
-                logging.warning(f"无持仓信息 用户 {account_id}")
+        for attempt in range(max_retries):
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
                 return
 
-            opposite_direction = "short" if direction == "long" else "long"
-            total_size = Decimal("0")
-
-            for pos in positions:
-                pos_side = pos.get("side") or pos.get("posSide") or ""
-                pos_size = Decimal(
-                    str(pos.get("contracts") or pos.get("positionAmt") or 0)
+            try:
+                positions = await fetch_current_positions(
+                    self, account_id, symbol, "SWAP"
                 )
-                if pos_size == 0 or pos_side.lower() != opposite_direction:
-                    continue
-                total_size += abs(pos_size)
+                if not positions:
+                    print(f"无持仓信息 用户 {account_id}")
+                    logging.warning(f"无持仓信息 用户 {account_id}")
+                    return
 
-            if total_size == 0:
-                print(f"无反向持仓需要平仓：{opposite_direction}")
-                logging.info(f"无反向持仓需要平仓：{opposite_direction}")
-                return
+                opposite_direction = "short" if direction == "long" else "long"
+                total_size = Decimal("0")
 
-            close_side = "sell" if opposite_direction == "long" else "buy"
-            market_price = await get_market_price(exchange, symbol, self.api_limiter)
-            client_order_id = await get_client_order_id()
+                for pos in positions:
+                    pos_side = pos.get("side") or pos.get("posSide") or ""
+                    pos_size = Decimal(
+                        str(pos.get("contracts") or pos.get("positionAmt") or 0)
+                    )
+                    if pos_size == 0 or pos_side.lower() != opposite_direction:
+                        continue
+                    total_size += abs(pos_size)
 
-            close_order = await open_position(
-                self,
-                account_id,
-                symbol,
-                close_side,
-                opposite_direction,
-                float(total_size),
-                None,
-                "market",
-                client_order_id,
-                True,  # reduceOnly=True
-            )
+                if total_size == 0:
+                    print(f"无反向持仓需要平仓：{opposite_direction}")
+                    logging.info(f"无反向持仓需要平仓：{opposite_direction}")
+                    return
 
-            if close_order:
-                await self.db.add_order(
-                    {
-                        "account_id": account_id,
-                        "symbol": symbol,
-                        "order_id": close_order["id"],
-                        "clorder_id": client_order_id,
-                        "price": float(market_price),
-                        "executed_price": None,
-                        "quantity": float(total_size),
-                        "pos_side": opposite_direction,
-                        "order_type": "market",
-                        "side": close_side,
-                        "status": "filled",
-                        "is_clopos": 1,
-                        "position_group_id": "",
-                    }
+                close_side = "sell" if opposite_direction == "long" else "buy"
+                market_price = await get_market_price(
+                    exchange, symbol, self.api_limiter
+                )
+                client_order_id = await get_client_order_id()
+
+                close_order = await open_position(
+                    self,
+                    account_id,
+                    symbol,
+                    close_side,
+                    opposite_direction,
+                    float(total_size),
+                    None,
+                    "market",
+                    client_order_id,
+                    True,  # reduceOnly=True
                 )
 
-                await self.db.mark_orders_as_closed(
-                    account_id, symbol, opposite_direction
-                )
-                print(
-                    f"用户 {account_id} 成功平掉{opposite_direction}方向总持仓：{total_size}"
-                )
-                logging.info(
-                    f"用户 {account_id} 成功平掉{opposite_direction}方向总持仓：{total_size}"
-                )
+                if close_order:
+                    await self.db.add_order(
+                        {
+                            "account_id": account_id,
+                            "symbol": symbol,
+                            "order_id": close_order["id"],
+                            "clorder_id": client_order_id,
+                            "price": float(market_price),
+                            "executed_price": None,
+                            "quantity": float(total_size),
+                            "pos_side": opposite_direction,
+                            "order_type": "market",
+                            "side": close_side,
+                            "status": "filled",
+                            "is_clopos": 1,
+                            "position_group_id": "",
+                        }
+                    )
 
-            else:
-                print(
-                    f"用户 {account_id} 平仓失败，方向: {opposite_direction}，数量: {total_size}"
-                )
-                logging.info(
-                    f"用户 {account_id} 平仓失败，方向: {opposite_direction}，数量: {total_size}"
-                )
+                    await self.db.mark_orders_as_closed(
+                        account_id, symbol, opposite_direction
+                    )
+                    print(
+                        f"用户 {account_id} 成功平掉{opposite_direction}方向总持仓：{total_size}"
+                    )
+                    logging.info(
+                        f"用户 {account_id} 成功平掉{opposite_direction}方向总持仓：{total_size}"
+                    )
+                    return  # 成功后退出重试循环
 
-        except Exception as e:
-            print(f"用户 {account_id} 清理反向持仓出错: {e}")
-            logging.error(f"用户 {account_id} 清理反向持仓出错: {e}")
-        finally:
-            await exchange.close()
+                else:
+                    print(
+                        f"用户 {account_id} 平仓失败，方向: {opposite_direction}，数量: {total_size}"
+                    )
+                    logging.info(
+                        f"用户 {account_id} 平仓失败，方向: {opposite_direction}，数量: {total_size}"
+                    )
+                    return  # 平仓失败，退出重试
+
+            except Exception as e:
+                error_msg = str(e)
+                # 检查是否是频率限制错误
+                if (
+                    "50011" in error_msg or "Too Many Requests" in error_msg
+                ) and attempt < max_retries - 1:
+                    wait_time = retry_delay * (2**attempt)  # 指数退避：1s, 2s, 4s
+                    logging.warning(
+                        f"⚠️ 用户 {account_id} 平仓触发频率限制，{wait_time:.1f}秒后重试 (尝试 {attempt+1}/{max_retries})"
+                    )
+                    await asyncio.sleep(wait_time)
+                    continue  # 继续下一次重试
+                else:
+                    # 非频率限制错误或已达到最大重试次数
+                    print(f"用户 {account_id} 清理反向持仓出错: {e}")
+                    logging.error(
+                        f"用户 {account_id} 清理反向持仓出错: {e}", exc_info=True
+                    )
+                    return
+            finally:
+                await exchange.close()
 
     async def handle_open_position(
         self,
