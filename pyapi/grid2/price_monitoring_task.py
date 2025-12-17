@@ -788,7 +788,7 @@ class PriceMonitoringTask:
                 else:
                     logging.error(
                         f"❌ 网格订单管理失败: 账户={account_id}, "
-                        f"订单={latest_order['order_id']}, 币种={symbol}"
+                        f"订单={latest_order['id']}, 币种={symbol}"
                     )
 
         except Exception as e:
