@@ -33,7 +33,14 @@ class SimpleRateLimiter:
         self.request_times = []  # 最近的API调用时间戳
         self.lock = asyncio.Lock()
 
-        logging.info(f"✅ API 限流器已初始化: {max_requests} 请求/{time_window}秒")
+        # ✅ 更保守的阈值配置（针对 30 账户优化）
+        self.warning_threshold = 20  # 20 次就开始延迟（约 1/3）
+        self.danger_threshold = 35  # 35 次大幅延迟（约 60%）
+
+        logging.info(
+            f"✅ API 限流器已初始化: {max_requests} 请求/{time_window}秒 "
+            f"(警告阈值: {self.warning_threshold}, 危险阈值: {self.danger_threshold})"
+        )
 
     async def check_and_wait(self):
         """
@@ -70,16 +77,24 @@ class SimpleRateLimiter:
             ]
 
             current_count = len(self.request_times)
+            wait_time = 0
 
-            # 如果接近限制（比如>50次），就延迟一下
-            if current_count > 50:
-                wait_time = 0.1  # 等100ms
+            # ✅ 分级延迟策略（更保守）
+            if current_count >= self.danger_threshold:  # >= 35次
+                wait_time = 0.5  # 延迟 500ms（让时间窗口重置）
+                logging.warning(
+                    f"🚨 API 危险区 ({current_count}/{self.max_requests})，"
+                    f"强制延迟 {wait_time*1000:.0f}ms"
+                )
+            elif current_count >= self.warning_threshold:  # >= 20次
+                wait_time = 0.2  # 延迟 200ms
                 logging.info(
-                    f"⏳ API 请求接近限制 ({current_count}/{self.max_requests})，"
+                    f"⚠️ API 警告区 ({current_count}/{self.max_requests})，"
                     f"延迟 {wait_time*1000:.0f}ms"
                 )
-                await asyncio.sleep(wait_time)
 
+            if wait_time > 0:
+                await asyncio.sleep(wait_time)
                 # 延迟后重新清理过期记录
                 now = time.time()
                 self.request_times = [
@@ -89,10 +104,16 @@ class SimpleRateLimiter:
             # 记录这次调用时间
             self.request_times.append(now)
 
-            # 输出调试信息（可选）
-            if len(self.request_times) % 10 == 0:
+            # ✅ 更频繁的日志输出（改为每 5 次）
+            if len(self.request_times) % 5 == 0:
                 logging.info(
                     f"📊 当前API调用计数: {len(self.request_times)}/{self.max_requests}"
+                )
+
+            # ✅ 额外：在接近限制时输出实时计数
+            if current_count >= self.warning_threshold:
+                logging.debug(
+                    f"📈 API 计数变化: {current_count} → {len(self.request_times)}"
                 )
 
     async def get_current_status(self) -> dict:

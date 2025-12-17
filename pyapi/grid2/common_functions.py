@@ -44,12 +44,12 @@ async def get_exchange(self, account_id: int) -> Optional[ccxt.Exchange]:
         exchange.set_sandbox_mode(True)
 
     # 本地环境才加代理
-    if os.getenv("IS_LOCAL", "0") == "1":
-        # print("使用本地代理 http://127.0.0.1:7890")
-        proxy_url = "http://127.0.0.1:7890"
-        # 确保是 str 类型
-        exchange.aiohttp_proxy = str(proxy_url)
-        exchange.aiohttp_proxy_auth = None
+    # if os.getenv("IS_LOCAL", "0") == "1":
+    #     # print("使用本地代理 http://127.0.0.1:7890")
+    #     proxy_url = "http://127.0.0.1:7890"
+    #     # 确保是 str 类型
+    #     exchange.aiohttp_proxy = str(proxy_url)
+    #     exchange.aiohttp_proxy_auth = None
 
     return exchange
 
@@ -404,6 +404,106 @@ async def get_latest_filled_price_from_position_history(
         return Decimal("0")
     finally:
         await exchange.close()
+
+
+async def fetch_positions_with_retry(
+    exchange,
+    account_id: int,
+    symbol: str = "",
+    params: dict = None,
+    retries: int = 3,
+    api_limiter=None,
+    timeout: float = 10.0,
+):
+    """
+    带重试机制的持仓查询（防止API限流和网络抖动）
+
+    :param exchange: ccxt 交易所实例
+    :param account_id: 账户 ID
+    :param symbol: 交易对（空字符串表示所有持仓）
+    :param params: 查询参数（如 {"instType": "SWAP"}）
+    :param retries: 重试次数
+    :param api_limiter: 全局API限流器
+    :param timeout: 单次请求超时时间（秒）
+    :return: 持仓列表或 None
+    """
+    if params is None:
+        params = {"instType": "SWAP"}
+
+    logging.debug(
+        f"🔍 查询持仓: 账户={account_id}, 币种={symbol or '全部'}, 超时={timeout}秒"
+    )
+
+    for attempt in range(retries):
+        try:
+            # ✅ 调用全局API限流器
+            if api_limiter:
+                await api_limiter.check_and_wait()
+
+            # 添加超时控制
+            positions = await asyncio.wait_for(
+                exchange.fetch_positions(symbol, params), timeout=timeout
+            )
+
+            logging.debug(f"✅ 账户 {account_id} 获取持仓成功: {len(positions)} 个持仓")
+            return positions
+
+        except asyncio.TimeoutError:
+            if attempt < retries - 1:
+                delay = (attempt + 1) * 1.0  # 超时后延迟更久
+                logging.warning(
+                    f"⏱️ 账户 {account_id} 获取持仓超时，等待 {delay:.1f}s 后重试 ({attempt+1}/{retries})"
+                )
+                await asyncio.sleep(delay)
+                continue
+            else:
+                logging.error(f"❌ 账户 {account_id} 获取持仓多次超时")
+                return None
+
+        except Exception as e:
+            error_str = str(e)
+
+            # 针对不同错误类型采取不同策略
+            if "Too Many Requests" in error_str or "50011" in error_str:
+                # API 限流错误 - 使用指数退避
+                if attempt < retries - 1:
+                    delay = (attempt + 1) * 2.0 + random.uniform(0.5, 1.5)
+                    logging.warning(
+                        f"⏳ 账户 {account_id} API 限流，等待 {delay:.2f}s 后重试 ({attempt+1}/{retries})"
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+
+            elif "Network" in error_str or "Timeout" in error_str:
+                # 网络错误 - 快速重试
+                if attempt < retries - 1:
+                    delay = 0.5
+                    logging.warning(
+                        f"🌐 账户 {account_id} 网络错误，等待 {delay:.1f}s 后重试 ({attempt+1}/{retries}): {e}"
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+
+            elif "Invalid" in error_str or "Permission" in error_str:
+                # 配置错误 - 不重试
+                logging.error(f"❌ 账户 {account_id} 配置错误（不重试）: {e}")
+                return None
+
+            # 其他错误 - 重试一次
+            if attempt < retries - 1:
+                delay = 1.0
+                logging.warning(
+                    f"⚠️ 账户 {account_id} 获取持仓失败，重试中 ({attempt+1}/{retries}): {e}"
+                )
+                await asyncio.sleep(delay)
+                continue
+            else:
+                logging.error(
+                    f"❌ 账户 {account_id} 获取持仓多次重试仍失败: {e}", exc_info=True
+                )
+                return None
+
+    return None
 
 
 async def fetch_order_with_retry(

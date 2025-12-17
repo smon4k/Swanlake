@@ -18,6 +18,7 @@ from common_functions import (
     open_position,
     milliseconds_to_local_datetime,
     fetch_order_with_retry,
+    fetch_positions_with_retry,
 )
 from database import Database
 from trading_bot_config import TradingBotConfig
@@ -136,10 +137,14 @@ class PriceMonitoringTask:
         self.running = True  # 控制运行状态
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
-        # ✅ 提高账户并发限制，支持更多账户同时处理（100个账户场景）
-        self.account_semaphore = asyncio.Semaphore(50)  # 限制 50 个账户并发
+        # ✅ 账户并发限制（针对 30 账户优化，避免 API 限流）
+        self.account_semaphore = asyncio.Semaphore(8)  # 限制 8 个账户并发
         self.order_semaphore = asyncio.Semaphore(10)  # 订单查询并发限流
         self.market_precision_cache = {}  # 市场精度缓存
+
+        # 📊 市场数据缓存（避免重复调用 load_markets）
+        self.markets_loaded = {}  # {account_id: timestamp} 记录市场数据加载时间
+        self.markets_cache_duration = 3600  # 市场数据缓存1小时
 
         # ⏱️ 超时配置
         self.account_check_timeout = 30.0  # 单个账户检查超时时间（秒）
@@ -447,6 +452,52 @@ class PriceMonitoringTask:
             )
             return True
 
+    async def get_exchange_with_markets(self, account_id: int):
+        """获取交易所实例（带市场数据预加载）
+
+        这个方法会检查市场数据是否已加载或过期，如果需要则预加载市场数据。
+        预加载可以避免后续 fetch_positions() 时触发 load_markets()，
+        从而减少 API 调用次数（load_markets 内部会发送 4-6 个 API 请求）。
+
+        Args:
+            account_id: 账户ID
+
+        Returns:
+            交易所实例（已加载市场数据）
+        """
+        exchange = await get_exchange(self, account_id)
+        if not exchange:
+            return None
+
+        # 检查是否需要加载市场数据
+        now = time.time()
+        last_loaded = self.markets_loaded.get(account_id, 0)
+
+        # 如果未加载或已过期
+        if now - last_loaded > self.markets_cache_duration:
+            try:
+                # ⚠️ load_markets 会发送多次 API 请求（通常 4-6 次）
+                # 需要为它预留额外的限流计数
+                if self.api_limiter:
+                    # 为 load_markets 预留 5 次计数（保守估计）
+                    for i in range(5):
+                        await self.api_limiter.check_and_wait()
+                        if i < 4:  # 最后一次不延迟
+                            await asyncio.sleep(0.02)  # 每次间隔 20ms
+
+                await exchange.load_markets(reload=True)
+                self.markets_loaded[account_id] = now
+                logging.info(
+                    f"✅ 账户 {account_id} 市场数据已预加载（有效期: {self.markets_cache_duration}秒）"
+                )
+
+            except Exception as e:
+                logging.warning(
+                    f"⚠️ 账户 {account_id} 预加载市场数据失败: {e}，将在调用时自动加载"
+                )
+
+        return exchange
+
     async def _safe_check_positions(self, account_id: int):
         """安全封装的账户检查（防止一个账户崩溃影响整体）"""
         # 检查账户是否正在被信号处理
@@ -460,7 +511,8 @@ class PriceMonitoringTask:
     async def check_positions(self, account_id: int):
         """检查指定账户的持仓与订单（优化版本：缓存 + 并发）"""
         try:
-            exchange = await get_exchange(self, account_id)
+            # ✅ 使用预加载市场数据的 exchange（避免 fetch_positions 时触发 load_markets）
+            exchange = await self.get_exchange_with_markets(account_id)
             if not exchange:
                 logging.warning(f"⚠️ 账户 {account_id} 无法创建交易所实例")
                 return
@@ -500,44 +552,42 @@ class PriceMonitoringTask:
             # ✅ 直接获取所有持仓，不再为每个 symbol 重复请求
             positions_dict = {}
 
-            try:
-                # ✅ 调用全局API限流器
-                if self.api_limiter:
-                    await self.api_limiter.check_and_wait()
+            # ✅ 使用带重试机制的持仓查询（防止临时性错误）
+            all_positions = await fetch_positions_with_retry(
+                exchange=exchange,
+                account_id=account_id,
+                symbol="",
+                params={"instType": "SWAP"},
+                retries=3,
+                api_limiter=self.api_limiter,
+                timeout=10.0,
+            )
 
-                # 添加超时控制（10秒）
-                all_positions = await asyncio.wait_for(
-                    exchange.fetch_positions("", {"instType": "SWAP"}), timeout=10.0
+            if all_positions is None:
+                logging.warning(
+                    f"⚠️ 账户 {account_id} 获取持仓失败（已重试），跳过本轮检查"
                 )
+                return  # 直接返回，等待下一轮
 
+            logging.info(f"📊 账户 {account_id} 获取到持仓总数: {len(all_positions)}")
+
+            # 分类整理：symbol => [pos1, pos2, ...]
+            position_summary = []
+            for pos in all_positions:
+                sym = pos["info"].get("instId")
+                if not sym:
+                    continue
+                contracts = pos.get("contracts", 0)
+                if contracts != 0:
+                    position_summary.append(f"{sym}={contracts}")
+                positions_dict.setdefault(sym, []).append(pos)
+
+            if position_summary:
                 logging.info(
-                    f"📊 账户 {account_id} 获取到持仓总数: {len(all_positions)}"
+                    f"📊 账户 {account_id} 有持仓的币种: {', '.join(position_summary)}"
                 )
-
-                # 分类整理：symbol => [pos1, pos2, ...]
-                position_summary = []
-                for pos in all_positions:
-                    sym = pos["info"].get("instId")
-                    if not sym:
-                        continue
-                    contracts = pos.get("contracts", 0)
-                    if contracts != 0:
-                        position_summary.append(f"{sym}={contracts}")
-                    positions_dict.setdefault(sym, []).append(pos)
-
-                if position_summary:
-                    logging.info(
-                        f"📊 账户 {account_id} 有持仓的币种: {', '.join(position_summary)}"
-                    )
-                else:
-                    logging.warning(f"⚠️ 账户 {account_id} 当前无任何持仓")
-
-            except asyncio.TimeoutError:
-                logging.error(f"⏱️ 账户 {account_id} 获取所有持仓超时(10秒)")
-            except Exception as e:
-                logging.error(
-                    f"❌ 账户 {account_id} 获取所有持仓失败: {e}", exc_info=True
-                )
+            else:
+                logging.warning(f"⚠️ 账户 {account_id} 当前无任何持仓")
 
             # --------------------------
             # 2. 并发获取订单详情（带限流 + 重试机制 + 超时控制）
@@ -870,7 +920,8 @@ class PriceMonitoringTask:
     async def manage_grid_orders(self, order: dict, account_id: int):
         """网格订单管理（逻辑不变，仅优化并发安全性）"""
         try:
-            exchange = await get_exchange(self, account_id)
+            # ✅ 使用预加载市场数据的 exchange（避免 fetch_positions 时触发 load_markets）
+            exchange = await self.get_exchange_with_markets(account_id)
             if not exchange:
                 print("❌ 未找到交易所实例")
                 logging.error("❌ 未找到交易所实例")
