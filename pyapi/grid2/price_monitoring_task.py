@@ -142,10 +142,6 @@ class PriceMonitoringTask:
         self.order_semaphore = asyncio.Semaphore(10)  # 订单查询并发限流
         self.market_precision_cache = {}  # 市场精度缓存
 
-        # 📊 市场数据缓存（避免重复调用 load_markets）
-        self.markets_loaded = {}  # {account_id: timestamp} 记录市场数据加载时间
-        self.markets_cache_duration = 3600  # 市场数据缓存1小时
-
         # ⏱️ 超时配置
         self.account_check_timeout = 30.0  # 单个账户检查超时时间（秒）
         self.round_total_timeout = 90.0  # 整轮检查总超时时间（秒）
@@ -453,49 +449,23 @@ class PriceMonitoringTask:
             return True
 
     async def get_exchange_with_markets(self, account_id: int):
-        """获取交易所实例（带市场数据预加载）
+        """获取交易所实例（市场数据按需自动加载）
 
-        这个方法会检查市场数据是否已加载或过期，如果需要则预加载市场数据。
-        预加载可以避免后续 fetch_positions() 时触发 load_markets()，
-        从而减少 API 调用次数（load_markets 内部会发送 4-6 个 API 请求）。
+        这个方法返回交易所实例，市场数据会在首次使用时由 CCXT 自动加载。
+        避免并发预加载导致的事件循环问题，同时受益于 api_limiter 的限流保护。
 
         Args:
             account_id: 账户ID
 
         Returns:
-            交易所实例（已加载市场数据）
+            交易所实例
         """
         exchange = await get_exchange(self, account_id)
         if not exchange:
             return None
 
-        # 检查是否需要加载市场数据
-        now = time.time()
-        last_loaded = self.markets_loaded.get(account_id, 0)
-
-        # 如果未加载或已过期
-        if now - last_loaded > self.markets_cache_duration:
-            try:
-                # ⚠️ load_markets 会发送多次 API 请求（通常 4-6 次）
-                # 需要为它预留额外的限流计数
-                if self.api_limiter:
-                    # 为 load_markets 预留 5 次计数（保守估计）
-                    for i in range(5):
-                        await self.api_limiter.check_and_wait()
-                        if i < 4:  # 最后一次不延迟
-                            await asyncio.sleep(0.02)  # 每次间隔 20ms
-
-                await exchange.load_markets(reload=True)
-                self.markets_loaded[account_id] = now
-                logging.info(
-                    f"✅ 账户 {account_id} 市场数据已预加载（有效期: {self.markets_cache_duration}秒）"
-                )
-
-            except Exception as e:
-                logging.warning(
-                    f"⚠️ 账户 {account_id} 预加载市场数据失败: {e}，将在调用时自动加载"
-                )
-
+        # 市场数据由 CCXT 按需自动加载
+        # API 限流由 api_limiter 统一控制，在 fetch_positions_with_retry 等地方处理
         return exchange
 
     async def _safe_check_positions(self, account_id: int):
