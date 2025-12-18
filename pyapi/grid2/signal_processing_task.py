@@ -51,6 +51,10 @@ class SignalProcessingTask:
         self.active_tasks: set[asyncio.Task] = set()  # 用于跟踪正在运行的任务
         self.market_precision_cache = {}  # 市场精度缓存
         self.api_limiter = api_limiter  # 全局API限流器
+        # ✅ 账户开仓并发控制（用信号量代替纯延迟，减少开仓价差风险）
+        self.account_processing_semaphore = asyncio.Semaphore(
+            8
+        )  # 每次最多8个账户并发开仓
 
     async def signal_processing_task(self):
         """信号调度任务，支持多个信号并发"""
@@ -103,9 +107,24 @@ class SignalProcessingTask:
             conn.close()
 
             if signals:
-                # 🚀 多个信号同时处理
-                tasks = [self.handle_single_signal(signal) for signal in signals]
-                await asyncio.gather(*tasks)
+                # ✅ 折中方案：根据信号数量动态调整并发策略
+                signal_count = len(signals)
+
+                if signal_count <= 2:
+                    # 少量信号（≤2个），并发处理以提高响应速度
+                    logging.info(f"📊 信号数量={signal_count}，采用并发处理")
+                    tasks = [self.handle_single_signal(signal) for signal in signals]
+                    await asyncio.gather(*tasks)
+                else:
+                    # 大量信号（>2个），串行处理以避免API调用峰值
+                    logging.info(
+                        f"📊 信号数量={signal_count}，采用串行处理以避免API限流"
+                    )
+                    for idx, signal in enumerate(signals):
+                        await self.handle_single_signal(signal)
+                        # 信号之间增加延迟，缓解API压力（最后一个信号不需要延迟）
+                        if idx < signal_count - 1:
+                            await asyncio.sleep(0.5)
             else:
                 await asyncio.sleep(self.config.signal_check_interval)
         except Exception as e:
@@ -171,18 +190,20 @@ class SignalProcessingTask:
             task_results = {}  # account_id -> result dict or exception
             task_lock = asyncio.Lock()  # 保护 task_results 写入
 
-            # ✅ 并发执行每个账户（错开延迟，避免 API 峰值）
+            # ✅ 并发执行每个账户（使用信号量控制并发数，减少开仓价差风险）
             start_time = time.time()
-            for idx, account_id in enumerate(account_tactics_list):
-                # 为不同账户错开执行，避免 API 调用峰值
-                # 使用随机延迟 100-300ms，避免触发交易所频率限制
-                if idx > 0:
-                    delay = 0.1 + (idx * 0.05) + (0.1 * (idx % 3))  # 100-300ms 动态延迟
-                    await asyncio.sleep(delay)
 
-                task = asyncio.create_task(
-                    self._run_single_account_signal(signal, account_id)
-                )
+            # 创建带信号量控制的账户处理方法
+            async def process_account_with_limit(account_id):
+                """使用信号量控制并发的账户处理"""
+                async with self.account_processing_semaphore:
+                    result = await self._run_single_account_signal(signal, account_id)
+                    # 处理完后小延迟，避免API峰值
+                    await asyncio.sleep(0.2)
+                    return result
+
+            for account_id in account_tactics_list:
+                task = asyncio.create_task(process_account_with_limit(account_id))
                 running_tasks.add(task)
                 # self.active_tasks.add(task)
 
@@ -663,7 +684,7 @@ class SignalProcessingTask:
 
                 close_side = "sell" if opposite_direction == "long" else "buy"
                 market_price = await get_market_price(
-                    exchange, symbol, self.api_limiter
+                    exchange, symbol, self.api_limiter, close_exchange=False
                 )
                 client_order_id = await get_client_order_id()
 

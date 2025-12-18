@@ -137,8 +137,10 @@ class PriceMonitoringTask:
         self.running = True  # 控制运行状态
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
-        # ✅ 账户并发限制（针对 30 账户优化，避免 API 限流）
-        self.account_semaphore = asyncio.Semaphore(13)  # 限制 8 个账户并发
+        # ✅ 账户并发限制（动态设置，确保所有账户都能被检测）
+        self.account_semaphore = asyncio.Semaphore(
+            15
+        )  # 限制 15 个账户并发（略大于账户数）
         self.order_semaphore = asyncio.Semaphore(10)  # 订单查询并发限流
         self.market_precision_cache = {}  # 市场精度缓存
 
@@ -778,8 +780,10 @@ class PriceMonitoringTask:
                     await self.update_order_status(
                         latest_order, account_id, executed_price, fill_date_time, symbol
                     )
-                    logging.info(f"🛡️ 触发止损任务: 账户={account_id}")
-                    await self.stop_loss_task.accounts_stop_loss_task(account_id)
+                    logging.info(f"🛡️ 触发止损任务: 账户={account_id}（立即执行）")
+                    await self.stop_loss_task.accounts_stop_loss_task(
+                        account_id, immediate=True
+                    )
                 else:
                     logging.error(
                         f"❌ 网格订单管理失败: 账户={account_id}, "
@@ -930,7 +934,9 @@ class PriceMonitoringTask:
             print(f"📌 用户 {account_id} 最新订单成交价: {filled_price}")
             logging.info(f"📌 用户 {account_id} 最新订单成交价: {filled_price}")
 
-            price = await get_market_price(exchange, symbol)
+            price = await get_market_price(
+                exchange, symbol, self.api_limiter, close_exchange=False
+            )
             grid_step = Decimal(
                 str(self.db.account_config_cache[account_id].get("grid_step", 0.002))
             )

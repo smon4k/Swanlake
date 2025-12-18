@@ -55,9 +55,19 @@ async def get_exchange(self, account_id: int) -> Optional[ccxt.Exchange]:
 
 
 async def get_market_price(
-    exchange: ccxt.Exchange, symbol: str, api_limiter=None
+    exchange: ccxt.Exchange, symbol: str, api_limiter=None, close_exchange: bool = False
 ) -> Decimal:
-    """获取当前市场价格"""
+    """获取当前市场价格
+
+    Args:
+        exchange: 交易所实例
+        symbol: 交易对
+        api_limiter: API限流器
+        close_exchange: 是否在调用后关闭exchange（默认False，由调用方管理）
+
+    Returns:
+        Decimal: 市场价格
+    """
     try:
         # ✅ 调用全局API限流器
         if api_limiter:
@@ -71,7 +81,9 @@ async def get_market_price(
         logging.error(f"❌ 获取市场价格失败: 币种={symbol}, 错误={e}", exc_info=True)
         return Decimal("0")
     finally:
-        await exchange.close()  # ✅ 用完就关
+        # ✅ 只在明确要求时才关闭，避免频繁创建/销毁连接
+        if close_exchange:
+            await exchange.close()
 
 
 async def get_market_precision(
@@ -296,7 +308,12 @@ async def cleanup_opposite_positions(
             if order_side != direction and order_size > 0:
                 # print("orderId:", order_id)
                 close_side = "sell" if order_side == "long" else "buy"
-                market_price = await get_market_price(exchange, symbol)
+                market_price = await get_market_price(
+                    exchange,
+                    symbol,
+                    self.api_limiter if hasattr(self, "api_limiter") else None,
+                    close_exchange=False,
+                )
                 client_order_id = await get_client_order_id()
                 # 执行平仓操作
                 close_order = await self.open_position(

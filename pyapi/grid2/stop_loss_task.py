@@ -33,13 +33,37 @@ class StopLossTask:
         self.market_precision_cache = {}  # 市场精度缓存
         self.account_locks = account_locks  # 账户锁字典
         self.busy_accounts = busy_accounts  # 忙碌账户集合
+        # ✅ 止损任务去重相关
+        self.checking_accounts = set()  # 正在检查止损的账户
+        self.last_check_time = {}  # 每个账户的上次检查时间
+        self.min_check_interval = 10  # 最小检查间隔（秒），避免频繁重复检查
 
     async def stop_loss_task(self):
-        """价格监控任务"""
+        """价格监控任务（分批并发版本，减少API调用峰值）"""
         while getattr(self, "running", True):
             try:
-                for account_id in self.db.account_cache:
-                    await self.accounts_stop_loss_task(account_id)
+                account_ids = list(self.db.account_cache.keys())
+
+                # ✅ 分批执行，每批3个账户
+                batch_size = 3
+                for i in range(0, len(account_ids), batch_size):
+                    batch = account_ids[i : i + batch_size]
+
+                    # 批内并发（3个账户同时检查）
+                    tasks = [
+                        asyncio.create_task(self.accounts_stop_loss_task(aid))
+                        for aid in batch
+                    ]
+                    await asyncio.gather(*tasks, return_exceptions=True)
+
+                    # 批次间延迟（2秒），分散API调用时间
+                    if i + batch_size < len(account_ids):  # 不是最后一批
+                        await asyncio.sleep(2.0)
+
+                    # 每处理完一批，检查是否还在运行
+                    if not getattr(self, "running", True):
+                        break
+
                 await asyncio.sleep(300)  # 每5分钟检查一次
             except Exception as e:
                 print(f"价格监控异常: {e}")
@@ -47,32 +71,67 @@ class StopLossTask:
                 await asyncio.sleep(5)
 
     # 检查单个账户的止损
-    async def accounts_stop_loss_task(self, account_id: int):
-        """检查单个账户的止损（带账户锁保护，防止重复创建）"""
-        # 🔐 添加账户锁保护，防止与信号处理任务冲突
-        lock = self.account_locks.get(account_id) if self.account_locks else None
+    async def accounts_stop_loss_task(self, account_id: int, immediate: bool = False):
+        """检查单个账户的止损（带去重和账户锁保护，防止重复创建）
 
-        if lock:
-            # 检查锁是否被占用
-            if lock.locked():
-                logging.info(
-                    f"⏸️ 账户 {account_id} 正在被其他任务处理（锁已被占用），跳过止损检查"
+        Args:
+            account_id: 账户ID
+            immediate: 是否立即执行（True时绕过时间间隔检查，用于订单成交后立即触发）
+        """
+        # ✅ 去重检查1：如果该账户正在检查中，直接返回
+        if account_id in self.checking_accounts:
+            logging.debug(f"⏸️ 账户 {account_id} 止损检查正在进行中，跳过重复触发")
+            return
+
+        # ✅ 去重检查2：检查时间间隔（仅非紧急情况）
+        if not immediate:
+            import time
+
+            last_check = self.last_check_time.get(account_id, 0)
+            elapsed = time.time() - last_check
+            if elapsed < self.min_check_interval:
+                logging.debug(
+                    f"⏸️ 账户 {account_id} 距离上次检查仅 {elapsed:.1f}秒，跳过（最小间隔{self.min_check_interval}秒）"
                 )
                 return
 
-            # 获取锁并执行检查
-            async with lock:
-                # 再次检查账户是否正在被信号处理占用
-                if self.busy_accounts and account_id in self.busy_accounts:
-                    logging.info(f"⏸️ 账户 {account_id} 正在处理信号，跳过止损检查")
+        # ✅ 标记为检查中
+        self.checking_accounts.add(account_id)
+
+        try:
+            # 🔐 添加账户锁保护，防止与信号处理任务冲突
+            lock = self.account_locks.get(account_id) if self.account_locks else None
+
+            if lock:
+                # 检查锁是否被占用
+                if lock.locked():
+                    logging.info(
+                        f"⏸️ 账户 {account_id} 正在被其他任务处理（锁已被占用），跳过止损检查"
+                    )
                     return
 
-                # 执行实际的止损检查
+                # 获取锁并执行检查
+                async with lock:
+                    # 再次检查账户是否正在被信号处理占用
+                    if self.busy_accounts and account_id in self.busy_accounts:
+                        logging.info(f"⏸️ 账户 {account_id} 正在处理信号，跳过止损检查")
+                        return
+
+                    # 执行实际的止损检查
+                    await self._do_stop_loss_check(account_id)
+            else:
+                # 无锁情况下直接执行（向后兼容）
+                logging.debug(f"⚠️ 账户 {account_id} 无锁保护，直接执行止损检查")
                 await self._do_stop_loss_check(account_id)
-        else:
-            # 无锁情况下直接执行（向后兼容）
-            logging.debug(f"⚠️ 账户 {account_id} 无锁保护，直接执行止损检查")
-            await self._do_stop_loss_check(account_id)
+
+            # ✅ 更新最后检查时间
+            import time
+
+            self.last_check_time[account_id] = time.time()
+
+        finally:
+            # ✅ 移除检查中标记
+            self.checking_accounts.discard(account_id)
 
     async def _do_stop_loss_check(self, account_id: int):
         """实际的止损检查逻辑（从 accounts_stop_loss_task 中提取）"""
@@ -90,10 +149,17 @@ class StopLossTask:
             if self.api_limiter:
                 await self.api_limiter.check_and_wait()
 
-            positions = await exchange.fetch_positions("", {"instType": "SWAP"})
+            # ✅ 只查询一次持仓，后续复用缓存
+            all_positions = await exchange.fetch_positions("", {"instType": "SWAP"})
+
+            # ✅ 创建持仓缓存字典，按 symbol 分类（供后续复用，避免重复查询）
+            positions_cache = {}
+            for pos in all_positions:
+                symbol_key = pos["symbol"]
+                positions_cache.setdefault(symbol_key, []).append(pos)
 
             # 统计有持仓的币种
-            position_count = sum(1 for pos in positions if pos["contracts"] != 0)
+            position_count = sum(1 for pos in all_positions if pos["contracts"] != 0)
             if position_count > 0:
                 logging.info(
                     f"📊 账户 {account_id} 检查到 {position_count} 个持仓需要止损保护"
@@ -102,7 +168,7 @@ class StopLossTask:
                 logging.info(f"📊 账户 {account_id} 无持仓，跳过止损检查")
                 return
 
-            for pos in positions:
+            for pos in all_positions:
                 if pos["contracts"] != 0:
                     symbol = pos["symbol"]
                     side = "buy" if pos["side"] == "long" else "sell"
@@ -207,18 +273,12 @@ class StopLossTask:
                                 # 如果止损单状态是 effective（已触发），检查持仓是否已被平掉
                                 final_status = order_info["info"]["state"]
                                 if order_state == "effective":
-                                    # 检查当前持仓，如果持仓已被平掉，说明止损单已成交
+                                    # ✅ 使用缓存的持仓数据，避免重复API调用
                                     try:
-                                        current_positions_check = (
-                                            await exchange.fetch_positions(
-                                                "", {"instType": "SWAP"}
-                                            )
-                                        )
                                         symbol_positions_check = [
                                             p
-                                            for p in current_positions_check
-                                            if p["symbol"] == symbol
-                                            and p["contracts"] != 0
+                                            for p in positions_cache.get(symbol, [])
+                                            if p["contracts"] != 0
                                         ]
                                         # 如果当前无持仓，说明止损单已生效，更新状态为 filled
                                         if not symbol_positions_check:
@@ -285,18 +345,14 @@ class StopLossTask:
                                                 f"⏸️ 账户 {account_id} 正在处理信号，跳过撤销挂单"
                                             )
                                         else:
-                                            # 再次确认无持仓
+                                            # ✅ 使用缓存的持仓数据，避免重复API调用
                                             try:
-                                                current_positions = (
-                                                    await exchange.fetch_positions(
-                                                        "", {"instType": "SWAP"}
-                                                    )
-                                                )
                                                 symbol_positions = [
                                                     p
-                                                    for p in current_positions
-                                                    if p["symbol"] == symbol
-                                                    and p["contracts"] != 0
+                                                    for p in positions_cache.get(
+                                                        symbol, []
+                                                    )
+                                                    if p["contracts"] != 0
                                                 ]
 
                                                 if not symbol_positions:
@@ -448,8 +504,8 @@ class StopLossTask:
             # 先获取市场价格进行验证
             symbol_tactics = full_symbol.replace("-SWAP", "")
             market_price = await get_market_price(
-                exchange, symbol_tactics, self.api_limiter
-            )  # 获取最新市场价格
+                exchange, symbol_tactics, self.api_limiter, close_exchange=False
+            )  # 获取最新市场价格（不关闭exchange，由调用方管理）
 
             # ✅ 验证止损价是否符合OKX规则
             original_price = price
@@ -595,8 +651,8 @@ class StopLossTask:
                 # print(f"使用默认精度: {amount}")
 
             market_price = await get_market_price(
-                exchange, symbol, self.api_limiter
-            )  # 获取最新市场价格
+                exchange, symbol, self.api_limiter, close_exchange=False
+            )  # 获取最新市场价格（不关闭exchange，由调用方管理）
 
             # ✅ 验证修改后的止损价是否符合OKX规则
             original_price = price
