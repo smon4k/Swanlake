@@ -137,6 +137,7 @@ class StopLossTask:
 
     async def _do_stop_loss_check(self, account_id: int):
         """实际的止损检查逻辑（从 accounts_stop_loss_task 中提取）"""
+        exchange = None  # ✅ 在 try 外部初始化，确保 finally 块能访问
         try:
             # print(f"🛡️ 开始检查止损: 账户={account_id}")
             logging.info(f"🛡️ 开始检查止损: 账户={account_id}")
@@ -475,7 +476,13 @@ class StopLossTask:
             # print(f"止损任务失败: {e}")
             return False
         finally:
-            await exchange.close()
+            # ✅ 确保 exchange 被关闭，释放事件循环资源，避免并发冲突
+            if exchange:
+                try:
+                    await exchange.close()
+                    logging.debug(f"✅ 已关闭exchange: 账户={account_id}")
+                except Exception as e:
+                    logging.warning(f"⚠️ 关闭exchange失败: 账户={account_id}, {e}")
 
     # 下策略委托单
     async def _open_position(

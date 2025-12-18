@@ -138,7 +138,9 @@ class PriceMonitoringTask:
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
         # ✅ 账户并发限制（动态设置，确保所有账户都能被检测）
-        self.account_semaphore = asyncio.Semaphore(15)  # 限制 15 个账户并发（略大于账户数）
+        self.account_semaphore = asyncio.Semaphore(
+            15
+        )  # 限制 15 个账户并发（略大于账户数）
         self.order_semaphore = asyncio.Semaphore(10)  # 订单查询并发限流
         self.market_precision_cache = {}  # 市场精度缓存
 
@@ -497,6 +499,7 @@ class PriceMonitoringTask:
 
     async def check_positions(self, account_id: int):
         """检查指定账户的持仓与订单（优化版本：缓存 + 并发）"""
+        exchange = None  # ✅ 在 try 外部初始化，确保 finally 块能访问
         try:
             # ✅ 使用预加载市场数据的 exchange（避免 fetch_positions 时触发 load_markets）
             exchange = await self.get_exchange_with_markets(account_id)
@@ -794,8 +797,13 @@ class PriceMonitoringTask:
                 exc_info=True,
             )
         finally:
+            # ✅ 确保 exchange 被关闭，释放事件循环资源，避免并发冲突
             if exchange:
-                await exchange.close()
+                try:
+                    await exchange.close()
+                    logging.debug(f"✅ 已关闭exchange: 账户={account_id}")
+                except Exception as e:
+                    logging.warning(f"⚠️ 关闭exchange失败: 账户={account_id}, {e}")
 
     async def update_order_status(
         self,
@@ -806,6 +814,7 @@ class PriceMonitoringTask:
         symbol: str,
     ):
         """更新订单状态并配对计算利润（逻辑不变）"""
+        exchange = None  # ✅ 在 try 外部初始化，确保 finally 块能访问
         try:
             exchange = await get_exchange(self, account_id)
             if not exchange:
@@ -914,8 +923,13 @@ class PriceMonitoringTask:
             )
             print(f"❌ 配对利润计算失败: {e}")
         finally:
+            # ✅ 确保 exchange 被关闭，释放事件循环资源，避免并发冲突
             if exchange:
-                await exchange.close()
+                try:
+                    await exchange.close()
+                    logging.debug(f"✅ 已关闭exchange: 账户={account_id}")
+                except Exception as e:
+                    logging.warning(f"⚠️ 关闭exchange失败: 账户={account_id}, {e}")
 
     async def manage_grid_orders(self, order: dict, account_id: int):
         """网格订单管理（逻辑不变，仅优化并发安全性）"""
@@ -1393,10 +1407,12 @@ class PriceMonitoringTask:
 
     # 其他方法保持不变（get_order_info, check_and_close_position 等）
     async def get_order_info(self, account_id: int, order_id: str):
-        exchange = await get_exchange(self, account_id)
-        if not exchange:
-            return None
+        exchange = None  # ✅ 初始化为 None
         try:
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
+                return None
+
             order_info = await exchange.fetch_order(
                 order_id, None, None, {"instType": "SWAP"}
             )
@@ -1407,4 +1423,10 @@ class PriceMonitoringTask:
             print(f"❌ 用户 {account_id} 获取订单失败: {e}")
             logging.error(f"❌ 用户 {account_id} 获取订单失败: {e}")
         finally:
-            await exchange.close()
+            # ✅ 确保 exchange 被关闭，释放事件循环资源，避免并发冲突
+            if exchange:
+                try:
+                    await exchange.close()
+                    logging.debug(f"✅ 已关闭exchange: 账户={account_id}")
+                except Exception as e:
+                    logging.warning(f"⚠️ 关闭exchange失败: 账户={account_id}, {e}")
