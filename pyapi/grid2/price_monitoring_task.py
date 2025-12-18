@@ -276,7 +276,10 @@ class PriceMonitoringTask:
                             )
                         except Exception as e:
                             self.stats["error_accounts"] += 1
-                            logging.error(f"❌ 账户 {account_id} 检查异常: {e}")
+                            logging.error(
+                                f"❌ 账户 {account_id} 检查异常: {e}",
+                                exc_info=True,
+                            )
                         finally:
                             self.stats["total_checks"] += 1
 
@@ -460,13 +463,21 @@ class PriceMonitoringTask:
         Returns:
             交易所实例
         """
-        exchange = await get_exchange(self, account_id)
-        if not exchange:
+        try:
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
+                logging.error(
+                    f"❌ 账户 {account_id} get_exchange 返回 None",
+                    exc_info=True,
+                )
+                return None
+            return exchange
+        except Exception as e:
+            logging.error(
+                f"❌ 账户 {account_id} 获取交易所实例异常: {e}",
+                exc_info=True,
+            )
             return None
-
-        # 市场数据由 CCXT 按需自动加载
-        # API 限流由 api_limiter 统一控制，在 fetch_positions_with_retry 等地方处理
-        return exchange
 
     async def _safe_check_positions(self, account_id: int):
         """安全封装的账户检查（防止一个账户崩溃影响整体）"""
@@ -475,8 +486,14 @@ class PriceMonitoringTask:
             logging.debug(f"⏸️ 账户 {account_id} 正在被信号处理，跳过本次价格监控")
             return
 
-        # 异常处理已在上层 limited_check_positions 中进行
-        await self.check_positions(account_id)
+        try:
+            # 异常处理已在上层 limited_check_positions 中进行
+            await self.check_positions(account_id)
+        except Exception as e:
+            logging.error(
+                f"❌ _safe_check_positions: 账户 {account_id} 异常: {e}",
+                exc_info=True,
+            )
 
     async def check_positions(self, account_id: int):
         """检查指定账户的持仓与订单（优化版本：缓存 + 并发）"""
@@ -523,15 +540,22 @@ class PriceMonitoringTask:
             positions_dict = {}
 
             # ✅ 使用带重试机制的持仓查询（防止临时性错误）
-            all_positions = await fetch_positions_with_retry(
-                exchange=exchange,
-                account_id=account_id,
-                symbol="",
-                params={"instType": "SWAP"},
-                retries=3,
-                api_limiter=self.api_limiter,
-                timeout=10.0,
-            )
+            try:
+                all_positions = await fetch_positions_with_retry(
+                    exchange=exchange,
+                    account_id=account_id,
+                    symbol="",
+                    params={"instType": "SWAP"},
+                    retries=3,
+                    api_limiter=self.api_limiter,
+                    timeout=10.0,
+                )
+            except Exception as e:
+                logging.error(
+                    f"❌ 账户 {account_id} 获取持仓异常: {e}",
+                    exc_info=True,
+                )
+                return
 
             if all_positions is None:
                 logging.warning(
@@ -592,7 +616,8 @@ class PriceMonitoringTask:
                         )
                     except Exception as e:
                         logging.error(
-                            f"❌ 账户 {account_id} 订单 {order['order_id']} 查询失败: {e}"
+                            f"❌ 账户 {account_id} 订单 {order['order_id']} 查询失败: {e}",
+                            exc_info=True,
                         )
 
             # 为整个订单查询批次设置超时（15秒）
@@ -762,7 +787,10 @@ class PriceMonitoringTask:
                     )
 
         except Exception as e:
-            logging.error(f"❌ 账户 {account_id} 检查持仓失败: {e}", exc_info=True)
+            logging.error(
+                f"❌ 账户 {account_id} 检查持仓失败: {e}",
+                exc_info=True,
+            )
         finally:
             if exchange:
                 await exchange.close()
