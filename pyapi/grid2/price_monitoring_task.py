@@ -138,9 +138,7 @@ class PriceMonitoringTask:
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
         # ✅ 账户并发限制（动态设置，确保所有账户都能被检测）
-        self.account_semaphore = asyncio.Semaphore(
-            15
-        )  # 限制 15 个账户并发（略大于账户数）
+        self.account_semaphore = asyncio.Semaphore(15)  # 限制 15 个账户并发（略大于账户数）
         self.order_semaphore = asyncio.Semaphore(10)  # 订单查询并发限流
         self.market_precision_cache = {}  # 市场精度缓存
 
