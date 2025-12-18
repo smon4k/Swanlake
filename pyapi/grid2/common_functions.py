@@ -55,30 +55,69 @@ async def get_exchange(self, account_id: int) -> Optional[ccxt.Exchange]:
 
 
 async def get_market_price(
-    exchange: ccxt.Exchange, symbol: str, api_limiter=None, close_exchange: bool = False
+    exchange: ccxt.Exchange,
+    symbol: str,
+    api_limiter=None,
+    close_exchange: bool = False,
+    retries: int = 3,
 ) -> Decimal:
-    """获取当前市场价格
+    """获取当前市场价格（带重试机制，防止API限流）
 
     Args:
         exchange: 交易所实例
         symbol: 交易对
         api_limiter: API限流器
         close_exchange: 是否在调用后关闭exchange（默认False，由调用方管理）
+        retries: 重试次数（默认3次）
 
     Returns:
-        Decimal: 市场价格
+        Decimal: 市场价格（失败返回0，调用方需检查）
     """
     try:
-        # ✅ 调用全局API限流器
-        if api_limiter:
-            await api_limiter.check_and_wait()
+        for attempt in range(retries):
+            try:
+                # ✅ 调用全局API限流器
+                if api_limiter:
+                    await api_limiter.check_and_wait()
 
-        ticker = await exchange.fetch_ticker(symbol)
-        price = Decimal(str(ticker["last"]))
-        logging.debug(f"💰 获取市场价格: {symbol} = {price}")
-        return price
-    except Exception as e:
-        logging.error(f"❌ 获取市场价格失败: 币种={symbol}, 错误={e}", exc_info=True)
+                ticker = await exchange.fetch_ticker(symbol)
+                price = Decimal(str(ticker["last"]))
+                logging.debug(f"💰 获取市场价格: {symbol} = {price}")
+                return price
+
+            except Exception as e:
+                error_str = str(e)
+
+                # RateLimitExceeded - 指数退避
+                if "Too Many Requests" in error_str or "50011" in error_str:
+                    if attempt < retries - 1:
+                        delay = (attempt + 1) * 2.0 + random.uniform(0.5, 1.5)
+                        logging.warning(
+                            f"⏳ 获取市场价格限流，等待{delay:.1f}s后重试 ({attempt+1}/{retries}): {symbol}"
+                        )
+                        await asyncio.sleep(delay)
+                        continue
+
+                # 网络错误 - 快速重试
+                elif "Network" in error_str or "Timeout" in error_str:
+                    if attempt < retries - 1:
+                        await asyncio.sleep(0.5)
+                        continue
+
+                # 最后一次重试失败
+                if attempt == retries - 1:
+                    logging.error(
+                        f"❌ 获取市场价格多次失败（已重试{retries}次）: 币种={symbol}, 错误={e}"
+                    )
+                    return Decimal("0")  # ✅ 返回0，让调用方决定如何处理
+                else:
+                    # 其他错误 - 通用重试
+                    logging.warning(
+                        f"⚠️ 获取市场价格失败，重试中 ({attempt+1}/{retries}): {symbol}, {e}"
+                    )
+                    await asyncio.sleep(1.0)
+                    continue
+
         return Decimal("0")
     finally:
         # ✅ 只在明确要求时才关闭，避免频繁创建/销毁连接
@@ -258,27 +297,79 @@ async def open_position(
 
 # 获取账户余额
 async def get_account_balance(
-    exchange: ccxt.Exchange, symbol: str, marketType: str = "trading", api_limiter=None
+    exchange: ccxt.Exchange,
+    symbol: str,
+    marketType: str = "trading",
+    api_limiter=None,
+    retries: int = 3,
+    close_exchange: bool = True,
 ) -> Decimal:
-    """获取账户余额"""
-    try:
-        # ✅ 调用全局API限流器
-        if api_limiter:
-            await api_limiter.check_and_wait()
+    """获取账户余额（带重试机制，防止API限流）
 
-        params = {}
-        if symbol:
-            trading_pair = symbol.replace("-", ",")
-            params = {"ccy": trading_pair, "type": marketType}
-        balance = await exchange.fetch_balance(params)
-        total_equity = Decimal(str(balance["USDT"]["total"]))
-        return total_equity
-    except Exception as e:
-        # print(f"获取账户余额失败: {e}")
-        logging.error(f"获取账户余额失败: {e}")
+    Args:
+        exchange: 交易所实例
+        symbol: 交易对
+        marketType: 市场类型
+        api_limiter: API限流器
+        retries: 重试次数（默认3次）
+        close_exchange: 是否关闭exchange（默认True，保持向后兼容）
+
+    Returns:
+        Decimal: 账户余额（失败返回0，会导致开仓失败，这是安全的）
+    """
+    try:
+        for attempt in range(retries):
+            try:
+                # ✅ 调用全局API限流器
+                if api_limiter:
+                    await api_limiter.check_and_wait()
+
+                params = {}
+                if symbol:
+                    trading_pair = symbol.replace("-", ",")
+                    params = {"ccy": trading_pair, "type": marketType}
+                balance = await exchange.fetch_balance(params)
+                total_equity = Decimal(str(balance["USDT"]["total"]))
+                return total_equity
+
+            except Exception as e:
+                error_str = str(e)
+
+                # RateLimitExceeded - 指数退避
+                if "Too Many Requests" in error_str or "50011" in error_str:
+                    if attempt < retries - 1:
+                        delay = (attempt + 1) * 2.0 + random.uniform(0.5, 1.5)
+                        logging.warning(
+                            f"⏳ 获取账户余额限流，等待{delay:.1f}s后重试 ({attempt+1}/{retries}): {symbol}"
+                        )
+                        await asyncio.sleep(delay)
+                        continue
+
+                # 网络错误 - 快速重试
+                elif "Network" in error_str or "Timeout" in error_str:
+                    if attempt < retries - 1:
+                        await asyncio.sleep(0.5)
+                        continue
+
+                # 最后一次重试失败
+                if attempt == retries - 1:
+                    logging.error(
+                        f"❌ 获取账户余额多次失败（已重试{retries}次）: {symbol}, {e}"
+                    )
+                    return Decimal("0")  # ✅ 返回0会导致开仓失败，这是安全的
+                else:
+                    # 其他错误 - 通用重试
+                    logging.warning(
+                        f"⚠️ 获取账户余额失败，重试中 ({attempt+1}/{retries}): {symbol}, {e}"
+                    )
+                    await asyncio.sleep(1.0)
+                    continue
+
         return Decimal("0")
     finally:
-        await exchange.close()
+        # ✅ 保持向后兼容：默认关闭exchange
+        if close_exchange:
+            await exchange.close()
 
 
 async def cleanup_opposite_positions(

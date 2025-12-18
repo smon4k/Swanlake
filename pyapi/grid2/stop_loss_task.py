@@ -10,6 +10,8 @@ from common_functions import (
     get_market_precision,
     milliseconds_to_local_datetime,
     get_client_order_id,
+    fetch_positions_with_retry,
+    fetch_order_with_retry,
 )
 
 
@@ -145,12 +147,21 @@ class StopLossTask:
                 )
                 return
 
-            # ✅ 调用全局API限流器
-            if self.api_limiter:
-                await self.api_limiter.check_and_wait()
+            # ✅ 使用带重试机制的持仓查询（自动处理API限流）
+            all_positions = await fetch_positions_with_retry(
+                exchange=exchange,
+                account_id=account_id,
+                symbol="",
+                params={"instType": "SWAP"},
+                api_limiter=self.api_limiter,
+            )
 
-            # ✅ 只查询一次持仓，后续复用缓存
-            all_positions = await exchange.fetch_positions("", {"instType": "SWAP"})
+            # ✅ 如果重试3次后仍失败，跳过该账户，等待下次检查（不影响其他账户）
+            if all_positions is None:
+                logging.warning(
+                    f"⏸️ 账户 {account_id} 获取持仓失败（已重试3次），跳过本次止损检查，等待下次"
+                )
+                return
 
             # ✅ 创建持仓缓存字典，按 symbol 分类（供后续复用，避免重复查询）
             positions_cache = {}
@@ -239,11 +250,22 @@ class StopLossTask:
                                 f"🔍 查询止损单状态: 账户={account_id}, "
                                 f"订单ID={order_sl_order['order_id'][:15]}..."
                             )
-                            order_info = await exchange.fetch_order(
-                                order_sl_order["order_id"],
-                                symbol,
-                                {"instType": "SWAP", "trigger": "true"},
+                            # ✅ 使用带重试机制的订单查询（自动处理API限流）
+                            order_info = await fetch_order_with_retry(
+                                exchange=exchange,
+                                account_id=account_id,
+                                order_id=order_sl_order["order_id"],
+                                symbol=symbol,
+                                params={"instType": "SWAP", "trigger": "true"},
+                                api_limiter=self.api_limiter,
                             )
+
+                            # ✅ 如果重试3次后仍失败，跳过该止损单检查（继续处理其他持仓）
+                            if order_info is None:
+                                logging.warning(
+                                    f"⏸️ 账户 {account_id} 查询止损单失败（已重试3次），跳过该止损单，继续检查其他持仓"
+                                )
+                                continue  # 跳过该持仓，继续下一个
 
                             order_state = order_info["info"]["state"]
                             logging.info(
@@ -507,6 +529,13 @@ class StopLossTask:
                 exchange, symbol_tactics, self.api_limiter, close_exchange=False
             )  # 获取最新市场价格（不关闭exchange，由调用方管理）
 
+            # ✅ 如果获取市场价格失败（返回0），跳过止损单创建，避免使用错误价格
+            if market_price == Decimal("0"):
+                logging.error(
+                    f"❌ 账户 {account_id} 无法获取市场价格（已重试3次），跳过止损单创建: {full_symbol}"
+                )
+                return None
+
             # ✅ 验证止损价是否符合OKX规则
             original_price = price
             if side == "sell":  # 做多持仓，止损是卖单
@@ -653,6 +682,13 @@ class StopLossTask:
             market_price = await get_market_price(
                 exchange, symbol, self.api_limiter, close_exchange=False
             )  # 获取最新市场价格（不关闭exchange，由调用方管理）
+
+            # ✅ 如果获取市场价格失败（返回0），跳过止损单修改，避免使用错误价格
+            if market_price == Decimal("0"):
+                logging.error(
+                    f"❌ 账户 {account_id} 无法获取市场价格（已重试3次），跳过止损单修改: {symbol}"
+                )
+                return None
 
             # ✅ 验证修改后的止损价是否符合OKX规则
             original_price = price
