@@ -1020,6 +1020,8 @@ class PriceMonitoringTask:
                 * Decimal(market_precision["amount"])
                 * price
             )
+            max_position = await get_max_position_value(self, account_id, symbol)
+            logging.info(f"💰 用户 {account_id} 最大仓位: {max_position}")
 
             # 总持仓数量如果小于最大仓位的5%的话要平掉所有仓位
             min_position_threshold = max_position * Decimal("0.05") # 最大仓位的5%
@@ -1062,7 +1064,6 @@ class PriceMonitoringTask:
                 logging.info(f"📉 用户 {account_id} 卖单过小: {sell_size}")
                 return False
 
-            max_position = await get_max_position_value(self, account_id, symbol)
             buy_total = (
                 total_position_quantity
                 + buy_size * market_precision["amount"] * buy_price
