@@ -1020,6 +1020,20 @@ class PriceMonitoringTask:
                 * Decimal(market_precision["amount"])
                 * price
             )
+
+            # 总持仓数量如果小于最大仓位的5%的话要平掉所有仓位
+            min_position_threshold = max_position * Decimal("0.05") # 最大仓位的5%
+            if total_position_quantity < min_position_threshold:
+                logging.error(f"⚠️ 用户 {account_id} 持仓数量{total_position_quantity} 小于最大仓位{max_position} 的 5%，需要平掉所有仓位")
+
+                # 取消所有未成交订单
+                await cancel_all_orders(self, exchange, account_id, symbol, True)
+
+                # 平掉反向仓位
+                await self.cleanup_opposite_positions(account_id, symbol, signal["direction"])
+                
+                return False
+
             logging.info(f"🗑️ 取消所有挂单: 账户={account_id}, 币种={symbol}")
             await cancel_all_orders(self, exchange, account_id, symbol)
 
