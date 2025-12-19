@@ -227,29 +227,54 @@ class SignalProcessingTask:
 
             # ✅ 所有任务已完成，检查结果
             all_success = True
+            partial_success = False  # ✅ 新增：部分成功标记
+            failed_accounts = []
             async with task_lock:
                 for acc_id, res in task_results.items():
                     if isinstance(res, Exception):
                         logging.error(f"⚠️ 账户 {acc_id} 执行异常: {res}")
                         all_success = False
+                        failed_accounts.append(acc_id)
                     elif not res.get("success", False):
                         logging.warning(
                             f"⚠️ 账户 {acc_id} 执行失败: {res.get('msg', 'unknown')}"
                         )
                         all_success = False
+                        failed_accounts.append(acc_id)
+                    else:
+                        partial_success = True  # ✅ 至少有一个成功
 
-            # ✅ 如果是平仓信号，且全部成功，才执行后续逻辑
-            print(f"平仓信号: {is_close_signal}, 全部成功: {all_success}")
-            logging.info(f"平仓信号: {is_close_signal}, 全部成功: {all_success}")
+            # ✅ 如果是平仓信号，根据成功情况处理
+            print(
+                f"平仓信号: {is_close_signal}, 全部成功: {all_success}, 部分成功: {partial_success}"
+            )
+            logging.info(
+                f"平仓信号: {is_close_signal}, 全部成功: {all_success}, 部分成功: {partial_success}"
+            )
             if is_close_signal:
                 if all_success:
+                    # ✅ 修复 P3：完全成功，执行所有后续操作
+                    logging.info(f"✅ 平仓信号 {signal_id} 全部成功，执行后续处理")
                     await self.handle_close_position_update(signal)
                     logging.info(
                         f"✅ 平仓信号 {signal_id} 已触发 handle_close_position_update"
                     )
-                else:
+
+                elif partial_success:
+                    # ✅ 修复 P3：部分成功，仍执行后续操作但记录警告
                     logging.warning(
-                        f"⚠️ 平仓信号 {signal_id} 未全部成功，跳过 handle_close_position_update"
+                        f"⚠️ 平仓信号 {signal_id} 部分失败 (失败账户: {failed_accounts})，"
+                        f"但至少 {len(task_results) - len(failed_accounts)} 个账户成功，继续执行后续操作"
+                    )
+                    await self.handle_close_position_update(signal)
+                    logging.info(
+                        f"⚠️ 平仓信号 {signal_id} 部分成功已处理，需要人工审查失败账户"
+                    )
+
+                else:
+                    # ✅ 全部失败
+                    logging.error(
+                        f"❌ 平仓信号 {signal_id} 全部失败，跳过 handle_close_position_update"
                     )
 
             # ✅ 更新信号状态
@@ -265,13 +290,47 @@ class SignalProcessingTask:
             self._update_signal_status(signal_id, "failed")
 
     async def _record_task_result(self, task, account_id, result_dict, lock):
-        """记录任务结果，线程安全"""
-        async with lock:
+        """
+        记录任务结果，线程安全，含重试机制
+
+        ✅ 修复 P2：Event Loop错误时重试获取任务结果
+        """
+        max_retries = 3
+        last_error = None
+
+        for attempt in range(max_retries):
             try:
                 result = task.result()  # 可能抛出异常
-                result_dict[account_id] = result
+                async with lock:
+                    result_dict[account_id] = result
+                return  # ✅ 成功则返回
+
             except Exception as e:
-                result_dict[account_id] = e
+                last_error = e
+                error_msg = str(e)
+
+                # ✅ 特殊处理 Event Loop 错误（可重试）
+                if (
+                    "attached to a different loop" in error_msg
+                    and attempt < max_retries - 1
+                ):
+                    logging.warning(
+                        f"⚠️ 账户 {account_id} Task Event Loop错误，"
+                        f"等待 {1.0 * (attempt + 1)}秒后重试 ({attempt+1}/{max_retries})"
+                    )
+                    await asyncio.sleep(1.0 * (attempt + 1))  # 指数退避
+                    continue
+                else:
+                    # 其他错误或最后一次重试仍失败，记录异常
+                    break
+
+        # 如果所有重试都失败了，记录最后的错误
+        async with lock:
+            result_dict[account_id] = last_error
+            if last_error:
+                logging.error(
+                    f"❌ 账户 {account_id} 重试 {max_retries} 次后仍然失败: {last_error}"
+                )
 
     def _update_signal_status(self, signal_id, status):
         """更新信号状态（独立方法，避免重复）"""
@@ -647,22 +706,27 @@ class SignalProcessingTask:
     async def cleanup_opposite_positions(
         self, account_id: int, symbol: str, direction: str
     ):
-        """平掉一个方向的仓位（双向持仓），并更新数据库订单为已平仓"""
+        """
+        平掉一个方向的仓位（双向持仓），并更新数据库订单为已平仓
+
+        ✅ 修复 P1：增加容错和Event Loop错误重试
+        """
         max_retries = 3
         retry_delay = 1.0  # 初始延迟1秒
+        exchange = None  # ✅ 提前初始化，防止finally块崩溃
 
         for attempt in range(max_retries):
-            exchange = await get_exchange(self, account_id)
-            if not exchange:
-                return
-
             try:
+                exchange = await get_exchange(self, account_id)
+                if not exchange:
+                    logging.warning(f"⚠️ 账户 {account_id} 无法获取交易所对象")
+                    return
+
                 positions = await fetch_current_positions(
                     self, account_id, symbol, "SWAP"
                 )
                 if not positions:
-                    print(f"无持仓信息 用户 {account_id}")
-                    logging.warning(f"无持仓信息 用户 {account_id}")
+                    logging.warning(f"✓ 无持仓信息 用户 {account_id}")
                     return
 
                 opposite_direction = "short" if direction == "long" else "long"
@@ -678,8 +742,7 @@ class SignalProcessingTask:
                     total_size += abs(pos_size)
 
                 if total_size == 0:
-                    print(f"无反向持仓需要平仓：{opposite_direction}")
-                    logging.info(f"无反向持仓需要平仓：{opposite_direction}")
+                    logging.info(f"✓ 无反向持仓需要平仓：{opposite_direction}")
                     return
 
                 close_side = "sell" if opposite_direction == "long" else "buy"
@@ -723,44 +786,56 @@ class SignalProcessingTask:
                     await self.db.mark_orders_as_closed(
                         account_id, symbol, opposite_direction
                     )
-                    print(
-                        f"用户 {account_id} 成功平掉{opposite_direction}方向总持仓：{total_size}"
-                    )
                     logging.info(
-                        f"用户 {account_id} 成功平掉{opposite_direction}方向总持仓：{total_size}"
+                        f"✓ 用户 {account_id} 成功平掉{opposite_direction}方向总持仓：{total_size}"
                     )
                     return  # 成功后退出重试循环
 
                 else:
-                    print(
-                        f"用户 {account_id} 平仓失败，方向: {opposite_direction}，数量: {total_size}"
-                    )
-                    logging.info(
-                        f"用户 {account_id} 平仓失败，方向: {opposite_direction}，数量: {total_size}"
+                    logging.warning(
+                        f"✗ 用户 {account_id} 平仓失败，方向: {opposite_direction}，数量: {total_size}"
                     )
                     return  # 平仓失败，退出重试
 
             except Exception as e:
                 error_msg = str(e)
-                # 检查是否是频率限制错误
+
+                # ✅ 特殊处理 Event Loop 错误（可重试）
                 if (
+                    "attached to a different loop" in error_msg
+                    and attempt < max_retries - 1
+                ):
+                    wait_time = retry_delay * (2**attempt)
+                    logging.warning(
+                        f"⚠️ 账户 {account_id} Event Loop错误，{wait_time:.1f}秒后重试 ({attempt+1}/{max_retries})"
+                    )
+                    await asyncio.sleep(wait_time)
+                    continue
+
+                # 检查是否是频率限制错误
+                elif (
                     "50011" in error_msg or "Too Many Requests" in error_msg
                 ) and attempt < max_retries - 1:
                     wait_time = retry_delay * (2**attempt)  # 指数退避：1s, 2s, 4s
                     logging.warning(
-                        f"⚠️ 用户 {account_id} 平仓触发频率限制，{wait_time:.1f}秒后重试 (尝试 {attempt+1}/{max_retries})"
+                        f"⚠️ 账户 {account_id} 平仓触发频率限制，{wait_time:.1f}秒后重试 ({attempt+1}/{max_retries})"
                     )
                     await asyncio.sleep(wait_time)
                     continue  # 继续下一次重试
                 else:
-                    # 非频率限制错误或已达到最大重试次数
-                    print(f"用户 {account_id} 清理反向持仓出错: {e}")
+                    # 非重试类错误或已达到最大重试次数
                     logging.error(
-                        f"用户 {account_id} 清理反向持仓出错: {e}", exc_info=True
+                        f"✗ 账户 {account_id} 清理反向持仓出错: {e}", exc_info=True
                     )
                     return
+
             finally:
-                await exchange.close()
+                # ✅ 只在exchange存在时才关闭
+                if exchange:
+                    try:
+                        await exchange.close()
+                    except Exception as close_error:
+                        logging.debug(f"⚠️ 关闭交易所连接出错: {close_error}")
 
     async def handle_open_position(
         self,

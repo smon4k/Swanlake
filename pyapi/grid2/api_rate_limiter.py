@@ -5,6 +5,7 @@ API 限流器 - 用于控制 API 请求频率，避免触发交易所限流
 import asyncio
 import time
 import logging
+import threading
 
 
 class SimpleRateLimiter:
@@ -19,6 +20,10 @@ class SimpleRateLimiter:
     使用滑动窗口算法：
     - 记录最近2秒内的所有API调用时间戳
     - 每次调用前检查计数，如果接近限制就延迟
+
+    Event Loop 安全：
+    - 使用 threading.Lock 代替 asyncio.Lock
+    - 避免跨事件循环使用时的 RuntimeError
     """
 
     def __init__(self, max_requests: int = 60, time_window: float = 2.0):
@@ -31,7 +36,11 @@ class SimpleRateLimiter:
         self.max_requests = max_requests
         self.time_window = time_window
         self.request_times = []  # 最近的API调用时间戳
-        self.lock = asyncio.Lock()
+        # ✅ 修复 P0：使用 threading.Lock 替代 asyncio.Lock
+        # 原因：asyncio.Lock 在初始化时绑定到当前事件循环
+        # 如果在不同的事件循环中使用，会报错：
+        # RuntimeError: Task got Future attached to a different loop
+        self.lock = threading.Lock()
 
         # ✅ 更保守的阈值配置（针对 30 账户优化）
         self.warning_threshold = 20  # 20 次就开始延迟（约 1/3）
@@ -67,8 +76,14 @@ class SimpleRateLimiter:
         T=250ms:  那100ms的等待期间，前面的请求都已执行完成
                   → 时间窗口重置（2秒已过期）
                   → 继续正常执行
+
+        ✅ 修复 P0：使用 threading.Lock 替代 asyncio.Lock
+        - threading.Lock 可以安全地跨事件循环使用
+        - 避免 RuntimeError: Task got Future attached to a different loop
         """
-        async with self.lock:
+        # ✅ 使用线程锁替代异步锁
+        wait_time = 0
+        with self.lock:
             now = time.time()
 
             # 清除超过时间窗口的记录
@@ -93,14 +108,6 @@ class SimpleRateLimiter:
                     f"延迟 {wait_time*1000:.0f}ms"
                 )
 
-            if wait_time > 0:
-                await asyncio.sleep(wait_time)
-                # 延迟后重新清理过期记录
-                now = time.time()
-                self.request_times = [
-                    t for t in self.request_times if now - t < self.time_window
-                ]
-
             # 记录这次调用时间
             self.request_times.append(now)
 
@@ -116,13 +123,17 @@ class SimpleRateLimiter:
                     f"📈 API 计数变化: {current_count} → {len(self.request_times)}"
                 )
 
+        # 在锁外进行异步等待
+        if wait_time > 0:
+            await asyncio.sleep(wait_time)
+
     async def get_current_status(self) -> dict:
         """
         获取当前限流器状态（用于监控和调试）
 
         :return: 包含当前请求数、限制等信息的字典
         """
-        async with self.lock:
+        with self.lock:
             now = time.time()
             self.request_times = [
                 t for t in self.request_times if now - t < self.time_window
