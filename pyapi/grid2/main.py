@@ -78,6 +78,7 @@ class OKXTradingBot:
             self.signal_lock,
             self.stop_loss_task,
             self.busy_accounts,
+            self.signal_task,  # ✅ 新增：传入 SignalProcessingTask 实例
             self.api_limiter,
         )
 

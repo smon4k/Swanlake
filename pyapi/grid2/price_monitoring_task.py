@@ -26,6 +26,15 @@ from stop_loss_task import StopLossTask
 from savings_task import SavingsTask
 import traceback
 
+# ✅ 方案1：导入 SignalProcessingTask，用于调用 cleanup_opposite_positions
+# 注意：避免循环导入，需要在运行时注入
+if __name__ != "__main__":
+    try:
+        from signal_processing_task import SignalProcessingTask
+    except ImportError:
+        # 延迟导入以避免循环依赖
+        SignalProcessingTask = None
+
 
 class PriorityAccountQueue:
     """账户优先级队列管理器
@@ -128,12 +137,14 @@ class PriceMonitoringTask:
         signal_lock: asyncio.Lock,
         stop_loss_task: StopLossTask,
         busy_accounts: set[int],
+        signal_processing_task=None,  # ✅ 新增：SignalProcessingTask 实例
         api_limiter=None,
     ):
         self.config = config
         self.db = db
         self.signal_lock = signal_lock
         self.stop_loss_task = stop_loss_task  # 保留引用
+        self.signal_processing_task = signal_processing_task  # ✅ 保存 SignalProcessingTask 实例
         self.running = True  # 控制运行状态
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
@@ -1032,7 +1043,15 @@ class PriceMonitoringTask:
                 await cancel_all_orders(self, exchange, account_id, symbol, True)
 
                 # 平掉反向仓位
-                await self.cleanup_opposite_positions(account_id, symbol, signal["direction"])
+                # ✅ 方案1：通过注入的 signal_processing_task 实例调用
+                if self.signal_processing_task:
+                    await self.signal_processing_task.cleanup_opposite_positions(
+                        account_id, symbol, signal["direction"]
+                    )
+                else:
+                    logging.error(
+                        f"❌ 用户 {account_id} 未能平掉反向仓位：SignalProcessingTask 未注入"
+                    )
                 
                 return False
 
