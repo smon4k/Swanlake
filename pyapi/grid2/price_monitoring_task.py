@@ -144,7 +144,9 @@ class PriceMonitoringTask:
         self.db = db
         self.signal_lock = signal_lock
         self.stop_loss_task = stop_loss_task  # 保留引用
-        self.signal_processing_task = signal_processing_task  # ✅ 保存 SignalProcessingTask 实例
+        self.signal_processing_task = (
+            signal_processing_task  # ✅ 保存 SignalProcessingTask 实例
+        )
         self.running = True  # 控制运行状态
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
@@ -1035,9 +1037,11 @@ class PriceMonitoringTask:
             logging.info(f"💰 用户 {account_id} 最大仓位: {max_position}")
 
             # 总持仓数量如果小于最大仓位的5%的话要平掉所有仓位
-            min_position_threshold = max_position * Decimal("0.05") # 最大仓位的5%
+            min_position_threshold = max_position * Decimal("0.05")  # 最大仓位的5%
             if total_position_quantity < min_position_threshold:
-                logging.error(f"⚠️ 用户 {account_id} 持仓数量{total_position_quantity} 小于最大仓位{max_position} 的 5%，需要平掉所有仓位")
+                logging.error(
+                    f"⚠️ 用户 {account_id} 持仓数量{total_position_quantity} 小于最大仓位{max_position} 的 5%，需要平掉所有仓位"
+                )
 
                 # 取消所有未成交订单
                 await cancel_all_orders(self, exchange, account_id, symbol, True)
@@ -1052,7 +1056,7 @@ class PriceMonitoringTask:
                     logging.error(
                         f"❌ 用户 {account_id} 未能平掉反向仓位：SignalProcessingTask 未注入"
                     )
-                
+
                 return False
 
             logging.info(f"🗑️ 取消所有挂单: 账户={account_id}, 币种={symbol}")
