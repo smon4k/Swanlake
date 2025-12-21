@@ -234,20 +234,34 @@ class SignalProcessingTask:
         """判断是否是平仓信号（size=0表示平仓）"""
         return signal.get("size", 1) == 0
 
-    def _check_previous_processing_signal(self, strategy_name):
-        """检查是否有该策略未完成的 processing 信号"""
+    def _check_previous_processing_signal(self, strategy_name, current_signal_id=None):
+        """检查是否有该策略未完成的 processing 信号（排除当前信号）"""
         try:
             conn = self.db.get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute(
-                    """SELECT id, direction, size 
-                       FROM g_signals 
-                       WHERE status='processing' 
-                       AND name=%s 
-                       ORDER BY id DESC 
-                       LIMIT 1""",
-                    (strategy_name,),
-                )
+                if current_signal_id:
+                    # ✅ 排除当前信号，只查找更旧的前置信号
+                    cursor.execute(
+                        """SELECT id, direction, size 
+                           FROM g_signals 
+                           WHERE status='processing' 
+                           AND name=%s 
+                           AND id < %s
+                           ORDER BY id DESC 
+                           LIMIT 1""",
+                        (strategy_name, current_signal_id),
+                    )
+                else:
+                    # ⚠️ 兼容旧代码（不传 current_signal_id）
+                    cursor.execute(
+                        """SELECT id, direction, size 
+                           FROM g_signals 
+                           WHERE status='processing' 
+                           AND name=%s 
+                           ORDER BY id DESC 
+                           LIMIT 1""",
+                        (strategy_name,),
+                    )
                 result = cursor.fetchone()
             conn.close()
             return result
@@ -358,8 +372,10 @@ class SignalProcessingTask:
                 self._update_signal_status(signal_id, "processed")
                 return
 
-            # ✅ 【关键】检查并处理前置 processing 信号
-            prev_signal = self._check_previous_processing_signal(signal["name"])
+            # ✅ 【关键】检查并处理前置 processing 信号（排除当前信号）
+            prev_signal = self._check_previous_processing_signal(
+                signal["name"], signal_id
+            )
             if prev_signal:
                 prev_signal_id = prev_signal["id"]
                 logging.warning(
