@@ -1475,14 +1475,14 @@ class PriceMonitoringTask:
             )
 
             for signal_row in processing_signals:
-                signal_id = signal_row[0]
-                failed_accounts_json = signal_row[1]
-                success_accounts_json = signal_row[2]
-                direction = signal_row[3]
-                symbol = signal_row[4]
-                price = Decimal(str(signal_row[5]))
-                size = signal_row[6]
-                last_update_time = signal_row[7]
+                signal_id = signal_row["id"]
+                failed_accounts_json = signal_row["failed_accounts"]
+                success_accounts_json = signal_row["success_accounts"]
+                direction = signal_row["direction"]
+                symbol = signal_row["symbol"]
+                price = Decimal(str(signal_row["price"]))
+                size = signal_row["size"]
+                last_update_time = signal_row["last_update_time"]
 
                 try:
                     # 检查超时（10分钟）
