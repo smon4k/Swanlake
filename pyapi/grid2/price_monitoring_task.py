@@ -138,7 +138,7 @@ class PriceMonitoringTask:
         stop_loss_task: StopLossTask,
         busy_accounts: set[int],
         api_limiter=None,
-        signal_processing_task=None, 
+        signal_processing_task=None,
     ):
         self.config = config
         self.db = db
@@ -1045,10 +1045,16 @@ class PriceMonitoringTask:
             max_position = await get_max_position_value(self, account_id, symbol)
             # 总持仓数量如果小于最大仓位的5%的话要平掉所有仓位
             min_position_threshold = max_position * Decimal("0.05")  # 最大仓位的5%
-            logging.info(f"用户 {account_id} 最小持仓数量阈值: {min_position_threshold}")
+            logging.info(
+                f"用户 {account_id} 最小持仓数量阈值: {min_position_threshold}"
+            )
             if total_position_quantity < min_position_threshold:
-                logging.info(f"🗑️ 总持仓数量小于最大仓位的5%，平掉所有仓位: 账户={account_id}, 币种={symbol}")
-                await self.signal_processing_task.cleanup_opposite_positions(account_id, symbol, side)
+                logging.info(
+                    f"🗑️ 总持仓数量小于最大仓位的5%，平掉所有仓位: 账户={account_id}, 币种={symbol}"
+                )
+                await self.signal_processing_task.cleanup_opposite_positions(
+                    account_id, symbol, side
+                )
 
                 # 取消所有未成交订单
                 await cancel_all_orders(self, exchange, account_id, symbol, True)
@@ -1519,9 +1525,11 @@ class PriceMonitoringTask:
                     newly_recovered = []
 
                     for account_info in failed_accounts:
-                        account_id = account_info.get("account_id") or account_info
-                        if isinstance(account_id, dict):
-                            account_id = account_id.get("account_id")
+                        # ✅ 处理两种格式：整数 (2) 或字典 ({"account_id": 2})
+                        if isinstance(account_info, dict):
+                            account_id = account_info.get("account_id")
+                        else:
+                            account_id = account_info
 
                         try:
                             # 检查账户实际仓位
