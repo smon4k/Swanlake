@@ -216,6 +216,17 @@ class SignalProcessingTask:
             results[acc_id] = Exception(f"账户 {acc_id} 重试 {max_retries} 次后仍失败")
             logging.error(f"❌ 账户 {acc_id} 重试 {max_retries} 次后仍然失败")
 
+        # ✅ 关键日志：处理完毕，清除busy_accounts
+        logging.info(
+            f"📊 信号 {signal.get('name')} (ID={signal.get('id')}) 处理完成，清除busy_accounts"
+        )
+        for acc_id in account_list:
+            if self.busy_accounts and acc_id in self.busy_accounts:
+                self.busy_accounts.discard(acc_id)
+                logging.info(
+                    f"✅ 账户 {acc_id} 从busy_accounts中移除 (当前busy_accounts={self.busy_accounts})"
+                )
+
         return results
 
     def _is_close_signal(self, signal):
@@ -237,6 +248,11 @@ class SignalProcessingTask:
 
             account_tactics_list = self.db.tactics_accounts_cache[signal["name"]]
             is_close_signal = self._is_close_signal(signal)
+
+            # ✅ 关键日志：记录开始处理的账户和busy_accounts状态
+            logging.info(
+                f"📢 信号 {signal.get('name')} (ID={signal_id}) 开始处理账户: {account_tactics_list}, busy_accounts当前状态={self.busy_accounts}"
+            )
 
             # ✅ 处理所有账户，带重试机制
             results = await self._process_accounts_with_retry(
