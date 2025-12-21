@@ -1040,10 +1040,12 @@ class PriceMonitoringTask:
                 * Decimal(market_precision["amount"])
                 * price
             )
-            
+            logging.info(f"用户 {account_id} 总持仓数量: {total_position_quantity}")
+
             max_position = await get_max_position_value(self, account_id, symbol)
             # 总持仓数量如果小于最大仓位的5%的话要平掉所有仓位
             min_position_threshold = max_position * Decimal("0.05")  # 最大仓位的5%
+            logging.info(f"用户 {account_id} 最小持仓数量阈值: {min_position_threshold}")
             if total_position_quantity < min_position_threshold:
                 logging.info(f"🗑️ 总持仓数量小于最大仓位的5%，平掉所有仓位: 账户={account_id}, 币种={symbol}")
                 await self.signal_processing_task.cleanup_opposite_positions(account_id, symbol, side)
