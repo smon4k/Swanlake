@@ -6,6 +6,7 @@ import os
 import time
 from typing import Any, Dict
 import redis
+import json
 from database import Database
 from stop_loss_task import StopLossTask
 from trading_bot_config import TradingBotConfig
@@ -230,13 +231,124 @@ class SignalProcessingTask:
         return results
 
     def _is_close_signal(self, signal):
-        # 判断是否是平仓
-        return (signal["direction"] == "long" and signal["size"] == 0) or (
-            signal["direction"] == "short" and signal["size"] == 0
-        )
+        """判断是否是平仓信号（size=0表示平仓）"""
+        return signal.get("size", 1) == 0
+
+    def _check_previous_processing_signal(self, strategy_name):
+        """检查是否有该策略未完成的 processing 信号"""
+        try:
+            conn = self.db.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """SELECT id, direction, size 
+                       FROM g_signals 
+                       WHERE status='processing' 
+                       AND name=%s 
+                       ORDER BY id DESC 
+                       LIMIT 1""",
+                    (strategy_name,),
+                )
+                result = cursor.fetchone()
+            conn.close()
+            return result
+        except Exception as e:
+            logging.error(f"❌ 检查 processing 信号失败: {e}")
+            return None
+
+    def _mark_signal_failed(self, signal_id):
+        """立即标记信号为 failed（被新信号覆盖放弃处理）"""
+        try:
+            conn = self.db.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """UPDATE g_signals 
+                       SET status='failed', last_update_time=NOW() 
+                       WHERE id=%s""",
+                    (signal_id,),
+                )
+            conn.commit()
+            conn.close()
+            logging.warning(f"⚠️ 信号 {signal_id} 被新信号覆盖，标记为 failed")
+        except Exception as e:
+            logging.error(f"❌ 标记信号为failed失败: {e}")
+
+    async def _verify_positions_and_collect_failures(
+        self, signal, account_tactics_list, results
+    ):
+        """
+        验证每个账户是否真的完成了信号要求
+        - 开仓信号：检查实际仓位是否存在（应该有仓位）
+        - 平仓信号：检查实际仓位是否已清空（应该无仓位）
+        返回失败的账户列表
+        """
+        failed_accounts_list = []
+        is_close_signal = self._is_close_signal(signal)
+
+        for acc_id in account_tactics_list:
+            try:
+                signal_result = results.get(acc_id)
+
+                # 只验证信号处理返回成功的账户
+                if not signal_result or not signal_result.get("success", False):
+                    logging.debug(f"⏭️ 账户 {acc_id} 信号处理未成功，跳过仓位验证")
+                    continue
+
+                # 检查实际仓位
+                actual_positions = await get_total_positions(
+                    self, acc_id, signal["symbol"], "SWAP"
+                )
+
+                if is_close_signal:
+                    # ✅ 平仓信号：应该无仓位，如果还有仓位则平仓失败
+                    if actual_positions is not None and actual_positions > 0:
+                        logging.warning(
+                            f"⚠️ 账户 {acc_id} 平仓失败（仍有仓位）- 信号={signal['id']}, "
+                            f"币种={signal['symbol']}, 仓位={actual_positions}"
+                        )
+
+                        failed_accounts_list.append(
+                            {
+                                "account_id": acc_id,
+                                "direction": signal["direction"],
+                                "symbol": signal["symbol"],
+                                "price": float(signal["price"]),
+                                "size": signal["size"],
+                            }
+                        )
+                    else:
+                        logging.info(
+                            f"✅ 账户 {acc_id} 平仓验证通过 - 币种={signal['symbol']}, 无仓位"
+                        )
+                else:
+                    # ✅ 开仓信号：应该有仓位，如果无仓位则开仓失败
+                    if actual_positions is None or actual_positions == 0:
+                        logging.warning(
+                            f"⚠️ 账户 {acc_id} 开仓失败（无仓位）- 信号={signal['id']}, "
+                            f"币种={signal['symbol']}, 方向={signal['direction']}"
+                        )
+
+                        failed_accounts_list.append(
+                            {
+                                "account_id": acc_id,
+                                "direction": signal["direction"],
+                                "symbol": signal["symbol"],
+                                "price": float(signal["price"]),
+                                "size": signal["size"],
+                            }
+                        )
+                    else:
+                        logging.info(
+                            f"✅ 账户 {acc_id} 开仓验证通过 - "
+                            f"币种={signal['symbol']}, 仓位={actual_positions}"
+                        )
+
+            except Exception as e:
+                logging.error(f"❌ 验证账户 {acc_id} 仓位异常: {e}", exc_info=True)
+
+        return failed_accounts_list
 
     async def handle_single_signal(self, signal):
-        """单条信号的处理逻辑"""
+        """单条信号的处理逻辑 - 新信号优先，覆盖前置信号"""
         try:
             signal_id = signal["id"]
             logging.info(f"🚦 开始处理信号 {signal_id} ...")
@@ -246,80 +358,158 @@ class SignalProcessingTask:
                 self._update_signal_status(signal_id, "processed")
                 return
 
-            account_tactics_list = self.db.tactics_accounts_cache[signal["name"]]
+            # ✅ 【关键】检查并处理前置 processing 信号
+            prev_signal = self._check_previous_processing_signal(signal["name"])
+            if prev_signal:
+                prev_signal_id = prev_signal["id"]
+                logging.warning(
+                    f"⚠️ 检测到前置信号 {prev_signal_id} 处于 processing 状态"
+                )
+                # 新信号来了，前置信号立即标记为 failed（不再被 price_monitoring 处理）
+                self._mark_signal_failed(prev_signal_id)
+                logging.warning(
+                    f"🔄 新信号 {signal_id} 覆盖旧信号 {prev_signal_id}，"
+                    f"旧信号标记为 failed，不再恢复处理"
+                )
+
+            # ✅ 获取全量账户列表（新信号优先，不考虑前置信号）
+            account_list = self.db.tactics_accounts_cache[signal["name"]]
             is_close_signal = self._is_close_signal(signal)
 
-            # ✅ 关键日志：记录开始处理的账户和busy_accounts状态
             logging.info(
-                f"📢 信号 {signal.get('name')} (ID={signal_id}) 开始处理账户: {account_tactics_list}, busy_accounts当前状态={self.busy_accounts}"
+                f"📢 信号 {signal.get('name')} (ID={signal_id}) "
+                f"{'平仓' if is_close_signal else '开仓'} "
+                f"账户: {account_list}"
             )
 
-            # ✅ 处理所有账户，带重试机制
+            # ✅ 处理账户（全量处理，新信号为主导）
             results = await self._process_accounts_with_retry(
-                signal, account_tactics_list, batch_size=8, max_retries=3
+                signal, account_list, batch_size=8, max_retries=3
             )
 
-            # ✅ 统计结果
-            all_success = True
-            partial_success = False
+            # ✅ 分类成功和失败
+            success_accounts = []
             failed_accounts = []
 
             for acc_id, res in results.items():
                 if isinstance(res, Exception):
                     logging.error(f"❌ 账户 {acc_id} 执行异常: {res}")
-                    all_success = False
                     failed_accounts.append(acc_id)
                 elif not res.get("success", False):
                     logging.warning(
                         f"⚠️ 账户 {acc_id} 执行失败: {res.get('msg', 'unknown')}"
                     )
-                    all_success = False
                     failed_accounts.append(acc_id)
                 else:
-                    partial_success = True
+                    success_accounts.append(acc_id)
 
-            # ✅ 平仓逻辑（保持原来的逻辑）
+            # ✅ 执行平仓逻辑
             if is_close_signal:
-                if all_success:
-                    logging.info(f"✅ 平仓信号 {signal_id} 全部成功，执行后续处理")
+                if not failed_accounts or len(success_accounts) > 0:
+                    logging.info(f"✅ 平仓信号 {signal_id} 处理完成，执行后续处理")
                     await self.handle_close_position_update(signal)
-                    logging.info(
-                        f"✅ 平仓信号 {signal_id} 已触发 handle_close_position_update"
-                    )
-                elif partial_success:
-                    logging.warning(
-                        f"⚠️ 平仓信号 {signal_id} 部分失败 (失败账户: {failed_accounts})，"
-                        f"但至少 {len(results) - len(failed_accounts)} 个账户成功，继续执行后续操作"
-                    )
-                    await self.handle_close_position_update(signal)
-                    logging.info(f"⚠️ 平仓信号 {signal_id} 部分成功已处理")
                 else:
-                    logging.error(
-                        f"❌ 平仓信号 {signal_id} 全部失败，跳过 handle_close_position_update"
-                    )
+                    logging.error(f"❌ 平仓信号 {signal_id} 全部失败，跳过后续处理")
+
+            # ✅ 验证仓位并收集失败账户
+            logging.info(f"📊 开始验证信号 {signal_id} 中账户的执行情况...")
+            position_failed_accounts = (
+                await self._verify_positions_and_collect_failures(
+                    signal, account_list, results
+                )
+            )
 
             # ✅ 更新信号状态
-            self._update_signal_status(signal_id, "processed")
-            logging.info(f"✅ 信号 {signal_id} 处理完成")
+            if not position_failed_accounts:
+                # 全部成功
+                self._update_signal_full_success(signal_id, success_accounts)
+                logging.info(f"✅ 信号 {signal_id} 全部成功，状态改为 processed")
+            else:
+                # 部分失败：保持 processing，记录成功和失败账户
+                self._update_signal_partial_success(
+                    signal_id,
+                    success_accounts,
+                    position_failed_accounts,
+                    pair_id=signal.get("id"),
+                )
+                logging.warning(
+                    f"⚠️ 信号 {signal_id} 部分失败({len(position_failed_accounts)}个)，"
+                    f"状态保持processing，等待恢复"
+                )
 
         except Exception as e:
-            logging.error(f"❌ 信号 {signal_id} 处理异常: {e}")
+            logging.error(f"❌ 信号 {signal_id} 处理异常: {e}", exc_info=True)
             self._update_signal_status(signal_id, "failed")
 
     def _update_signal_status(self, signal_id, status):
-        """更新信号状态（独立方法，避免重复）"""
+        """更新信号状态（简单更新）"""
         try:
             conn = self.db.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE g_signals SET status=%s WHERE id=%s AND status='processing'",
+                    """UPDATE g_signals 
+                       SET status=%s, last_update_time=NOW() 
+                       WHERE id=%s""",
                     (status, signal_id),
                 )
             conn.commit()
-        except Exception as e:
-            logging.error(f"❌ 更新信号 {signal_id} 状态失败: {e}")
-        finally:
             conn.close()
+        except Exception as e:
+            logging.error(f"❌ 更新信号 {signal_id} 状态为 {status} 失败: {e}")
+
+    def _update_signal_full_success(self, signal_id, success_accounts):
+        """信号全部成功：清除失败记录，状态改为processed"""
+        try:
+            conn = self.db.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """UPDATE g_signals 
+                       SET status='processed',
+                           success_accounts=%s,
+                           failed_accounts=NULL,
+                           last_update_time=NOW()
+                       WHERE id=%s""",
+                    (json.dumps(success_accounts), signal_id),
+                )
+            conn.commit()
+            conn.close()
+            logging.info(
+                f"✅ 信号 {signal_id} 全部成功，已处理 {len(success_accounts)} 个账户"
+            )
+        except Exception as e:
+            logging.error(f"❌ 更新信号 {signal_id} 全部成功状态失败: {e}")
+
+    def _update_signal_partial_success(
+        self, signal_id, success_accounts, failed_accounts, pair_id=None
+    ):
+        """信号部分失败：记录成功和失败账户，状态保持processing"""
+        try:
+            conn = self.db.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """UPDATE g_signals 
+                       SET status='processing',
+                           success_accounts=%s,
+                           failed_accounts=%s,
+                           pair_id=%s,
+                           last_update_time=NOW()
+                       WHERE id=%s""",
+                    (
+                        json.dumps(success_accounts),
+                        json.dumps(failed_accounts),
+                        pair_id or signal_id,
+                        signal_id,
+                    ),
+                )
+            conn.commit()
+            conn.close()
+            logging.info(
+                f"⚠️ 信号 {signal_id} 部分成功: "
+                f"成功={len(success_accounts)}, 失败={len(failed_accounts)}, "
+                f"状态=processing（等待恢复）"
+            )
+        except Exception as e:
+            logging.error(f"❌ 更新信号 {signal_id} 部分成功状态失败: {e}")
 
     async def process_signal(
         self, signal: Dict[str, Any], account_id: str
@@ -420,10 +610,12 @@ class SignalProcessingTask:
             )
 
             if not open_position:
+                logging.error(f"❌ 开仓失败: {signal['id']}, 账户: {account_id}")
                 return
             # 1.4 处理记录开仓方向数据
             # has_open_position = await self.db.has_open_position(name, side)
             # if has_open_position:
+            logging.info(f"开始记录开仓方向数据: {signal['id']}, 账户: {account_id}")
             await self.db.update_signals_trade_by_id(
                 signal["id"],
                 {
@@ -962,6 +1154,7 @@ class SignalProcessingTask:
             )
             # print("order", order)
             if order:
+                logging.info(f"用户 {account_id} 交易所开仓成功，开始记录订单")
                 await self.db.add_order(
                     {
                         "account_id": account_id,
@@ -978,11 +1171,11 @@ class SignalProcessingTask:
                         "position_group_id": "",
                     }
                 )
-                logging.info(f"用户 {account_id} 开仓成功")
+                logging.info(f"用户 {account_id} 开仓成功，订单记录成功")
                 return True
             else:
                 # print(f"用户 {account_id} 开仓失败")
-                logging.error(f"用户 {account_id} 开仓失败")
+                logging.error(f"用户 {account_id} 交易所开仓失败")
                 return False
         except Exception as e:
             print(f"用户 {account_id} 开仓异常: {e}")
