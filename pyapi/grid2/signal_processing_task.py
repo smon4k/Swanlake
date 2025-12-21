@@ -51,10 +51,6 @@ class SignalProcessingTask:
         self.active_tasks: set[asyncio.Task] = set()  # 用于跟踪正在运行的任务
         self.market_precision_cache = {}  # 市场精度缓存
         self.api_limiter = api_limiter  # 全局API限流器
-        # ✅ 账户开仓并发控制（用信号量代替纯延迟，减少开仓价差风险）
-        self.account_processing_semaphore = asyncio.Semaphore(
-            8
-        )  # 每次最多8个账户并发开仓
 
     async def signal_processing_task(self):
         """信号调度任务，支持多个信号并发"""
@@ -107,30 +103,18 @@ class SignalProcessingTask:
             conn.close()
 
             if signals:
-                # ✅ 折中方案：根据信号数量动态调整并发策略
-                signal_count = len(signals)
+                # ✅ 关键改动：直接并发处理多个信号
+                logging.info(f"📊 收到 {len(signals)} 个信号，开始并发处理")
 
-                if signal_count <= 2:
-                    # 少量信号（≤2个），并发处理以提高响应速度
-                    logging.info(f"📊 信号数量={signal_count}，采用并发处理")
-                    tasks = [self.handle_single_signal(signal) for signal in signals]
-                    await asyncio.gather(*tasks)
-                else:
-                    # 大量信号（>2个），串行处理以避免API调用峰值
-                    logging.info(
-                        f"📊 信号数量={signal_count}，采用串行处理以避免API限流"
-                    )
-                    for idx, signal in enumerate(signals):
-                        await self.handle_single_signal(signal)
-                        # 信号之间增加延迟，缓解API压力（最后一个信号不需要延迟）
-                        if idx < signal_count - 1:
-                            await asyncio.sleep(0.5)
+                tasks = [self.handle_single_signal(signal) for signal in signals]
+                await asyncio.gather(*tasks, return_exceptions=True)
+
+                logging.info(f"✅ {len(signals)} 个信号处理完成")
             else:
                 await asyncio.sleep(self.config.signal_check_interval)
         except Exception as e:
             if conn:
                 conn.rollback()  # 回滚事务
-            print(f"处理信号异常: {e}")
             logging.error(f"处理信号异常: {e}")
 
     async def _run_single_account_signal(self, signal: dict, account_id: int):
@@ -139,7 +123,6 @@ class SignalProcessingTask:
         async with lock:
             self.busy_accounts.add(account_id)
             try:
-                # print(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
                 logging.info(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
 
                 await self.process_signal(signal, account_id)
@@ -149,17 +132,102 @@ class SignalProcessingTask:
                     "success": True,
                     "msg": "ok",
                     "account_id": account_id,
-                    "data": None,  # 或返回订单结果
+                    "data": None,
                 }
 
             except Exception as e:
-                # print(f"❌ 账户 {account_id} 信号处理失败: {e}")
                 logging.error(f"❌ 账户 {account_id} 信号处理失败: {e}")
                 return {"success": False, "msg": str(e), "account_id": account_id}
             finally:
                 self.busy_accounts.discard(account_id)
-                # print(f"🔓 账户 {account_id} 已释放")
                 logging.info(f"🔓 账户 {account_id} 已释放")
+
+    async def _process_accounts_with_retry(
+        self, signal, account_list, batch_size=8, max_retries=3
+    ):
+        """
+        处理所有账户，失败的账户会自动重试
+
+        ✅ 使用 asyncio.gather 替代 Future + callback，避免事件循环错误
+        ✅ 确保每个账户的 OKX 异步调用不延迟
+
+        :param signal: 交易信号
+        :param account_list: 账户列表
+        :param batch_size: 每批处理的账户数（控制并发数）
+        :param max_retries: 最大重试次数
+        :return: dict {account_id: result or exception}
+        """
+        results = {}
+        remaining_accounts = list(account_list)
+        retry_count = 0
+
+        while remaining_accounts and retry_count < max_retries:
+            logging.info(
+                f"📊 第 {retry_count + 1} 轮处理，"
+                f"策略={signal['name']}, 账户数={len(remaining_accounts)}, "
+                f"批大小={batch_size}"
+            )
+
+            next_remaining = []
+
+            # ✅ 分批并发处理（确保 OKX 调用不延迟）
+            for i in range(0, len(remaining_accounts), batch_size):
+                batch = remaining_accounts[i : i + batch_size]
+                logging.info(f"  ├─ 处理第 {i//batch_size + 1} 批: {len(batch)} 个账户")
+
+                # ✅ 这一批账户并发调用 OKX（零延迟）
+                tasks = [
+                    self._run_single_account_signal(signal, acc_id) for acc_id in batch
+                ]
+                batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+                # ✅ 分离成功和失败
+                for acc_id, result in zip(batch, batch_results):
+                    if isinstance(result, Exception):
+                        next_remaining.append(acc_id)
+                        logging.warning(f"    ⚠️ 账户 {acc_id} 异常: {result}")
+                    elif result.get("success", False):
+                        results[acc_id] = result
+                        logging.info(f"    ✅ 账户 {acc_id} 成功")
+                    else:
+                        next_remaining.append(acc_id)
+                        logging.warning(
+                            f"    ⚠️ 账户 {acc_id} 失败: {result.get('msg', 'unknown')}"
+                        )
+
+                # ✅ 批与批之间加小延迟（给 OKX API 恢复时间，不影响首次请求）
+                if i + batch_size < len(remaining_accounts):
+                    await asyncio.sleep(0.3)
+
+            remaining_accounts = next_remaining
+            retry_count += 1
+
+            # ✅ 如果还有失败的账户且还有重试次数
+            if remaining_accounts and retry_count < max_retries:
+                wait_time = 1.0 * (2 ** (retry_count - 1))  # 指数退避：1s, 2s, 4s
+                logging.warning(
+                    f"⏳ {len(remaining_accounts)} 个账户需要重试，"
+                    f"等待 {wait_time:.1f}秒后进行第 {retry_count + 1} 轮..."
+                )
+                await asyncio.sleep(wait_time)
+
+        # ✅ 最后一轮仍然失败的账户
+        for acc_id in remaining_accounts:
+            results[acc_id] = Exception(f"账户 {acc_id} 重试 {max_retries} 次后仍失败")
+            logging.error(f"❌ 账户 {acc_id} 重试 {max_retries} 次后仍然失败")
+
+        # ✅ 关键日志：处理完毕，清除busy_accounts
+        logging.info(
+            f"📊 信号 {signal.get('name')} (ID={signal.get('id')}) 处理完成，清除busy_accounts"
+        )
+        for acc_id in account_list:
+            if self.busy_accounts and acc_id in self.busy_accounts:
+                self.busy_accounts.discard(acc_id)
+                logging.info(
+                    f"✅ 账户 {acc_id} 从busy_accounts中移除 (当前busy_accounts={self.busy_accounts})"
+                )
+
+        return results
 
     def _is_close_signal(self, signal):
         # 判断是否是平仓
@@ -171,166 +239,72 @@ class SignalProcessingTask:
         """单条信号的处理逻辑"""
         try:
             signal_id = signal["id"]
-            print(f"🚦 开始处理信号 {signal_id} ...")
             logging.info(f"🚦 开始处理信号 {signal_id} ...")
 
             if signal["name"] not in self.db.tactics_accounts_cache:
-                print("🚫 无对应账户策略信号")
                 logging.info("🚫 无对应账户策略信号")
-                # 仍更新状态为 processed
                 self._update_signal_status(signal_id, "processed")
                 return
 
             account_tactics_list = self.db.tactics_accounts_cache[signal["name"]]
             is_close_signal = self._is_close_signal(signal)
 
-            # 🟡 用于追踪所有任务是否完成
-            all_done = asyncio.Future()
-            running_tasks = set()
-            task_results = {}  # account_id -> result dict or exception
-            task_lock = asyncio.Lock()  # 保护 task_results 写入
-
-            # ✅ 并发执行每个账户（使用信号量控制并发数，减少开仓价差风险）
-            start_time = time.time()
-
-            # 创建带信号量控制的账户处理方法
-            async def process_account_with_limit(account_id):
-                """使用信号量控制并发的账户处理"""
-                async with self.account_processing_semaphore:
-                    result = await self._run_single_account_signal(signal, account_id)
-                    # 处理完后小延迟，避免API峰值
-                    await asyncio.sleep(0.2)
-                    return result
-
-            for account_id in account_tactics_list:
-                task = asyncio.create_task(process_account_with_limit(account_id))
-                running_tasks.add(task)
-                # self.active_tasks.add(task)
-
-                # 任务完成后从 running_tasks 移除，并记录结果
-                def done_callback(t, acc_id=account_id):
-                    running_tasks.discard(t)
-                    # 记录结果
-                    asyncio.create_task(
-                        self._record_task_result(t, acc_id, task_results, task_lock)
-                    )
-
-                    # 检查是否全部完成
-                    if len(running_tasks) == 0 and not all_done.done():
-                        all_done.set_result(True)
-
-                task.add_done_callback(done_callback)
-
-            # 🔥 等待所有任务完成（在后台处理，不阻塞主流程）
-            # 但我们需要等 all_done 才能判断是否执行 handle_close_position_update
-            await all_done
-
-            # ✅ 所有任务已完成，检查结果
-            all_success = True
-            partial_success = False  # ✅ 新增：部分成功标记
-            failed_accounts = []
-            async with task_lock:
-                for acc_id, res in task_results.items():
-                    if isinstance(res, Exception):
-                        logging.error(f"⚠️ 账户 {acc_id} 执行异常: {res}")
-                        all_success = False
-                        failed_accounts.append(acc_id)
-                    elif not res.get("success", False):
-                        logging.warning(
-                            f"⚠️ 账户 {acc_id} 执行失败: {res.get('msg', 'unknown')}"
-                        )
-                        all_success = False
-                        failed_accounts.append(acc_id)
-                    else:
-                        partial_success = True  # ✅ 至少有一个成功
-
-            # ✅ 如果是平仓信号，根据成功情况处理
-            print(
-                f"平仓信号: {is_close_signal}, 全部成功: {all_success}, 部分成功: {partial_success}"
-            )
+            # ✅ 关键日志：记录开始处理的账户和busy_accounts状态
             logging.info(
-                f"平仓信号: {is_close_signal}, 全部成功: {all_success}, 部分成功: {partial_success}"
+                f"📢 信号 {signal.get('name')} (ID={signal_id}) 开始处理账户: {account_tactics_list}, busy_accounts当前状态={self.busy_accounts}"
             )
+
+            # ✅ 处理所有账户，带重试机制
+            results = await self._process_accounts_with_retry(
+                signal, account_tactics_list, batch_size=8, max_retries=3
+            )
+
+            # ✅ 统计结果
+            all_success = True
+            partial_success = False
+            failed_accounts = []
+
+            for acc_id, res in results.items():
+                if isinstance(res, Exception):
+                    logging.error(f"❌ 账户 {acc_id} 执行异常: {res}")
+                    all_success = False
+                    failed_accounts.append(acc_id)
+                elif not res.get("success", False):
+                    logging.warning(
+                        f"⚠️ 账户 {acc_id} 执行失败: {res.get('msg', 'unknown')}"
+                    )
+                    all_success = False
+                    failed_accounts.append(acc_id)
+                else:
+                    partial_success = True
+
+            # ✅ 平仓逻辑（保持原来的逻辑）
             if is_close_signal:
                 if all_success:
-                    # ✅ 修复 P3：完全成功，执行所有后续操作
                     logging.info(f"✅ 平仓信号 {signal_id} 全部成功，执行后续处理")
                     await self.handle_close_position_update(signal)
                     logging.info(
                         f"✅ 平仓信号 {signal_id} 已触发 handle_close_position_update"
                     )
-
                 elif partial_success:
-                    # ✅ 修复 P3：部分成功，仍执行后续操作但记录警告
                     logging.warning(
                         f"⚠️ 平仓信号 {signal_id} 部分失败 (失败账户: {failed_accounts})，"
-                        f"但至少 {len(task_results) - len(failed_accounts)} 个账户成功，继续执行后续操作"
+                        f"但至少 {len(results) - len(failed_accounts)} 个账户成功，继续执行后续操作"
                     )
                     await self.handle_close_position_update(signal)
-                    logging.info(
-                        f"⚠️ 平仓信号 {signal_id} 部分成功已处理，需要人工审查失败账户"
-                    )
-
+                    logging.info(f"⚠️ 平仓信号 {signal_id} 部分成功已处理")
                 else:
-                    # ✅ 全部失败
                     logging.error(
                         f"❌ 平仓信号 {signal_id} 全部失败，跳过 handle_close_position_update"
                     )
 
             # ✅ 更新信号状态
             self._update_signal_status(signal_id, "processed")
-            # print(f"✅ 信号 {signal_id} 处理完成")
-            end_time = time.time()
-            print(f"✅ 所有账户任务已启动, 耗时 {end_time - start_time:.2f} 秒")
             logging.info(f"✅ 信号 {signal_id} 处理完成")
 
         except Exception as e:
-            print(f"❌ 信号 {signal_id} 处理异常: {e}")
             logging.error(f"❌ 信号 {signal_id} 处理异常: {e}")
             self._update_signal_status(signal_id, "failed")
-
-    async def _record_task_result(self, task, account_id, result_dict, lock):
-        """
-        记录任务结果，线程安全，含重试机制
-
-        ✅ 修复 P2：Event Loop错误时重试获取任务结果
-        """
-        max_retries = 3
-        last_error = None
-
-        for attempt in range(max_retries):
-            try:
-                result = task.result()  # 可能抛出异常
-                async with lock:
-                    result_dict[account_id] = result
-                return  # ✅ 成功则返回
-
-            except Exception as e:
-                last_error = e
-                error_msg = str(e)
-
-                # ✅ 特殊处理 Event Loop 错误（可重试）
-                if (
-                    "attached to a different loop" in error_msg
-                    and attempt < max_retries - 1
-                ):
-                    logging.warning(
-                        f"⚠️ 账户 {account_id} Task Event Loop错误，"
-                        f"等待 {1.0 * (attempt + 1)}秒后重试 ({attempt+1}/{max_retries})"
-                    )
-                    await asyncio.sleep(1.0 * (attempt + 1))  # 指数退避
-                    continue
-                else:
-                    # 其他错误或最后一次重试仍失败，记录异常
-                    break
-
-        # 如果所有重试都失败了，记录最后的错误
-        async with lock:
-            result_dict[account_id] = last_error
-            if last_error:
-                logging.error(
-                    f"❌ 账户 {account_id} 重试 {max_retries} 次后仍然失败: {last_error}"
-                )
 
     def _update_signal_status(self, signal_id, status):
         """更新信号状态（独立方法，避免重复）"""

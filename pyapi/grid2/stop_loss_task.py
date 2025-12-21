@@ -97,6 +97,11 @@ class StopLossTask:
                 )
                 return
 
+        # ✅ 关键日志：进入实际检查
+        logging.info(
+            f"🛡️ 账户 {account_id} 开始进入止损检查流程 (immediate={immediate})"
+        )
+
         # ✅ 标记为检查中
         self.checking_accounts.add(account_id)
 
@@ -107,8 +112,8 @@ class StopLossTask:
             if lock:
                 # 检查锁是否被占用
                 if lock.locked():
-                    logging.info(
-                        f"⏸️ 账户 {account_id} 正在被其他任务处理（锁已被占用），跳过止损检查"
+                    logging.warning(
+                        f"⏸️ 账户 {account_id} 锁被占用（可能在处理信号），跳过本次止损检查"
                     )
                     return
 
@@ -116,8 +121,13 @@ class StopLossTask:
                 async with lock:
                     # 再次检查账户是否正在被信号处理占用
                     if self.busy_accounts and account_id in self.busy_accounts:
-                        logging.info(f"⏸️ 账户 {account_id} 正在处理信号，跳过止损检查")
+                        logging.warning(
+                            f"⏸️ 账户 {account_id} 正在busy_accounts集合中（正在处理信号）- busy_accounts={self.busy_accounts}，跳过本次止损检查"
+                        )
                         return
+
+                    # ✅ 关键日志：真正进入检查逻辑
+                    logging.info(f"✅ 账户 {account_id} 进入 _do_stop_loss_check 逻辑")
 
                     # 执行实际的止损检查
                     await self._do_stop_loss_check(account_id)
@@ -285,9 +295,9 @@ class StopLossTask:
                                     f"订单={order_sl_order.get('order_id')[:15]}..., "
                                     f"状态={order_info['info']['state']}, 币种={symbol}"
                                 )
-                                print(
-                                    f"已有止损单状态为 {account_id} {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}"
-                                )
+                                # print(
+                                #     f"已有止损单状态为 {account_id} {order_info['info']['state']}, 更新数据库状态: {symbol} {str(order_sl_order.get('order_id'))}"
+                                # )
 
                                 fill_date_time = await milliseconds_to_local_datetime(
                                     order_info["lastUpdateTimestamp"]
