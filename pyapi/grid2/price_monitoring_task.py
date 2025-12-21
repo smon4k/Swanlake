@@ -26,6 +26,15 @@ from stop_loss_task import StopLossTask
 from savings_task import SavingsTask
 import traceback
 
+# ✅ 方案1：导入 SignalProcessingTask，用于调用 cleanup_opposite_positions
+# 注意：避免循环导入，需要在运行时注入
+if __name__ != "__main__":
+    try:
+        from signal_processing_task import SignalProcessingTask
+    except ImportError:
+        # 延迟导入以避免循环依赖
+        SignalProcessingTask = None
+
 
 class PriorityAccountQueue:
     """账户优先级队列管理器
@@ -129,11 +138,16 @@ class PriceMonitoringTask:
         stop_loss_task: StopLossTask,
         busy_accounts: set[int],
         api_limiter=None,
+        signal_processing_task=None, 
     ):
         self.config = config
         self.db = db
         self.signal_lock = signal_lock
         self.stop_loss_task = stop_loss_task  # 保留引用
+        self.signal_processing_task = (
+            signal_processing_task  # ✅ 保存 SignalProcessingTask 实例
+        )
+
         self.running = True  # 控制运行状态
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
@@ -1026,6 +1040,19 @@ class PriceMonitoringTask:
                 * Decimal(market_precision["amount"])
                 * price
             )
+            
+            max_position = await get_max_position_value(self, account_id, symbol)
+            # 总持仓数量如果小于最大仓位的5%的话要平掉所有仓位
+            min_position_threshold = max_position * Decimal("0.05")  # 最大仓位的5%
+            if total_position_quantity < min_position_threshold:
+                logging.info(f"🗑️ 总持仓数量小于最大仓位的5%，平掉所有仓位: 账户={account_id}, 币种={symbol}")
+                await self.signal_processing_task.cleanup_opposite_positions(account_id, symbol, side)
+
+                # 取消所有未成交订单
+                await cancel_all_orders(self, exchange, account_id, symbol, True)
+
+                return False
+
             logging.info(f"🗑️ 取消所有挂单: 账户={account_id}, 币种={symbol}")
             await cancel_all_orders(self, exchange, account_id, symbol)
 
@@ -1054,7 +1081,6 @@ class PriceMonitoringTask:
                 logging.info(f"📉 用户 {account_id} 卖单过小: {sell_size}")
                 return False
 
-            max_position = await get_max_position_value(self, account_id, symbol)
             buy_total = (
                 total_position_quantity
                 + buy_size * market_precision["amount"] * buy_price

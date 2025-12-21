@@ -79,6 +79,7 @@ class OKXTradingBot:
             self.stop_loss_task,
             self.busy_accounts,
             self.api_limiter,
+            self.signal_task,
         )
 
         # API Server 可选
