@@ -150,7 +150,7 @@ async def get_market_precision(
 
         contract_size = Decimal(str(markets[0]["contractSize"]))  # 默认是1，适用于BTC
         price_precision = Decimal(str(markets[0]["precision"]["price"]))
-        amount_precision = Decimal(str(markets[0]["precision"]["amount"])) # 数量精度
+        amount_precision = Decimal(str(markets[0]["precision"]["amount"]))  # 数量精度
         min_amount = Decimal(str(markets[0]["limits"]["amount"]["min"]))  # 最小下单量
 
         logging.info(
