@@ -1191,11 +1191,19 @@ class SignalProcessingTask:
                 return True
             else:
                 # print(f"用户 {account_id} 开仓失败")
-                logging.error(f"用户 {account_id} 交易所开仓失败")
+                logging.error(
+                    f"❌ 用户 {account_id} 交易所开仓失败: open_position 返回 None，"
+                    f"可能原因: 余额不足、持仓限制或API错误，"
+                    f"symbol={symbol}, side={side}, pos_side={pos_side}, price={price}, size={size}"
+                )
                 return False
         except Exception as e:
-            print(f"用户 {account_id} 开仓异常: {e}")
-            logging.error(f"用户 {account_id} 开仓异常: {e}")
+            # print(f"用户 {account_id} 开仓异常: {e}")
+            logging.error(
+                f"❌ 用户 {account_id} 开仓异常: {e}，"
+                f"symbol={symbol}, side={side}, pos_side={pos_side}, price={price}, size={size}",
+                exc_info=True,
+            )
             return False
         finally:
             await exchange.close()

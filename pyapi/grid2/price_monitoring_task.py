@@ -1586,7 +1586,8 @@ class PriceMonitoringTask:
                                         side = "buy" if direction == "long" else "sell"
 
                                         if self.signal_processing_task:
-                                            await self.signal_processing_task.handle_open_position(
+                                            # ✅ 关键修复：捕获返回值
+                                            result = await self.signal_processing_task.handle_open_position(
                                                 account_id=account_id,
                                                 symbol=symbol,
                                                 pos_side=pos_side,
@@ -1594,10 +1595,17 @@ class PriceMonitoringTask:
                                                 price=price,
                                                 open_coefficient=Decimal(size),
                                             )
-                                            newly_recovered.append(account_id)
-                                            logging.info(
-                                                f"✅ 账户 {account_id} 恢复开仓成功"
-                                            )
+
+                                            # ✅ 检查返回值，只有成功才标记为已恢复
+                                            if result:  # True 表示开仓成功
+                                                newly_recovered.append(account_id)
+                                                logging.info(
+                                                    f"✅ 账户 {account_id} 恢复开仓成功"
+                                                )
+                                            else:  # False 或 None 表示开仓失败
+                                                logging.error(
+                                                    f"❌ 账户 {account_id} 恢复开仓失败，handle_open_position 返回 {result}，将在下次继续尝试"
+                                                )
                                         else:
                                             logging.warning(
                                                 f"⚠️ signal_processing_task 未注入"
@@ -1605,7 +1613,8 @@ class PriceMonitoringTask:
 
                                     except Exception as e:
                                         logging.error(
-                                            f"❌ 账户 {account_id} 恢复开仓失败: {e}"
+                                            f"❌ 账户 {account_id} 恢复开仓异常: {e}",
+                                            exc_info=True,
                                         )
                                 else:
                                     # 已有仓位，开仓成功
