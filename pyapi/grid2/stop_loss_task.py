@@ -26,6 +26,7 @@ class StopLossTask:
         api_limiter=None,
         account_locks=None,
         busy_accounts=None,
+        signal_processing_active: asyncio.Event = None,  # ✅ 新增参数
     ):
         self.db = db
         self.config = config
@@ -35,6 +36,10 @@ class StopLossTask:
         self.market_precision_cache = {}  # 市场精度缓存
         self.account_locks = account_locks  # 账户锁字典
         self.busy_accounts = busy_accounts  # 忙碌账户集合
+
+        # ✅ 【新增】任务协调标志
+        self.signal_processing_active = signal_processing_active
+
         # ✅ 止损任务去重相关
         self.checking_accounts = set()  # 正在检查止损的账户
         self.last_check_time = {}  # 每个账户的上次检查时间
@@ -80,6 +85,12 @@ class StopLossTask:
             account_id: 账户ID
             immediate: 是否立即执行（True时绕过时间间隔检查，用于订单成交后立即触发）
         """
+        # ✅ 【新增】优先级检查：如果信号处理正在进行且非立即执行，则推迟
+        if self.signal_processing_active and not immediate:
+            if self.signal_processing_active.is_set():
+                logging.info(f"⏸️ 账户 {account_id} 止损检查推迟，当前信号处理优先")
+                return
+
         # ✅ 去重检查1：如果该账户正在检查中，直接返回
         if account_id in self.checking_accounts:
             logging.debug(f"⏸️ 账户 {account_id} 止损检查正在进行中，跳过重复触发")
@@ -129,12 +140,12 @@ class StopLossTask:
                     # ✅ 关键日志：真正进入检查逻辑
                     logging.info(f"✅ 账户 {account_id} 进入 _do_stop_loss_check 逻辑")
 
-                    # 执行实际的止损检查
-                    await self._do_stop_loss_check(account_id)
+                    # ✅ 【新增】执行实际的止损检查（带重试机制）
+                    await self._do_stop_loss_check_with_retry(account_id)
             else:
                 # 无锁情况下直接执行（向后兼容）
                 logging.debug(f"⚠️ 账户 {account_id} 无锁保护，直接执行止损检查")
-                await self._do_stop_loss_check(account_id)
+                await self._do_stop_loss_check_with_retry(account_id)
 
             # ✅ 更新最后检查时间
             import time
@@ -145,8 +156,59 @@ class StopLossTask:
             # ✅ 移除检查中标记
             self.checking_accounts.discard(account_id)
 
+    async def _do_stop_loss_check_with_retry(
+        self, account_id: int, max_retries: int = 3
+    ):
+        """
+        ✅ 【新增方法】带重试机制的止损检查包装
+
+        如果 _do_stop_loss_check 超时，会自动重试最多 max_retries 次
+
+        :param account_id: 账户ID
+        :param max_retries: 最大重试次数
+        """
+        retry_delay = 5.0  # 重试延迟（秒）
+
+        for attempt in range(max_retries):
+            try:
+                # 调用实际的止损检查
+                await self._do_stop_loss_check(account_id)
+                return  # 成功则返回
+
+            except asyncio.TimeoutError:
+                if attempt < max_retries - 1:
+                    logging.warning(
+                        f"⚠️ 账户 {account_id} 止损检查超时，"
+                        f"{retry_delay}秒后重试 ({attempt + 1}/{max_retries})"
+                    )
+                    await asyncio.sleep(retry_delay)
+                else:
+                    logging.error(
+                        f"❌ 账户 {account_id} 止损检查超时，已重试 {max_retries} 次，放弃"
+                    )
+                    raise
+
+            except Exception as e:
+                # 其他异常不重试，直接抛出
+                logging.error(f"❌ 账户 {account_id} 止损检查失败: {e}", exc_info=True)
+                raise
+
     async def _do_stop_loss_check(self, account_id: int):
         """实际的止损检查逻辑（从 accounts_stop_loss_task 中提取）"""
+        exchange = None  # ✅ 在 try 外部初始化，确保 finally 块能访问
+
+        # ✅ 【修改】增加超时限制：从30秒增加到90秒
+        try:
+            async with asyncio.timeout(90.0):
+                await self._do_stop_loss_check_impl(account_id)
+        except asyncio.TimeoutError:
+            logging.error(
+                f"⏰ 账户 {account_id} 止损检查超时(90秒)，可能由于API限流或网络延迟"
+            )
+            raise  # 重新抛出，让外层重试机制处理
+
+    async def _do_stop_loss_check_impl(self, account_id: int):
+        """实际的止损检查逻辑实现"""
         exchange = None  # ✅ 在 try 外部初始化，确保 finally 块能访问
         try:
             # print(f"🛡️ 开始检查止损: 账户={account_id}")

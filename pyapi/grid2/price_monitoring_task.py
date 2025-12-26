@@ -139,6 +139,7 @@ class PriceMonitoringTask:
         busy_accounts: set[int],
         signal_processing_task=None,  # ✅ 新增：SignalProcessingTask 实例
         api_limiter=None,
+        signal_processing_active: asyncio.Event = None,  # ✅ 新增参数
     ):
         self.config = config
         self.db = db
@@ -150,6 +151,9 @@ class PriceMonitoringTask:
         self.running = True  # 控制运行状态
         self.busy_accounts = busy_accounts  # 引用交易机器人中的忙碌账户集合
         self.api_limiter = api_limiter  # 全局API限流器
+
+        # ✅ 【新增】任务协调标志
+        self.signal_processing_active = signal_processing_active
         # ✅ 账户并发限制（动态设置，确保所有账户都能被检测）
         self.account_semaphore = asyncio.Semaphore(
             15
@@ -202,6 +206,13 @@ class PriceMonitoringTask:
         """
         while getattr(self, "running", True):
             try:
+                # ✅ 【新增】优先级1：检查信号处理是否活跃
+                if self.signal_processing_active:
+                    if self.signal_processing_active.is_set():
+                        logging.info("⏸️ 信号处理优先级高于价格监控，暂停2秒")
+                        await asyncio.sleep(2)
+                        continue
+
                 if self.signal_lock.locked():
                     print("⏸ 信号处理中，跳过一次监控")
                     logging.info("⏸ 信号处理中，跳过一次监控")
@@ -502,6 +513,12 @@ class PriceMonitoringTask:
 
     async def _safe_check_positions(self, account_id: int):
         """安全封装的账户检查（防止一个账户崩溃影响整体）"""
+        # ✅ 【新增】优先级检查1：如果信号处理活跃，跳过价格监控
+        if self.signal_processing_active:
+            if self.signal_processing_active.is_set():
+                logging.debug(f"⏸️ 账户 {account_id} 价格监控推迟，信号处理优先")
+                return
+
         # 检查账户是否正在被信号处理
         if account_id in self.busy_accounts:
             logging.debug(f"⏸️ 账户 {account_id} 正在被信号处理，跳过本次价格监控")

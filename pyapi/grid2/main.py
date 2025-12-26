@@ -54,6 +54,10 @@ class OKXTradingBot:
         self.account_locks = defaultdict(asyncio.Lock)  # 每个账户独立锁
         self.market_precision_cache = {}  # 市场精度缓存
 
+        # ✅ 【新增】任务优先级协调 - 信号处理优先
+        self.signal_processing_active = asyncio.Event()  # 信号处理活跃标志
+        self.signal_processing_active.clear()  # 默认不活跃
+
         self.stop_loss_task = StopLossTask(
             config,
             self.db,
@@ -61,6 +65,7 @@ class OKXTradingBot:
             self.api_limiter,
             self.account_locks,
             self.busy_accounts,
+            self.signal_processing_active,  # ✅ 传入活跃标志
         )
 
         self.signal_task = SignalProcessingTask(
@@ -71,6 +76,7 @@ class OKXTradingBot:
             self.account_locks,
             self.busy_accounts,
             self.api_limiter,
+            self.signal_processing_active,  # ✅ 传入活跃标志
         )
         self.price_task = PriceMonitoringTask(
             config,
@@ -80,6 +86,7 @@ class OKXTradingBot:
             self.busy_accounts,
             self.signal_task,  # ✅ 新增：传入 SignalProcessingTask 实例
             self.api_limiter,
+            self.signal_processing_active,  # ✅ 传入活跃标志
         )
 
         # API Server 可选

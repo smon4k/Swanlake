@@ -38,6 +38,7 @@ class SignalProcessingTask:
         account_locks: defaultdict,
         busy_accounts: set,
         api_limiter=None,
+        signal_processing_active: asyncio.Event = None,  # ✅ 新增参数
     ):
         self.db = db
         self.config = config
@@ -52,6 +53,9 @@ class SignalProcessingTask:
         self.active_tasks: set[asyncio.Task] = set()  # 用于跟踪正在运行的任务
         self.market_precision_cache = {}  # 市场精度缓存
         self.api_limiter = api_limiter  # 全局API限流器
+
+        # ✅ 【新增】任务协调标志
+        self.signal_processing_active = signal_processing_active
 
     async def signal_processing_task(self):
         """信号调度任务，支持多个信号并发"""
@@ -104,13 +108,27 @@ class SignalProcessingTask:
             conn.close()
 
             if signals:
-                # ✅ 关键改动：直接并发处理多个信号
-                logging.info(f"📊 收到 {len(signals)} 个信号，开始并发处理")
+                # ✅ 【新增】设置信号处理活跃标志
+                if self.signal_processing_active:
+                    self.signal_processing_active.set()
+                    logging.info(
+                        f"🚨 信号处理开始 ({len(signals)}个)，其他任务降低优先级"
+                    )
 
-                tasks = [self.handle_single_signal(signal) for signal in signals]
-                await asyncio.gather(*tasks, return_exceptions=True)
+                try:
+                    # ✅ 关键改动：直接并发处理多个信号
+                    logging.info(f"📊 收到 {len(signals)} 个信号，开始并发处理")
 
-                logging.info(f"✅ {len(signals)} 个信号处理完成")
+                    tasks = [self.handle_single_signal(signal) for signal in signals]
+                    await asyncio.gather(*tasks, return_exceptions=True)
+
+                    logging.info(f"✅ {len(signals)} 个信号处理完成")
+
+                finally:
+                    # ✅ 【新增】清除信号处理活跃标志
+                    if self.signal_processing_active:
+                        self.signal_processing_active.clear()
+                        logging.info("✅ 信号处理完成，恢复其他任务正常优先级")
             else:
                 await asyncio.sleep(self.config.signal_check_interval)
         except Exception as e:
@@ -118,17 +136,43 @@ class SignalProcessingTask:
                 conn.rollback()  # 回滚事务
             logging.error(f"处理信号异常: {e}")
 
+            # ✅ 异常时也要清除标志
+            if self.signal_processing_active:
+                self.signal_processing_active.clear()
+
     async def _run_single_account_signal(self, signal: dict, account_id: int):
         """单账户信号处理：完成后立即释放 busy 状态"""
         lock = self.account_locks[account_id]
-        async with lock:
+
+        # ✅ 【新增】锁获取超时（最多等待15秒）
+        lock_timeout = 15.0
+        lock_acquired = False
+
+        try:
+            # ✅ 尝试获取锁，带超时
+            try:
+                await asyncio.wait_for(lock.acquire(), timeout=lock_timeout)
+                lock_acquired = True
+            except asyncio.TimeoutError:
+                logging.error(
+                    f"⏰ 账户 {account_id} 锁获取超时({lock_timeout}秒)，"
+                    f"可能被其他任务长时间占用"
+                )
+                return {
+                    "success": False,
+                    "msg": "lock_timeout",
+                    "account_id": account_id,
+                    "data": None,
+                }
+
+            # ✅ 成功获取锁后的处理
             self.busy_accounts.add(account_id)
+
             try:
                 logging.info(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
 
                 await self.process_signal(signal, account_id)
 
-                # ✅ 成功时返回结果
                 return {
                     "success": True,
                     "msg": "ok",
@@ -139,9 +183,15 @@ class SignalProcessingTask:
             except Exception as e:
                 logging.error(f"❌ 账户 {account_id} 信号处理失败: {e}")
                 return {"success": False, "msg": str(e), "account_id": account_id}
+
             finally:
                 self.busy_accounts.discard(account_id)
                 logging.info(f"🔓 账户 {account_id} 已释放")
+
+        finally:
+            # ✅ 确保释放锁
+            if lock_acquired:
+                lock.release()
 
     async def _process_accounts_with_retry(
         self, signal, account_list, batch_size=8, max_retries=3
@@ -187,6 +237,16 @@ class SignalProcessingTask:
                     if isinstance(result, Exception):
                         next_remaining.append(acc_id)
                         logging.warning(f"    ⚠️ 账户 {acc_id} 异常: {result}")
+
+                    # ✅ 【新增】识别锁超时错误，特殊处理
+                    elif (
+                        isinstance(result, dict) and result.get("msg") == "lock_timeout"
+                    ):
+                        next_remaining.append(acc_id)
+                        logging.warning(
+                            f"    ⚠️ 账户 {acc_id} 锁获取超时，将在下一轮重试"
+                        )
+
                     elif result.get("success", False):
                         results[acc_id] = result
                         logging.info(f"    ✅ 账户 {acc_id} 成功")
@@ -205,7 +265,8 @@ class SignalProcessingTask:
 
             # ✅ 如果还有失败的账户且还有重试次数
             if remaining_accounts and retry_count < max_retries:
-                wait_time = 1.0 * (2 ** (retry_count - 1))  # 指数退避：1s, 2s, 4s
+                # ✅ 【修改】增加重试延时：2s, 4s, 8s（原来是1s, 2s, 4s）
+                wait_time = 2.0 * (2 ** (retry_count - 1))
                 logging.warning(
                     f"⏳ {len(remaining_accounts)} 个账户需要重试，"
                     f"等待 {wait_time:.1f}秒后进行第 {retry_count + 1} 轮..."
@@ -646,9 +707,37 @@ class SignalProcessingTask:
             logging.info(
                 f"🟢 账户 {account_id} 信号 {signal['id']} 开仓处理完成, 耗时 {end_time - start_time:.2f} 秒"
             )
-            # await asyncio.sleep(0.1)  # 模拟耗时
+
+            # ✅ 【新增】延迟触发止损检查（避免API拥堵）
+            asyncio.create_task(self._delayed_trigger_stop_loss(account_id))
+
         except Exception as e:
             logging.error(f"❌ 开仓异常: {e}", exc_info=True)
+
+    async def _delayed_trigger_stop_loss(self, account_id: int):
+        """
+        ✅ 【新增方法】延迟随机触发止损检查
+
+        开仓后不立即触发止损检查，而是随机延迟5-15秒，
+        避免多个账户同时开仓后立即触发止损导致API拥堵
+
+        :param account_id: 账户ID
+        """
+        try:
+            import random
+
+            # 随机延迟5-15秒
+            delay = random.uniform(5.0, 15.0)
+            logging.info(f"⏳ 账户 {account_id} 将在 {delay:.1f}秒后触发止损检查")
+            await asyncio.sleep(delay)
+
+            # 触发止损检查
+            await self.stop_loss_task.accounts_stop_loss_task(
+                account_id, immediate=True
+            )
+
+        except Exception as e:
+            logging.error(f"❌ 账户 {account_id} 延迟触发止损失败: {e}", exc_info=True)
 
     async def _close_position(self, account_id, signal, account_info):
         """
