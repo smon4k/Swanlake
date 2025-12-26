@@ -197,10 +197,11 @@ class StopLossTask:
         """实际的止损检查逻辑（从 accounts_stop_loss_task 中提取）"""
         exchange = None  # ✅ 在 try 外部初始化，确保 finally 块能访问
 
-        # ✅ 【修改】增加超时限制：从30秒增加到90秒
+        # ✅ 【修改】增加超时限制：从30秒增加到90秒（使用wait_for兼容Python 3.7+）
         try:
-            async with asyncio.timeout(90.0):
-                await self._do_stop_loss_check_impl(account_id)
+            await asyncio.wait_for(
+                self._do_stop_loss_check_impl(account_id), timeout=90.0
+            )
         except asyncio.TimeoutError:
             logging.error(
                 f"⏰ 账户 {account_id} 止损检查超时(90秒)，可能由于API限流或网络延迟"
