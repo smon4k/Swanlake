@@ -8,7 +8,7 @@
     <div class="project-top">
       <!-- <h2>{{ tradingPairData.name }} 策略详情</h2> -->
       <el-select v-model="account_id" clearable placeholder="选择要搜索的账户" @change="accountChange" @clear="accountClear">
-        <el-option v-for="(item, index) in accountList" :key="index" :label="item.name" :value="item.id">
+        <el-option v-for="(item, index) in accountList" :key="index" :label="item.id + '-' + item.name" :value="item.id">
         </el-option>
       </el-select>
       &nbsp;&nbsp;
