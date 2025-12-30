@@ -14,3 +14,4 @@ echo ""
 echo "测试完成！"
 echo "查看日志: cat test_lightweight.log"
 
+

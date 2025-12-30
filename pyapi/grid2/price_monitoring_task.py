@@ -561,21 +561,12 @@ class PriceMonitoringTask:
                 logging.info(f"📌 账户未配置监控币种: {account_id}")
                 return
 
-            # ✅ 一次获取所有未成交订单
-            open_orders = await self.db.get_active_orders(account_id)
-            if not open_orders:
-                # 改为 debug 级别，减少日志噪音
-                logging.debug(f"📭 账户 {account_id} 无未成交订单")
-                return
-
-            logging.info(
-                f"📋 账户 {account_id} 有 {len(open_orders)} 个未成交订单待检查"
-            )
+            # ✅ 【改进流程】先获取持仓信息，独立于订单检查
+            # 这样补救检查可以不依赖 open_orders 的存在
 
             # --------------------------
-            # 1. 缓存 symbol -> positions
+            # 1. 先获取持仓（不依赖是否有订单）
             # --------------------------
-            # ✅ 直接获取所有持仓，不再为每个 symbol 重复请求
             positions_dict = {}
 
             # ✅ 使用带重试机制的持仓查询（防止临时性错误）
@@ -600,7 +591,7 @@ class PriceMonitoringTask:
                 logging.warning(
                     f"⚠️ 账户 {account_id} 获取持仓失败（已重试），跳过本轮检查"
                 )
-                return  # 直接返回，等待下一轮
+                return
 
             logging.info(f"📊 账户 {account_id} 获取到持仓总数: {len(all_positions)}")
 
@@ -623,7 +614,28 @@ class PriceMonitoringTask:
                 logging.warning(f"⚠️ 账户 {account_id} 当前无任何持仓")
 
             # --------------------------
-            # 2. 并发获取订单详情（带限流 + 重试机制 + 超时控制）
+            # 2. 执行补救检查（基于持仓，不依赖 open_orders）
+            # --------------------------
+            # ✅ 【关键改进】补救检查独立执行，即使没有活跃订单也会运行
+            await self._check_incomplete_grid_orders(
+                account_id, exchange, positions_dict
+            )
+
+            # --------------------------
+            # 3. 获取未成交订单（用于订单状态检查）
+            # --------------------------
+            open_orders = await self.db.get_active_orders(account_id)
+            if not open_orders:
+                # 改为 debug 级别，减少日志噪音
+                logging.debug(f"📭 账户 {account_id} 无未成交订单")
+                return
+
+            logging.info(
+                f"📋 账户 {account_id} 有 {len(open_orders)} 个未成交订单待检查"
+            )
+
+            # --------------------------
+            # 4. 并发获取订单详情（带限流 + 重试机制 + 超时控制）
             # --------------------------
             order_infos = {}
 
@@ -796,7 +808,24 @@ class PriceMonitoringTask:
                 )
 
                 logging.info(f"🔧 开始管理网格订单: 账户={account_id}, 币种={symbol}")
-                managed = await self.manage_grid_orders(latest_order, account_id)
+
+                # ✅ 【方案2改进】网格单创建单独设置超时（20秒，不受整体30秒限制）
+                try:
+                    managed = await asyncio.wait_for(
+                        self.manage_grid_orders(latest_order, account_id),
+                        timeout=20.0,
+                    )
+                except asyncio.TimeoutError:
+                    logging.error(
+                        f"⏱️ 账户 {account_id} 网格单创建超时(20秒)，将在下一轮监控继续处理"
+                    )
+                    managed = False
+                except Exception as e:
+                    logging.error(
+                        f"❌ 账户 {account_id} 网格单创建异常: {e}",
+                        exc_info=True,
+                    )
+                    managed = False
 
                 if managed:
                     logging.info(
@@ -969,6 +998,8 @@ class PriceMonitoringTask:
 
     async def manage_grid_orders(self, order: dict, account_id: int):
         """网格订单管理（逻辑不变，仅优化并发安全性）"""
+        symbol = None  # ✅ 提前初始化，防止异常处理中未定义
+        exchange = None  # ✅ 提前初始化，防止finally中未定义
         try:
             # ✅ 使用预加载市场数据的 exchange（避免 fetch_positions 时触发 load_markets）
             exchange = await self.get_exchange_with_markets(account_id)
@@ -977,8 +1008,40 @@ class PriceMonitoringTask:
                 logging.error("❌ 未找到交易所实例")
                 return False
 
-            symbol = order["info"]["instId"]
-            filled_price = Decimal(order["info"]["fillPx"])
+            # ✅ 安全地获取 symbol，兼容两种格式（CCXT 和数据库格式）
+            if (
+                "info" in order
+                and isinstance(order["info"], dict)
+                and "instId" in order["info"]
+            ):
+                # CCXT 格式
+                symbol = order["info"]["instId"]
+            elif "symbol" in order:
+                # 数据库格式
+                symbol = order["symbol"]
+            else:
+                raise ValueError(
+                    f"❌ Order 格式不正确，无法获取 symbol。"
+                    f"有效的 key: {list(order.keys())}"
+                )
+
+            # ✅ 安全地获取成交价，兼容两种格式
+            if (
+                "info" in order
+                and isinstance(order["info"], dict)
+                and "fillPx" in order["info"]
+            ):
+                # CCXT 格式
+                filled_price = Decimal(order["info"]["fillPx"])
+            elif "executed_price" in order:
+                # 数据库格式
+                filled_price = Decimal(str(order["executed_price"]))
+            else:
+                raise ValueError(
+                    f"❌ Order 格式不正确，无法获取成交价。"
+                    f"有效的 key: {list(order.keys())}"
+                )
+
             print(f"📌 用户 {account_id} 最新订单成交价: {filled_price}")
             logging.info(f"📌 用户 {account_id} 最新订单成交价: {filled_price}")
 
@@ -1128,6 +1191,8 @@ class PriceMonitoringTask:
 
             buy_order = None
             sell_order = None
+            buy_success = False
+            sell_success = False
 
             buy_client_order_id = ""
             sell_client_order_id = ""
@@ -1137,43 +1202,89 @@ class PriceMonitoringTask:
                 f"买单={buy_size}@{buy_price}, 卖单={sell_size}@{sell_price}"
             )
 
+            # ✅ 【方案1改进】第1步：先下买单
             if buy_size > 0:
-                buy_client_order_id = await get_client_order_id()
-                logging.debug(
-                    f"📝 下买单: 账户={account_id}, 客户端订单ID={buy_client_order_id}"
-                )
-                buy_order = await open_position(
-                    self,
-                    account_id,
-                    symbol,
-                    "buy",
-                    pos_side,
-                    float(buy_size),
-                    float(buy_price),
-                    "limit",
-                    buy_client_order_id,
-                    False,
-                )
+                try:
+                    buy_client_order_id = await get_client_order_id()
+                    logging.info(
+                        f"📝 下买单: 账户={account_id}, 币种={symbol}, "
+                        f"数量={buy_size}, 价格={buy_price}"
+                    )
+                    buy_order = await open_position(
+                        self,
+                        account_id,
+                        symbol,
+                        "buy",
+                        pos_side,
+                        float(buy_size),
+                        float(buy_price),
+                        "limit",
+                        buy_client_order_id,
+                        False,
+                    )
 
+                    if buy_order:
+                        buy_success = True
+                        logging.info(
+                            f"✅ 买单下单成功: 账户={account_id}, 订单ID={buy_order['id'][:15]}..."
+                        )
+
+                        # ✅ 买单成功后添加延迟，避免API限流
+                        await asyncio.sleep(0.5)
+
+                    else:
+                        logging.error(
+                            f"❌ 买单下单失败: 账户={account_id}, 币种={symbol}"
+                        )
+
+                except Exception as e:
+                    logging.error(
+                        f"❌ 买单下单异常: 账户={account_id}, 错误={e}", exc_info=True
+                    )
+
+            # ✅ 【方案1改进】第2步：再下卖单（独立处理，不受买单影响）
             if sell_size > 0:
-                sell_client_order_id = await get_client_order_id()
-                logging.debug(
-                    f"📝 下卖单: 账户={account_id}, 客户端订单ID={sell_client_order_id}"
-                )
-                sell_order = await open_position(
-                    self,
-                    account_id,
-                    symbol,
-                    "sell",
-                    pos_side,
-                    float(sell_size),
-                    float(sell_price),
-                    "limit",
-                    sell_client_order_id,
-                    False,
-                )
+                try:
+                    sell_client_order_id = await get_client_order_id()
+                    logging.info(
+                        f"📝 下卖单: 账户={account_id}, 币种={symbol}, "
+                        f"数量={sell_size}, 价格={sell_price}"
+                    )
+                    sell_order = await open_position(
+                        self,
+                        account_id,
+                        symbol,
+                        "sell",
+                        pos_side,
+                        float(sell_size),
+                        float(sell_price),
+                        "limit",
+                        sell_client_order_id,
+                        False,
+                    )
 
-            if buy_order and sell_order:
+                    if sell_order:
+                        sell_success = True
+                        logging.info(
+                            f"✅ 卖单下单成功: 账户={account_id}, 订单ID={sell_order['id'][:15]}..."
+                        )
+
+                    else:
+                        logging.error(
+                            f"❌ 卖单下单失败: 账户={account_id}, 币种={symbol}"
+                        )
+                        # ⚠️ 【关键】卖单失败不取消买单，因为买单已独立成功
+
+                except Exception as e:
+                    logging.error(
+                        f"❌ 卖单下单异常: 账户={account_id}, 错误={e}", exc_info=True
+                    )
+                    # ⚠️ 卖单异常也不取消买单
+
+            # ✅ 【方案1改进】第3步：分级处理结果
+            if buy_success and sell_success:
+                # 🟢 完全成功：存储两个订单
+                logging.info(f"🟢 网格订单完全成功: 账户={account_id}, 币种={symbol}")
                 await self.db.add_order(
                     {
                         "account_id": account_id,
@@ -1207,13 +1318,72 @@ class PriceMonitoringTask:
                     }
                 )
                 logging.info(
-                    f"✅ 用户 {account_id} 已挂单: 买{buy_price}({buy_size}) 卖{sell_price})"
+                    f"✅ 用户 {account_id} 已挂单: 买{buy_price}({buy_size}) 卖{sell_price}({sell_size})"
                 )
                 return True
+
+            elif buy_success and not sell_success:
+                # 🟡 部分成功：只存储买单（关键改进点）
+                logging.warning(
+                    f"🟡 网格订单部分成功: 账户={account_id}, 币种={symbol}, "
+                    f"买单成功，卖单失败，保存买单并标记待重试卖单"
+                )
+                await self.db.add_order(
+                    {
+                        "account_id": account_id,
+                        "symbol": symbol,
+                        "order_id": buy_order["id"],
+                        "clorder_id": buy_client_order_id,
+                        "price": float(buy_price),
+                        "executed_price": None,
+                        "quantity": float(buy_size),
+                        "pos_side": pos_side,
+                        "order_type": "limit",
+                        "side": "buy",
+                        "status": "live",  # 标记为已挂出
+                        "position_group_id": "",
+                    }
+                )
+                logging.info(
+                    f"✅ 用户 {account_id} 买单已挂出: 买{buy_price}({buy_size}), "
+                    f"下次检查时将继续创建卖单"
+                )
+                # ⚠️ 返回 True 表示操作成功（买单成功），卖单会在后续轮次重试
+                return True
+
+            elif not buy_success and sell_success:
+                # 🟠 异常情况：卖单成功但买单失败（极少见，可能是买单在最后阶段失败）
+                logging.error(
+                    f"🟠 异常状态: 账户={account_id}, 币种={symbol}, "
+                    f"卖单成功但买单失败，将卖单也保存作为孤立订单"
+                )
+                await self.db.add_order(
+                    {
+                        "account_id": account_id,
+                        "symbol": symbol,
+                        "order_id": sell_order["id"],
+                        "clorder_id": sell_client_order_id,
+                        "price": float(sell_price),
+                        "executed_price": None,
+                        "quantity": float(sell_size),
+                        "pos_side": pos_side,
+                        "order_type": "limit",
+                        "side": "sell",
+                        "status": "live",
+                        "position_group_id": "",
+                    }
+                )
+                # ⚠️ 返回 False 让上层知道网格不完整
+                return False
+
             else:
+                # 🔴 完全失败：买单和卖单都失败
+                logging.error(
+                    f"🔴 网格订单完全失败: 账户={account_id}, 币种={symbol}, "
+                    f"买单失败={not buy_success}, 卖单失败={not sell_success}"
+                )
+                # ⚠️ 只在完全失败时才取消所有订单
                 await cancel_all_orders(self, exchange, account_id, symbol)
-                # print("❌ 网格下单失败")
-                logging.error(f"❌ 用户 {account_id} 网格下单失败")
                 return False
 
         except Exception as e:
@@ -1224,7 +1394,206 @@ class PriceMonitoringTask:
             traceback.print_exc()
             return False
         finally:
-            await exchange.close()
+            # ✅ 防御性检查：确保 exchange 已初始化再关闭
+            if exchange:
+                try:
+                    await exchange.close()
+                except Exception as e:
+                    logging.warning(f"⚠️ 关闭 exchange 失败: {e}")
+
+    async def _check_incomplete_grid_orders(
+        self,
+        account_id: int,
+        exchange,
+        positions_dict: dict,
+    ):
+        """
+        检测异常状态：有持仓但缺少对应的网格单（补救方案）
+
+        场景：开仓订单已成交，但网格单创建失败/超时导致缺失
+        解决：重新触发网格单创建
+
+        Args:
+            account_id: 账户ID
+            exchange: 交易所实例
+            positions_dict: 持仓字典 {symbol: [positions]}
+        """
+        try:
+            # 遍历所有有持仓的币种
+            for symbol, positions in positions_dict.items():
+                # 检查是否有实际持仓
+                has_position = any(p.get("contracts", 0) != 0 for p in positions if p)
+                if not has_position:
+                    continue
+
+                logging.info(
+                    f"🔍 检查网格单完整性: 账户={account_id}, 币种={symbol}, 有持仓"
+                )
+
+                # 查找该币种最近的已成交开仓订单
+                try:
+                    recent_filled_order = await self.db.get_recent_filled_open_order(
+                        account_id, symbol, minutes_back=30
+                    )
+
+                    if not recent_filled_order:
+                        logging.debug(
+                            f"📭 账户 {account_id} 币种 {symbol} 无最近的已成交开仓订单"
+                        )
+                        continue
+
+                    # 检查是否已有对应的网格单
+                    # ✅ 改进：传入开仓订单的成交时间，只查该时间之后的网格单
+                    # 这样避免了历史订单的干扰，精确关联开仓订单与网格单
+                    open_order_time = recent_filled_order.get(
+                        "updated_at"
+                    ) or recent_filled_order.get("created_at")
+
+                    has_active_buy_grid = await self.db.has_pending_order(
+                        account_id,
+                        symbol,
+                        "buy",
+                        include_all=False,
+                        after_time=open_order_time,
+                    )
+                    has_active_sell_grid = await self.db.has_pending_order(
+                        account_id,
+                        symbol,
+                        "sell",
+                        include_all=False,
+                        after_time=open_order_time,
+                    )
+                    logging.debug(f"has_active_buy_grid: {has_active_buy_grid}")
+                    logging.debug(f"has_active_sell_grid: {has_active_sell_grid}")
+                    # 🟢 正常情况：既有买单又有卖单
+                    if has_active_buy_grid and has_active_sell_grid:
+                        logging.debug(
+                            f"✅ 账户 {account_id} 币种 {symbol} 网格单完整 "
+                            f"(买=True, 卖=True)"
+                        )
+                        continue
+
+                    # 🚨 异常情况1：只有买单，缺卖单
+                    has_missing_sell = has_active_buy_grid and not has_active_sell_grid
+                    # 🚨 异常情况2：只有卖单，缺买单
+                    has_missing_buy = not has_active_buy_grid and has_active_sell_grid
+                    # 🚨 异常情况3：都没有
+                    has_no_grid = not has_active_buy_grid and not has_active_sell_grid
+                    logging.debug(f"has_missing_sell: {has_missing_sell}")
+                    logging.debug(f"has_missing_buy: {has_missing_buy}")
+                    logging.debug(f"has_no_grid: {has_no_grid}")
+                    if has_missing_sell or has_missing_buy or has_no_grid:
+                        # 如果都没有，检查是否曾经有过网格单
+                        if has_no_grid:
+                            has_ever_buy = await self.db.has_pending_order(
+                                account_id,
+                                symbol,
+                                "buy",
+                                include_all=True,
+                                after_time=open_order_time,
+                            )
+                            has_ever_sell = await self.db.has_pending_order(
+                                account_id,
+                                symbol,
+                                "sell",
+                                include_all=True,
+                                after_time=open_order_time,
+                            )
+
+                            if has_ever_buy and has_ever_sell:
+                                # 曾经都有过，现在都没有 → 被撤销，不动作
+                                logging.warning(
+                                    f"⚠️ 账户={account_id}, 币种={symbol}, "
+                                    f"网格单已被撤销（曾有买和卖），保持持仓不动作"
+                                )
+                                continue
+
+                        # 异常情况需要补救
+                        missing_desc = (
+                            "缺卖单"
+                            if has_missing_sell
+                            else ("缺买单" if has_missing_buy else "缺全部网格单")
+                        )
+                        logging.warning(
+                            f"🚨 异常检测: 账户={account_id}, 币种={symbol}, "
+                            f"有持仓但{missing_desc}，订单={recent_filled_order['order_id'][:15]}..., "
+                            f"成交价={recent_filled_order.get('executed_price', 'N/A')}"
+                        )
+                    else:
+                        # 不应该到达这里的情况
+                        continue
+
+                    # 检查是否距离上次创建网格单不久（避免频繁重试）
+                    last_attempt_time = recent_filled_order.get(
+                        "updated_at"
+                    ) or recent_filled_order.get("created_at")
+                    if last_attempt_time:
+                        time_elapsed = (
+                            datetime.now() - last_attempt_time
+                        ).total_seconds()
+                        if time_elapsed < 60:  # 60秒内不重试
+                            logging.info(
+                                f"⏳ 上次网格单创建失败距今 {time_elapsed:.0f}秒，"
+                                f"等待冷却期后重试: 账户={account_id}, 币种={symbol}"
+                            )
+                            continue
+
+                    # 重新触发网格单创建
+                    logging.info(
+                        f"🔧 开始补救创建网格单: 账户={account_id}, "
+                        f"币种={symbol}, 订单={recent_filled_order['order_id'][:15]}..."
+                    )
+
+                    try:
+                        managed = await asyncio.wait_for(
+                            self.manage_grid_orders(recent_filled_order, account_id),
+                            timeout=20.0,
+                        )
+
+                        if managed:
+                            logging.info(
+                                f"✅ 补救网格单创建成功: 账户={account_id}, "
+                                f"币种={symbol}"
+                            )
+                        else:
+                            logging.error(
+                                f"❌ 补救网格单创建失败: 账户={account_id}, "
+                                f"币种={symbol}，将在下轮继续尝试"
+                            )
+
+                    except asyncio.TimeoutError:
+                        logging.error(
+                            f"⏱️ 补救网格单创建超时(20秒): 账户={account_id}, "
+                            f"币种={symbol}"
+                        )
+                        # ✅ 继续处理下一个币种
+                        continue
+
+                    except Exception as e:
+                        logging.error(
+                            f"❌ 补救网格单创建异常: 账户={account_id}, "
+                            f"币种={symbol}, 错误={e}",
+                            exc_info=True,
+                        )
+                        # ✅ 继续处理下一个币种
+                        continue
+
+                except Exception as e:
+                    # ✅ 此时 symbol 肯定有值，因为我们在循环内
+                    logging.error(
+                        f"❌ 检查网格单完整性异常: 账户={account_id}, "
+                        f"币种={symbol}, 错误={e}",
+                        exc_info=True,
+                    )
+                    # ✅ 继续处理下一个币种，不要中断整个函数
+                    continue
+
+        except Exception as e:
+            # ✅ 外层异常处理：处理循环外或其他意外异常
+            logging.error(
+                f"❌ 检查不完整网格单异常: 账户={account_id}, 错误={e}",
+                exc_info=True,
+            )
 
     async def _check_abnormal_state(
         self,

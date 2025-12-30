@@ -222,12 +222,13 @@ class Database:
                 cursor.execute(
                     f"""
                     INSERT INTO {table('orders')}
-                    (account_id, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (account_id, symbol, order_id, side, order_type, pos_side, quantity, price, executed_price, status, is_clopos, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
                     status = VALUES(status),
-                    is_clopos = VALUES(is_clopos)
+                    is_clopos = VALUES(is_clopos),
+                    updated_at = NOW()
                 """,
                     (
                         account_id,
@@ -262,11 +263,12 @@ class Database:
                 cursor.execute(
                     f"""
                     INSERT INTO {table('orders')}
-                    (account_id, symbol, position_group_id, profit, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (account_id, symbol, position_group_id, profit, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
-                    status = VALUES(status)
+                    status = VALUES(status),
+                    updated_at = NOW()
                 """,
                     (
                         order_info["account_id"],
@@ -346,6 +348,8 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
+                # 添加 updated_at 字段的自动更新
+                set_clause += ", updated_at = NOW()"
                 values = list(updates.values()) + [account_id, order_id]
                 query = f"""
                     UPDATE {table('orders')}
@@ -381,6 +385,8 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
+                # 添加 updated_at 字段的自动更新
+                set_clause += ", updated_at = NOW()"
                 values = list(updates.values()) + [account_id, symbol]
                 query = f"""
                     UPDATE {table('orders')}
@@ -560,7 +566,7 @@ class Database:
                 cursor.execute(
                     f"""
                     UPDATE {table('orders')}
-                    SET is_clopos = 1
+                    SET is_clopos = 1, updated_at = NOW()
                     WHERE account_id = %s
                     AND symbol = %s 
                     AND pos_side = %s 
@@ -573,6 +579,142 @@ class Database:
         except Exception as e:
             print(f"标记订单为已平仓失败: {e}")
             logging.error(f"标记订单为已平仓失败: {e}")
+        finally:
+            if conn:
+                conn.close()
+
+    # ✅ 【新增方法】获取最近的已成交开仓订单（用于补救网格单）
+    async def get_recent_filled_open_order(
+        self, account_id: int, symbol: str, minutes_back: int = 30
+    ) -> Optional[Dict]:
+        """
+        获取该币种最近的已成交开仓订单（limit订单）
+
+        用于检测"有持仓但缺网格单"的情况，然后重新触发网格单创建
+
+        Args:
+            account_id: 账户ID
+            symbol: 交易对
+            minutes_back: 查询过去多少分钟内的订单（默认30分钟）
+
+        Returns:
+            最近的已成交开仓订单
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                # 注意：如果 updated_at 为 NULL，则使用 created_at 作为备选
+                query = f"""
+                    SELECT * FROM {table('orders')}
+                    WHERE account_id = %s 
+                    AND symbol = %s 
+                    AND status = 'filled'
+                    AND order_type = 'limit'
+                    AND (side = 'buy' OR side = 'sell')
+                    AND COALESCE(updated_at, created_at, NOW()) > DATE_SUB(NOW(), INTERVAL %s MINUTE)
+                    ORDER BY COALESCE(updated_at, created_at) DESC
+                    LIMIT 1
+                """
+                cursor.execute(query, (account_id, symbol, minutes_back))
+                result = cursor.fetchone()
+
+                if result:
+                    logging.info(
+                        f"✅ 找到最近的已成交订单: 账户={account_id}, 币种={symbol}, "
+                        f"订单ID={result.get('order_id', 'N/A')[:15]}..., "
+                        f"更新时间={result.get('updated_at', result.get('created_at', 'N/A'))}"
+                    )
+                else:
+                    logging.debug(
+                        f"📭 无最近的已成交订单: 账户={account_id}, 币种={symbol}"
+                    )
+
+                return result
+        except Exception as e:
+            logging.error(
+                f"❌ 查询最近已成交订单失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+                exc_info=True,
+            )
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    # ✅ 【新增方法】检查是否有特定条件的挂单
+    async def has_pending_order(
+        self,
+        account_id: int,
+        symbol: str,
+        side: str = None,
+        status: str = None,
+        include_all: bool = False,
+        after_time=None,
+    ) -> bool:
+        """
+        检查是否有特定条件的未成交订单
+
+        Args:
+            account_id: 账户ID
+            symbol: 交易对
+            side: 订单方向 (buy/sell)，为None时不限制
+            status: 订单状态 (live/partially_filled)，为None时默认查活跃订单
+            include_all: 是否包括已撤销的订单
+            after_time: 只查询该时间戳之后创建的订单（用于关联到特定的开仓订单）
+
+        Returns:
+            True 表示存在该条件的订单，False 表示不存在
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                query = f"""
+                    SELECT COUNT(*) as count FROM {table('orders')}
+                    WHERE account_id = %s 
+                    AND symbol = %s
+                    AND order_type = 'limit'
+                """
+                params = [account_id, symbol]
+
+                # ✅ 添加时间过滤：只查询开仓订单之后创建的网格单
+                if after_time:
+                    query += " AND created_at > %s"
+                    params.append(after_time)
+
+                if side:
+                    query += " AND side = %s"
+                    params.append(side)
+
+                if status:
+                    # 指定了具体状态
+                    query += " AND status = %s"
+                    params.append(status)
+                elif include_all:
+                    # 查所有订单（包括已撤销的）
+                    query += " AND status IN ('live', 'partially_filled', 'canceled', 'filled', 'closed')"
+                else:
+                    # 默认只查活跃订单
+                    query += " AND (status = 'live' OR status = 'partially_filled')"
+
+                cursor.execute(query, params)
+                result = cursor.fetchone()
+                count = result["count"] if result else 0
+
+                exists = count > 0
+                if exists and not include_all:
+                    logging.debug(
+                        f"✅ 找到活跃挂单: 账户={account_id}, 币种={symbol}, "
+                        f"方向={side or '任意'}, 状态={status or '活跃'}, 数量={count}"
+                    )
+
+                return exists
+        except Exception as e:
+            logging.error(
+                f"❌ 检查挂单失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+                exc_info=True,
+            )
+            return False
         finally:
             if conn:
                 conn.close()

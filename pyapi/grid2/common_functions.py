@@ -202,9 +202,10 @@ async def open_position(
     client_order_id: str = None,
     is_reduce_only: bool = False,
 ):
-    """开仓、平仓下单（带重试机制）"""
+    """开仓、平仓下单（带重试机制 + 超时保护 - 方案3改进）"""
     max_retries = 3
     retry_delay = 0.5  # 初始延迟0.5秒
+    order_timeout = 10.0  # ✅ 单次下单超时10秒
 
     for attempt in range(max_retries):
         exchange = await get_exchange(self, account_id)
@@ -231,14 +232,30 @@ async def open_position(
             if hasattr(self, "api_limiter") and self.api_limiter:
                 await self.api_limiter.check_and_wait()
 
-            order = await exchange.create_order(
-                symbol=symbol,
-                type=order_type,
-                side=side,
-                amount=float(amount),
-                price=price,
-                params=params,
-            )
+            # ✅ 【改进】为单次下单添加超时保护
+            try:
+                order = await asyncio.wait_for(
+                    exchange.create_order(
+                        symbol=symbol,
+                        type=order_type,
+                        side=side,
+                        amount=float(amount),
+                        price=price,
+                        params=params,
+                    ),
+                    timeout=order_timeout,
+                )
+            except asyncio.TimeoutError:
+                logging.warning(
+                    f"⏱️ 账户 {account_id} 下单超时({order_timeout}秒) ({attempt+1}/{max_retries}): "
+                    f"币种={symbol}, 方向={side}"
+                )
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(retry_delay)
+                    continue
+                else:
+                    logging.error(f"❌ 账户 {account_id} 下单超时已达最大重试次数")
+                    return None
 
             if order["info"].get("sCode") == "0":
                 order_id = order.get("id", "N/A")
@@ -251,7 +268,7 @@ async def open_position(
                 error_msg = order["info"].get("sMsg", "未知错误")
                 error_code = order["info"].get("sCode", "N/A")
 
-                # 检查是否是频率限制错误
+                # ✅ 【改进】只在频率限制时重试，其他错误直接返回
                 if error_code == "50011" and attempt < max_retries - 1:
                     wait_time = retry_delay * (2**attempt)  # 指数退避：0.5s, 1s, 2s
                     logging.warning(
@@ -264,14 +281,24 @@ async def open_position(
                     f"❌ 下单失败: 账户={account_id}, 币种={symbol}, "
                     f"错误码={error_code}, 错误信息={error_msg}"
                 )
-                logging.error(
-                    f"开仓失败: {account_id} {order['info'].get('data', [{}])[0].get('sCode', 'N/A')} {error_msg}"
-                )
+                return None
+
+        except asyncio.TimeoutError:
+            # ✅ 超时错误单独处理
+            logging.warning(
+                f"⏱️ 账户 {account_id} 下单超时({order_timeout}秒) ({attempt+1}/{max_retries}): "
+                f"币种={symbol}, 方向={side}"
+            )
+            if attempt < max_retries - 1:
+                await asyncio.sleep(retry_delay)
+                continue
+            else:
+                logging.error(f"❌ 账户 {account_id} 下单超时已达最大重试次数")
                 return None
 
         except Exception as e:
             error_msg = str(e)
-            # 检查是否是频率限制错误
+            # ✅ 【改进】检查是否是频率限制错误
             if (
                 "50011" in error_msg or "Too Many Requests" in error_msg
             ) and attempt < max_retries - 1:
@@ -459,19 +486,36 @@ async def cleanup_opposite_positions(
         await exchange.close()  # ✅ 用完就关
 
 
+# 在 common_functions.py 中修改这个函数
+
 async def milliseconds_to_local_datetime(milliseconds: int) -> str:
     """
     将毫秒时间戳转换为 UTC 时间的字符串格式
     :param milliseconds: 毫秒时间戳
     :return: 格式化的时间字符串 (YYYY-MM-DD HH:MM:SS)
     """
-    # 将毫秒时间戳转换为秒
-    seconds = int(milliseconds) / 1000.0
-    # 转换为 UTC 时间
-    utc_time = datetime.fromtimestamp(seconds, tz=timezone.utc)
-    # 格式化为字符串
-    formatted_time = utc_time.strftime("%Y-%m-%d %H:%M:%S")
-    return formatted_time
+    # ✅ 添加安全检查：处理 0 或无效时间戳
+    if not milliseconds or milliseconds <= 0:
+        # 返回当前时间作为默认值
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    try:
+        # 将毫秒时间戳转换为秒
+        seconds = int(milliseconds) / 1000.0
+        
+        # ✅ 添加时间戳有效性检查（防止年份过小或过大）
+        if seconds < 0 or seconds > 253402300799:  # 检查是否在合理范围内
+            return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # 转换为 UTC 时间
+        utc_time = datetime.fromtimestamp(seconds, tz=timezone.utc)
+        # 格式化为字符串
+        formatted_time = utc_time.strftime("%Y-%m-%d %H:%M:%S")
+        return formatted_time
+    except (ValueError, OSError, OverflowError) as e:
+        # ✅ 捕获可能的异常，返回当前时间
+        logging.warning(f"⚠️ 时间戳转换失败: {milliseconds}, 错误: {e}")
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 async def get_latest_filled_price_from_position_history(

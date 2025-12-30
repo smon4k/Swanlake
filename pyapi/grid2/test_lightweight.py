@@ -160,8 +160,8 @@ class LightweightTester:
         logging.info("▶️ 步骤1: 插入开仓信号")
         logging.info("=" * 60)
         # 使用线上实际策略（从数据库查询现有策略）
-        signal1 = await self.insert_test_signal("T1.1", "long", 1, 88500)
-        signal2 = await self.insert_test_signal("T1.0", "long", 1, 88500)
+        signal1 = await self.insert_test_signal("T1.1", "long", 1, 88709)
+        signal2 = await self.insert_test_signal("T1.0", "long", 1, 88709)
 
         await self.trigger_redis()
 
@@ -206,8 +206,8 @@ class LightweightTester:
         logging.info("\n" + "=" * 60)
         logging.info("▶️ 步骤4: 插入平仓信号")
         logging.info("=" * 60)
-        signal3 = await self.insert_test_signal("T1.1", "short", 0, 88500)
-        signal4 = await self.insert_test_signal("T1.0", "short", 0, 88500)
+        signal3 = await self.insert_test_signal("T1.1", "short", 0, 88709)
+        signal4 = await self.insert_test_signal("T1.0", "short", 0, 88709)
 
         await self.trigger_redis()
 
