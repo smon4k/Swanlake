@@ -610,8 +610,8 @@ class PriceMonitoringTask:
                 logging.info(
                     f"📊 账户 {account_id} 有持仓的币种: {', '.join(position_summary)}"
                 )
-            else:
-                logging.warning(f"⚠️ 账户 {account_id} 当前无任何持仓")
+            # else:
+            #     logging.warning(f"⚠️ 账户 {account_id} 当前无任何持仓")
 
             # --------------------------
             # 2. 执行补救检查（基于持仓，不依赖 open_orders）
