@@ -1463,8 +1463,8 @@ class PriceMonitoringTask:
                         include_all=False,
                         after_time=open_order_time,
                     )
-                    logging.debug(f"has_active_buy_grid: {has_active_buy_grid}")
-                    logging.debug(f"has_active_sell_grid: {has_active_sell_grid}")
+                    # logging.debug(f"has_active_buy_grid: {has_active_buy_grid}")
+                    # logging.debug(f"has_active_sell_grid: {has_active_sell_grid}")
                     # 🟢 正常情况：既有买单又有卖单
                     if has_active_buy_grid and has_active_sell_grid:
                         logging.debug(
@@ -1479,9 +1479,9 @@ class PriceMonitoringTask:
                     has_missing_buy = not has_active_buy_grid and has_active_sell_grid
                     # 🚨 异常情况3：都没有
                     has_no_grid = not has_active_buy_grid and not has_active_sell_grid
-                    logging.debug(f"has_missing_sell: {has_missing_sell}")
-                    logging.debug(f"has_missing_buy: {has_missing_buy}")
-                    logging.debug(f"has_no_grid: {has_no_grid}")
+                    # logging.debug(f"has_missing_sell: {has_missing_sell}")
+                    # logging.debug(f"has_missing_buy: {has_missing_buy}")
+                    # logging.debug(f"has_no_grid: {has_no_grid}")
                     if has_missing_sell or has_missing_buy or has_no_grid:
                         # 如果都没有，检查是否曾经有过网格单
                         if has_no_grid:
