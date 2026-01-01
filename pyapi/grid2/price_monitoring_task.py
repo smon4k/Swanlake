@@ -1159,6 +1159,7 @@ class PriceMonitoringTask:
             buy_size = (total_position_value * Decimal(str(buy_percent))).quantize(
                 Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
             )
+            logging.info(f"用户 {account_id} 买单数量: {buy_size} 最小下单量: {market_precision['min_amount']}")
             if buy_size < market_precision["min_amount"]:
                 logging.info(f"📉 用户 {account_id} 买单过小: {buy_size}")
                 return False
@@ -1166,6 +1167,7 @@ class PriceMonitoringTask:
             sell_size = (total_position_value * Decimal(str(sell_percent))).quantize(
                 Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
             )
+            logging.info(f"用户 {account_id} 卖单数量: {sell_size} 最小下单量: {market_precision['min_amount']}")
             if sell_size < market_precision["min_amount"]:
                 logging.info(f"📉 用户 {account_id} 卖单过小: {sell_size}")
                 return False
@@ -1174,9 +1176,10 @@ class PriceMonitoringTask:
                 total_position_quantity
                 + buy_size * market_precision["amount"] * buy_price
                 - sell_size * market_precision["amount"] * sell_price
-            )
+            ) # 开仓以及总持仓挂买价值
+            logging.info(f"用户 {account_id} 开仓以及总持仓挂买价值: {buy_total} 最大持仓: {max_position}")
             if buy_total >= max_position:
-                logging.info(f"⚠️ 用户 {account_id} 超过最大持仓，取消挂单")
+                logging.info(f"⚠️ 用户 {account_id} 开仓以及总持仓价值超过最大持仓，取消挂单")
                 return False
 
             group_id = str(uuid.uuid4())
