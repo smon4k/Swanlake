@@ -162,7 +162,9 @@ class PriceMonitoringTask:
         self.market_precision_cache = {}  # 市场精度缓存
 
         # ⏱️ 超时配置
-        self.account_check_timeout = 30.0  # 单个账户检查超时时间（秒）
+        self.account_check_timeout = (
+            45.0  # 单个账户检查超时时间（秒）- 增加到45秒以适应网格单创建
+        )
         self.round_total_timeout = 90.0  # 整轮检查总超时时间（秒）
 
         # 🎯 优先级队列（方案3）
@@ -809,15 +811,15 @@ class PriceMonitoringTask:
 
                 logging.info(f"🔧 开始管理网格订单: 账户={account_id}, 币种={symbol}")
 
-                # ✅ 【方案2改进】网格单创建单独设置超时（20秒，不受整体30秒限制）
+                # ✅ 【方案2改进】网格单创建单独设置超时（30秒，给买卖单留足时间）
                 try:
                     managed = await asyncio.wait_for(
                         self.manage_grid_orders(latest_order, account_id),
-                        timeout=20.0,
+                        timeout=30.0,
                     )
                 except asyncio.TimeoutError:
                     logging.error(
-                        f"⏱️ 账户 {account_id} 网格单创建超时(20秒)，将在下一轮监控继续处理"
+                        f"⏱️ 账户 {account_id} 网格单创建超时(30秒)，将在下一轮补救检查中处理"
                     )
                     managed = False
                 except Exception as e:
@@ -1202,7 +1204,7 @@ class PriceMonitoringTask:
                 f"买单={buy_size}@{buy_price}, 卖单={sell_size}@{sell_price}"
             )
 
-            # ✅ 【方案1改进】第1步：先下买单
+            # ✅ 【方案1改进】第1步：先下买单，加独立超时防止卡死
             if buy_size > 0:
                 try:
                     buy_client_order_id = await get_client_order_id()
@@ -1210,17 +1212,21 @@ class PriceMonitoringTask:
                         f"📝 下买单: 账户={account_id}, 币种={symbol}, "
                         f"数量={buy_size}, 价格={buy_price}"
                     )
-                    buy_order = await open_position(
-                        self,
-                        account_id,
-                        symbol,
-                        "buy",
-                        pos_side,
-                        float(buy_size),
-                        float(buy_price),
-                        "limit",
-                        buy_client_order_id,
-                        False,
+                    # ✅ 新增：买单API独立超时10秒，快速失败
+                    buy_order = await asyncio.wait_for(
+                        open_position(
+                            self,
+                            account_id,
+                            symbol,
+                            "buy",
+                            pos_side,
+                            float(buy_size),
+                            float(buy_price),
+                            "limit",
+                            buy_client_order_id,
+                            False,
+                        ),
+                        timeout=10.0,
                     )
 
                     if buy_order:
@@ -1229,20 +1235,24 @@ class PriceMonitoringTask:
                             f"✅ 买单下单成功: 账户={account_id}, 订单ID={buy_order['id'][:15]}..."
                         )
 
-                        # ✅ 买单成功后添加延迟，避免API限流
-                        await asyncio.sleep(0.5)
+                        # ✅ 优化：缩短延迟到0.1秒，节省时间
+                        await asyncio.sleep(0.1)
 
                     else:
                         logging.error(
                             f"❌ 买单下单失败: 账户={account_id}, 币种={symbol}"
                         )
 
+                except asyncio.TimeoutError:
+                    logging.error(
+                        f"❌ 买单API超时(10秒): 账户={account_id}, 币种={symbol}"
+                    )
                 except Exception as e:
                     logging.error(
                         f"❌ 买单下单异常: 账户={account_id}, 错误={e}", exc_info=True
                     )
 
-            # ✅ 【方案1改进】第2步：再下卖单（独立处理，不受买单影响）
+            # ✅ 【方案1改进】第2步：再下卖单（独立处理，不受买单影响），加独立超时
             if sell_size > 0:
                 try:
                     sell_client_order_id = await get_client_order_id()
@@ -1250,17 +1260,21 @@ class PriceMonitoringTask:
                         f"📝 下卖单: 账户={account_id}, 币种={symbol}, "
                         f"数量={sell_size}, 价格={sell_price}"
                     )
-                    sell_order = await open_position(
-                        self,
-                        account_id,
-                        symbol,
-                        "sell",
-                        pos_side,
-                        float(sell_size),
-                        float(sell_price),
-                        "limit",
-                        sell_client_order_id,
-                        False,
+                    # ✅ 新增：卖单API独立超时10秒，快速失败
+                    sell_order = await asyncio.wait_for(
+                        open_position(
+                            self,
+                            account_id,
+                            symbol,
+                            "sell",
+                            pos_side,
+                            float(sell_size),
+                            float(sell_price),
+                            "limit",
+                            sell_client_order_id,
+                            False,
+                        ),
+                        timeout=10.0,
                     )
 
                     if sell_order:
@@ -1275,6 +1289,11 @@ class PriceMonitoringTask:
                         )
                         # ⚠️ 【关键】卖单失败不取消买单，因为买单已独立成功
 
+                except asyncio.TimeoutError:
+                    logging.error(
+                        f"❌ 卖单API超时(10秒): 账户={account_id}, 币种={symbol}"
+                    )
+                    # ⚠️ 卖单超时也不取消买单，会被补救机制处理
                 except Exception as e:
                     logging.error(
                         f"❌ 卖单下单异常: 账户={account_id}, 错误={e}", exc_info=True
