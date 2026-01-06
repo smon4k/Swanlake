@@ -903,7 +903,7 @@ class SignalProcessingTask:
                 stage_profit_loss_num = float(stage_profit_loss) + float(
                     loss_profit_normal
                 )  # 阶段性盈亏累加
-                logging.info(f"阶段性盈亏累加: {stage_profit_loss_num}")
+                logging.info(f"上一次阶段性盈亏: {stage_profit_loss}, 本次阶段性盈亏: {loss_profit_normal}, 本次阶段性盈亏累加: {stage_profit_loss_num}")
                 if stage_profit_loss_num > 0:
                     stage_profit_loss_num = 0  # 如果阶段性盈亏大于0才清0
 
@@ -929,7 +929,7 @@ class SignalProcessingTask:
                     sign_id,
                     loss_profit_normal,
                     open_price,
-                    stage_profit_loss_num,
+                    stage_profit_loss,
                 )  # 批量更新指定策略所有账户最大仓位数据
 
                 # 更新盈亏策略记录

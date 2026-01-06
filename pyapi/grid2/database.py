@@ -1087,7 +1087,7 @@ class Database:
         sign_id: int = 0,
         loss_profit_normal: str = "",
         open_price: str = "",
-        stage_profit_loss: float = 0,
+        last_stage_profit_loss: float = 0,
     ) -> bool:
         """
         根据策略名称调整所有用户的max_position_list中对应策略的value值，增加或减少5%
@@ -1108,7 +1108,7 @@ class Database:
                 min_position = strategy_info.get("min_position")  # 最小仓位
                 # stage_profit_loss = strategy_info.get('stage_profit_loss', 0) # 阶段性盈亏
                 logging.info(
-                    f"最大仓位: {max_position}, 最小仓位: {min_position}, 阶段性盈亏: {stage_profit_loss}"
+                    f"最大仓位: {max_position}, 最小仓位: {min_position}, 上一次阶段性盈亏: {last_stage_profit_loss}"
                 )
 
                 cursor.execute(
@@ -1193,19 +1193,19 @@ class Database:
                             try:
                                 value = float(item.get("value"))
                                 # logging.info(f"账户{account_id} 当前最大仓位: {value}, 盈利增加比例: {increase_ratio}%, 亏损减少比例: {decrease_ratio}%, 连续亏损次数: {loss_number}, 最大亏损次数: {max_loss_number}, 最小亏损比例: {min_loss_ratio}, 清0值: {clear_value}, 阶段性盈亏: {stage_profit_loss}")
-                                if stage_profit_loss == 0 or abs(
+                                if last_stage_profit_loss == 0 or abs(
                                     float(loss_profit_normal)
                                 ) > abs(
-                                    stage_profit_loss
+                                    last_stage_profit_loss
                                 ):  # 如果阶段盈亏小于等于0或者单次盈亏超过阶段性盈亏绝对值 重置最大仓位
                                     logging.info(
-                                        f"账户{account_id}单次盈亏{loss_profit_normal}超过阶段性盈亏{stage_profit_loss:.8f}，重置最大仓位为初始值{clear_value}"
+                                        f"账户{account_id}单次盈亏{loss_profit_normal}超过上一次阶段性盈亏{last_stage_profit_loss:.8f}，重置最大仓位为初始值{clear_value}"
                                     )
                                     value = clear_value
                                     loss_number = 0
                                 else:
                                     logging.info(
-                                        f"账户{account_id}单次盈亏{loss_profit_normal}未超过阶段性盈亏{stage_profit_loss:.8f}，按规则调整最大仓位"
+                                        f"账户{account_id}单次盈亏{loss_profit_normal}未超过上一次阶段性盈亏{last_stage_profit_loss:.8f}，按规则调整最大仓位"
                                     )
                                     if increase:  # 盈利 减少百分比
                                         logging.info(
