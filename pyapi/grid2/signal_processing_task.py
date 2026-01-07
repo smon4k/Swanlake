@@ -895,10 +895,10 @@ class SignalProcessingTask:
                 strategy_info = await self.db.get_strategy_info(name)
                 logging.info(f"策略信息: {strategy_info}")
                 # 计算总盈亏
-                count_profit_loss = strategy_info.get("count_profit_loss", 0)  # 总盈亏
-                stage_profit_loss = strategy_info.get(
+                count_profit_loss = float(strategy_info.get("count_profit_loss", 0))  # 总盈亏
+                stage_profit_loss = float(strategy_info.get(
                     "stage_profit_loss", 0
-                )  # 阶段性盈亏
+                ))  # 阶段性盈亏
 
                 stage_profit_loss_num = float(stage_profit_loss) + float(
                     loss_profit_normal
