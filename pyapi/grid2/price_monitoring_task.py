@@ -4,7 +4,7 @@ import json
 import logging
 import uuid
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from common_functions import (
     get_account_balance,
     get_grid_percent_list,
@@ -1159,7 +1159,9 @@ class PriceMonitoringTask:
             buy_size = (total_position_value * Decimal(str(buy_percent))).quantize(
                 Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
             )
-            logging.info(f"用户 {account_id} 买单数量: {buy_size} 最小下单量: {market_precision['min_amount']}")
+            logging.info(
+                f"用户 {account_id} 买单数量: {buy_size} 最小下单量: {market_precision['min_amount']}"
+            )
             if buy_size < market_precision["min_amount"]:
                 logging.info(f"📉 用户 {account_id} 买单过小: {buy_size}")
                 return False
@@ -1167,7 +1169,9 @@ class PriceMonitoringTask:
             sell_size = (total_position_value * Decimal(str(sell_percent))).quantize(
                 Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
             )
-            logging.info(f"用户 {account_id} 卖单数量: {sell_size} 最小下单量: {market_precision['min_amount']}")
+            logging.info(
+                f"用户 {account_id} 卖单数量: {sell_size} 最小下单量: {market_precision['min_amount']}"
+            )
             if sell_size < market_precision["min_amount"]:
                 logging.info(f"📉 用户 {account_id} 卖单过小: {sell_size}")
                 return False
@@ -1176,10 +1180,14 @@ class PriceMonitoringTask:
                 total_position_quantity
                 + buy_size * market_precision["amount"] * buy_price
                 - sell_size * market_precision["amount"] * sell_price
-            ) # 开仓以及总持仓挂买价值
-            logging.info(f"用户 {account_id} 开仓以及总持仓挂买价值: {buy_total} 最大持仓: {max_position}")
+            )  # 开仓以及总持仓挂买价值
+            logging.info(
+                f"用户 {account_id} 开仓以及总持仓挂买价值: {buy_total} 最大持仓: {max_position}"
+            )
             if buy_total >= max_position:
-                logging.info(f"⚠️ 用户 {account_id} 开仓以及总持仓价值超过最大持仓，取消挂单")
+                logging.info(
+                    f"⚠️ 用户 {account_id} 开仓以及总持仓价值超过最大持仓，取消挂单"
+                )
                 return False
 
             group_id = str(uuid.uuid4())
@@ -1471,19 +1479,28 @@ class PriceMonitoringTask:
                         "updated_at"
                     ) or recent_filled_order.get("created_at")
 
+                    # ✅ 【修复时序问题】减去10秒buffer，避免过滤掉同一秒创建的网格单
+                    # 场景：网格单创建可能在 updated_at 的同一秒内完成
+                    if open_order_time:
+                        open_order_time_with_buffer = open_order_time - timedelta(
+                            seconds=10
+                        )
+                    else:
+                        open_order_time_with_buffer = None
+
                     has_active_buy_grid = await self.db.has_pending_order(
                         account_id,
                         symbol,
                         "buy",
                         include_all=False,
-                        after_time=open_order_time,
+                        after_time=open_order_time_with_buffer,
                     )
                     has_active_sell_grid = await self.db.has_pending_order(
                         account_id,
                         symbol,
                         "sell",
                         include_all=False,
-                        after_time=open_order_time,
+                        after_time=open_order_time_with_buffer,
                     )
                     # logging.debug(f"has_active_buy_grid: {has_active_buy_grid}")
                     # logging.debug(f"has_active_sell_grid: {has_active_sell_grid}")
@@ -1512,14 +1529,14 @@ class PriceMonitoringTask:
                                 symbol,
                                 "buy",
                                 include_all=True,
-                                after_time=open_order_time,
+                                after_time=open_order_time_with_buffer,
                             )
                             has_ever_sell = await self.db.has_pending_order(
                                 account_id,
                                 symbol,
                                 "sell",
                                 include_all=True,
-                                after_time=open_order_time,
+                                after_time=open_order_time_with_buffer,
                             )
 
                             if has_ever_buy and has_ever_sell:
@@ -1553,10 +1570,12 @@ class PriceMonitoringTask:
                         time_elapsed = (
                             datetime.now() - last_attempt_time
                         ).total_seconds()
-                        if time_elapsed < 60:  # 60秒内不重试
+                        # ✅ 【修复时序问题】增加冷却期到90秒，给网格单创建留足够时间
+                        # 避免在网格单刚创建后立即触发误报
+                        if time_elapsed < 90:  # 90秒内不重试（原60秒）
                             logging.info(
                                 f"⏳ 上次网格单创建失败距今 {time_elapsed:.0f}秒，"
-                                f"等待冷却期后重试: 账户={account_id}, 币种={symbol}"
+                                f"等待冷却期(90秒)后重试: 账户={account_id}, 币种={symbol}"
                             )
                             continue
 
