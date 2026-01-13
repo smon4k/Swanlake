@@ -3,12 +3,27 @@ import pymysql
 from typing import Dict, List, Optional
 import json
 from datetime import datetime
+from decimal import Decimal
 
 TABLE_PREFIX = "g_"
 
 
 def table(name: str) -> str:
     return f"{TABLE_PREFIX}{name}"
+
+
+def convert_decimal_to_float(data: Dict) -> Dict:
+    """
+    将字典中的 Decimal 类型转换为 float，避免科学计数法显示
+    :param data: 输入字典
+    :return: 转换后的字典
+    """
+    if data is None:
+        return None
+    for key in data:
+        if isinstance(data[key], Decimal):
+            data[key] = float(data[key])
+    return data
 
 
 class Database:
@@ -1388,7 +1403,7 @@ class Database:
                     (strategy_name,),
                 )
                 result = cursor.fetchone()
-                return result
+                return convert_decimal_to_float(result)
         except Exception as e:
             print(f"查询策略信息失败: {e}")
             logging.error(f"查询策略信息失败: {e}")
