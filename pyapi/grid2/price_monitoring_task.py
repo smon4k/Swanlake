@@ -174,6 +174,14 @@ class PriceMonitoringTask:
         self.low_priority_check_interval = 2  # 低优先级账户每2轮检查一次（20账户优化）
         self._skip_count = 0  # 连续跳过计数器（用于优化日志）
 
+        # 🔄 开仓尝试记录（避免重复开仓）
+        # 格式: {(signal_id, account_id): {"time": datetime, "result": "success/failed/pending", "order_id": "xxx"}}
+        self.open_attempts = {}
+        self.open_attempts_lock = asyncio.Lock()  # 保护并发访问
+        # 定期清理超过1小时的旧记录
+        self.open_attempts_cleanup_interval = 3600  # 1小时
+        self.last_cleanup_time = time.time()
+
         # 📊 统计信息
         self.stats = {
             "total_checks": 0,
@@ -1871,6 +1879,142 @@ class PriceMonitoringTask:
                 exc_info=True,
             )
 
+    async def get_pending_orders(self, account_id: int, symbol: str):
+        """
+        获取账户的未成交订单
+        
+        Args:
+            account_id: 账户ID
+            symbol: 交易对
+            
+        Returns:
+            list: 未成交订单列表，失败返回None
+        """
+        try:
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
+                return None
+            
+            # 查询未成交订单
+            params = {"instType": "SWAP"}
+            pending_orders = await exchange.fetch_open_orders(symbol, None, None, params)
+            await exchange.close()
+            
+            return pending_orders if pending_orders else []
+        except Exception as e:
+            logging.warning(f"⚠️ 查询账户 {account_id} 未成交订单失败: {e}")
+            return None
+    
+    async def record_open_attempt(self, signal_id: int, account_id: int, result: str, order_id: str = None):
+        """
+        记录开仓尝试
+        
+        Args:
+            signal_id: 信号ID
+            account_id: 账户ID
+            result: 结果 "success"/"failed"/"pending"
+            order_id: 订单ID（如果有）
+        """
+        async with self.open_attempts_lock:
+            key = (signal_id, account_id)
+            self.open_attempts[key] = {
+                "time": datetime.now(),
+                "result": result,
+                "order_id": order_id
+            }
+            
+            # 定期清理旧记录（超过1小时）
+            current_time = time.time()
+            if current_time - self.last_cleanup_time > self.open_attempts_cleanup_interval:
+                cutoff_time = datetime.now() - timedelta(hours=1)
+                keys_to_remove = [
+                    k for k, v in self.open_attempts.items()
+                    if v["time"] < cutoff_time
+                ]
+                for k in keys_to_remove:
+                    del self.open_attempts[k]
+                self.last_cleanup_time = current_time
+                if keys_to_remove:
+                    logging.debug(f"🧹 清理了 {len(keys_to_remove)} 条旧的开仓尝试记录")
+    
+    async def get_last_open_attempt(self, signal_id: int, account_id: int):
+        """
+        获取最后一次开仓尝试记录
+        
+        Args:
+            signal_id: 信号ID
+            account_id: 账户ID
+            
+        Returns:
+            dict: 尝试记录，如果没有则返回None
+        """
+        async with self.open_attempts_lock:
+            key = (signal_id, account_id)
+            return self.open_attempts.get(key)
+    
+    async def should_retry_open_position(self, signal_id: int, account_id: int, symbol: str, actual_positions):
+        """
+        判断是否应该重试开仓（核心判断逻辑）
+        
+        Args:
+            signal_id: 信号ID
+            account_id: 账户ID
+            symbol: 交易对
+            actual_positions: 实际持仓
+            
+        Returns:
+            tuple: (should_retry: bool, reason: str)
+        """
+        try:
+            # 1️⃣ 检查持仓（快速路径）
+            if actual_positions is not None and actual_positions > 0:
+                return (False, "已有持仓")
+            
+            # 2️⃣ 检查未成交订单（关键检查）
+            pending_orders = await self.get_pending_orders(account_id, symbol)
+            
+            if pending_orders is not None and len(pending_orders) > 0:
+                # 有挂单，检查挂单时长
+                oldest_order = pending_orders[0]
+                order_time = oldest_order.get('timestamp', 0) / 1000  # 毫秒转秒
+                order_age = time.time() - order_time if order_time > 0 else 0
+                
+                if order_age < 300:  # 5分钟内的挂单，认为是正常的
+                    return (False, f"有新挂单({order_age:.0f}秒)，等待成交")
+                elif order_age < 1800:  # 5-30分钟的挂单
+                    return (False, f"有旧挂单({order_age:.0f}秒)，继续等待")
+                else:  # 超过30分钟还没成交
+                    # ⚠️ 这里可以选择取消旧订单，但为了安全先不自动取消
+                    logging.warning(
+                        f"⚠️ 账户 {account_id} 有超时挂单({order_age:.0f}秒)，建议人工检查"
+                    )
+                    return (False, f"有超时挂单({order_age:.0f}秒)，需人工确认")
+            
+            # 3️⃣ 没有持仓也没有挂单，检查最近是否尝试过开仓
+            last_attempt = await self.get_last_open_attempt(signal_id, account_id)
+            
+            if last_attempt:
+                time_since_attempt = (datetime.now() - last_attempt["time"]).total_seconds()
+                
+                # 如果上次尝试很快失败（<30秒），说明是真的失败，立即重试
+                if time_since_attempt < 30 and last_attempt["result"] == "failed":
+                    return (True, f"上次开仓快速失败({time_since_attempt:.0f}秒)，立即重试")
+                
+                # 如果上次尝试是5分钟内，可能是订单挂出去了但API延迟查不到
+                if time_since_attempt < 300:
+                    return (False, f"上次尝试仅{time_since_attempt:.0f}秒，给API查询留时间")
+                
+                # 超过5分钟，可以重试了
+                return (True, f"上次尝试已{time_since_attempt:.0f}秒，可以重试")
+            
+            # 4️⃣ 没有任何记录，可以开仓
+            return (True, "无持仓、无挂单、无记录，可以开仓")
+            
+        except Exception as e:
+            # ⚠️ 降级处理：如果判断逻辑出错，默认允许重试（避免阻塞）
+            logging.error(f"❌ should_retry_open_position 判断异常: {e}")
+            return (True, f"判断异常，降级为允许重试: {e}")
+
     async def recover_failed_signal_accounts(self):
         """
         恢复 processing 状态的失败信号中的账户
@@ -2002,9 +2146,26 @@ class PriceMonitoringTask:
                             else:
                                 # 开仓信号：应该有仓位
                                 if actual_positions is None or actual_positions == 0:
+                                    # ✅ 【新增】智能判断是否应该重试开仓
+                                    should_retry, retry_reason = await self.should_retry_open_position(
+                                        signal_id, account_id, symbol, actual_positions
+                                    )
+                                    
+                                    logging.info(
+                                        f"🔄 账户 {account_id} 重试判断: {should_retry}, 原因: {retry_reason}"
+                                    )
+                                    
+                                    if not should_retry:
+                                        # 不需要重试，跳过本次（但不算失败，继续保持在 processing 状态）
+                                        logging.info(
+                                            f"⏸️ 账户 {account_id} 暂不重试开仓: {retry_reason}"
+                                        )
+                                        continue
+                                    
+                                    # 确认需要重新开仓
                                     logging.info(
                                         f"🔄 恢复开仓: 信号={signal_id}, 账户={account_id}, "
-                                        f"币种={symbol}"
+                                        f"币种={symbol}, 原因: {retry_reason}"
                                     )
 
                                     try:
@@ -2013,10 +2174,17 @@ class PriceMonitoringTask:
                                         )
                                         side = "buy" if direction == "long" else "sell"
 
+                                        # 记录开仓尝试（开始）
+                                        await self.record_open_attempt(signal_id, account_id, "pending")
+
                                         if self.signal_processing_task:
                                             # ✅ 获取策略配置信息
-                                            strategy_info = await self.db.get_strategy_info(signal_name)
-                                            
+                                            strategy_info = (
+                                                await self.db.get_strategy_info(
+                                                    signal_name
+                                                )
+                                            )
+
                                             # ✅ 关键修复：捕获返回值，使用正确的开仓系数
                                             result = await self.signal_processing_task.handle_open_position(
                                                 account_id=account_id,
@@ -2024,25 +2192,38 @@ class PriceMonitoringTask:
                                                 pos_side=pos_side,
                                                 side=side,
                                                 price=price,
-                                                open_coefficient=Decimal(str(strategy_info["open_coefficient"])),
+                                                open_coefficient=Decimal(
+                                                    str(
+                                                        strategy_info[
+                                                            "open_coefficient"
+                                                        ]
+                                                    )
+                                                ),
                                             )
 
                                             # ✅ 检查返回值，只有成功才标记为已恢复
                                             if result:  # True 表示开仓成功
+                                                # 记录开仓成功
+                                                await self.record_open_attempt(signal_id, account_id, "success")
                                                 newly_recovered.append(account_id)
                                                 logging.info(
                                                     f"✅ 账户 {account_id} 恢复开仓成功"
                                                 )
                                             else:  # False 或 None 表示开仓失败
+                                                # 记录开仓失败
+                                                await self.record_open_attempt(signal_id, account_id, "failed")
                                                 logging.error(
                                                     f"❌ 账户 {account_id} 恢复开仓失败，handle_open_position 返回 {result}，将在下次继续尝试"
                                                 )
                                         else:
+                                            await self.record_open_attempt(signal_id, account_id, "failed")
                                             logging.warning(
                                                 f"⚠️ signal_processing_task 未注入"
                                             )
 
                                     except Exception as e:
+                                        # 记录异常失败
+                                        await self.record_open_attempt(signal_id, account_id, "failed")
                                         logging.error(
                                             f"❌ 账户 {account_id} 恢复开仓异常: {e}",
                                             exc_info=True,
