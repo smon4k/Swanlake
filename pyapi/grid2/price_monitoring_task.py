@@ -1888,7 +1888,7 @@ class PriceMonitoringTask:
             with conn.cursor() as cursor:
                 # 查询所有 processing 信号且有失败账户的信号
                 cursor.execute(
-                    """SELECT id, failed_accounts, success_accounts, direction, symbol, price, size, last_update_time
+                    """SELECT id, name, failed_accounts, success_accounts, direction, symbol, price, size, last_update_time
                        FROM g_signals 
                        WHERE status='processing' 
                        AND failed_accounts IS NOT NULL 
@@ -1908,6 +1908,7 @@ class PriceMonitoringTask:
 
             for signal_row in processing_signals:
                 signal_id = signal_row["id"]
+                signal_name = signal_row["name"]
                 failed_accounts_json = signal_row["failed_accounts"]
                 success_accounts_json = signal_row["success_accounts"]
                 direction = signal_row["direction"]
@@ -2013,14 +2014,17 @@ class PriceMonitoringTask:
                                         side = "buy" if direction == "long" else "sell"
 
                                         if self.signal_processing_task:
-                                            # ✅ 关键修复：捕获返回值
+                                            # ✅ 获取策略配置信息
+                                            strategy_info = await self.db.get_strategy_info(signal_name)
+                                            
+                                            # ✅ 关键修复：捕获返回值，使用正确的开仓系数
                                             result = await self.signal_processing_task.handle_open_position(
                                                 account_id=account_id,
                                                 symbol=symbol,
                                                 pos_side=pos_side,
                                                 side=side,
                                                 price=price,
-                                                open_coefficient=Decimal(size),
+                                                open_coefficient=Decimal(str(strategy_info["open_coefficient"])),
                                             )
 
                                             # ✅ 检查返回值，只有成功才标记为已恢复
