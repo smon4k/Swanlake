@@ -683,7 +683,7 @@ class SignalProcessingTask:
                 signal["direction"],
                 side,
                 signal["price"],
-                strategy_info["open_coefficient"],
+                Decimal(str(strategy_info["open_coefficient"])),  # 转换为Decimal
             )
 
             if not open_position:
@@ -895,15 +895,19 @@ class SignalProcessingTask:
                 strategy_info = await self.db.get_strategy_info(name)
                 logging.info(f"策略信息: {strategy_info}")
                 # 计算总盈亏
-                count_profit_loss = float(strategy_info.get("count_profit_loss", 0))  # 总盈亏
-                stage_profit_loss = float(strategy_info.get(
-                    "stage_profit_loss", 0
-                ))  # 阶段性盈亏
+                count_profit_loss = float(
+                    strategy_info.get("count_profit_loss", 0)
+                )  # 总盈亏
+                stage_profit_loss = float(
+                    strategy_info.get("stage_profit_loss", 0)
+                )  # 阶段性盈亏
 
                 stage_profit_loss_num = float(stage_profit_loss) + float(
                     loss_profit_normal
                 )  # 阶段性盈亏累加
-                logging.info(f"上一次阶段性盈亏: {stage_profit_loss}, 本次阶段性盈亏: {loss_profit_normal}, 本次阶段性盈亏累加: {stage_profit_loss_num}")
+                logging.info(
+                    f"上一次阶段性盈亏: {stage_profit_loss}, 本次阶段性盈亏: {loss_profit_normal}, 本次阶段性盈亏累加: {stage_profit_loss_num}"
+                )
                 if stage_profit_loss_num > 0:
                     stage_profit_loss_num = 0  # 如果阶段性盈亏大于0才清0
 
