@@ -1208,16 +1208,12 @@ class Database:
                             try:
                                 value = float(item.get("value"))
                                 # logging.info(f"账户{account_id} 当前最大仓位: {value}, 盈利增加比例: {increase_ratio}%, 亏损减少比例: {decrease_ratio}%, 连续亏损次数: {loss_number}, 最大亏损次数: {max_loss_number}, 最小亏损比例: {min_loss_ratio}, 清0值: {clear_value}, 阶段性盈亏: {stage_profit_loss}")
-                                if last_stage_profit_loss == 0 or abs(
-                                    float(loss_profit_normal)
-                                ) > abs(
-                                    last_stage_profit_loss
-                                ):  # 如果阶段盈亏小于等于0或者单次盈亏超过阶段性盈亏绝对值 重置最大仓位
+                                if float(loss_profit_normal) > abs(last_stage_profit_loss):  # 如果单次盈亏超过阶段性盈亏绝对值 重置最大仓位
                                     logging.info(
                                         f"账户{account_id}单次盈亏{loss_profit_normal}超过上一次阶段性盈亏{last_stage_profit_loss:.8f}，重置最大仓位为初始值{clear_value}"
                                     )
-                                    value = clear_value
-                                    loss_number = 0
+                                    value = clear_value # 重置最大仓位为初始值
+                                    loss_number = 0 # 重置连续亏损次数
                                 else:
                                     logging.info(
                                         f"账户{account_id}单次盈亏{loss_profit_normal}未超过上一次阶段性盈亏{last_stage_profit_loss:.8f}，按规则调整最大仓位"
