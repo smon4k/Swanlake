@@ -66,6 +66,7 @@ class BaseStrategy(ABC):
     def _cancel_open_orders(self, symbol):
         """撤销当前交易对的所有挂单"""
         try:
+            print("撤销当前交易对的所有挂单", symbol)
             open_orders = self.exchange.fetch_open_orders(symbol)
             if not open_orders:
                 return True
@@ -74,6 +75,7 @@ class BaseStrategy(ABC):
                 if order_id:
                     self.exchange.cancel_order(order_id, symbol)
             self.crud.revoke_all_pending_orders(exchange=self.get_exchange_name())
+            print("撤销当前交易对的所有挂单成功", symbol)
             return True
         except Exception as e:
             print(f"[撤单失败] {e}")
