@@ -40,6 +40,7 @@ class MainStrategy(BaseStrategy):
             print(f"[{exchange}] 检查当前挂单状态...")
             make_side, make_order = self._check_order_status(symbol, pending_orders)
             if make_side:
+                print(f"[{exchange}] 订单已成交，执行处理成交逻辑")
                 return self._handle_deal(
                     make_side,
                     make_order,
@@ -52,6 +53,7 @@ class MainStrategy(BaseStrategy):
             # 检查余额是否有变化（判断是否发生部分成交或资金变动）
             print(f"[{exchange}] 检查挂单余额变化...")
             if self._has_balance_changed(pending_orders["buy"], valuation):
+                print(f"[{exchange}] 挂单余额变化，执行撤单-吃单流程")
                 return self._re_place_orders(symbol, BalancedStrategy)
 
             print("[无成交] 当前挂单无变化，继续等待")
@@ -94,6 +96,14 @@ class MainStrategy(BaseStrategy):
             order_info = self.exchange.fetch_order(order_data.order_id, symbol)
             if not order_info:
                 continue
+            order_info_raw = order_info.get("info", {})
+            if order_info_raw:
+                print(
+                    f"[{side.upper()}] 订单详情: state={order_info_raw.get('state')}, "
+                    f"cancelSource={order_info_raw.get('cancelSource')}, "
+                    f"cancelReason={order_info_raw.get('cancelReason')}, "
+                    f"rjctReason={order_info_raw.get('rjctReason')}"
+                )
             # print(f"[{side.upper()}] 检查订单状态: {order_info}")
 
             order_amount = Decimal(order_info["info"]["sz"])
@@ -104,6 +114,7 @@ class MainStrategy(BaseStrategy):
             if status == "filled" and deal_amount >= order_amount * Decimal(
                 str(config.change_ratio)
             ):
+                print(f"[{side.upper()}] 订单已成交: {order_data.order_id}")
                 return (1 if side == "buy" else 2), order_data
             if status == "canceled":
                 print(f"[{side.upper()}] 订单已撤销: {order_data.order_id}")
