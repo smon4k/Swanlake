@@ -9,13 +9,15 @@ from exchanges.factory import ExchangeFactory
 from pyapi.piggybank.strategies.main_strategy import MainStrategy
 from config.config import Config, ExchangeType
 
+
 class Args:
-    exchange = 'okx'
-    symbol = 'BTC-USDT'
-    strategy = 'pending'
+    exchange = "okx"
+    symbol = "BTC-USDT"
+    strategy = "pending"
+
 
 async def run_strategy_loop(args, db_session):
-    exchange_type = ExchangeType.OKX if args.exchange == 'okx' else ExchangeType.BINANCE
+    exchange_type = ExchangeType.OKX if args.exchange == "okx" else ExchangeType.BINANCE
     exchange = ExchangeFactory.create_exchange(exchange_type)
     config = Config()
 
@@ -31,11 +33,13 @@ async def run_strategy_loop(args, db_session):
 
         await asyncio.sleep(10)  # 每10秒执行一次
 
+
 def main():
     args = Args()
     setup_logger("my_app", capture_print=True)
     db_session = SessionLocal()
     asyncio.run(run_strategy_loop(args, db_session))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
