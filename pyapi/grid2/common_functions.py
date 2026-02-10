@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import time
 from typing import Dict, Tuple
 import ccxt.async_support as ccxt
 from decimal import Decimal
@@ -183,10 +184,18 @@ async def get_market_precision(
 
 
 async def get_client_order_id(prefix: str = "Zx"):
-    date_str = datetime.now().strftime("%Y%m%d")
-    unique_str = str(uuid.uuid4()).replace("-", "")[6:19]  # 模仿 uniqid() 第7到19位
-    ascii_str = "".join(str(ord(c)) for c in unique_str)[:8]
-    client_order_id = prefix + date_str + ascii_str
+    """
+    生成全局唯一的订单客户端ID
+    格式: Zx + UUID前16位
+    确保：
+    1. UUID保证全局唯一性
+    2. 不会因为时间/并发产生碰撞
+    3. 长度固定、易于追踪
+    """
+    # 使用UUID的hex表示，去掉"-"后取前16位
+    # UUID hex = 32位16进制字符，足以保证唯一性
+    unique_id = uuid.uuid4().hex[:16]
+    client_order_id = prefix + unique_id
     return client_order_id
 
 

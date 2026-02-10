@@ -96,14 +96,14 @@ class MainStrategy(BaseStrategy):
             order_info = self.exchange.fetch_order(order_data.order_id, symbol)
             if not order_info:
                 continue
-            order_info_raw = order_info.get("info", {})
-            if order_info_raw:
-                print(
-                    f"[{side.upper()}] 订单详情: state={order_info_raw.get('state')}, "
-                    f"cancelSource={order_info_raw.get('cancelSource')}, "
-                    f"cancelReason={order_info_raw.get('cancelReason')}, "
-                    f"rjctReason={order_info_raw.get('rjctReason')}"
-                )
+            # order_info_raw = order_info.get("info", {})
+            # if order_info_raw:
+            #     print(
+            #         f"[{side.upper()}] 订单详情: state={order_info_raw.get('state')}, "
+            #         f"cancelSource={order_info_raw.get('cancelSource')}, "
+            #         f"cancelReason={order_info_raw.get('cancelReason')}, "
+            #         f"rjctReason={order_info_raw.get('rjctReason')}"
+            #     )
             # print(f"[{side.upper()}] 检查订单状态: {order_info}")
 
             order_amount = Decimal(order_info["info"]["sz"])
