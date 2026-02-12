@@ -317,10 +317,64 @@
           symbol: [{ required: true, message: '请选择交易对', trigger: 'change' }],
           price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
           direction: [{ required: true, message: '请选择操作类型', trigger: 'change' }],
-        }
+        },
+        balanceSortTimer: null,
+        balanceRequestVersion: 0,
+        balanceConcurrency: 5,
+        balanceCacheTTL: 60 * 1000,
+        balanceCache: {}
       };
     },
     methods: {
+      loadBalanceCache() {
+        try {
+          const raw = localStorage.getItem('GRID_ACCOUNT_BALANCE_CACHE');
+          this.balanceCache = raw ? JSON.parse(raw) : {};
+        } catch (error) {
+          this.balanceCache = {};
+        }
+      },
+      saveBalanceCache() {
+        try {
+          localStorage.setItem('GRID_ACCOUNT_BALANCE_CACHE', JSON.stringify(this.balanceCache));
+        } catch (error) {
+          // ignore storage write errors
+        }
+      },
+      getCachedBalance(accountId) {
+        const cached = this.balanceCache[accountId];
+        if (!cached || typeof cached !== 'object') return null;
+        if (Date.now() - cached.ts > this.balanceCacheTTL) return null;
+        const balance = Number(cached.balance);
+        return Number.isFinite(balance) ? balance : null;
+      },
+      setCachedBalance(accountId, balance) {
+        const parsedBalance = Number(balance);
+        if (!Number.isFinite(parsedBalance)) return;
+        this.$set(this.balanceCache, accountId, {
+          balance: parsedBalance,
+          ts: Date.now()
+        });
+        this.saveBalanceCache();
+      },
+      parseBalanceValue(balance) {
+        const parsed = Number(balance);
+        return Number.isFinite(parsed) ? parsed : 0;
+      },
+      sortTableDataByBalance() {
+        this.tableData = [...this.tableData].sort((a, b) => {
+          if (a.balanceLoading !== b.balanceLoading) {
+            return a.balanceLoading ? 1 : -1;
+          }
+          return this.parseBalanceValue(b.balance) - this.parseBalanceValue(a.balance);
+        });
+      },
+      scheduleSortTableDataByBalance() {
+        if (this.balanceSortTimer) clearTimeout(this.balanceSortTimer);
+        this.balanceSortTimer = setTimeout(() => {
+          this.sortTableDataByBalance();
+        }, 300);
+      },
       addMaxPosition() {
         console.log(this.FormData.max_position_list)
         this.FormData.max_position_list.push({ symbol: '', value: 0, max_loss_number: 5, min_loss_ratio: 0.001, increase_ratio: 5, decrease_ratio: 5, clear_value: 2000 });
@@ -343,11 +397,15 @@
             console.log(json);
             if (json.data.code == 10000) {
                 this.total = json.data.data.count;
-                this.tableData = json.data.data.data.map(account => ({
-                    ...account,
-                    balance: '--',
-                    balanceLoading: true // 初始化loading状态
-                }));
+                this.tableData = json.data.data.data.map(account => {
+                    const cachedBalance = this.getCachedBalance(account.account_id);
+                    return {
+                      ...account,
+                      balance: cachedBalance !== null ? cachedBalance : '--',
+                      balanceLoading: cachedBalance === null // 初始化loading状态
+                    };
+                });
+                this.sortTableDataByBalance();
                 this.fetchAccountBalances();
             } else {
                 this.$message.error("加载数据失败");
@@ -375,23 +433,46 @@
         });
       },
       fetchAccountBalances() {
-            this.tableData.forEach(account => {
-                get(`/${process.env.SIG_URL_NAME}/get_account_over`, {
-                    account_id: account.account_id,
-                    inst_id: this.inst_id
-                }, response => {
-                    console.log(response);
-                    if (response.status == 200 && response.data.data) {
-                        account.balance = response.data.data.data.trading_balance;
-                        account.balanceLoading = false; // 结束loading
-                    } else {
-                        account.balance = 0;
-                        account.balanceLoading = false; // 结束loading
-                        // this.$message.error("获取账户余额失败");
-                    }
-                });
-            });
-        },
+        const requestVersion = ++this.balanceRequestVersion;
+        const accountsQueue = [...this.tableData];
+        const workerCount = Math.min(this.balanceConcurrency, accountsQueue.length);
+        if (!workerCount) return;
+
+        const runWorker = () => {
+          if (requestVersion !== this.balanceRequestVersion) return;
+          const account = accountsQueue.shift();
+          if (!account) return;
+
+          get(`/${process.env.SIG_URL_NAME}/get_account_over`, {
+            account_id: account.account_id,
+            inst_id: this.inst_id
+          }, response => {
+            if (requestVersion !== this.balanceRequestVersion) return;
+            console.log(response);
+            const latestBalance =
+              response &&
+              response.data &&
+              response.data.data &&
+              response.data.data.data
+                ? response.data.data.data.trading_balance
+                : null;
+            if (response.status == 200 && latestBalance !== undefined && latestBalance !== null) {
+              account.balance = this.parseBalanceValue(latestBalance);
+              account.balanceLoading = false;
+              this.setCachedBalance(account.account_id, account.balance);
+            } else {
+              account.balance = account.balance === '--' ? 0 : this.parseBalanceValue(account.balance);
+              account.balanceLoading = false;
+            }
+            this.scheduleSortTableDataByBalance();
+            runWorker();
+          });
+        };
+
+        for (let i = 0; i < workerCount; i++) {
+          runWorker();
+        }
+      },
       SearchClick() {
         //搜索事件
         var SearchWhere = {
@@ -631,10 +712,17 @@
       }
     },
     created() {
+      this.loadBalanceCache();
       this.getAllStrategyList();
       this.getListData();
       this.getAccountList();
       // this.getAuthMenuRuleData();
+    },
+    beforeDestroy() {
+      if (this.balanceSortTimer) {
+        clearTimeout(this.balanceSortTimer);
+        this.balanceSortTimer = null;
+      }
     },
     components: {
       "wbc-page": Page //加载分页组件
