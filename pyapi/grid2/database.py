@@ -1473,3 +1473,76 @@ class Database:
         finally:
             if conn:
                 conn.close()
+
+    # ============ 账户余额同步相关方法 ============
+
+    async def get_all_active_accounts(self) -> List[int]:
+        """获取所有启用状态的账户ID"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"SELECT id FROM {table('accounts')} WHERE status=%s ORDER BY id",
+                    (1,),
+                )
+                accounts = cursor.fetchall()
+                return [account["id"] for account in accounts]
+        except Exception as e:
+            print(f"获取账户列表失败: {e}")
+            logging.error(f"获取账户列表失败: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    async def update_account_total_balance(self, account_id: int, total_balance: Decimal) -> bool:
+        """更新账户的总余额到账户表"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute(
+                    f"""
+                    UPDATE {table('accounts')}
+                    SET total_balance=%s, balance_updated_at=%s
+                    WHERE id=%s
+                """,
+                    (float(total_balance), timestamp, account_id),
+                )
+                conn.commit()
+                logging.info(f"账户 {account_id} 总余额已更新: {total_balance}")
+                return True
+        except Exception as e:
+            print(f"更新账户总余额失败: {e}")
+            logging.error(f"更新账户总余额失败: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+    async def get_account_balance(self, account_id: int) -> Optional[Decimal]:
+        """获取账户的总余额"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT total_balance, balance_updated_at FROM {table('accounts')}
+                    WHERE id=%s
+                """,
+                    (account_id,),
+                )
+                result = cursor.fetchone()
+                if result:
+                    return result.get("total_balance")
+                return None
+        except Exception as e:
+            print(f"获取账户余额失败: {e}")
+            logging.error(f"获取账户余额失败: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()

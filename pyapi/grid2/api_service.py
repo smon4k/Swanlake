@@ -1,4 +1,6 @@
 from decimal import Decimal
+import asyncio
+from contextlib import asynccontextmanager
 import os
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
@@ -8,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from datetime import datetime, timezone
 from savings_task import SavingsTask
+from balance_sync_task import BalanceSyncTask
 import logging
 import uvicorn
 import redis
@@ -51,6 +54,7 @@ class PositionService:
         self.db = db
         self.config = config
         self.redis = redis.Redis(host="localhost", port=6379, decode_responses=True)
+        self.balance_sync_task = BalanceSyncTask(db)  # ✅ 初始化余额同步任务
     
     # 接口：处理写入信号的API请求
     async def insert_signal(self, name: str, symbol: str, side: str, price: Decimal, size: float):
@@ -165,7 +169,25 @@ config = TradingBotConfig()
 db = Database(config.db_config)
 service = PositionService(config, db)
 
-app = FastAPI()
+# ✅ 使用 lifespan 事件处理器（替代过时的 @app.on_event）
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理"""
+    # 启动事件
+    logging.info("启动 FastAPI 服务...")
+    logging.info("启动账户余额同步任务...")
+    # 启动后台任务
+    balance_sync_task_handle = asyncio.create_task(
+        service.balance_sync_task.balance_sync_task()
+    )
+    
+    yield  # 应用运行中
+    
+    # 关闭事件
+    logging.info("关闭 FastAPI 服务...")
+    balance_sync_task_handle.cancel()
+
+app = FastAPI(lifespan=lifespan)
 
 # ✅ 跨域配置
 app.add_middleware(
@@ -214,6 +236,19 @@ async def get_account_over(
         return {"success": True, "data": balance}
     except Exception as e:
         logging.error(f"获取账户余额出错: {e}")
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+# ✅ 获取账户总余额
+@app.get("/get_account_balance")
+async def get_account_balance(account_id: int = Query(..., description="账户ID")):
+    try:
+        total_balance = await service.db.get_account_balance(account_id)
+        if total_balance is not None:
+            return {"success": True, "data": {"account_id": account_id, "total_balance": float(total_balance)}}
+        else:
+            return {"success": False, "error": "账户不存在或余额未同步"}
+    except Exception as e:
+        logging.error(f"获取账户总余额出错: {e}")
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
     
 
