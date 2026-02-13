@@ -270,44 +270,9 @@
           currentPositionsList: [],
           currentLoading: false,
           accountList: [],
-          balanceCacheTTL: 60 * 1000,
-          balanceCache: {},
       };
     },
     methods: {
-      loadBalanceCache() {
-        try {
-          const raw = localStorage.getItem('GRID_ACCOUNT_BALANCE_CACHE');
-          this.balanceCache = raw ? JSON.parse(raw) : {};
-        } catch (error) {
-          this.balanceCache = {};
-        }
-      },
-      getCachedBalance(accountId) {
-        const stringKey = String(accountId);
-        const numberKey = Number(accountId);
-        const cached =
-          this.balanceCache[stringKey] ||
-          this.balanceCache[accountId] ||
-          this.balanceCache[numberKey];
-        if (!cached || typeof cached !== 'object') return null;
-        if (Date.now() - cached.ts > this.balanceCacheTTL) return null;
-        const balance = Number(cached.balance);
-        return Number.isFinite(balance) ? balance : null;
-      },
-      sortAccountListByBalance(accounts) {
-        const list = Array.isArray(accounts) ? accounts : [];
-        return [...list].sort((a, b) => {
-          const aBalance = this.getCachedBalance(a.id);
-          const bBalance = this.getCachedBalance(b.id);
-          const aHasBalance = aBalance !== null;
-          const bHasBalance = bBalance !== null;
-          if (aHasBalance !== bHasBalance) {
-            return aHasBalance ? -1 : 1;
-          }
-          return (bBalance || 0) - (aBalance || 0);
-        });
-      },
       tabClick(item) {
           console.log(item);
           // if(item.label === '') {
@@ -433,7 +398,13 @@
         get("/Grid/grid/getAccountList", {}, json => {
             // console.log(json);
             if (json.data.code == 10000) {
-                this.accountList = this.sortAccountListByBalance(json.data.data);
+                // 按照 total_balance 从大到小排序
+                const accounts = Array.isArray(json.data.data) ? json.data.data : [];
+                this.accountList = accounts.sort((a, b) => {
+                  const aBalance = Number(a.total_balance) || 0;
+                  const bBalance = Number(b.total_balance) || 0;
+                  return bBalance - aBalance;
+                });
             } else {
                 this.$message.error("加载账户数据失败");
             }
@@ -441,7 +412,6 @@
       },
     },
     created() {
-      this.loadBalanceCache();
       this.getAccountList();
       this.getCurrentPositionsListData();
       this.getPositionsHistoryListData();

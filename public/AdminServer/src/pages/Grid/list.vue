@@ -304,7 +304,13 @@ export default {
       get("/Grid/grid/getAccountList", {}, json => {
         console.log(json);
         if (json.data.code == 10000) {
-          this.accountList = json.data.data;
+          // 按照 total_balance 从大到小排序
+          const accounts = Array.isArray(json.data.data) ? json.data.data : [];
+          this.accountList = accounts.sort((a, b) => {
+            const aBalance = Number(a.total_balance) || 0;
+            const bBalance = Number(b.total_balance) || 0;
+            return bBalance - aBalance;
+          });
         } else {
           this.$message.error("加载账户数据失败");
         }
