@@ -173,6 +173,11 @@ export function toolNumber(num_str) {
  * @returns { string }
  */
 export function keepDecimalNotRounding(value, count, isZero) {
+  // 防守性检查：如果 value 是 undefined 或 null，返回 0
+  if (value === undefined || value === null) {
+    value = 0;
+  }
+  
   let countNum = count;
   if (!count || count <= 0) {
     countNum = 18;

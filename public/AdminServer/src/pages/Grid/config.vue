@@ -21,7 +21,7 @@
         <template slot="title">
           <div>{{ item.account_id }} &nbsp;&nbsp; {{ item.account_name }}</div> 
           <div class="balance-container">
-            <span>{{ keepDecimalNotRounding(item.total_balance, 2) }} USDT</span>
+            <span>{{ keepDecimalNotRounding(item.total_balance || 0, 2) }} USDT</span>
           </div>
         </template>
         <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item>

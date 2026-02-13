@@ -21,7 +21,7 @@
       <el-table-column prop="add_time" label="添加时间" align="center"></el-table-column>
       <el-table-column prop="total_balance" label="账户余额" align="center">
         <template slot-scope="scope">
-          <span>{{ keepDecimalNotRounding(scope.row.total_balance, 2) }} USDT</span>
+          <span>{{ keepDecimalNotRounding(scope.row.total_balance || 0, 2) }} USDT</span>
         </template>
       </el-table-column>
       <el-table-column prop="balance" label="操作" align="center">
