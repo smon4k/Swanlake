@@ -343,8 +343,19 @@
             console.log(json);
             if (json.data.code == 10000) {
                 this.total = json.data.data.count;
+                // 将 getRobotConfig 的数据与 accountList 进行匹配，补充余额信息
+                const robotData = json.data.data.data || [];
+                const enrichedData = robotData.map(robot => {
+                  // 通过 account_id 查找对应的账户余额
+                  const account = this.accountList.find(acc => acc.id === robot.account_id);
+                  return {
+                    ...robot,
+                    total_balance: account ? account.total_balance : 0
+                  };
+                });
+                
                 // 按余额从大到小排序
-                this.tableData = json.data.data.data.sort((a, b) => {
+                this.tableData = enrichedData.sort((a, b) => {
                   const balanceA = Number(a.total_balance) || 0;
                   const balanceB = Number(b.total_balance) || 0;
                   return balanceB - balanceA;
@@ -359,6 +370,8 @@
             console.log(json);
             if (json.data.code == 10000) {
                 this.accountList = json.data.data;
+                // 在账户列表加载完成后，再加载机器人配置
+                this.getListData();
             } else {
                 this.$message.error("加载账户数据失败");
             }
@@ -614,8 +627,7 @@
     },
     created() {
       this.getAllStrategyList();
-      this.getListData();
-      this.getAccountList();
+      this.getAccountList();  // 这会触发 getListData()
     },
     components: {
       "wbc-page": Page //加载分页组件
