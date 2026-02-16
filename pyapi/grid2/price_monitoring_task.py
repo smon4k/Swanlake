@@ -1,5 +1,5 @@
 import asyncio
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import json
 import logging
 import uuid
@@ -1035,29 +1035,60 @@ class PriceMonitoringTask:
                     f"有效的 key: {list(order.keys())}"
                 )
 
-            # ✅ 安全地获取成交价，兼容两种格式
+            price = await get_market_price(
+                exchange, symbol, self.api_limiter, close_exchange=False
+            )
+            try:
+                price = Decimal(str(price))
+            except (InvalidOperation, ValueError, TypeError):
+                logging.error(
+                    f"❌ 用户 {account_id} 获取到无效市价，跳过网格单创建: "
+                    f"币种={symbol}, 市价={price}"
+                )
+                return False
+
+            if price <= 0:
+                logging.error(
+                    f"❌ 用户 {account_id} 获取到非正市价，跳过网格单创建: "
+                    f"币种={symbol}, 市价={price}"
+                )
+                return False
+
+            # ✅ 安全地获取成交价，兼容两种格式；为空或非法时回退最新市价
+            raw_filled_price = None
             if (
                 "info" in order
                 and isinstance(order["info"], dict)
-                and "fillPx" in order["info"]
+                and order["info"].get("fillPx") not in (None, "")
             ):
                 # CCXT 格式
-                filled_price = Decimal(order["info"]["fillPx"])
-            elif "executed_price" in order:
+                raw_filled_price = order["info"].get("fillPx")
+            elif order.get("executed_price") not in (None, ""):
                 # 数据库格式
-                filled_price = Decimal(str(order["executed_price"]))
-            else:
-                raise ValueError(
-                    f"❌ Order 格式不正确，无法获取成交价。"
-                    f"有效的 key: {list(order.keys())}"
+                raw_filled_price = order.get("executed_price")
+
+            try:
+                filled_price = (
+                    Decimal(str(raw_filled_price))
+                    if raw_filled_price is not None
+                    else price
+                )
+            except (InvalidOperation, ValueError, TypeError):
+                filled_price = price
+                logging.warning(
+                    f"⚠️ 成交均价无效，回退最新市价: 账户={account_id}, "
+                    f"币种={symbol}, executed_price={raw_filled_price}, market_price={price}"
+                )
+
+            if raw_filled_price is None:
+                logging.warning(
+                    f"⚠️ 成交均价为空，回退最新市价: 账户={account_id}, "
+                    f"币种={symbol}, market_price={price}"
                 )
 
             print(f"📌 用户 {account_id} 最新订单成交价: {filled_price}")
             logging.info(f"📌 用户 {account_id} 最新订单成交价: {filled_price}")
 
-            price = await get_market_price(
-                exchange, symbol, self.api_limiter, close_exchange=False
-            )
             grid_step = Decimal(
                 str(self.db.account_config_cache[account_id].get("grid_step", 0.002))
             )
@@ -1475,7 +1506,7 @@ class PriceMonitoringTask:
                     )
 
                     if not recent_filled_order:
-                        logging.debug(
+                        logging.info(
                             f"📭 账户 {account_id} 币种 {symbol} 无最近的已成交开仓订单"
                         )
                         continue
@@ -1510,8 +1541,8 @@ class PriceMonitoringTask:
                         include_all=False,
                         after_time=open_order_time_with_buffer,
                     )
-                    # logging.debug(f"has_active_buy_grid: {has_active_buy_grid}")
-                    # logging.debug(f"has_active_sell_grid: {has_active_sell_grid}")
+                    # logging.info(f"has_active_buy_grid: {has_active_buy_grid}")
+                    # logging.info(f"has_active_sell_grid: {has_active_sell_grid}")
                     # 🟢 正常情况：既有买单又有卖单
                     if has_active_buy_grid and has_active_sell_grid:
                         logging.debug(
@@ -1526,9 +1557,9 @@ class PriceMonitoringTask:
                     has_missing_buy = not has_active_buy_grid and has_active_sell_grid
                     # 🚨 异常情况3：都没有
                     has_no_grid = not has_active_buy_grid and not has_active_sell_grid
-                    # logging.debug(f"has_missing_sell: {has_missing_sell}")
-                    # logging.debug(f"has_missing_buy: {has_missing_buy}")
-                    # logging.debug(f"has_no_grid: {has_no_grid}")
+                    # logging.info(f"has_missing_sell: {has_missing_sell}")
+                    # logging.info(f"has_missing_buy: {has_missing_buy}")
+                    # logging.info(f"has_no_grid: {has_no_grid}")
                     if has_missing_sell or has_missing_buy or has_no_grid:
                         # 如果都没有，检查是否曾经有过网格单
                         if has_no_grid:
