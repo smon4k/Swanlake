@@ -438,8 +438,8 @@ class PriceMonitoringTask:
             current_time = datetime.now()
             time_diff_minutes = (current_time - order_time).total_seconds() / 60
 
-            # 设置时间阈值（5分钟）
-            TIME_THRESHOLD = 5
+            # 设置时间阈值（10小时）
+            TIME_THRESHOLD = 10 * 60  # 单位：分钟
 
             if time_diff_minutes < TIME_THRESHOLD:
                 # 订单刚创建，可能是刚下单未成交的情况，继续等待
@@ -2010,11 +2010,9 @@ class PriceMonitoringTask:
                 order_time = oldest_order.get('timestamp', 0) / 1000  # 毫秒转秒
                 order_age = time.time() - order_time if order_time > 0 else 0
                 
-                if order_age < 300:  # 5分钟内的挂单，认为是正常的
+                if order_age < 36000:  # 10小时内的挂单，认为是正常的
                     return (False, f"有新挂单({order_age:.0f}秒)，等待成交")
-                elif order_age < 1800:  # 5-30分钟的挂单
-                    return (False, f"有旧挂单({order_age:.0f}秒)，继续等待")
-                else:  # 超过30分钟还没成交
+                else:  # 超过10小时还没成交
                     # ⚠️ 这里可以选择取消旧订单，但为了安全先不自动取消
                     logging.warning(
                         f"⚠️ 账户 {account_id} 有超时挂单({order_age:.0f}秒)，建议人工检查"
@@ -2031,11 +2029,11 @@ class PriceMonitoringTask:
                 if time_since_attempt < 30 and last_attempt["result"] == "failed":
                     return (True, f"上次开仓快速失败({time_since_attempt:.0f}秒)，立即重试")
                 
-                # 如果上次尝试是5分钟内，可能是订单挂出去了但API延迟查不到
-                if time_since_attempt < 300:
+                # 如果上次尝试是10小时内，可能是订单挂出去了但API延迟查不到
+                if time_since_attempt < 36000:
                     return (False, f"上次尝试仅{time_since_attempt:.0f}秒，给API查询留时间")
                 
-                # 超过5分钟，可以重试了
+                # 超过10小时，可以重试了
                 return (True, f"上次尝试已{time_since_attempt:.0f}秒，可以重试")
             
             # 4️⃣ 没有任何记录，可以开仓
