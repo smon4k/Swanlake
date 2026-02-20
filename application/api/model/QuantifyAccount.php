@@ -119,13 +119,13 @@ class QuantifyAccount extends Base
                     // echo "【" . $account_id . "】余币宝余额: " . $yubibao_balance . "\r\n";
                     $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
                 } else { 
-                    $url = Config('binance_uri') . "/api/binance/get_market_ticker?instId=BTC-USDT";
+                    $url = Config('okx_uri') . "/api/binance/get_market_ticker?instId=BTCUSDT";
                     $prices = self::getBinanceRequesInfo($accountInfo, $url);
                     $tradingPrice = isset($prices['last']) ? $prices['last'] : 0;
-                    echo "【" . $account_id . "】交易价格: " . $tradingPrice . "\r\n";
+                    // echo "【" . $account_id . "】交易价格: " . $tradingPrice . "\r\n";
                     $balanceList = self::getBinanceTradePairBalance($accountInfo); # 获取币安交易对余额
                     $totalBalance = isset($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0;
-                    echo "【" . $account_id . "】总结余: " . $totalBalance . "\r\n";
+                    // echo "【" . $account_id . "】总结余: " . $totalBalance . "\r\n";
                     // $balanceList = self::getTradePairBalance($accountInfo);
                 }
 
@@ -696,12 +696,12 @@ class QuantifyAccount extends Base
             $balanceDetails = self::getBinanceRequesInfo($accountInfo, $url);
             $btcBalance = 0;
             $usdtBalance = 0;
-            if(empty($balanceDetails['data']) || count($balanceDetails) <= 0) {
+            if(!isset($balanceDetails) || count($balanceDetails) <= 0) {
                 // echo "【" . $accountInfo['id'] . "】没有余额\r\n";
                 return ['usdtBalance' => 0];
             }
             // $usdtBalance = $balanceDetails['totalEq'] > 0 ? $balanceDetails['totalEq'] : 0; //总余额
-            foreach ($balanceDetails['data'] as $k => $v) {
+            foreach ($balanceDetails as $k => $v) {
                 if(isset($k)) {
                     if($k == 'USDT' || $k == 'BIFI' || $k == 'GMX' || $k == 'BTC' || $k == 'ETH' || $k == 'SAND') {
                         if((float)$v >= 0) {
@@ -775,25 +775,20 @@ class QuantifyAccount extends Base
      * 获取币安账户余额信息
      * @param array $accountInfo 币安账户信息
      * @param string $url 请求URL
-     * @param bool $isList 是否返回列表
      * @return bool|array 返回false表示失败，否则返回账户余额信息数组
      * @author qinlh
      * @since 2026-02-20
      */
-    public static function getBinanceRequesInfo($accountInfo, $url, $isList=false) {
+    public static function getBinanceRequesInfo($accountInfo, $url) {
         $params = [
             "api_key" => $accountInfo['api_key'],
             "secret_key" => $accountInfo['secret_key'],
-            "passphrase" => $accountInfo['pass_phrase'],
+            "passphrase" => "",
         ];
         $response_string = RequestService::doJsonCurlPost($url, json_encode($params));
         $response_arr = json_decode($response_string, true);
         if($response_arr && $response_arr['status'] === 'success') {
-            if(!$isList) {
-                return $response_arr['data'][0];
-            } else {
-                return $response_arr['data'];
-            }
+            return $response_arr['data'];
         }
         return false;
     }
