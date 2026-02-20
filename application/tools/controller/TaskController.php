@@ -631,7 +631,7 @@ class TaskController extends ToolsBaseController
             //     'secret_key' => 'tb7K9G7gIIZx0XwPDPsL2xOvLs9RJ1BdRv8Y0TbU2QzY09KSYMRXlQ62SdmZzsga',
             // ]);
             // p($balance);
-            // QuantifyAccount::calcQuantifyAccountData(1);die;
+            // QuantifyAccountGrid::calcQuantifyAccountData(1);die;
             Db::startTrans();
             try {
                 foreach ($accountList as $key => $val) {

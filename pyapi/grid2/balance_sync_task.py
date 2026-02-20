@@ -87,14 +87,14 @@ class BalanceSyncTask:
                 return False
 
             # 获取各类余额
-            trading_balance = await get_account_balance(exchange, None, "trading")
-            funding_balance = await get_account_balance(exchange, None, "funding")
+            trading_balance = await get_account_balance(exchange, "BTC-USDT-SWAP", "trading") # 交易账户余额
+            funding_balance = await get_account_balance(exchange, "BTC-USDT-SWAP", "funding") # 资金账户余额
 
             # 获取余币宝余额
             from savings_task import SavingsTask
 
             savings_task = SavingsTask(self.db, account_id)
-            yubibao_balance = await savings_task.get_saving_balance("USDT")
+            yubibao_balance = await savings_task.get_saving_balance("USDT") # 余币宝余额
 
             # ✨ 计算总余额（三类余额相加）
             total_balance = (
