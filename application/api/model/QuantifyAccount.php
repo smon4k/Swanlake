@@ -120,7 +120,7 @@ class QuantifyAccount extends Base
                     $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
                 } else { 
                     $url = Config('binance_uri') . "/api/binance/get_market_ticker?instId=BTC-USDT";
-                    $prices = self::getOkxRequesInfo($accountInfo, $url);
+                    $prices = self::getBinanceRequesInfo($accountInfo, $url);
                     $tradingPrice = isset($prices['last']) ? $prices['last'] : 0;
                     echo "【" . $account_id . "】交易价格: " . $tradingPrice . "\r\n";
                     $balanceList = self::getBinanceTradePairBalance($accountInfo); # 获取币安交易对余额
@@ -711,7 +711,7 @@ class QuantifyAccount extends Base
                             $currencyUsd = 1;
                             if($k !== 'USDT') {
                                 $url = Config('okx_uri') . "/api/binance/get_market_ticker?instId=" . $k.'USDT';
-                                $prices = self::getOkxRequesInfo($accountInfo, $url);
+                                $prices = self::getBinanceRequesInfo($accountInfo, $url);
                                 // $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
                                 $price = $prices['last'];
                                 $currencyUsd = (float)$v * $price;
@@ -754,6 +754,33 @@ class QuantifyAccount extends Base
      * @since 2023-04-23
      */
     public static function getOkxRequesInfo($accountInfo, $url, $isList=false) {
+        $params = [
+            "api_key" => $accountInfo['api_key'],
+            "secret_key" => $accountInfo['secret_key'],
+            "passphrase" => $accountInfo['pass_phrase'],
+        ];
+        $response_string = RequestService::doJsonCurlPost($url, json_encode($params));
+        $response_arr = json_decode($response_string, true);
+        if($response_arr && $response_arr['status'] === 'success') {
+            if(!$isList) {
+                return $response_arr['data'][0];
+            } else {
+                return $response_arr['data'];
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取币安账户余额信息
+     * @param array $accountInfo 币安账户信息
+     * @param string $url 请求URL
+     * @param bool $isList 是否返回列表
+     * @return bool|array 返回false表示失败，否则返回账户余额信息数组
+     * @author qinlh
+     * @since 2026-02-20
+     */
+    public static function getBinanceRequesInfo($accountInfo, $url, $isList=false) {
         $params = [
             "api_key" => $accountInfo['api_key'],
             "secret_key" => $accountInfo['secret_key'],
