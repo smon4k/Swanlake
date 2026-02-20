@@ -100,14 +100,16 @@ class QuantifyAccount extends Base
                 $date = date('Y-m-d');
                 // $date = '2023-01-02';
                 $accountInfo = self::getAccountInfo($account_id);
-                $url = Config('okx_uri') . "/api/okex/get_market_ticker?instId=BTC-USDT";
-                $prices = self::getOkxRequesInfo($accountInfo, $url);
-                $tradingPrice = isset($prices['last']) ? $prices['last'] : 0;
+                $tradingPrice = 1;
                 $tradepair_balance = 0; //交易对余额
                 $yubibao_balance = 0; //理财余额
                 $funding_balance = 0; //资金余额
                 $totalBalance = 0; //总结余
                 if($accountInfo['type'] == 2) {
+                    $url = Config('okx_uri') . "/api/okex/get_market_ticker?instId=BTC-USDT";
+                    $prices = self::getOkxRequesInfo($accountInfo, $url);
+                    $tradingPrice = isset($prices['last']) ? $prices['last'] : 0;
+                    echo "【" . $account_id . "】交易价格: " . $tradingPrice . "\r\n";
                     $balanceList = self::getOkxTradePairBalance($accountInfo); # 获取okx交易对余额
                     $tradepair_balance = isset($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0;
                     $funding_balance = self::getOkxFundingBalance($accountInfo); # 获取okx资金余额
@@ -117,6 +119,10 @@ class QuantifyAccount extends Base
                     // echo "【" . $account_id . "】余币宝余额: " . $yubibao_balance . "\r\n";
                     $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
                 } else { 
+                    $url = Config('binance_uri') . "/api/binance/get_market_ticker?instId=BTC-USDT";
+                    $prices = self::getOkxRequesInfo($accountInfo, $url);
+                    $tradingPrice = isset($prices['last']) ? $prices['last'] : 0;
+                    echo "【" . $account_id . "】交易价格: " . $tradingPrice . "\r\n";
                     $balanceList = self::getBinanceTradePairBalance($accountInfo); # 获取币安交易对余额
                     $totalBalance = isset($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0;
                     echo "【" . $account_id . "】总结余: " . $totalBalance . "\r\n";
