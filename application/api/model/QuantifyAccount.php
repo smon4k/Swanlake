@@ -109,7 +109,7 @@ class QuantifyAccount extends Base
                     $url = Config('okx_uri') . "/api/okex/get_market_ticker?instId=BTC-USDT";
                     $prices = self::getOkxRequesInfo($accountInfo, $url);
                     $tradingPrice = isset($prices['last']) ? $prices['last'] : 0;
-                    echo "【" . $account_id . "】交易价格: " . $tradingPrice . "\r\n";
+                    // echo "【" . $account_id . "】交易价格: " . $tradingPrice . "\r\n";
                     $balanceList = self::getOkxTradePairBalance($accountInfo); # 获取okx交易对余额
                     $tradepair_balance = isset($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0;
                     $funding_balance = self::getOkxFundingBalance($accountInfo); # 获取okx资金余额
