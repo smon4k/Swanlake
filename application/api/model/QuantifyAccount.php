@@ -106,6 +106,7 @@ class QuantifyAccount extends Base
                 $tradepair_balance = 0; //交易对余额
                 $yubibao_balance = 0; //理财余额
                 $funding_balance = 0; //资金余额
+                $totalBalance = 0; //总结余
                 if($accountInfo['type'] == 2) {
                     $balanceList = self::getOkxTradePairBalance($accountInfo); # 获取okx交易对余额
                     $tradepair_balance = isset($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0;
@@ -114,12 +115,14 @@ class QuantifyAccount extends Base
                     // echo "【" . $account_id . "】交易对余额: " . $tradepair_balance . "\r\n";
                     // echo "【" . $account_id . "】资金余额: " . $funding_balance . "\r\n";
                     // echo "【" . $account_id . "】余币宝余额: " . $yubibao_balance . "\r\n";
+                    $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
                 } else { 
-                    return false;
+                    $balanceList = self::getBinanceTradePairBalance($accountInfo); # 获取币安交易对余额
+                    $totalBalance = isset($balanceList['usdtBalance']) ? $balanceList['usdtBalance'] : 0;
+                    echo "【" . $account_id . "】总结余: " . $totalBalance . "\r\n";
                     // $balanceList = self::getTradePairBalance($accountInfo);
                 }
 
-                $totalBalance = $tradepair_balance + $funding_balance + $yubibao_balance; //总结余 = 交易对余额 + 资金余额 + 余利宝余额
                 if($totalBalance <= 0) {
                     echo "【" . $accountInfo['id'] . "】总结余为0\r\n";
                     return false;
@@ -594,19 +597,7 @@ class QuantifyAccount extends Base
      * @since 2022-08-19
      */
     public static function getOkxTradePairBalance($accountInfo) {
-        // $vendor_name = "ccxt.ccxt";
-        // Vendor($vendor_name);
-        // $className = "\ccxt\\okex5";
-        // $exchange  = new $className(array( //子账户
-        //     'apiKey' => $accountInfo['api_key'],
-        //     'secret' => $accountInfo['secret_key'],
-        //     'password' => $accountInfo['pass_phrase'],
-        // ));
         try {
-            // $tradesList = $exchange->fetch_my_trades('GMX-USDT', null, null, ['before' => '563842929979478016']);
-            // p($tradesList);
-            // $balanceDetails = $exchange->fetch_account_balance();
-            // p($balance);
             $url = Config('okx_uri') . "/api/okex/get_account_balances";
             $balanceDetails = self::getOkxRequesInfo($accountInfo, $url);
             $btcBalance = 0;
@@ -673,6 +664,66 @@ class QuantifyAccount extends Base
                     self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'BTC', $positionsList);
                 }
             }
+            $returnArray = ['usdtBalance' => $usdtBalance];
+            return $returnArray;
+        } catch (\Exception $e) {
+            $error_msg = json_encode([
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                ], JSON_UNESCAPED_UNICODE);
+                // self::rollback();
+                echo $error_msg . "\r\n";
+                return 0;
+        }
+    }
+
+    /**
+     * 获取币安交易对余额
+     * @author qinlh
+     * @since 2026-02-20
+     */
+    public static function getBinanceTradePairBalance($accountInfo) {
+        try {
+            $url = Config('okx_uri') . "/api/binance/get_account_balances";
+            $balanceDetails = self::getBinanceRequesInfo($accountInfo, $url);
+            $btcBalance = 0;
+            $usdtBalance = 0;
+            if(empty($balanceDetails['data']) || count($balanceDetails) <= 0) {
+                // echo "【" . $accountInfo['id'] . "】没有余额\r\n";
+                return ['usdtBalance' => 0];
+            }
+            // $usdtBalance = $balanceDetails['totalEq'] > 0 ? $balanceDetails['totalEq'] : 0; //总余额
+            foreach ($balanceDetails['data'] as $k => $v) {
+                if(isset($k)) {
+                    if($k == 'USDT' || $k == 'BIFI' || $k == 'GMX' || $k == 'BTC' || $k == 'ETH' || $k == 'SAND') {
+                        if((float)$v >= 0) {
+                            // $prices = $exchange->fetch_ticker($v['ccy'].'USDT'); //获取交易BTC价格
+                            // $valuation = (float)$v['eq'] * (float)$prices['price'];
+                            $price = 1;
+                            $currencyUsd = 1;
+                            if($k !== 'USDT') {
+                                $url = Config('okx_uri') . "/api/binance/get_market_ticker?instId=" . $k.'USDT';
+                                $prices = self::getOkxRequesInfo($accountInfo, $url);
+                                // $prices = $exchange->fetch_ticker($v['ccy'].'-USDT'); //获取交易BTC价格
+                                $price = $prices['last'];
+                                $currencyUsd = (float)$v * $price;
+                                $usdtBalance += (float)$currencyUsd;
+                            } else {
+                                $currencyUsd =  (float)$v;
+                                $usdtBalance += (float)$currencyUsd;
+                            }
+                            @self::updateQuantifyAccountDetails($accountInfo['id'], $k, (float)$v, $currencyUsd, $price);
+
+                            //开始写入每个交易对交易明细数据 暂时先不开发
+                        }
+                    }
+                }
+            }
+            //获取BTC-USDT-SWAP持仓信息 
+            //暂时先不开发
+
             $returnArray = ['usdtBalance' => $usdtBalance];
             return $returnArray;
         } catch (\Exception $e) {

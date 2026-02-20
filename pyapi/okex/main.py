@@ -1,6 +1,7 @@
 import logging
 from fastapi import FastAPI
 from okx_router import router as okx_routes
+from binance_router import router as binance_routes
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -8,6 +9,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 app.include_router(okx_routes)
+app.include_router(binance_routes)
 
 
 @app.get("/")
