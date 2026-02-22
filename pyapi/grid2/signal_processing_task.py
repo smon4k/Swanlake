@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 import logging
 import os
@@ -295,6 +295,53 @@ class SignalProcessingTask:
         """判断是否是平仓信号（size=0表示平仓）"""
         return signal.get("size", 1) == 0
 
+    def _find_recent_open_signal(self, signal: Dict[str, Any], window_seconds: int = 60):
+        """
+        平仓信号防抖：查找最近 window_seconds 秒内的同策略进场信号。
+
+        命中条件：
+        - 同策略(name)、同币种(symbol)、同方向(direction)
+        - 早于当前信号(id < current_id)
+        - size in (1, -1)（进场信号）
+        """
+        try:
+            signal_id = signal.get("id")
+            signal_name = signal.get("name")
+            signal_symbol = signal.get("symbol")
+            signal_direction = signal.get("direction")
+            if not signal_id or not signal_name or not signal_symbol or not signal_direction:
+                return None
+
+            since_time = datetime.now() - timedelta(seconds=window_seconds)
+
+            conn = self.db.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """SELECT id, timestamp, direction, size
+                       FROM g_signals
+                       WHERE id < %s
+                       AND name = %s
+                       AND symbol = %s
+                       AND direction = %s
+                       AND size IN (1, -1)
+                       AND timestamp >= %s
+                       ORDER BY id DESC
+                       LIMIT 1""",
+                    (
+                        signal_id,
+                        signal_name,
+                        signal_symbol,
+                        signal_direction,
+                        since_time,
+                    ),
+                )
+                result = cursor.fetchone()
+            conn.close()
+            return result
+        except Exception as e:
+            logging.error(f"❌ 检查最近进场信号失败: {e}", exc_info=True)
+            return None
+
     def _check_previous_processing_signal(self, strategy_name, current_signal_id=None):
         """检查是否有该策略未完成的 processing 信号（排除当前信号）"""
         try:
@@ -364,7 +411,10 @@ class SignalProcessingTask:
                 signal_result = results.get(acc_id)
 
                 # 只验证信号处理返回成功的账户
-                if not signal_result or not signal_result.get("success", False):
+                if (
+                    not isinstance(signal_result, dict)
+                    or not signal_result.get("success", False)
+                ):
                     logging.debug(f"⏭️ 账户 {acc_id} 信号处理未成功，跳过仓位验证")
                     continue
 
@@ -433,6 +483,22 @@ class SignalProcessingTask:
                 self._update_signal_status(signal_id, "processed")
                 return
 
+            is_close_signal = self._is_close_signal(signal)
+
+            # ✅ 平仓防抖：若1分钟内已有同策略进场信号，则忽略本次平仓
+            if is_close_signal:
+                recent_open_signal = self._find_recent_open_signal(
+                    signal, window_seconds=60
+                )
+                if recent_open_signal:
+                    logging.warning(
+                        f"⏭️ 忽略平仓信号 {signal_id}：1分钟内存在进场信号 "
+                        f"(open_id={recent_open_signal.get('id')}, "
+                        f"open_time={recent_open_signal.get('timestamp')})"
+                    )
+                    self._update_signal_status(signal_id, "processed")
+                    return
+
             # ✅ 【关键】检查并处理前置 processing 信号（排除当前信号）
             prev_signal = self._check_previous_processing_signal(
                 signal["name"], signal_id
@@ -451,7 +517,6 @@ class SignalProcessingTask:
 
             # ✅ 获取全量账户列表（新信号优先，不考虑前置信号）
             account_list = self.db.tactics_accounts_cache[signal["name"]]
-            is_close_signal = self._is_close_signal(signal)
 
             logging.info(
                 f"📢 信号 {signal.get('name')} (ID={signal_id}) "
