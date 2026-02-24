@@ -321,7 +321,7 @@
       };
     },
     methods: {
-      getListData(ServerWhere) {
+      addMaxPosition() {
         console.log(this.FormData.max_position_list)
         this.FormData.max_position_list.push({ symbol: '', value: 0, max_loss_number: 5, min_loss_ratio: 0.001, increase_ratio: 5, decrease_ratio: 5, clear_value: 2000 });
       },
