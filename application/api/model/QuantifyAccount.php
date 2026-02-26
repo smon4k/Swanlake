@@ -696,7 +696,7 @@ class QuantifyAccount extends Base
             $balanceDetails = self::getBinanceRequesInfo($accountInfo, $url);
             $btcBalance = 0;
             $usdtBalance = 0;
-            if(!isset($balanceDetails) || count($balanceDetails) <= 0) {
+            if(!$balanceDetails || count((array)$balanceDetails) <= 0) {
                 // echo "【" . $accountInfo['id'] . "】没有余额\r\n";
                 return ['usdtBalance' => 0];
             }
