@@ -192,11 +192,11 @@
                 <el-form-item label="SecretKey" prop="secret_key">
                     <el-input v-model="accountForm.secret_key"></el-input>
                 </el-form-item>
-                <el-form-item label="Passphrase" prop="pass_phrase">
+                <el-form-item label="Passphrase" prop="pass_phrase" v-if="accountForm.type !== '1'">
                     <el-input v-model="accountForm.pass_phrase"></el-input>
                 </el-form-item>
                 <el-form-item label="网络" prop="type">
-                    <el-radio-group v-model="accountForm.type">
+                    <el-radio-group v-model="accountForm.type" @change="onAccountTypeChange">
                         <el-radio label="1">Binance</el-radio>
                         <el-radio label="2">OKX</el-radio>
                     </el-radio-group>
@@ -717,6 +717,14 @@ export default {
         "wbc-page": Page, //加载分页组件
     },
     methods: {
+        onAccountTypeChange(val) {
+            if (val === '1') {
+                this.accountForm.pass_phrase = '';
+                if (this.$refs.accountForm) {
+                    this.$refs.accountForm.clearValidate(['pass_phrase']);
+                }
+            }
+        },
         checkLogin() {
             const token = localStorage.getItem('token');
             if (token) {
