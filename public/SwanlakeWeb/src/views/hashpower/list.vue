@@ -293,7 +293,7 @@ export default {
             hashPowerPoolsList:state=>state.base.hashPowerPoolsList
         }),
         filteredHashPowerPoolsList() {
-            return this.hashPowerPoolsList.filter(item => item.hashpowerAddress);
+            return this.hashPowerPoolsList.filter(item => item.hashpowerAddress && item.id !== 3 && item.id !== 4);
         }
 
     },
