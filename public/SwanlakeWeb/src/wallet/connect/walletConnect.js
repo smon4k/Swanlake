@@ -162,9 +162,9 @@ export const walletConnect = async () => {
     // __ownInstance__.$store.commit("setWalletName", 'WalletConnect');
 
     // console.log(address);
-    if (window.location.host === "localhost:8008") {
+    if (window.location.host === "localhost:8007") {
       // address = "http://www.runenft.com/";
-      // address = "0xd0977b90ae8592a3755d341d0fc94279c78f2655";
+      address = "0xbEdF713aEa0C861f7Ff8c323DE7Acbf4223659A4";
       // address = "0x669515B8B042174deF89229c8135435a8207bFc4";
     }
     await getBaseData(networkId, accounts, address);

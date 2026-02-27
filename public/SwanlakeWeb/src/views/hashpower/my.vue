@@ -252,7 +252,8 @@ export default {
         return {
             activeName: '1',
             timeInterval: null,
-            refreshTime: 10000, //数据刷新间隔时间
+            refreshTime: 30000, //数据刷新间隔时间
+            isRefreshing: false, //防止定时任务重入
             currPage: 1, //当前页
             pageSize: 20, //每页显示条数
             total: 100, //总条数
@@ -297,6 +298,18 @@ export default {
     },
     beforeRouteLeave(to, from, next){ //页面离开
         next();
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+    },
+    deactivated() {
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval);
+            this.timeInterval = null;
+        }
+    },
+    beforeDestroy() {
         if (this.timeInterval) {
             clearInterval(this.timeInterval);
             this.timeInterval = null;
@@ -371,9 +384,15 @@ export default {
                 clearInterval(this.timeInterval);
             }
             this.timeInterval = setInterval(async () => {
-                this.$store.dispatch('refreshHashPowerPoolsList')
-                await this.getPoolBtcData();
-                await this.getOutputDetail();
+                if (this.isRefreshing) return;
+                this.isRefreshing = true;
+                try {
+                    await this.$store.dispatch('refreshHashPowerPoolsList');
+                    await this.getPoolBtcData();
+                    await this.getOutputDetail();
+                } finally {
+                    this.isRefreshing = false;
+                }
             }, this.refreshTime)
         },
         async getOutputDetail() {
