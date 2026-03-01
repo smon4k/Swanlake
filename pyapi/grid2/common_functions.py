@@ -127,7 +127,11 @@ async def get_market_price(
 
 
 async def get_market_precision(
-    self, exchange: ccxt.Exchange, symbol: str, instType: str = "SWAP"
+    self,
+    exchange: ccxt.Exchange,
+    symbol: str,
+    instType: str = "SWAP",
+    close_exchange: bool = True,
 ) -> dict:
     """获取市场的价格和数量精度（带缓存）"""
     # ✅ 先检查缓存
@@ -180,7 +184,8 @@ async def get_market_precision(
             "amount": Decimal("0.0001"),
         }
     finally:
-        await exchange.close()  # ✅ 用完就关
+        if close_exchange:
+            await exchange.close()  # ✅ 用完就关
 
 
 async def get_client_order_id(prefix: str = "Zx"):
@@ -210,76 +215,220 @@ async def open_position(
     order_type: str,
     client_order_id: str = None,
     is_reduce_only: bool = False,
+    exchange: ccxt.Exchange = None,
+    close_exchange: bool = True,
 ):
     """开仓、平仓下单（带重试机制 + 超时保护 - 方案3改进）"""
     max_retries = 3
     retry_delay = 0.5  # 初始延迟0.5秒
     order_timeout = 10.0  # ✅ 单次下单超时10秒
-
-    for attempt in range(max_retries):
+    current_client_order_id = client_order_id
+    managed_exchange = exchange is None
+    if managed_exchange:
         exchange = await get_exchange(self, account_id)
         if not exchange:
             logging.error(f"❌ 开仓失败：无法获取交易所实例 - 账户={account_id}")
             return None
 
-        params = {
-            "posSide": pos_side,
-            "tdMode": "cross",
-            "clOrdId": client_order_id,
-            "reduceOnly": is_reduce_only,
-        }
+    async def confirm_order_by_client_id(exchange, target_client_order_id: str):
+        """超时或重复ID时，按 clOrdId 查询订单是否已被交易所受理。"""
+        if not target_client_order_id:
+            return None
 
-        if attempt == 0:  # 只在第一次尝试时记录日志
-            logging.info(
-                f"📝 准备下单: 账户={account_id}, 币种={symbol}, 方向={side}, "
-                f"持仓方向={pos_side}, 数量={amount}, 价格={price}, "
-                f"订单类型={order_type}, 仅减仓={is_reduce_only}"
+        params = {"instType": "SWAP"}
+
+        async def _find_in_orders(orders):
+            for item in orders or []:
+                info = item.get("info", {})
+                if (
+                    info.get("clOrdId") == target_client_order_id
+                    or item.get("clientOrderId") == target_client_order_id
+                ):
+                    return item
+            return None
+
+        try:
+            if hasattr(self, "api_limiter") and self.api_limiter:
+                await self.api_limiter.check_and_wait()
+            open_orders = await exchange.fetch_open_orders(symbol, None, None, params)
+            found = await _find_in_orders(open_orders)
+            if found:
+                return found
+        except Exception as e:
+            logging.debug(
+                f"⚠️ 账户 {account_id} 按 clOrdId 查询未成交订单失败: clOrdId={target_client_order_id}, 错误={e}"
             )
 
         try:
-            # ✅ 调用全局API限流器
-            if hasattr(self, "api_limiter") and self.api_limiter:
-                await self.api_limiter.check_and_wait()
-
-            # ✅ 【改进】为单次下单添加超时保护
-            try:
-                order = await asyncio.wait_for(
-                    exchange.create_order(
-                        symbol=symbol,
-                        type=order_type,
-                        side=side,
-                        amount=float(amount),
-                        price=price,
-                        params=params,
-                    ),
-                    timeout=order_timeout,
+            if hasattr(exchange, "fetch_closed_orders"):
+                if hasattr(self, "api_limiter") and self.api_limiter:
+                    await self.api_limiter.check_and_wait()
+                closed_orders = await exchange.fetch_closed_orders(
+                    symbol, None, 50, params
                 )
+                found = await _find_in_orders(closed_orders)
+                if found:
+                    return found
+        except Exception as e:
+            logging.debug(
+                f"⚠️ 账户 {account_id} 按 clOrdId 查询历史订单失败: clOrdId={target_client_order_id}, 错误={e}"
+            )
+
+        return None
+
+    try:
+        for attempt in range(max_retries):
+            params = {
+                "posSide": pos_side,
+                "tdMode": "cross",
+                "clOrdId": current_client_order_id,
+                "reduceOnly": is_reduce_only,
+            }
+
+            if attempt == 0:  # 只在第一次尝试时记录日志
+                logging.info(
+                    f"📝 准备下单: 账户={account_id}, 币种={symbol}, 方向={side}, "
+                    f"持仓方向={pos_side}, 数量={amount}, 价格={price}, "
+                    f"订单类型={order_type}, 仅减仓={is_reduce_only}"
+                )
+
+            try:
+                # ✅ 调用全局API限流器
+                if hasattr(self, "api_limiter") and self.api_limiter:
+                    await self.api_limiter.check_and_wait()
+
+                # ✅ 【改进】为单次下单添加超时保护
+                try:
+                    order = await asyncio.wait_for(
+                        exchange.create_order(
+                            symbol=symbol,
+                            type=order_type,
+                            side=side,
+                            amount=float(amount),
+                            price=price,
+                            params=params,
+                        ),
+                        timeout=order_timeout,
+                    )
+                except asyncio.TimeoutError:
+                    logging.warning(
+                        f"⏱️ 账户 {account_id} 下单超时({order_timeout}秒) ({attempt+1}/{max_retries}): "
+                        f"币种={symbol}, 方向={side}"
+                    )
+                    # 超时后先按 clOrdId 查单，避免已受理订单被误判失败并重复提交
+                    confirmed_order = await confirm_order_by_client_id(
+                        exchange, current_client_order_id
+                    )
+                    if confirmed_order:
+                        logging.warning(
+                            f"✅ 账户 {account_id} 超时后确认订单已存在: "
+                            f"clOrdId={current_client_order_id}, orderId={confirmed_order.get('id', 'N/A')}"
+                        )
+                        return confirmed_order
+                    if attempt < max_retries - 1:
+                        # 下次重试切换 clOrdId，避免重复ID冲突
+                        current_client_order_id = await get_client_order_id()
+                        await asyncio.sleep(retry_delay)
+                        continue
+                    else:
+                        logging.error(f"❌ 账户 {account_id} 下单超时已达最大重试次数")
+                        return None
+
+                if order["info"].get("sCode") == "0":
+                    order_id = order.get("id", "N/A")
+                    logging.info(
+                        f"✅ 下单成功: 账户={account_id}, 订单ID={order_id}, "
+                        f"币种={symbol}, 方向={side}, 数量={amount}, 价格={price}"
+                    )
+                    return order
+                else:
+                    error_msg = order["info"].get("sMsg", "未知错误")
+                    error_code = order["info"].get("sCode", "N/A")
+
+                    # 重复 clOrdId 时先查单确认，确认存在则按成功处理
+                    if error_code == "51016":
+                        confirmed_order = await confirm_order_by_client_id(
+                            exchange, current_client_order_id
+                        )
+                        if confirmed_order:
+                            logging.warning(
+                                f"✅ 账户 {account_id} 遇到51016但已确认订单存在: "
+                                f"clOrdId={current_client_order_id}, orderId={confirmed_order.get('id', 'N/A')}"
+                            )
+                            return confirmed_order
+                        if attempt < max_retries - 1:
+                            current_client_order_id = await get_client_order_id()
+                            logging.warning(
+                                f"⚠️ 账户 {account_id} 下单 clOrdId 冲突，切换新ID重试: "
+                                f"old={params.get('clOrdId')}, new={current_client_order_id}"
+                            )
+                            await asyncio.sleep(retry_delay)
+                            continue
+
+                    # ✅ 【改进】只在频率限制时重试，其他错误直接返回
+                    if error_code == "50011" and attempt < max_retries - 1:
+                        wait_time = retry_delay * (2**attempt)  # 指数退避：0.5s, 1s, 2s
+                        logging.warning(
+                            f"⚠️ 账户 {account_id} 下单触发频率限制，{wait_time:.1f}秒后重试 (尝试 {attempt+1}/{max_retries})"
+                        )
+                        await asyncio.sleep(wait_time)
+                        continue  # 继续重试
+
+                    logging.error(
+                        f"❌ 下单失败: 账户={account_id}, 币种={symbol}, "
+                        f"错误码={error_code}, 错误信息={error_msg}"
+                    )
+                    return None
+
             except asyncio.TimeoutError:
+                # ✅ 超时错误单独处理
                 logging.warning(
                     f"⏱️ 账户 {account_id} 下单超时({order_timeout}秒) ({attempt+1}/{max_retries}): "
                     f"币种={symbol}, 方向={side}"
                 )
+                confirmed_order = await confirm_order_by_client_id(
+                    exchange, current_client_order_id
+                )
+                if confirmed_order:
+                    logging.warning(
+                        f"✅ 账户 {account_id} 超时后确认订单已存在: "
+                        f"clOrdId={current_client_order_id}, orderId={confirmed_order.get('id', 'N/A')}"
+                    )
+                    return confirmed_order
                 if attempt < max_retries - 1:
+                    current_client_order_id = await get_client_order_id()
                     await asyncio.sleep(retry_delay)
                     continue
                 else:
                     logging.error(f"❌ 账户 {account_id} 下单超时已达最大重试次数")
                     return None
 
-            if order["info"].get("sCode") == "0":
-                order_id = order.get("id", "N/A")
-                logging.info(
-                    f"✅ 下单成功: 账户={account_id}, 订单ID={order_id}, "
-                    f"币种={symbol}, 方向={side}, 数量={amount}, 价格={price}"
-                )
-                return order
-            else:
-                error_msg = order["info"].get("sMsg", "未知错误")
-                error_code = order["info"].get("sCode", "N/A")
+            except Exception as e:
+                error_msg = str(e)
+                if "51016" in error_msg:
+                    confirmed_order = await confirm_order_by_client_id(
+                        exchange, current_client_order_id
+                    )
+                    if confirmed_order:
+                        logging.warning(
+                            f"✅ 账户 {account_id} 异常51016但确认订单存在: "
+                            f"clOrdId={current_client_order_id}, orderId={confirmed_order.get('id', 'N/A')}"
+                        )
+                        return confirmed_order
+                    if attempt < max_retries - 1:
+                        current_client_order_id = await get_client_order_id()
+                        logging.warning(
+                            f"⚠️ 账户 {account_id} 异常51016，切换新 clOrdId 重试: "
+                            f"new={current_client_order_id}"
+                        )
+                        await asyncio.sleep(retry_delay)
+                        continue
 
-                # ✅ 【改进】只在频率限制时重试，其他错误直接返回
-                if error_code == "50011" and attempt < max_retries - 1:
-                    wait_time = retry_delay * (2**attempt)  # 指数退避：0.5s, 1s, 2s
+                # ✅ 【改进】检查是否是频率限制错误
+                if (
+                    "50011" in error_msg or "Too Many Requests" in error_msg
+                ) and attempt < max_retries - 1:
+                    wait_time = retry_delay * (2**attempt)  # 指数退避
                     logging.warning(
                         f"⚠️ 账户 {account_id} 下单触发频率限制，{wait_time:.1f}秒后重试 (尝试 {attempt+1}/{max_retries})"
                     )
@@ -287,44 +436,13 @@ async def open_position(
                     continue  # 继续重试
 
                 logging.error(
-                    f"❌ 下单失败: 账户={account_id}, 币种={symbol}, "
-                    f"错误码={error_code}, 错误信息={error_msg}"
+                    f"❌ 下单异常: 账户={account_id}, 币种={symbol}, 方向={side}, 错误={e}",
+                    exc_info=True,
                 )
                 return None
-
-        except asyncio.TimeoutError:
-            # ✅ 超时错误单独处理
-            logging.warning(
-                f"⏱️ 账户 {account_id} 下单超时({order_timeout}秒) ({attempt+1}/{max_retries}): "
-                f"币种={symbol}, 方向={side}"
-            )
-            if attempt < max_retries - 1:
-                await asyncio.sleep(retry_delay)
-                continue
-            else:
-                logging.error(f"❌ 账户 {account_id} 下单超时已达最大重试次数")
-                return None
-
-        except Exception as e:
-            error_msg = str(e)
-            # ✅ 【改进】检查是否是频率限制错误
-            if (
-                "50011" in error_msg or "Too Many Requests" in error_msg
-            ) and attempt < max_retries - 1:
-                wait_time = retry_delay * (2**attempt)  # 指数退避
-                logging.warning(
-                    f"⚠️ 账户 {account_id} 下单触发频率限制，{wait_time:.1f}秒后重试 (尝试 {attempt+1}/{max_retries})"
-                )
-                await asyncio.sleep(wait_time)
-                continue  # 继续重试
-
-            logging.error(
-                f"❌ 下单异常: 账户={account_id}, 币种={symbol}, 方向={side}, 错误={e}",
-                exc_info=True,
-            )
-            return None
-        finally:
-            await exchange.close()  # ✅ 用完就关
+    finally:
+        if close_exchange and managed_exchange and exchange:
+            await exchange.close()  # ✅ 开仓流程整体结束后再关闭，减少重复创建/销毁
 
     # 所有重试都失败
     logging.error(f"❌ 账户 {account_id} 下单失败：已达到最大重试次数 {max_retries}")
@@ -711,7 +829,17 @@ async def fetch_order_with_retry(
             )
             return order_info
         except Exception as e:
-            if "Too Many Requests" in str(e) and attempt < retries - 1:
+            error_str = str(e)
+
+            # 订单已不存在（常见于本地记录滞后/交易所已清理），按可恢复场景处理
+            if "51603" in error_str or "Order does not exist" in error_str:
+                logging.info(
+                    f"ℹ️ 账户 {account_id} 订单不存在，按已失效处理: "
+                    f"订单={order_id}, 币种={symbol}"
+                )
+                return None
+
+            if "Too Many Requests" in error_str and attempt < retries - 1:
                 # 使用指数退避 + 随机抖动来缓解限流
                 delay = (attempt + 1) * 0.5 + random.uniform(0.1, 0.3)
                 logging.warning(
@@ -735,6 +863,7 @@ async def cancel_all_orders(
     account_id: int,
     symbol: str,
     cancel_conditional: bool = False,
+    close_exchange: bool = True,
 ):
     """
     取消所有未成交订单（普通 + 条件单）
@@ -858,7 +987,8 @@ async def cancel_all_orders(
             exc_info=True,
         )
     finally:
-        await exchange.close()
+        if close_exchange:
+            await exchange.close()
 
 
 async def get_max_position_value(self, account_id: int, symbol: str) -> Decimal:
@@ -936,21 +1066,30 @@ async def fetch_positions_history(
 
 
 async def fetch_current_positions(
-    self, account_id: int, symbol: str, inst_type: str = "SWAP"
+    self,
+    account_id: int,
+    symbol: str,
+    inst_type: str = "SWAP",
+    exchange: ccxt.Exchange = None,
+    close_exchange: bool = True,
 ) -> list:
     """获取当前持仓信息，返回持仓数据列表"""
+    created_exchange = False
+    current_exchange = exchange
     try:
         # ✅ 调用全局API限流器
         if hasattr(self, "api_limiter") and self.api_limiter:
             await self.api_limiter.check_and_wait()
 
-        exchange = await get_exchange(self, account_id)
-        if not exchange:
+        if current_exchange is None:
+            current_exchange = await get_exchange(self, account_id)
+            created_exchange = True
+        if not current_exchange:
             logging.error(f"❌ 获取持仓失败：无法获取交易所对象 - 账户={account_id}")
             raise Exception("无法获取交易所对象")
 
         logging.debug(f"🔍 查询当前持仓: 账户={account_id}, 币种={symbol}")
-        positions = await exchange.fetch_positions_for_symbol(
+        positions = await current_exchange.fetch_positions_for_symbol(
             symbol, {"instType": inst_type}
         )
 
@@ -980,7 +1119,8 @@ async def fetch_current_positions(
         )
         return []
     finally:
-        await exchange.close()
+        if close_exchange and created_exchange and current_exchange:
+            await current_exchange.close()
 
 
 # 获取账户总持仓数
@@ -990,6 +1130,7 @@ async def get_total_positions(
     symbol: str,
     inst_type: str = "SWAP",
     cached_positions: list = None,
+    exchange: ccxt.Exchange = None,
 ) -> Decimal:
     """获取账户总持仓数
 
@@ -1022,7 +1163,14 @@ async def get_total_positions(
 
         # 如果没有缓存，才查询
         logging.info(f"🔍 查询持仓: 账户={account_id}, 币种={symbol}")
-        positions = await fetch_current_positions(self, account_id, symbol, inst_type)
+        positions = await fetch_current_positions(
+            self,
+            account_id,
+            symbol,
+            inst_type,
+            exchange=exchange,
+            close_exchange=exchange is None,
+        )
 
         position_details = []
         total_positions = Decimal("0")

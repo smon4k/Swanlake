@@ -677,7 +677,13 @@ class SignalProcessingTask:
             if (side == "buy" and signal["size"] == 1) or (
                 side == "sell" and signal["size"] == -1
             ):  # 开仓
-                await self._open_position(account_id, signal, account_info)
+                open_success = await self._open_position(account_id, signal, account_info)
+                if not open_success:
+                    msg = "开仓失败"
+                    logging.error(
+                        f"❌ 账户 {account_id} 信号 {signal['id']} 处理失败: {msg}"
+                    )
+                    return {"account_id": account_id, "success": False, "msg": msg}
             elif (side == "buy" and signal["size"] == 0) or (
                 side == "sell" and signal["size"] == 0
             ):  # 平仓
@@ -707,8 +713,9 @@ class SignalProcessingTask:
         :param account_id: 账户 ID
         :param signal: 信号 dict
         :param account_info: 账户信息 dict
-        :return: None
+        :return: bool
         """
+        exchange = None
         try:
             start_time = time.time()
             logging.info(
@@ -716,28 +723,37 @@ class SignalProcessingTask:
             )
             exchange = await get_exchange(self, account_id)
             if not exchange:
-                return
+                return False
             # TODO: 调用交易 API 下单
             strategy_info = await self.db.get_strategy_info(signal["name"])
             # 1.1 开仓前先平掉反向仓位
             await self.cleanup_opposite_positions(
                 account_id, signal["symbol"], signal["direction"]
             )
+            logging.info(
+                f"⏱️ 账户 {account_id} 前置平反向仓耗时: {time.time() - start_time:.2f}秒"
+            )
 
             # 1.2 取消所有未成交的订单
             await cancel_all_orders(
-                self, exchange, account_id, signal["symbol"]
+                self, exchange, account_id, signal["symbol"], close_exchange=False
             )  # 取消所有未成交的订单
+            logging.info(
+                f"⏱️ 账户 {account_id} 撤单完成累计耗时: {time.time() - start_time:.2f}秒"
+            )
 
             if os.getenv("IS_LOCAL", "0") == "2":  # 本地调试不执行理财
                 # 1.3 处理理财数据进行赎回操作
                 await self.handle_financing_redeem(
                     signal, account_id, account_info, exchange
                 )
+                logging.info(
+                    f"⏱️ 账户 {account_id} 理财处理完成累计耗时: {time.time() - start_time:.2f}秒"
+                )
 
             # 理财状态为2时不开仓
             if account_info.get("financ_state") == 2:
-                return
+                return False
             end_time = time.time()
             # print(f"🟢 账户 {account_id} 信号 {signal['id']} {end_time - start_time:.2f} 秒")
             side = "buy" if signal["direction"] == "long" else "sell"  # 'buy' 或 'sell'
@@ -749,11 +765,12 @@ class SignalProcessingTask:
                 side,
                 signal["price"],
                 Decimal(str(strategy_info["open_coefficient"])),  # 转换为Decimal
+                exchange=exchange,
             )
 
             if not open_position:
                 logging.error(f"❌ 开仓失败: {signal['id']}, 账户: {account_id}")
-                return
+                return False
             # 1.4 处理记录开仓方向数据
             # has_open_position = await self.db.has_open_position(name, side)
             # if has_open_position:
@@ -775,9 +792,17 @@ class SignalProcessingTask:
 
             # ✅ 【新增】延迟触发止损检查（避免API拥堵）
             asyncio.create_task(self._delayed_trigger_stop_loss(account_id))
+            return True
 
         except Exception as e:
             logging.error(f"❌ 开仓异常: {e}", exc_info=True)
+            return False
+        finally:
+            if exchange:
+                try:
+                    await exchange.close()
+                except Exception as close_error:
+                    logging.debug(f"⚠️ 关闭交易所连接出错: {close_error}")
 
     async def _delayed_trigger_stop_loss(self, account_id: int):
         """
@@ -851,9 +876,50 @@ class SignalProcessingTask:
 
             # 1️⃣ 理财模式（1: 开启理财, 2: 只做理财）
             if financ_state in (1, 2):
+                # 先做快速资金充足判断：若交易账户余额已覆盖预估开仓预算，则跳过赎回与划转
+                trading_balance = await get_account_balance(
+                    exchange,
+                    signal["symbol"],
+                    "trading",
+                    self.api_limiter,
+                    close_exchange=False,
+                )
+                max_position = await get_max_position_value(
+                    self, account_id, signal["symbol"]
+                )
+                position_percent = Decimal(
+                    str(
+                        self.db.account_config_cache[account_id].get(
+                            "position_percent", "1"
+                        )
+                    )
+                )
+                open_coefficient = Decimal("1")
+                if signal.get("direction") == "short":
+                    try:
+                        strategy_info = await self.db.get_strategy_info(signal["name"])
+                        if strategy_info and strategy_info.get("open_coefficient") is not None:
+                            open_coefficient = Decimal(
+                                str(strategy_info.get("open_coefficient"))
+                            )
+                    except Exception as e:
+                        logging.debug(
+                            f"⚠️ 账户 {account_id} 获取开仓系数失败，使用默认值1: {e}"
+                        )
+
+                estimated_required_balance = (
+                    max_position * position_percent * open_coefficient
+                )
+                if trading_balance >= estimated_required_balance:
+                    logging.info(
+                        f"✅ 账户 {account_id} 交易余额充足，跳过赎回/划转: "
+                        f"trading={trading_balance}, required={estimated_required_balance}"
+                    )
+                    return
+
                 yubibao_balance = await savings_task.get_saving_balance("USDT")
                 market_precision = await get_market_precision(
-                    self, exchange, signal["symbol"]
+                    self, exchange, signal["symbol"], close_exchange=False
                 )
 
                 logging.info(f"余币宝余额: {account_id} {yubibao_balance}")
@@ -861,7 +927,11 @@ class SignalProcessingTask:
                     await savings_task.redeem_savings("USDT", yubibao_balance)
                 else:
                     funding_balance = await get_account_balance(
-                        exchange, signal["symbol"], "funding", self.api_limiter
+                        exchange,
+                        signal["symbol"],
+                        "funding",
+                        self.api_limiter,
+                        close_exchange=False,
                     )
                     funding_balance_size = funding_balance.quantize(
                         Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
@@ -1063,7 +1133,12 @@ class SignalProcessingTask:
                     return
 
                 positions = await fetch_current_positions(
-                    self, account_id, symbol, "SWAP"
+                    self,
+                    account_id,
+                    symbol,
+                    "SWAP",
+                    exchange=exchange,
+                    close_exchange=False,
                 )
                 if not positions:
                     logging.warning(f"✓ 无持仓信息 用户 {account_id}")
@@ -1102,6 +1177,8 @@ class SignalProcessingTask:
                     "market",
                     client_order_id,
                     True,  # reduceOnly=True
+                    exchange=exchange,
+                    close_exchange=False,
                 )
 
                 if close_order:
@@ -1185,18 +1262,22 @@ class SignalProcessingTask:
         side: str,
         price: Decimal,
         open_coefficient: Decimal,
+        exchange=None,
     ):
+        managed_exchange = False
         try:
             """处理开仓"""
             # print(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
             logging.info(
                 f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}"
             )
-            exchange = await get_exchange(self, account_id)
+            managed_exchange = exchange is None
+            if managed_exchange:
+                exchange = await get_exchange(self, account_id)
             # 1. 平掉反向仓位
             # await self.cleanup_opposite_positions(account_id, symbol, pos_side)
             total_position_value = await get_total_positions(
-                self, account_id, symbol, "SWAP"
+                self, account_id, symbol, "SWAP", exchange=exchange
             )  # 获取总持仓价值
             # print("总持仓数", total_position_value)
             logging.info(f"用户 {account_id} 总持仓数：{total_position_value}")
@@ -1205,7 +1286,7 @@ class SignalProcessingTask:
                 logging.error(f"用户 {account_id} 总持仓数获取失败")
                 return
             market_precision = await get_market_precision(
-                self, exchange, symbol
+                self, exchange, symbol, close_exchange=False
             )  # 获取市场精度
 
             total_position_quantity = 0
@@ -1235,7 +1316,11 @@ class SignalProcessingTask:
                 price = price + price_float  # 信号价 + 价格浮动比例
 
             balance = await get_account_balance(
-                exchange, symbol, "trading", self.api_limiter
+                exchange,
+                symbol,
+                "trading",
+                self.api_limiter,
+                close_exchange=False,
             )
             # print(f"账户余额: {balance}")
             logging.info(f"用户 {account_id} 账户余额: {balance}")
@@ -1325,6 +1410,8 @@ class SignalProcessingTask:
                 float(price),
                 "limit",
                 client_order_id,
+                exchange=exchange,
+                close_exchange=False,
             )
             # print("order", order)
             if order:
@@ -1364,7 +1451,8 @@ class SignalProcessingTask:
             )
             return False
         finally:
-            await exchange.close()
+            if managed_exchange and exchange:
+                await exchange.close()
 
     # 计算仓位大小
     async def calculate_position_size(

@@ -154,9 +154,12 @@ class PriceMonitoringTask:
 
         # ✅ 【新增】任务协调标志
         self.signal_processing_active = signal_processing_active
+        self.normal_monitor_concurrency = 15
+        self.signal_active_monitor_concurrency = 2
+        self.current_monitor_concurrency = self.normal_monitor_concurrency
         # ✅ 账户并发限制（动态设置，确保所有账户都能被检测）
         self.account_semaphore = asyncio.Semaphore(
-            15
+            self.normal_monitor_concurrency
         )  # 限制 15 个账户并发（略大于账户数）
         self.order_semaphore = asyncio.Semaphore(10)  # 订单查询并发限流
         self.market_precision_cache = {}  # 市场精度缓存
@@ -219,9 +222,30 @@ class PriceMonitoringTask:
                 # ✅ 【新增】优先级1：检查信号处理是否活跃
                 if self.signal_processing_active:
                     if self.signal_processing_active.is_set():
+                        if (
+                            self.current_monitor_concurrency
+                            != self.signal_active_monitor_concurrency
+                        ):
+                            self.current_monitor_concurrency = (
+                                self.signal_active_monitor_concurrency
+                            )
+                            self.account_semaphore = asyncio.Semaphore(
+                                self.current_monitor_concurrency
+                            )
+                            logging.info(
+                                f"🔧 信号活跃，监控并发降级为 {self.current_monitor_concurrency}"
+                            )
                         logging.info("⏸️ 信号处理优先级高于价格监控，暂停2秒")
                         await asyncio.sleep(2)
                         continue
+                    elif self.current_monitor_concurrency != self.normal_monitor_concurrency:
+                        self.current_monitor_concurrency = self.normal_monitor_concurrency
+                        self.account_semaphore = asyncio.Semaphore(
+                            self.current_monitor_concurrency
+                        )
+                        logging.info(
+                            f"🔧 信号恢复，监控并发恢复为 {self.current_monitor_concurrency}"
+                        )
 
                 if self.signal_lock.locked():
                     print("⏸ 信号处理中，跳过一次监控")
@@ -303,8 +327,19 @@ class PriceMonitoringTask:
 
                 # ✅ 并发检查账户（使用信号量限制并发数 + 超时控制）
                 async def limited_check_positions(account_id):
+                    # 信号处理活跃期间，尽量不再发起新的监控API请求，给开仓链路让路
+                    if (
+                        self.signal_processing_active
+                        and self.signal_processing_active.is_set()
+                    ):
+                        return
                     async with self.account_semaphore:
                         try:
+                            if (
+                                self.signal_processing_active
+                                and self.signal_processing_active.is_set()
+                            ):
+                                return
                             # 为每个账户设置超时
                             await asyncio.wait_for(
                                 self._safe_check_positions(account_id),
@@ -714,9 +749,9 @@ class PriceMonitoringTask:
                 positions = positions_dict.get(symbol, [])
 
                 if not order_info:
-                    logging.warning(
-                        f"⚠️ 无订单信息，跳过订单: 账户={account_id}, 订单={order['order_id']}, "
-                        f"币种={symbol}, 方向={order['side']}"
+                    logging.info(
+                        f"ℹ️ 无订单信息（可能已失效/已不存在），跳过订单: "
+                        f"账户={account_id}, 订单={order['order_id']}, 币种={symbol}, 方向={order['side']}"
                     )
                     continue
 
