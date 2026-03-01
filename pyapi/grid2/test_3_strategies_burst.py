@@ -14,12 +14,15 @@ import os
 from datetime import datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo
+from pathlib import Path
 
 import pymysql
 import redis
 from dotenv import load_dotenv
 
-load_dotenv()
+# 固定读取脚本同目录下的 .env，避免从其他目录执行时读取失败
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,7 +34,8 @@ DB_CONFIG = {
     "port": int(os.getenv("DB_PORT", 3306)),
     "user": os.getenv("DB_USER", "root"),
     "password": os.getenv("DB_PASSWORD", "123456"),
-    "database": os.getenv("DB_NAME", "trading_bot"),
+    # 与主程序保持一致：优先 DB_DATABASE，兼容 DB_NAME
+    "database": os.getenv("DB_DATABASE") or os.getenv("DB_NAME", "trading_bot"),
     "charset": "utf8mb4",
     "cursorclass": pymysql.cursors.DictCursor,
 }
