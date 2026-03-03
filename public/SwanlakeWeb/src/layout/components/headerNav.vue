@@ -301,7 +301,7 @@ export default {
                     name: this.$t('nav:BuyH2O'),
                     path: "",
                     // link: "https://h2o.h2ohash.live/#/Swap?inputCurrency=0x55d398326f99059fF775485246999027B3197955&outputCurrency=H2O",
-                    link: "https://pancakeswap.finance/swap?outputCurrency=BNB&inputCurrency=0x80ce4734F7C46De0b7f97527Cbc7EC189f668984",
+                    link: "https://pancakeswap.finance/swap?outputCurrency=BNB&inputCurrency=0x900957647422Cd7Bc123454f4261bc261df6eAC2",
                     children: [],
                 },
                 {
