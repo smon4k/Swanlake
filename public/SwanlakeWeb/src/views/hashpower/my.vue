@@ -42,6 +42,7 @@
                         </el-link>
                     </template>
                 </el-table-column>
+                <!-- 昨日H2O收益 -->
                 <el-table-column
                     prop=""
                     :label="$t('hashpower:YesterdayH2OIncome')"

@@ -198,7 +198,7 @@ export async function getHashPowerPoolsTokensData(goblinAddress, currencyToken, 
       h2oReward = await getH2OPendingBonus(goblinAddress, 8); //获取H2O奖励
       // console.log(pId, h2oReward, btcbReward)
     }
-    // console.log(id, userBalance)
+    console.log(id, "userBalance", userBalance)
     // let bonusPerShare = await getH2OAccBonusPerShare(goblinAddress); //累计收益
     // let lastAccBonusPerShare = await getH2OLastAccBonusPerShare(goblinAddress); //上次累计收益
     // let cakePrice = await getToken2TokenPrice("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", Address.BUSDT) //获取Cake价格
