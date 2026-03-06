@@ -88,7 +88,7 @@ export default {
     }),
     // 过滤出有效的算力币（必须有合约地址）
     filteredHashPowerPoolsList() {
-       return this.hashPowerPoolsList.filter(item => item.hashpowerAddress && item.updatePricefun);
+       return this.hashPowerPoolsList.filter(item => item.hashpowerAddress && item.updatePricefun && item.id !== 3 && item.id !== 4);
     }
   },
   watch: {
@@ -143,6 +143,7 @@ export default {
         // 1. 调用合约方法 setBuyTokenToS23Ratio
         // BuyTokenToSFunction 会将传入的数值 (newPrice) 转换为 Wei (乘以 1e18)
         // 第三个参数为合约方法名
+        console.log(this.currentEditRow.hashpowerAddress, this.newPrice, this.currentEditRow.updatePricefun);
         const hash = await setBuyTokenToSRatio(
             this.currentEditRow.hashpowerAddress, 
             this.newPrice,
