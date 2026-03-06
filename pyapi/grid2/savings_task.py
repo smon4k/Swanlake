@@ -1,5 +1,6 @@
 import asyncio
 import os
+from decimal import Decimal, ROUND_DOWN
 from okx import Funding
 from okx.Finance import Savings
 import okx.Account as Account
@@ -71,29 +72,76 @@ class SavingsTask:
         if not self.financeAPI:
             await self.init_api()
 
+        # 使用交易账户可用余额并预留1%安全边际，避免边界值导致划转/申购失败
+        available_balance = await self.get_trading_available_balance(ccy)
+        requested_amt = Decimal(str(amt))
+        safe_available = (available_balance * Decimal("0.99")).quantize(
+            Decimal("0.00000001"), rounding=ROUND_DOWN
+        )
+        purchase_amt = min(requested_amt, safe_available)
+        if purchase_amt <= 0:
+            logging.error(
+                f"购买理财失败，可用余额不足: ccy={ccy}, requested={requested_amt}, available={available_balance}"
+            )
+            raise ValueError("可用余额不足，无法购买理财")
+        if purchase_amt < requested_amt:
+            logging.info(
+                f"购买理财金额已按可用余额调整: ccy={ccy}, requested={requested_amt}, adjusted={purchase_amt}, available={available_balance}"
+            )
+
         # Step 1: 资金划转 (交易账户 → 理财账户)
-        await self.transfer(ccy, amt, from_acct="18", to_acct="6")
+        transfer_result = await self.transfer(ccy, purchase_amt, from_acct="18", to_acct="6")
+        if transfer_result.get("code") != "0":
+            logging.error(f"购买理财失败，资金划转失败: ccy={ccy}, amt={purchase_amt}, result={transfer_result}")
+            raise ValueError(f"资金划转失败: {transfer_result.get('msg', 'unknown error')}")
 
         # saving_balance = await self.get_saving_balance(ccy)
         # print(f"当前余币宝余额: {saving_balance}")
         # logging.info(f"当前余币宝余额: {saving_balance}")
 
         # Step 2: 申购理财
-        logging.info(f"购买理财: {amt} {ccy}")
+        logging.info(f"购买理财: {purchase_amt} {ccy}")
         try:
             result = self.savingsAPI.savings_purchase_redemption(
                 ccy=ccy,
                 side="purchase",
-                amt=str(amt),
+                amt=str(purchase_amt),
                 rate="0.01"  # 市价购买
             )
             # print(f"购买结果: {result}")
             logging.info(f"购买结果: {result}")
+            if result.get("code") != "0":
+                logging.error(f"购买理财失败，申购返回异常: ccy={ccy}, amt={purchase_amt}, result={result}")
+                raise ValueError(f"申购理财失败: {result.get('msg', 'unknown error')}")
         except Exception as e:
             # print(f"购买理财失败: {e}")
             logging.error(f"购买理财失败: {e}")
             raise e
         return result
+
+    async def get_trading_available_balance(self, ccy: str) -> Decimal:
+        """获取交易账户可用余额（可划转余额）"""
+        if not self.accountAPI:
+            await self.init_api()
+        try:
+            result = self.accountAPI.get_account_balance(ccy=ccy)
+            if result.get("code") != "0":
+                logging.error(f"获取交易账户可用余额失败: ccy={ccy}, result={result}")
+                return Decimal("0")
+            details = (
+                result.get("data", [{}])[0].get("details", [])
+                if result.get("data")
+                else []
+            )
+            for item in details:
+                if item.get("ccy") == ccy:
+                    avail = Decimal(str(item.get("availBal", "0")))
+                    logging.info(f"交易账户可用余额: ccy={ccy}, avail={avail}")
+                    return avail
+            return Decimal("0")
+        except Exception as e:
+            logging.error(f"获取交易账户可用余额异常: ccy={ccy}, err={e}")
+            return Decimal("0")
 
     async def redeem_savings(self, ccy: str, amt: float):
         """赎回理财：先赎回再转账"""
