@@ -1,6 +1,6 @@
 import asyncio
 import os
-from decimal import Decimal, ROUND_DOWN
+from decimal import Decimal, ROUND_DOWN, localcontext
 from okx import Funding
 from okx.Finance import Savings
 import okx.Account as Account
@@ -75,9 +75,11 @@ class SavingsTask:
         # 使用交易账户可用余额并预留1%安全边际，避免边界值导致划转/申购失败
         available_balance = await self.get_trading_available_balance(ccy)
         requested_amt = Decimal(str(amt))
-        safe_available = (available_balance * Decimal("0.99")).quantize(
-            Decimal("0.00000001"), rounding=ROUND_DOWN
-        )
+        with localcontext() as ctx:
+            ctx.prec = 50
+            safe_available = (available_balance * Decimal("0.99")).quantize(
+                Decimal("0.00000001"), rounding=ROUND_DOWN
+            )
         purchase_amt = min(requested_amt, safe_available)
         if purchase_amt <= 0:
             logging.error(
