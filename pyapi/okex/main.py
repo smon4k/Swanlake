@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
         logger.info("Debug: About to run uvicorn")
         # uvicorn.run(app, host="0.0.0.0", port=8001, reload=True)
-        uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
+        uvicorn.run("main:app", host="0.0.0.0", port=8001)
     except Exception as e:
         logger.error(f"An error occurred: {e}")
     logger.info("Debug: After uvicorn.run (this line should not be reached normally)")
