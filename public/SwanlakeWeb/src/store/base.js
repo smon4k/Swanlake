@@ -41,7 +41,7 @@ export default {
         domainHostAddress:'https://bscscan.com/tx/',
         apiUrl: window.location.host === 'localhost:8008' ? 'https://www.yutstly.xyz' : 'https://www.yutstly.xyz',
         // apiUrl: 'https://',
-        nftUrl: window.location.host === 'localhost:8008' || window.location.host === '192.168.1.3:8007' ? 'http://www.api.com' : 'https://api.bitguru.finance',
+        nftUrl: window.location.host === 'localhost:8008' || window.location.host === '192.168.1.3:8007' ? 'http://www.api.com' : 'https://api.h2opower.site',
         // nftUrl: 'https://api.h2o.live',
         // Env: window.location.host === 'localhost:8001' || window.location.host === '192.168.1.6:8001' ? 'dev' : 'prod',
         Env: 'dev',
