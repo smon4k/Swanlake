@@ -377,6 +377,66 @@ class SignalProcessingTask:
             logging.error(f"❌ 检查 processing 信号失败: {e}")
             return None
 
+    def _get_previous_same_open_signal(
+        self,
+        strategy_name: str,
+        symbol: str,
+        direction: str,
+        current_signal_id: int,
+    ):
+        """
+        上一条「同策略 + 同币种 + 同方向」的开仓信号（id 小于当前的最大一条）。
+        用于判断：仅当上一条仍在 processing（持仓/流程处理中）时忽略本条新开仓信号。
+        """
+        try:
+            conn = self.db.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """SELECT id, status, direction, size
+                       FROM g_signals
+                       WHERE name=%s
+                       AND symbol=%s
+                       AND direction=%s
+                       AND size IN (1, -1)
+                       AND id < %s
+                       ORDER BY id DESC
+                       LIMIT 1""",
+                    (strategy_name, symbol, direction, current_signal_id),
+                )
+                result = cursor.fetchone()
+            conn.close()
+            return result
+        except Exception as e:
+            logging.error(f"❌ 查询上一条同向开仓信号失败: {e}", exc_info=True)
+            return None
+
+    async def _has_same_direction_position_any_account(
+        self, account_list: list, symbol: str, direction: str
+    ) -> bool:
+        """检查账户列表是否仍有同方向持仓（任一账户命中即返回 True）"""
+        normalized_direction = (direction or "").lower()
+        for account_id in account_list:
+            try:
+                positions = await fetch_current_positions(self, account_id, symbol, "SWAP")
+                for pos in positions:
+                    pos_side = (pos.get("side") or pos.get("posSide") or "").lower()
+                    pos_size = Decimal(
+                        str(pos.get("contracts") or pos.get("positionAmt") or 0)
+                    )
+                    if pos_side == normalized_direction and abs(pos_size) > 0:
+                        logging.info(
+                            f"⏭️ 检测到上一信号方向持仓，忽略新信号: "
+                            f"账户={account_id}, 币种={symbol}, 方向={direction}, 持仓={abs(pos_size)}"
+                        )
+                        return True
+            except Exception as e:
+                logging.error(
+                    f"❌ 检查账户同向持仓异常: account_id={account_id}, "
+                    f"symbol={symbol}, direction={direction}, err={e}",
+                    exc_info=True,
+                )
+        return False
+
     def _mark_signal_failed(self, signal_id):
         """立即标记信号为 failed（被新信号覆盖放弃处理）"""
         try:
@@ -484,6 +544,38 @@ class SignalProcessingTask:
                 return
 
             is_close_signal = self._is_close_signal(signal)
+            account_list = self.db.tactics_accounts_cache[signal["name"]]
+
+            if not is_close_signal:
+                prev_same_open = self._get_previous_same_open_signal(
+                    signal["name"],
+                    signal["symbol"],
+                    signal["direction"],
+                    signal_id,
+                )
+                if prev_same_open:
+                    if prev_same_open.get("status") == "processing":
+                        logging.warning(
+                            f"⏭️ 忽略开仓信号 {signal_id}：上一条同策略同币种同方向开仓仍在 processing "
+                            f"(prev_id={prev_same_open.get('id')}, "
+                            f"symbol={signal['symbol']}, direction={signal['direction']})"
+                        )
+                        self._update_signal_status(signal_id, "processed")
+                        return
+
+                    has_same_direction_position = (
+                        await self._has_same_direction_position_any_account(
+                            account_list, signal["symbol"], signal["direction"]
+                        )
+                    )
+                    if has_same_direction_position:
+                        logging.warning(
+                            f"⏭️ 忽略开仓信号 {signal_id}：上一条同方向信号仍有持仓 "
+                            f"(prev_id={prev_same_open.get('id')}, "
+                            f"symbol={signal['symbol']}, direction={signal['direction']})"
+                        )
+                        self._update_signal_status(signal_id, "processed")
+                        return
 
             # ✅ 平仓防抖：若1分钟内已有同策略进场信号，则忽略本次平仓
             if is_close_signal:
@@ -516,7 +608,6 @@ class SignalProcessingTask:
                 )
 
             # ✅ 获取全量账户列表（新信号优先，不考虑前置信号）
-            account_list = self.db.tactics_accounts_cache[signal["name"]]
 
             logging.info(
                 f"📢 信号 {signal.get('name')} (ID={signal_id}) "
