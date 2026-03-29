@@ -8,6 +8,7 @@ from trading_bot_config import TradingBotConfig
 from signal_processing_task import SignalProcessingTask
 from price_monitoring_task import PriceMonitoringTask
 from stop_loss_task import StopLossTask
+from leader_copy_task import LeaderCopyTask, validate_leader_copy_env
 from common_functions import get_exchange
 from api_rate_limiter import SimpleRateLimiter
 import logging
@@ -15,6 +16,12 @@ from logging.handlers import TimedRotatingFileHandler
 
 load_dotenv()
 getcontext().prec = 8
+
+# Leader 跟单检测：独立 logger + 日志文件（与 bot.log 分离）
+if os.getenv("LEADER_COPY_ENABLED", "0") == "1":
+    from leader_copy_task import setup_leader_copy_logging
+
+    setup_leader_copy_logging()
 
 # ----------------- 日志配置 -----------------
 log_file_path = os.getenv("LOG_PATH", "bot.log")
@@ -89,6 +96,14 @@ class OKXTradingBot:
             self.signal_processing_active,  # ✅ 传入活跃标志
         )
 
+        self.leader_copy_task: LeaderCopyTask | None = None
+        if os.getenv("LEADER_COPY_ENABLED", "0") == "1":
+            lc_err = validate_leader_copy_env()
+            if lc_err:
+                logging.error("LeaderCopy 未启动: %s", lc_err)
+            else:
+                self.leader_copy_task = LeaderCopyTask(self)
+
         # API Server 可选
         # self.app = web.Application()
         # self.app.add_routes([
@@ -157,6 +172,13 @@ class OKXTradingBot:
                 self.stop_loss_task.stop_loss_task(), name="stop_loss_task"
             ),
         ]
+        if self.leader_copy_task:
+            tasks.append(
+                asyncio.create_task(
+                    self.leader_copy_task.leader_copy_loop(),
+                    name="leader_copy_task",
+                )
+            )
         # consumer_tasks = [
         #     asyncio.create_task(self.signal_task.consumer(i))
         #     for i in range(self.signal_task.max_workers)

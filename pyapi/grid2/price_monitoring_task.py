@@ -852,31 +852,11 @@ class PriceMonitoringTask:
                     f"✅ 订单已成交: 用户={account_id}, 币种={symbol}, 方向={latest_order['side']}, 价格={executed_price}"
                 )
 
-                logging.info(f"🔧 开始管理网格订单: 账户={account_id}, 币种={symbol}")
+                from leader_copy_task import skip_stop_loss_grid_for_account
 
-                # ✅ 【方案2改进】网格单创建单独设置超时（30秒，给买卖单留足时间）
-                try:
-                    managed = await asyncio.wait_for(
-                        self.manage_grid_orders(latest_order, account_id),
-                        timeout=30.0,
-                    )
-                except asyncio.TimeoutError:
-                    logging.error(
-                        f"⏱️ 账户 {account_id} 网格单创建超时(30秒)，将在下一轮补救检查中处理"
-                    )
-                    managed = False
-                except Exception as e:
-                    logging.error(
-                        f"❌ 账户 {account_id} 网格单创建异常: {e}",
-                        exc_info=True,
-                    )
-                    managed = False
-
-                if managed:
+                if skip_stop_loss_grid_for_account(account_id):
                     logging.info(
-                        f"✅ 网格订单管理成功，更新订单状态: 账户={account_id}, "
-                        f"订单={latest_order['id']}, 币种={symbol}, "
-                        f"方向={latest_order['side']}, 成交价={executed_price}"
+                        f"⏭️ 账户 {account_id} 为跟单账户，跳过网格止盈与自动止损，仅更新订单状态与配对"
                     )
                     await self.db.update_order_by_id(
                         account_id,
@@ -891,15 +871,55 @@ class PriceMonitoringTask:
                     await self.update_order_status(
                         latest_order, account_id, executed_price, fill_date_time, symbol
                     )
-                    logging.info(f"🛡️ 触发止损任务: 账户={account_id}（立即执行）")
-                    await self.stop_loss_task.accounts_stop_loss_task(
-                        account_id, immediate=True
-                    )
                 else:
-                    logging.error(
-                        f"❌ 网格订单管理失败: 账户={account_id}, "
-                        f"订单={latest_order['id']}, 币种={symbol}"
-                    )
+                    logging.info(f"🔧 开始管理网格订单: 账户={account_id}, 币种={symbol}")
+
+                    # ✅ 【方案2改进】网格单创建单独设置超时（30秒，给买卖单留足时间）
+                    try:
+                        managed = await asyncio.wait_for(
+                            self.manage_grid_orders(latest_order, account_id),
+                            timeout=30.0,
+                        )
+                    except asyncio.TimeoutError:
+                        logging.error(
+                            f"⏱️ 账户 {account_id} 网格单创建超时(30秒)，将在下一轮补救检查中处理"
+                        )
+                        managed = False
+                    except Exception as e:
+                        logging.error(
+                            f"❌ 账户 {account_id} 网格单创建异常: {e}",
+                            exc_info=True,
+                        )
+                        managed = False
+
+                    if managed:
+                        logging.info(
+                            f"✅ 网格订单管理成功，更新订单状态: 账户={account_id}, "
+                            f"订单={latest_order['id']}, 币种={symbol}, "
+                            f"方向={latest_order['side']}, 成交价={executed_price}"
+                        )
+                        await self.db.update_order_by_id(
+                            account_id,
+                            latest_order["id"],
+                            {
+                                "executed_price": executed_price,
+                                "status": "filled",
+                                "fill_time": fill_date_time,
+                            },
+                        )
+                        logging.info(f"🔄 开始订单配对和利润计算: 账户={account_id}")
+                        await self.update_order_status(
+                            latest_order, account_id, executed_price, fill_date_time, symbol
+                        )
+                        logging.info(f"🛡️ 触发止损任务: 账户={account_id}（立即执行）")
+                        await self.stop_loss_task.accounts_stop_loss_task(
+                            account_id, immediate=True
+                        )
+                    else:
+                        logging.error(
+                            f"❌ 网格订单管理失败: 账户={account_id}, "
+                            f"订单={latest_order['id']}, 币种={symbol}"
+                        )
 
         except Exception as e:
             logging.error(
@@ -1523,6 +1543,14 @@ class PriceMonitoringTask:
             positions_dict: 持仓字典 {symbol: [positions]}
         """
         try:
+            from leader_copy_task import skip_stop_loss_grid_for_account
+
+            if skip_stop_loss_grid_for_account(account_id):
+                logging.info(
+                    f"⏭️ 账户 {account_id} 为跟单账户，跳过网格补救检查"
+                )
+                return
+
             # 遍历所有有持仓的币种
             for symbol, positions in positions_dict.items():
                 # 检查是否有实际持仓

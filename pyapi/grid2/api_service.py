@@ -85,6 +85,7 @@ class PositionService:
                 'size': size,  # 假设大小为0，实际使用时需要根据需求设置
                 'status': 'pending',
                 'timestamp': timestamp,
+                'signal_source': 'api',
             })
             self.redis.publish("signal_channel", "new_signal")  # 发布消息
             return result

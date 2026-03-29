@@ -85,6 +85,14 @@ class StopLossTask:
             account_id: 账户ID
             immediate: 是否立即执行（True时绕过时间间隔检查，用于订单成交后立即触发）
         """
+        from leader_copy_task import skip_stop_loss_grid_for_account
+
+        if skip_stop_loss_grid_for_account(account_id):
+            logging.info(
+                f"⏭️ 账户 {account_id} 为跟单账户，跳过自动止损检查"
+            )
+            return
+
         # ✅ 【新增】优先级检查：如果信号处理正在进行且非立即执行，则推迟
         if self.signal_processing_active and not immediate:
             if self.signal_processing_active.is_set():

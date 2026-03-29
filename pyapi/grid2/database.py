@@ -1,5 +1,6 @@
 import logging
 import pymysql
+from pymysql.err import IntegrityError
 from typing import Dict, List, Optional
 import json
 from datetime import datetime
@@ -112,15 +113,22 @@ class Database:
                 conn.close()
 
     async def insert_signal(self, signal_data: Dict):
-        """写入信号到signals表并返回结果"""
+        """写入信号到signals表并返回结果。leader 跟单唯一键冲突时 duplicate=True。"""
         conn = None
+        signal_source = signal_data.get("signal_source") or "api"
+        leader_account_id = signal_data.get("leader_account_id")
+        leader_bill_id = signal_data.get("leader_bill_id")
+        leader_ord_id = signal_data.get("leader_ord_id")
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
                     f"""
-                    INSERT INTO {table('signals')} (name, timestamp, symbol, direction, price, size, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO {table('signals')} (
+                        name, timestamp, symbol, direction, price, size, status,
+                        signal_source, leader_account_id, leader_bill_id, leader_ord_id
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                     (
                         signal_data["name"],
@@ -130,10 +138,24 @@ class Database:
                         signal_data["price"],
                         signal_data["size"],
                         signal_data["status"],
+                        signal_source,
+                        leader_account_id,
+                        leader_bill_id,
+                        leader_ord_id,
                     ),
                 )
                 conn.commit()
                 return {"status": "success", "message": "Signal inserted successfully"}
+        except IntegrityError as e:
+            if e.args and e.args[0] == 1062:
+                return {
+                    "status": "success",
+                    "duplicate": True,
+                    "message": "duplicate leader bill skipped",
+                }
+            print(f"写入信号失败: {e}")
+            logging.error(f"写入信号失败: {e}")
+            return {"status": "error", "message": str(e)}
         except Exception as e:
             print(f"写入信号失败: {e}")
             logging.error(f"写入信号失败: {e}")

@@ -306,7 +306,11 @@ CREATE TABLE IF NOT EXISTS `g_signals` (
   `status` enum('pending','processing','processed','failed') COLLATE utf8_unicode_ci DEFAULT 'pending',
   `success_accounts` text COLLATE utf8_unicode_ci COMMENT '成功处理的账户列表（存储JSON字符串）',
   `failed_accounts` text COLLATE utf8_unicode_ci COMMENT '失败的账户列表（需要恢复，存储JSON字符串）',
-  `last_update_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间（用于超时检测）'
+  `last_update_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间（用于超时检测）',
+  `signal_source` varchar(32) NOT NULL DEFAULT 'api' COMMENT 'api/leader_copy/manual',
+  `leader_account_id` int(11) DEFAULT NULL COMMENT 'Leader g_accounts.id',
+  `leader_bill_id` varchar(64) DEFAULT NULL COMMENT 'OKX billId',
+  `leader_ord_id` varchar(64) DEFAULT NULL COMMENT 'OKX ordId'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -448,6 +452,7 @@ ALTER TABLE `g_quantify_inout_gold`
 --
 ALTER TABLE `g_signals`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_leader_bill` (`leader_account_id`,`leader_bill_id`),
   ADD KEY `symbol` (`symbol`),
   ADD KEY `direction` (`direction`,`size`),
   ADD KEY `idx_signal_processing` (`status`,`name`,`last_update_time`);

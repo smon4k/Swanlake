@@ -905,6 +905,14 @@ class SignalProcessingTask:
         :param account_id: 账户ID
         """
         try:
+            from leader_copy_task import skip_stop_loss_grid_for_account
+
+            if skip_stop_loss_grid_for_account(account_id):
+                logging.info(
+                    f"⏭️ 账户 {account_id} 为跟单账户，跳过延迟止损触发"
+                )
+                return
+
             import random
 
             # 随机延迟5-15秒
