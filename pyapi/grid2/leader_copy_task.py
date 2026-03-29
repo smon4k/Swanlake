@@ -10,6 +10,9 @@ Leader 账户 OKX 成交监听：检测到新 SWAP 成交后写入 g_signals 并
   LEADER_COPY_ORD_EMIT_TTL_SEC — Redis ord 去重键 TTL 秒，默认 604800（7 天）
   LOG_LEADER_COPY_PATH         — 独立日志文件，默认 leader_copy.log；每次进程启动会清空该主文件（轮转备份 *.2026-xx-xx 保留）
   REDIS_HOST / REDIS_PORT      — 与主程序一致，默认 localhost:6379
+  LEADER_COPY_EXECUTOR_ACCOUNT_IDS — 可选，逗号分隔。实际跟单下单账户 id；若设置，这些账户在网格
+      「碎仓清理」（持仓 < 最大仓位 5%）时不撤销条件单（止盈/止损）。可与 LEADER_COPY_ACCOUNT_ID
+      分工（监听写信号 vs 执行账户）。
 """
 
 from __future__ import annotations
@@ -45,6 +48,27 @@ def skip_stop_loss_grid_for_account(account_id: int) -> bool:
     except ValueError:
         return False
     return target_account_id > 0 and account_id == target_account_id
+
+
+def leader_copy_preserve_conditional_on_grid_small_cleanup(account_id: int) -> bool:
+    """
+    网格 manage_grid_orders 中「持仓 < max_position*5%」清仓分支里，是否保留条件单（止盈/止损）。
+    True：调用方应传 cancel_all_orders(..., cancel_conditional=False)。
+    """
+    if os.getenv("LEADER_COPY_ENABLED", "0") != "1":
+        return False
+    raw = (os.getenv("LEADER_COPY_EXECUTOR_ACCOUNT_IDS") or "").strip()
+    if raw:
+        for part in raw.split(","):
+            p = part.strip()
+            if p.isdigit() and int(p) == account_id:
+                return True
+        return False
+    try:
+        aid = int(os.getenv("LEADER_COPY_ACCOUNT_ID", "0"))
+    except ValueError:
+        return False
+    return aid > 0 and account_id == aid
 
 
 def setup_leader_copy_logging() -> None:

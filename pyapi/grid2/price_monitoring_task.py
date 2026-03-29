@@ -1231,8 +1231,18 @@ class PriceMonitoringTask:
                     account_id, symbol, side
                 )
 
-                # 取消所有未成交订单
-                await cancel_all_orders(self, exchange, account_id, symbol, True)
+                from leader_copy_task import leader_copy_preserve_conditional_on_grid_small_cleanup
+
+                cancel_conditional = not leader_copy_preserve_conditional_on_grid_small_cleanup(
+                    account_id
+                )
+                if not cancel_conditional:
+                    logging.info(
+                        f"⏭️ 账户 {account_id} 为跟单账户，碎仓清理不撤销条件单（止盈/止损）"
+                    )
+                await cancel_all_orders(
+                    self, exchange, account_id, symbol, cancel_conditional
+                )
 
                 return False
 
