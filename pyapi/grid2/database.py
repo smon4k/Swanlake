@@ -1,6 +1,6 @@
 import logging
 import pymysql
-from pymysql.err import IntegrityError
+from pymysql.err import IntegrityError, OperationalError
 from typing import Dict, List, Optional
 import json
 from datetime import datetime
@@ -155,6 +155,18 @@ class Database:
                 }
             print(f"写入信号失败: {e}")
             logging.error(f"写入信号失败: {e}")
+            return {"status": "error", "message": str(e)}
+        except OperationalError as e:
+            if e.args and e.args[0] == 1054:
+                logging.error(
+                    "insert_signal: 表 %s 缺少新列（如 signal_source）。"
+                    "请在目标库执行 pyapi/grid2/migrations/add_g_signals_leader_source.sql 后重试。原始错误: %s",
+                    table("signals"),
+                    e,
+                )
+            else:
+                logging.error(f"写入信号失败: {e}")
+            print(f"写入信号失败: {e}")
             return {"status": "error", "message": str(e)}
         except Exception as e:
             print(f"写入信号失败: {e}")
