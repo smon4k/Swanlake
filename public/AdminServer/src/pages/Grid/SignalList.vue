@@ -23,27 +23,20 @@
       </el-table-column>
       <el-table-column label="类型" align="center">
         <template slot-scope="scope">
-          <div v-if="scope.row.direction === 'long'">
-            <span v-if="scope.row.size == '1'">{{ '多头进场' }}</span>
-            <span v-else>{{ '多头出场' }}</span>
-          </div>
-          <div v-else>
-            <span v-if="scope.row.size == '-1'">{{ '空头进场' }}</span>
-            <span v-else>{{ '空头出场' }}</span>
-          </div>
+          <span>{{ positionTypeLabel(scope.row) }}</span>
         </template>
       </el-table-column>
       <!-- <el-table-column prop="symbol" label="交易对" align="center"></el-table-column> -->
       <el-table-column prop="direction" label="方向" align="center">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.direction === 'long' ? 'success' : 'danger'">
-            {{ scope.row.direction === 'long' ? 'buy' : 'sell' }}
+          <el-tag :type="orderSideLabel(scope.row) === 'buy' ? 'success' : 'danger'">
+            {{ orderSideLabel(scope.row) }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="size" label="信号类型" align="center">
         <template slot-scope="scope">
-          {{ scope.row.size == '1' || scope.row.size == '-1' ? '开仓' : '平仓' }}
+          {{ scope.row.size == '1' || scope.row.size == '-1' || scope.row.size == 1 || scope.row.size == -1 ? '开仓' : '平仓' }}
         </template>
       </el-table-column>
       <el-table-column prop="price" label="价格" align="center">
@@ -181,6 +174,28 @@ export default {
       if (isNaN(num)) return '--';
       // Format number with 4 decimal places
       return parseFloat(num).toFixed(1);
+    },
+
+    /**
+     * 与 api_service / 新 leader 一致：direction 为委托侧（buy→long, sell→short）。
+     * 平仓 long+0=平空→空头出场；short+0=平多→多头出场。
+     */
+    positionTypeLabel(row) {
+      const sz = parseInt(row.size, 10);
+      const dir = (row.direction || '').toLowerCase();
+      if (sz === 1) return '多头进场';
+      if (sz === -1) return '空头进场';
+      if (sz === 0) {
+        if (dir === 'long') return '空头出场';
+        if (dir === 'short') return '多头出场';
+        return '平仓';
+      }
+      return '--';
+    },
+
+    /** 委托方向 buy/sell（与 direction 一致） */
+    orderSideLabel(row) {
+      return (row.direction || '').toLowerCase() === 'long' ? 'buy' : 'sell';
     },
 
     getStatusTagType(status) {
