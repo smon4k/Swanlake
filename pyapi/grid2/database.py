@@ -615,7 +615,7 @@ class Database:
                 cursor.execute(
                     f"""
                     UPDATE {table('orders')}
-                    SET is_clopos = 1, updated_at = NOW()
+                    SET is_clopos = 1, status = 'closed', updated_at = NOW()
                     WHERE account_id = %s
                     AND symbol = %s 
                     AND pos_side = %s 

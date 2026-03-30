@@ -577,7 +577,9 @@ async def cleanup_opposite_positions(
                     await asyncio.sleep(0.2)
                     continue
 
-                await self.db.update_order_by_id(account_id, order_id, {"is_clopos": 1})
+                await self.db.update_order_by_id(
+                    account_id, order_id, {"is_clopos": 1, "status": "closed"}
+                )
 
                 # 记录平仓订单和持仓
                 await self.db.add_order(

@@ -1099,12 +1099,14 @@ class SignalProcessingTask:
             sign_id = signal["id"]
             symbol = signal["symbol"]
             name = signal["name"]
-            pos_side = signal["direction"]  # 'long' 或 'short'
-            side = "buy" if pos_side == "long" else "sell"  # 'buy' 或 'sell'
+            _dir = (signal.get("direction") or "").lower()
+            # 与 api_service 一致：direction 表示委托侧（buy→long, sell→short）
+            side = "buy" if _dir == "long" else "sell"
             size = signal["size"]  # 1, 0, -1
             price = signal["price"]  # 0.00001
-            # 仅平仓：用「与持仓同向」的开仓行（size=1/-1 且 id<当前），不再用反向 direction 误查
-            # 不改变下单/平仓执行路径，只修正后续 DB 配对与盈亏所用 open 行
+            # 仅平仓：取 id<当前 的开仓行（size=1/-1）。
+            # API/新 leader：long,0=平空→配对 short,-1；short,0=平多→配对 long,1。
+            # 旧 leader 曾用「持仓腿」作 direction，若上一步未命中再按 _dir 查一次。
             try:
                 sz = int(size)
             except (TypeError, ValueError):
@@ -1115,13 +1117,18 @@ class SignalProcessingTask:
                 )
                 return
 
+            pos_side = "short" if _dir == "long" else "long"
             has_open_position = await self.db.get_latest_open_signal_before_close(
                 name, symbol, pos_side, sign_id
             )
             if not has_open_position:
+                has_open_position = await self.db.get_latest_open_signal_before_close(
+                    name, symbol, _dir, sign_id
+                )
+            if not has_open_position:
                 logging.warning(
                     f"handle_close_position_update: 未找到可配对开仓信号 "
-                    f"name={name} symbol={symbol} pos_side={pos_side} close_id={sign_id}，跳过盈亏/pair 更新"
+                    f"name={name} symbol={symbol} pos_side={pos_side}/{_dir} close_id={sign_id}，跳过盈亏/pair 更新"
                 )
                 return
 

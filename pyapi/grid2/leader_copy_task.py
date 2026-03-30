@@ -123,8 +123,9 @@ def _cursor_after(
 
 def map_okx_swap_fill_to_signal(trade: Dict[str, Any]) -> Optional[Tuple[str, int]]:
     """
-    双向持仓 hedge：posSide long/short + side 映射为 (direction, size)。
-    size: 1 开多, -1 开空, 0 平仓；与 signal_processing_task.process_signal 一致。
+    双向持仓 hedge：OKX 成交 → (direction, size)，语义与 api_service.insert_signal 一致：
+    direction = long 若委托为 buy，否则 short（与 HTTP side 映射相同）。
+    开多 long,1 / 开空 short,-1；平多 short,0（sell）/ 平空 long,0（buy）。
     """
     info = trade.get("info") or {}
     if info.get("instType") != "SWAP":
@@ -138,12 +139,14 @@ def map_okx_swap_fill_to_signal(trade: Dict[str, Any]) -> Optional[Tuple[str, in
         if side == "buy":
             return ("long", 1)
         if side == "sell":
-            return ("long", 0)
+            # 平多：委托 sell → direction short（与 API 发 sell+0 一致）
+            return ("short", 0)
     elif pos_side == "short":
         if side == "sell":
             return ("short", -1)
         if side == "buy":
-            return ("short", 0)
+            # 平空：委托 buy → direction long（与 API 发 buy+0 一致）
+            return ("long", 0)
     log.debug(
         "LeaderCopyTask.map_okx_swap_fill_to_signal skip: posSide=%s side=%s instId=%s",
         pos_side,
@@ -183,6 +186,30 @@ class LeaderCopyTask:
         self._ord_emit_ttl = int(
             os.getenv("LEADER_COPY_ORD_EMIT_TTL_SEC", str(7 * 24 * 3600))
         )
+        # OKX 50011 限流退避：避免每次报错都重建 exchange 导致反复 load_markets
+        self._rate_limit_backoff_sec = 1.0
+        self._rate_limit_backoff_max_sec = float(
+            os.getenv("LEADER_COPY_RATE_LIMIT_BACKOFF_MAX_SEC", "30")
+        )
+
+    @staticmethod
+    def _is_rate_limit_error(err: Exception) -> bool:
+        text = str(err)
+        return (
+            "Too Many Requests" in text
+            or "50011" in text
+            or "RateLimitExceeded" in text
+        )
+
+    def _next_rate_limit_backoff(self) -> float:
+        delay = self._rate_limit_backoff_sec
+        self._rate_limit_backoff_sec = min(
+            self._rate_limit_backoff_sec * 2, self._rate_limit_backoff_max_sec
+        )
+        return delay
+
+    def _reset_rate_limit_backoff(self) -> None:
+        self._rate_limit_backoff_sec = 1.0
 
     def _try_claim_ord_emit(self, ord_id: str) -> bool:
         """
@@ -340,11 +367,23 @@ class LeaderCopyTask:
         try:
             trades = await self._fetch_trades(exchange, since_ms)
         except Exception as e:
+            if self._is_rate_limit_error(e):
+                delay = self._next_rate_limit_backoff()
+                log.warning(
+                    "LeaderCopyTask fetch_my_trades 限流，退避 %.1fs 后重试（保留当前 exchange）: %s",
+                    delay,
+                    e,
+                )
+                await asyncio.sleep(delay)
+                return
             log.error(
                 "LeaderCopyTask fetch_my_trades failed: %s", e, exc_info=True
             )
             await self._reset_exchange()
             return
+        else:
+            # 请求恢复后重置退避，避免后续一直长延迟
+            self._reset_rate_limit_backoff()
 
         trades = [t for t in trades if self._filter_trade(t)]
         trades.sort(key=_trade_cursor_tuple)
