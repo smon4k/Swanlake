@@ -1103,95 +1103,115 @@ class SignalProcessingTask:
             side = "buy" if pos_side == "long" else "sell"  # 'buy' 或 'sell'
             size = signal["size"]  # 1, 0, -1
             price = signal["price"]  # 0.00001
-            direction = "long" if side == "sell" else "short"
-            has_open_position = await self.db.get_latest_signal_by_name_and_direction(
-                name, direction
+            # 仅平仓：用「与持仓同向」的开仓行（size=1/-1 且 id<当前），不再用反向 direction 误查
+            # 不改变下单/平仓执行路径，只修正后续 DB 配对与盈亏所用 open 行
+            try:
+                sz = int(size)
+            except (TypeError, ValueError):
+                sz = -1
+            if sz != 0:
+                logging.warning(
+                    f"handle_close_position_update: 非平仓信号 size={size} id={sign_id}，跳过配对更新"
+                )
+                return
+
+            has_open_position = await self.db.get_latest_open_signal_before_close(
+                name, symbol, pos_side, sign_id
             )
-            if has_open_position:
-                open_price = Decimal(str(has_open_position["price"]))
-                close_price = Decimal(str(price))
-                open_side = "buy" if side == "sell" else "sell"
-                if open_side == "buy":
-                    loss_profit = close_price - open_price
-                else:
-                    loss_profit = open_price - close_price
-                loss_profit_normal = format(loss_profit, "f")
-                is_profit = float(loss_profit_normal) > 0
-
-                print(
-                    f"处理平仓后数据: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}"
+            if not has_open_position:
+                logging.warning(
+                    f"handle_close_position_update: 未找到可配对开仓信号 "
+                    f"name={name} symbol={symbol} pos_side={pos_side} close_id={sign_id}，跳过盈亏/pair 更新"
                 )
-                logging.info(
-                    f"处理平仓后数据: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}"
-                )
+                return
 
-                # 获取策略表连续几次亏损
-                strategy_info = await self.db.get_strategy_info(name)
-                logging.info(f"策略信息: {strategy_info}")
-                # 计算总盈亏
-                count_profit_loss = float(
-                    strategy_info.get("count_profit_loss", 0)
-                )  # 总盈亏
-                stage_profit_loss = float(
-                    strategy_info.get("stage_profit_loss", 0)
-                )  # 阶段性盈亏
+            open_price = Decimal(str(has_open_position["price"]))
+            close_price = Decimal(str(price))
+            open_side = "buy" if side == "sell" else "sell"
+            if open_side == "buy":
+                loss_profit = close_price - open_price
+            else:
+                loss_profit = open_price - close_price
+            loss_profit_normal = format(loss_profit, "f")
+            is_profit = float(loss_profit_normal) > 0
 
-                stage_profit_loss_num = float(stage_profit_loss) + float(
-                    loss_profit_normal
-                )  # 阶段性盈亏累加
-                logging.info(
-                    f"上一次阶段性盈亏: {stage_profit_loss}, 本次阶段性盈亏: {loss_profit_normal}, 本次阶段性盈亏累加: {stage_profit_loss_num}"
-                )
-                if stage_profit_loss_num > 0:
-                    stage_profit_loss_num = 0  # 如果阶段性盈亏大于0才清0
+            print(
+                f"处理平仓后数据: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}"
+            )
+            logging.info(
+                f"处理平仓后数据: {name} {symbol} {side} {size} at {price}, Profit: {loss_profit_normal}, Is Profit: {is_profit}"
+            )
 
-                if float(loss_profit_normal) > 0:  # 盈利
-                    logging.info(f"盈利: {loss_profit_normal}")
-                    profit_loss = float(count_profit_loss) + float(loss_profit_normal)
-                    if profit_loss > 0:
-                        logging.info(f"盈利累加大于0: {profit_loss}")
-                        count_profit_loss = profit_loss
-                    else:
-                        count_profit_loss = float(loss_profit_normal)
-                        logging.info(f"盈利累加小于0: {count_profit_loss}")
-                else:
-                    logging.info(f"亏损: {loss_profit_normal}")
-                    profit_loss = float(count_profit_loss) + float(loss_profit_normal)
-                    logging.info(f"亏损累加: {profit_loss}")
+            # 获取策略表连续几次亏损
+            strategy_info = await self.db.get_strategy_info(name)
+            logging.info(f"策略信息: {strategy_info}")
+            # 计算总盈亏
+            count_profit_loss = float(
+                strategy_info.get("count_profit_loss", 0)
+            )  # 总盈亏
+            stage_profit_loss = float(
+                strategy_info.get("stage_profit_loss", 0)
+            )  # 阶段性盈亏
+
+            stage_profit_loss_num = float(stage_profit_loss) + float(
+                loss_profit_normal
+            )  # 阶段性盈亏累加
+            logging.info(
+                f"上一次阶段性盈亏: {stage_profit_loss}, 本次阶段性盈亏: {loss_profit_normal}, 本次阶段性盈亏累加: {stage_profit_loss_num}"
+            )
+            if stage_profit_loss_num > 0:
+                stage_profit_loss_num = 0  # 如果阶段性盈亏大于0才清0
+
+            if float(loss_profit_normal) > 0:  # 盈利
+                logging.info(f"盈利: {loss_profit_normal}")
+                profit_loss = float(count_profit_loss) + float(loss_profit_normal)
+                if profit_loss > 0:
+                    logging.info(f"盈利累加大于0: {profit_loss}")
                     count_profit_loss = profit_loss
-                    logging.info(f"亏损累加小于0: {count_profit_loss}")
+                else:
+                    count_profit_loss = float(loss_profit_normal)
+                    logging.info(f"盈利累加小于0: {count_profit_loss}")
+            else:
+                logging.info(f"亏损: {loss_profit_normal}")
+                profit_loss = float(count_profit_loss) + float(loss_profit_normal)
+                logging.info(f"亏损累加: {profit_loss}")
+                count_profit_loss = profit_loss
+                logging.info(f"亏损累加小于0: {count_profit_loss}")
 
-                await self.db.update_max_position_by_tactics(
-                    name,
-                    is_profit,
-                    sign_id,
-                    loss_profit_normal,
-                    open_price,
-                    stage_profit_loss,
-                )  # 批量更新指定策略所有账户最大仓位数据
+            await self.db.update_max_position_by_tactics(
+                name,
+                is_profit,
+                sign_id,
+                loss_profit_normal,
+                open_price,
+                stage_profit_loss,
+            )  # 批量更新指定策略所有账户最大仓位数据
 
-                # 更新盈亏策略记录
-                await self.db.update_strategy_loss_number(
-                    name, count_profit_loss, stage_profit_loss_num
-                )
-                print(
-                    f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss_num}"
-                )
-                logging.info(
-                    f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss_num}"
-                )
+            # 更新盈亏策略记录
+            await self.db.update_strategy_loss_number(
+                name, count_profit_loss, stage_profit_loss_num
+            )
+            print(
+                f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss_num}"
+            )
+            logging.info(
+                f"策略 {name} 更新总盈亏: {count_profit_loss}, 阶段盈亏: {stage_profit_loss_num}"
+            )
 
-                strategy_info = await self.db.get_strategy_info(name)
-                await self.db.update_signals_trade_by_id(
-                    sign_id,
-                    {
-                        "pair_id": has_open_position["pair_id"],
-                        "position_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "loss_profit": loss_profit_normal,
-                        "count_profit_loss": strategy_info["count_profit_loss"],
-                        "stage_profit_loss": strategy_info["stage_profit_loss"],
-                    },
-                )
+            strategy_info = await self.db.get_strategy_info(name)
+            open_pair = has_open_position.get("pair_id")
+            if open_pair is None or open_pair == 0:
+                open_pair = has_open_position.get("id")
+            await self.db.update_signals_trade_by_id(
+                sign_id,
+                {
+                    "pair_id": open_pair,
+                    "position_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "loss_profit": loss_profit_normal,
+                    "count_profit_loss": strategy_info["count_profit_loss"],
+                    "stage_profit_loss": strategy_info["stage_profit_loss"],
+                },
+            )
         except Exception as e:
             print(f"处理平仓后数据异常: {e}")
             logging.error(f"处理平仓后数据异常: {e}")

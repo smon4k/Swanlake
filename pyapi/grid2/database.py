@@ -1099,6 +1099,41 @@ class Database:
             if conn:
                 conn.close()
 
+    async def get_latest_open_signal_before_close(
+        self,
+        name: str,
+        symbol: str,
+        position_direction: str,
+        close_signal_id: int,
+    ) -> Optional[Dict]:
+        """
+        平仓后配对用：取「同策略、同币种、同持仓方向」下，当前平仓 id 之前最近一条开仓信号（size=1/-1）。
+        避免误用反向腿或同方向平仓行，修正 pair_id / 开仓价来源。
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT * FROM {table('signals')}
+                    WHERE name = %s AND symbol = %s AND direction = %s
+                      AND size IN (1, -1) AND id < %s
+                    ORDER BY id DESC LIMIT 1
+                """,
+                    (name, symbol, position_direction, close_signal_id),
+                )
+                return cursor.fetchone()
+        except Exception as e:
+            logging.error(
+                f"get_latest_open_signal_before_close failed: {e}",
+                exc_info=True,
+            )
+            return None
+        finally:
+            if conn:
+                conn.close()
+
     async def update_signals_trade_by_id(self, sign_id: int, updates: Dict) -> bool:
         """
         根据id更新策略交易记录（g_signals表）
