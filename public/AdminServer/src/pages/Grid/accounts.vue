@@ -85,7 +85,7 @@ export default {
       pageSize: 10,
       total: 0,
       accountList: [],
-      inst_id: 'BTC-USDT-SWAP',
+      inst_id: '',
       PageSearchWhere: {},
       loading: false,
       addQuantityAccountShow: false,

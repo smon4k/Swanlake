@@ -82,7 +82,7 @@
           <el-table-column prop="amount" label="委托数量" align="center" width="150">
             <template slot-scope="scope">
               <div v-if="scope.row.quantity">
-                <span>{{ keepDecimalNotRounding((scope.row.quantity * Number(symbol_decimal[scope.row.symbol])) *
+                <span>{{ keepDecimalNotRounding((scope.row.quantity * getSymbolDecimal(scope.row.symbol)) *
                   scope.row.price, 4, true) }} USDT</span>
               </div>
               <div v-else>——</div>
@@ -200,6 +200,7 @@ export default {
       symbol_decimal: {
         'BTC-USDT-SWAP': 0.01,
         'ETH-USDT-SWAP': 0.1,
+        'BNB-USDT-SWAP': 1,
       }, //小数位数
       totalProfit: 0,
       strategyOptions: [], // 策略列表
@@ -225,6 +226,9 @@ export default {
     "wbc-page": Page, //加载分页组件
   },
   methods: {
+    getSymbolDecimal(symbol) {
+      return Number(this.symbol_decimal[symbol] || 1);
+    },
     getTradingPairData() { //获取交易币种信息
       get("/Admin/Piggybank/getTradingPairData", {}, json => {
         console.log(json);

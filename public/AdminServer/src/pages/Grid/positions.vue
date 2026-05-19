@@ -260,7 +260,7 @@
     data() {
       return {
           account_id: 1,
-          inst_id: 'BTC-USDT-SWAP',
+          inst_id: '',
           currPage: 1, //当前页
           pageSize: 100, //每页显示条数
           total: 100, //总条数

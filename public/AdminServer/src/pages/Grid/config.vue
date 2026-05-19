@@ -224,8 +224,12 @@
           
           <el-form-item label="交易对" prop="symbol">
             <el-select v-model="tradeForm.symbol" placeholder="请选择交易对">
-              <el-option label="BTC-USDT-SWAP" value="BTC-USDT-SWAP"></el-option>
-              <el-option label="ETH-USDT-SWAP" value="ETH-USDT-SWAP"></el-option>
+              <el-option
+                v-for="symbol in availableSwapSymbols"
+                :key="symbol"
+                :label="symbol"
+                :value="symbol">
+              </el-option>
             </el-select>
           </el-form-item>
           
@@ -285,7 +289,8 @@
             ]
         },
         accountList: [], // 账户列表
-        availableSymbols: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT'],
+        availableSymbols: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT', 'DOGE-USDT'],
+        availableSwapSymbols: ['BTC-USDT-SWAP', 'ETH-USDT-SWAP', 'BNB-USDT-SWAP', 'DOGE-USDT-SWAP'],
         strategyOptions: [],
         DialogTitle: '添加',
         is_save_add_start: 1, //1：添加 2：修改
@@ -306,7 +311,7 @@
         tradeForm: {
           account_id: '',
           name: '',
-          symbol: 'ETH-USDT-SWAP',
+          symbol: '',
           price: 0,
           direction: 'buy', // 默认买入
         },
