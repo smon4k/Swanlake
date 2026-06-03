@@ -32,7 +32,8 @@ class Database:
         self.db_config = db_config
         self.account_cache: Dict[int, dict] = {}  # 账户信息缓存
         self.account_config_cache: Dict[int, dict] = {}  # 账户配置信息缓存
-        self.tactics_accounts_cache: Dict[str, List[int]] = {}  # 策略账户信息缓存
+        self.tactics_symbol_accounts_cache: Dict[tuple[str, str], List[int]] = {}  # 策略+币种账户信息缓存
+        self.tactics_accounts_cache: Dict[str, List[int]] = {}  # 兼容旧逻辑的策略账户缓存
 
     def get_db_connection(self):
         """获取数据库连接"""
@@ -898,12 +899,54 @@ class Database:
             if conn:
                 conn.close()
 
+    @staticmethod
+    def normalize_symbol(symbol: Optional[str]) -> str:
+        """统一币种格式，兼容 BTC-USDT / BTC-USDT-SWAP"""
+        if not symbol:
+            return ""
+        normalized_symbol = str(symbol).upper()
+        if normalized_symbol.endswith("-SWAP"):
+            normalized_symbol = normalized_symbol[:-5]
+        return normalized_symbol
+
+    @staticmethod
+    def parse_json_list(raw_value) -> List:
+        """将数据库中的 JSON 字段安全转换为 list"""
+        if isinstance(raw_value, list):
+            return raw_value
+        if not raw_value:
+            return []
+        try:
+            parsed = json.loads(raw_value)
+            return parsed if isinstance(parsed, list) else []
+        except (TypeError, json.JSONDecodeError):
+            return []
+
+    def merge_symbol_config(self, base_config: Dict, item: Dict) -> Dict:
+        """合并币种项配置，缺失字段回退到账户级旧配置"""
+        merged = dict(item or {})
+        merged["symbol"] = self.normalize_symbol(merged.get("symbol") or base_config.get("symbol"))
+        merged["value"] = merged.get("value", 0)
+        merged["tactics"] = merged.get("tactics")
+
+        for field in ("stop_profit_loss", "grid_step", "commission_price_difference"):
+            if merged.get(field) in (None, ""):
+                merged[field] = base_config.get(field)
+
+        if not merged.get("grid_percent_list"):
+            merged["grid_percent_list"] = self.parse_json_list(base_config.get("grid_percent_list"))
+        else:
+            merged["grid_percent_list"] = self.parse_json_list(merged.get("grid_percent_list"))
+
+        return merged
+
     # 生成一个获取币种最大仓位配置数据，获取g_config里面的max_position_list策略字段数据（[{"symbol":"ETH-USDT","value":"1000","tactics":"Y1.1"},{"symbol":"BTC-USDT","value":"1000","tactics":"Q2.4"}]），检索所有配置数据，将对应的策略对应到指定的用户Id 例如：Y1.1：[account_1, account_2]
     async def get_account_max_position(self) -> Optional[Dict]:
         """
         获取指定账户的最大仓位配置数据
         :return: 最大仓位配置数据
         """
+        conn = None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
@@ -914,28 +957,36 @@ class Database:
                     INNER JOIN {table('config')} c ON a.id = c.account_id
                     WHERE a.status = %s
                 """,
-                    (1),
+                    (1,),
                 )
                 result = cursor.fetchall()
                 if result:
+                    tactics_symbol_accounts = {}
                     tactics_accounts = {}
                     for row in result:
                         account_id = row.get("account_id")
-                        max_position_list = row.get("max_position_list")
-                        if not max_position_list:
-                            continue
-                        max_position_list_arr = json.loads(max_position_list)
-                        # print(max_position_list_arr)
+                        max_position_list_arr = self.parse_json_list(
+                            row.get("max_position_list")
+                        )
                         for pos in max_position_list_arr:
                             tactic = pos.get("tactics")
-                            if tactic:
-                                tactics_accounts.setdefault(tactic, []).append(
-                                    account_id
-                                )
-                    self.tactics_accounts_cache = tactics_accounts
-                    return tactics_accounts
-                else:
-                    return None
+                            normalized_symbol = self.normalize_symbol(pos.get("symbol"))
+                            if not tactic or not normalized_symbol:
+                                continue
+                            tactics_symbol_accounts.setdefault(
+                                (tactic, normalized_symbol), []
+                            ).append(account_id)
+                            tactics_accounts.setdefault(tactic, []).append(account_id)
+                    self.tactics_symbol_accounts_cache = {
+                        key: list(dict.fromkeys(account_ids))
+                        for key, account_ids in tactics_symbol_accounts.items()
+                    }
+                    self.tactics_accounts_cache = {
+                        tactic: list(dict.fromkeys(account_ids))
+                        for tactic, account_ids in tactics_accounts.items()
+                    }
+                    return tactics_symbol_accounts
+                return None
         except Exception as e:
             print(f"获取最大仓位配置数据失败: {e}")
             logging.error(f"获取最大仓位配置数据失败: {e}")
@@ -953,78 +1004,50 @@ class Database:
         :param symbol: 币种
         :return: 对应的tactics，如果没有则返回None
         """
-        try:
-            conn = self.get_db_connection()
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
-                    SELECT max_position_list
-                    FROM {table('config')}
-                    WHERE account_id = %s
-                """,
-                    (account_id,),
-                )
-                result = cursor.fetchone()
-                if result and result.get("max_position_list"):
-                    max_position_list = json.loads(result["max_position_list"])
-                    for item in max_position_list:
-                        if item.get("symbol") == symbol:
-                            tactics = item.get("tactics")
-                            logging.debug(
-                                f"✅ 找到策略配置: 账户={account_id}, 币种={symbol}, "
-                                f"策略={tactics}"
-                            )
-                            return tactics
-
-                logging.warning(f"⚠️ 未找到策略配置: 账户={account_id}, 币种={symbol}")
-                return None
-        except Exception as e:
-            logging.error(
-                f"❌ 获取策略配置失败: 账户={account_id}, 币种={symbol}, 错误={e}",
-                exc_info=True,
+        config = await self.get_config_by_account_and_symbol(account_id, symbol)
+        tactics = (config or {}).get("tactics")
+        normalized_symbol = self.normalize_symbol(symbol)
+        if tactics:
+            logging.debug(
+                f"✅ 找到策略配置: 账户={account_id}, 币种={normalized_symbol}, 策略={tactics}"
             )
-            return None
-        finally:
-            if conn:
-                conn.close()
+            return tactics
+
+        logging.warning(f"⚠️ 未找到策略配置: 账户={account_id}, 币种={normalized_symbol}")
+        return None
 
     async def get_config_by_account_and_symbol(
         self, account_id: int, symbol: str
     ) -> Optional[Dict]:
         """
-        获取配置表中指定用户和指定币种的max_position_list下面对应的配置数据
+        获取配置表中指定用户和指定币种的max_position_list下面对应的完整配置数据
         :param account_id: 用户ID
         :param symbol: 币种
         :return: 对应的配置数据，如果没有则返回None
         """
-        symbol_tactics = symbol
-        if symbol.endswith("-SWAP"):
-            symbol_tactics = symbol.replace("-SWAP", "")
+        normalized_symbol = self.normalize_symbol(symbol)
         try:
-            conn = self.get_db_connection()
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
-                    SELECT max_position_list
-                    FROM {table('config')}
-                    WHERE account_id = %s
-                """,
-                    (account_id,),
-                )
-                result = cursor.fetchone()
-                if result and result.get("max_position_list"):
-                    max_position_list = json.loads(result["max_position_list"])
-                    for item in max_position_list:
-                        if item.get("symbol") == symbol_tactics:
-                            return item
+            base_config = self.account_config_cache.get(account_id)
+            if not base_config:
+                base_config = await self.get_config_by_account_id(account_id)
+
+            if not base_config:
+                logging.warning(f"⚠️ 未找到账户配置: 账户={account_id}")
                 return None
+
+            max_position_list = self.parse_json_list(base_config.get("max_position_list"))
+            for item in max_position_list:
+                if self.normalize_symbol(item.get("symbol")) == normalized_symbol:
+                    return self.merge_symbol_config(base_config, item)
+
+            logging.warning(
+                f"⚠️ 未找到币种配置: 账户={account_id}, 币种={normalized_symbol}"
+            )
+            return None
         except Exception as e:
             print(f"获取配置数据失败: {e}")
             logging.error(f"获取配置数据失败: {e}")
             return None
-        finally:
-            if conn:
-                conn.close()
 
     async def insert_strategy_trade(self, trade_data: Dict) -> Dict:
         """

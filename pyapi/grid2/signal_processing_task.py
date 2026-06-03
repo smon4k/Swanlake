@@ -538,13 +538,18 @@ class SignalProcessingTask:
             signal_id = signal["id"]
             logging.info(f"🚦 开始处理信号 {signal_id} ...")
 
-            if signal["name"] not in self.db.tactics_accounts_cache:
-                logging.info("🚫 无对应账户策略信号")
+            normalized_symbol = self.db.normalize_symbol(signal["symbol"])
+            account_list = self.db.tactics_symbol_accounts_cache.get(
+                (signal["name"], normalized_symbol), []
+            )
+            if not account_list:
+                logging.info(
+                    f"🚫 无对应账户策略信号: 策略={signal['name']}, 币种={normalized_symbol}"
+                )
                 self._update_signal_status(signal_id, "processed")
                 return
 
             is_close_signal = self._is_close_signal(signal)
-            account_list = self.db.tactics_accounts_cache[signal["name"]]
 
             if not is_close_signal:
                 prev_same_open = self._get_previous_same_open_signal(
@@ -1427,10 +1432,17 @@ class SignalProcessingTask:
 
             # 2. 计算开仓量
             # price = await get_market_price(exchange, symbol)
-            commission_price_difference = Decimal(
-                self.db.account_config_cache[account_id].get(
-                    "commission_price_difference"
+            symbol_config = await self.db.get_config_by_account_and_symbol(
+                account_id, symbol
+            )
+            if not symbol_config:
+                logging.error(
+                    f"🚫 未找到完整币种配置: 账户={account_id}, 币种={symbol}"
                 )
+                return
+
+            commission_price_difference = Decimal(
+                str(symbol_config.get("commission_price_difference", 0))
             )
             price_float = price * (
                 commission_price_difference / 100

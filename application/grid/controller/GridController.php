@@ -89,6 +89,55 @@ class GridController extends BaseController
         return $this->as_json(['page'=>$page, 'allpage'=>$allpage, 'count'=>$count, 'data'=>$lists]);
     }
 
+
+    private function hasConfigValue($value) {
+        return !($value === '' || $value === null);
+    }
+
+    private function normalizeGridPercentList($gridPercentList) {
+        if (!is_array($gridPercentList)) {
+            return [];
+        }
+        return array_values(array_filter($gridPercentList, function ($item) {
+            return is_array($item) && !empty($item['direction']);
+        }));
+    }
+
+    private function normalizeMaxPositionList($maxPositionList, $fallbacks = []) {
+        if (!is_array($maxPositionList)) {
+            return [];
+        }
+
+        $normalizedList = [];
+        foreach ($maxPositionList as $item) {
+            if (!is_array($item) || empty($item['symbol']) || empty($item['tactics'])) {
+                continue;
+            }
+
+            $itemGridPercentList = $this->normalizeGridPercentList($item['grid_percent_list'] ?? []);
+            if (count($itemGridPercentList) <= 0) {
+                $itemGridPercentList = $this->normalizeGridPercentList($fallbacks['grid_percent_list'] ?? []);
+            }
+
+            $normalizedList[] = array_merge($item, [
+                'stop_profit_loss' => $this->hasConfigValue($item['stop_profit_loss'] ?? null) ? $item['stop_profit_loss'] : ($fallbacks['stop_profit_loss'] ?? ''),
+                'grid_step' => $this->hasConfigValue($item['grid_step'] ?? null) ? $item['grid_step'] : ($fallbacks['grid_step'] ?? ''),
+                'commission_price_difference' => $this->hasConfigValue($item['commission_price_difference'] ?? null) ? $item['commission_price_difference'] : ($fallbacks['commission_price_difference'] ?? ''),
+                'grid_percent_list' => $itemGridPercentList,
+            ]);
+        }
+
+        return $normalizedList;
+    }
+
+    private function validateRobotConfigPayload($accountId, $multiple, $positionPercent, $totalPosition, $maxPositionList) {
+        if ($accountId <= 0 || !$this->hasConfigValue($multiple) || !$this->hasConfigValue($positionPercent) || !$this->hasConfigValue($totalPosition)) {
+            return false;
+        }
+
+        return count($maxPositionList) > 0;
+    }
+
      /**
      * 添加机器人配置
      * @param Request $request
@@ -106,8 +155,16 @@ class GridController extends BaseController
         $max_position_list = $request->post('max_position_list/a', '', 'trim');
         $grid_percent_list = $request->post('grid_percent_list/a', '', 'trim');
 
-        // 验证参数是否为空
-        if ($account_id <= 0 || !$multiple || !$position_percent || !$total_position || !$stop_profit_loss || !$grid_step || !$commission_price_difference || count((array)$max_position_list) <= 0 || count((array)$grid_percent_list) <= 0) {
+        $fallbacks = [
+            'stop_profit_loss' => $stop_profit_loss,
+            'grid_step' => $grid_step,
+            'commission_price_difference' => $commission_price_difference,
+            'grid_percent_list' => $grid_percent_list,
+        ];
+        $normalized_max_position_list = $this->normalizeMaxPositionList($max_position_list, $fallbacks);
+        $normalized_grid_percent_list = $this->normalizeGridPercentList($grid_percent_list);
+
+        if (!$this->validateRobotConfigPayload($account_id, $multiple, $position_percent, $total_position, $normalized_max_position_list)) {
             return $this->as_json('70001', 'Missing parameters');
         }
 
@@ -118,8 +175,8 @@ class GridController extends BaseController
             'total_position' => $total_position,
             'stop_profit_loss' => $stop_profit_loss,
             'grid_step' => $grid_step,
-            'max_position_list' => json_encode($max_position_list, JSON_UNESCAPED_UNICODE),
-            'grid_percent_list' => json_encode($grid_percent_list, JSON_UNESCAPED_UNICODE), 
+            'max_position_list' => json_encode($normalized_max_position_list, JSON_UNESCAPED_UNICODE),
+            'grid_percent_list' => json_encode($normalized_grid_percent_list, JSON_UNESCAPED_UNICODE), 
             'commission_price_difference' => $commission_price_difference,
             'is_active' => 1,
         ];
@@ -149,8 +206,16 @@ class GridController extends BaseController
         $max_position_list = $request->post('max_position_list/a', '', 'trim');
         $grid_percent_list = $request->post('grid_percent_list/a', '', 'trim');
 
-        // 验证参数是否为空
-        if ($id <= 0 || $account_id <= 0 || !$multiple || !$position_percent || !$total_position || !$stop_profit_loss || !$grid_step || !$commission_price_difference || count($max_position_list) <= 0 || count($grid_percent_list) <= 0) {
+        $fallbacks = [
+            'stop_profit_loss' => $stop_profit_loss,
+            'grid_step' => $grid_step,
+            'commission_price_difference' => $commission_price_difference,
+            'grid_percent_list' => $grid_percent_list,
+        ];
+        $normalized_max_position_list = $this->normalizeMaxPositionList($max_position_list, $fallbacks);
+        $normalized_grid_percent_list = $this->normalizeGridPercentList($grid_percent_list);
+
+        if ($id <= 0 || !$this->validateRobotConfigPayload($account_id, $multiple, $position_percent, $total_position, $normalized_max_position_list)) {
             return $this->as_json('70001', 'Missing parameters');
         }
         $data = [
@@ -160,8 +225,8 @@ class GridController extends BaseController
             'total_position' => $total_position,
             'stop_profit_loss' => $stop_profit_loss,
             'grid_step' => $grid_step,
-            'max_position_list' => json_encode($max_position_list, JSON_UNESCAPED_UNICODE),
-            'grid_percent_list' => json_encode($grid_percent_list, JSON_UNESCAPED_UNICODE), 
+            'max_position_list' => json_encode($normalized_max_position_list, JSON_UNESCAPED_UNICODE),
+            'grid_percent_list' => json_encode($normalized_grid_percent_list, JSON_UNESCAPED_UNICODE), 
             'commission_price_difference' => $commission_price_difference,
             'updated_at' => date('Y-m-d H:i:s'), 
         ];
