@@ -94,10 +94,11 @@ class PositionService:
     
     async def get_positions_history(self, account_id: int, inst_id: Optional[str], inst_type: str, limit: str, after: str = None, before: str = None):
         try:
+            normalized_inst_id = (inst_id or "").strip() or None
             result = await fetch_positions_history(
                 self,
                 account_id=account_id,
-                inst_id=inst_id,
+                inst_id=normalized_inst_id,
                 inst_type=inst_type,
                 limit=limit,
                 after=after,
@@ -110,11 +111,12 @@ class PositionService:
 
     async def get_current_positions(self, account_id: int, inst_id: Optional[str], inst_type: str):
         try:
+            normalized_inst_id = (inst_id or "").strip() or None
             # 获取当前持仓数据
             result = await fetch_current_positions(
                 self,  # 如果将来有 bot 实例，这里可传入
                 account_id=account_id,
-                symbol=inst_id,
+                symbol=normalized_inst_id,
                 inst_type=inst_type
             )
 

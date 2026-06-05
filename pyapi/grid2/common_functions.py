@@ -1039,32 +1039,26 @@ async def fetch_positions_history(
     if not exchange:
         return []
 
-    history = []
-    while True:
-        try:
-            params = {
-                "instType": inst_type,
-                "after": after,
-                "before": before,
-            }
+    normalized_inst_id = (inst_id or "").strip() or None
 
-            # 调用交易所接口获取历史持仓
-            result = await exchange.fetch_positions_history(
-                [inst_id], None, limit, params
-            )
+    try:
+        params = {
+            "instType": inst_type,
+            "after": after,
+            "before": before,
+        }
 
-            # 如果返回结果为空，说明已经获取完所有数据
-            if not result:
-                break
+        symbols = [normalized_inst_id] if normalized_inst_id else None
+        result = await exchange.fetch_positions_history(symbols, None, limit, params)
+        return result or []
 
-            return result
-
-        except Exception as e:
-            # print(f"获取历史持仓失败: {e}")
-            logging.error(f"获取历史持仓失败: {e}")
-            break
-        finally:
-            await exchange.close()
+    except Exception as e:
+        logging.error(
+            f"获取历史持仓失败: 账户={account_id}, 币种={normalized_inst_id or 'ALL'}, 错误={e}"
+        )
+        return []
+    finally:
+        await exchange.close()
 
 
 async def fetch_current_positions(
@@ -1090,10 +1084,18 @@ async def fetch_current_positions(
             logging.error(f"❌ 获取持仓失败：无法获取交易所对象 - 账户={account_id}")
             raise Exception("无法获取交易所对象")
 
-        logging.debug(f"🔍 查询当前持仓: 账户={account_id}, 币种={symbol}")
-        positions = await current_exchange.fetch_positions_for_symbol(
-            symbol, {"instType": inst_type}
+        normalized_symbol = (symbol or "").strip() or None
+        logging.debug(
+            f"🔍 查询当前持仓: 账户={account_id}, 币种={normalized_symbol or 'ALL'}"
         )
+        if normalized_symbol:
+            positions = await current_exchange.fetch_positions_for_symbol(
+                normalized_symbol, {"instType": inst_type}
+            )
+        else:
+            positions = await current_exchange.fetch_positions(
+                None, {"instType": inst_type}
+            )
 
         # 统计持仓信息
         position_summary = []
@@ -1106,17 +1108,19 @@ async def fetch_current_positions(
 
         if position_summary:
             logging.debug(
-                f"📊 查询到持仓: 账户={account_id}, 币种={symbol}, "
+                f"📊 查询到持仓: 账户={account_id}, 币种={normalized_symbol or 'ALL'}, "
                 f"详情=[{', '.join(position_summary)}]"
             )
         else:
-            logging.debug(f"📭 无持仓: 账户={account_id}, 币种={symbol}")
+            logging.debug(
+                f"📭 无持仓: 账户={account_id}, 币种={normalized_symbol or 'ALL'}"
+            )
 
         return positions
 
     except Exception as e:
         logging.error(
-            f"❌ 获取当前持仓失败: 账户={account_id}, 币种={symbol}, 错误={e}",
+            f"❌ 获取当前持仓失败: 账户={account_id}, 币种={normalized_symbol or 'ALL'}, 错误={e}",
             exc_info=True,
         )
         return []
