@@ -4,7 +4,7 @@ from decimal import Decimal
 import logging
 import os
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import redis
 import json
 from database import Database
@@ -63,11 +63,11 @@ class SignalProcessingTask:
     def record_trade_error_context(
         self,
         account_id: int,
-        error_code: str | None = None,
-        error_message: str | None = None,
-        error_detail: str | None = None,
-        failure_stage: str | None = None,
-        last_order_id: str | None = None,
+        error_code: Optional[str] = None,
+        error_message: Optional[str] = None,
+        error_detail: Optional[str] = None,
+        failure_stage: Optional[str] = None,
+        last_order_id: Optional[str] = None,
     ) -> None:
         """缓存单账户最近一次交易失败上下文，供主流程和恢复流程复用。"""
         self.last_trade_error_context[account_id] = {

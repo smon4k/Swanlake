@@ -25,6 +25,7 @@ from trading_bot_config import TradingBotConfig
 from stop_loss_task import StopLossTask
 from savings_task import SavingsTask
 import traceback
+from typing import Optional
 
 # ✅ 方案1：导入 SignalProcessingTask，用于调用 cleanup_opposite_positions
 # 注意：避免循环导入，需要在运行时注入
@@ -2354,7 +2355,7 @@ class PriceMonitoringTask:
         return retry_steps[min(retry_count - 1, len(retry_steps) - 1)]
 
     async def _sync_signal_recovery_state(
-        self, signal_id: int, recovered_account_id: int | None = None
+        self, signal_id: int, recovered_account_id: Optional[int] = None
     ):
         """根据恢复表最新状态回写 g_signals 的 success_accounts / failed_accounts / status。"""
         unresolved_tasks = await self.db.get_signal_recovery_tasks(
