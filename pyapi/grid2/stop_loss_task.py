@@ -233,7 +233,7 @@ class StopLossTask:
             all_positions = await fetch_positions_with_retry(
                 exchange=exchange,
                 account_id=account_id,
-                symbol="",
+                symbol=None,
                 params={"instType": "SWAP"},
                 api_limiter=self.api_limiter,
             )

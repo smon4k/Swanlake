@@ -756,7 +756,7 @@ async def fetch_positions_with_retry(
 
             # 添加超时控制
             positions = await asyncio.wait_for(
-                exchange.fetch_positions(symbol, params), timeout=timeout
+                exchange.fetch_positions(symbol or None, params), timeout=timeout
             )
 
             logging.debug(f"✅ 账户 {account_id} 获取持仓成功: {len(positions)} 个持仓")

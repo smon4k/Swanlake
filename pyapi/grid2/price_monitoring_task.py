@@ -620,7 +620,7 @@ class PriceMonitoringTask:
                 all_positions = await fetch_positions_with_retry(
                     exchange=exchange,
                     account_id=account_id,
-                    symbol="",
+                    symbol=None,
                     params={"instType": "SWAP"},
                     retries=3,
                     api_limiter=self.api_limiter,
