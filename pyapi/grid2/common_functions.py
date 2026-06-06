@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import re
 import time
 from typing import Dict, Tuple
 import ccxt.async_support as ccxt
@@ -204,6 +205,18 @@ async def get_client_order_id(prefix: str = "Zx"):
     return client_order_id
 
 
+def _extract_trade_error_context(error_obj):
+    """从交易所异常字符串中提取错误码、错误信息和原始错误详情。"""
+    error_detail = str(error_obj)
+    error_code = None
+    match = re.search(r'"sCode":"(\d+)"', error_detail)
+    if match:
+        error_code = match.group(1)
+    msg_match = re.search(r'"sMsg":"([^"]+)"', error_detail)
+    error_message = msg_match.group(1) if msg_match else error_detail[:255]
+    return error_code, error_message, error_detail
+
+
 async def open_position(
     self,
     account_id: int,
@@ -374,6 +387,14 @@ async def open_position(
                         await asyncio.sleep(wait_time)
                         continue  # 继续重试
 
+                    if hasattr(self, "record_trade_error_context"):
+                        self.record_trade_error_context(
+                            account_id,
+                            error_code=error_code,
+                            error_message=error_msg,
+                            error_detail=str(order.get("info")),
+                            failure_stage="open_position",
+                        )
                     logging.error(
                         f"❌ 下单失败: 账户={account_id}, 币种={symbol}, "
                         f"错误码={error_code}, 错误信息={error_msg}"
@@ -435,6 +456,17 @@ async def open_position(
                     await asyncio.sleep(wait_time)
                     continue  # 继续重试
 
+                if hasattr(self, "record_trade_error_context"):
+                    error_code, error_message, error_detail = (
+                        _extract_trade_error_context(e)
+                    )
+                    self.record_trade_error_context(
+                        account_id,
+                        error_code=error_code,
+                        error_message=error_message,
+                        error_detail=error_detail,
+                        failure_stage="open_position",
+                    )
                 logging.error(
                     f"❌ 下单异常: 账户={account_id}, 币种={symbol}, 方向={side}, 错误={e}",
                     exc_info=True,
@@ -617,6 +649,7 @@ async def cleanup_opposite_positions(
 
 # 在 common_functions.py 中修改这个函数
 
+
 async def milliseconds_to_local_datetime(milliseconds: int) -> str:
     """
     将毫秒时间戳转换为 UTC 时间的字符串格式
@@ -627,15 +660,15 @@ async def milliseconds_to_local_datetime(milliseconds: int) -> str:
     if not milliseconds or milliseconds <= 0:
         # 返回当前时间作为默认值
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
     try:
         # 将毫秒时间戳转换为秒
         seconds = int(milliseconds) / 1000.0
-        
+
         # ✅ 添加时间戳有效性检查（防止年份过小或过大）
         if seconds < 0 or seconds > 253402300799:  # 检查是否在合理范围内
             return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         # 转换为 UTC 时间
         utc_time = datetime.fromtimestamp(seconds, tz=timezone.utc)
         # 格式化为字符串

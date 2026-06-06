@@ -53,9 +53,126 @@ class SignalProcessingTask:
         self.active_tasks: set[asyncio.Task] = set()  # 用于跟踪正在运行的任务
         self.market_precision_cache = {}  # 市场精度缓存
         self.api_limiter = api_limiter  # 全局API限流器
+        self.recovery_max_retry_count = 3
+        self.hard_error_codes = {"51010", "50113", "50114", "51000", "51131"}
+        self.last_trade_error_context: dict[int, dict] = {}
 
         # ✅ 【新增】任务协调标志
         self.signal_processing_active = signal_processing_active
+
+    def record_trade_error_context(
+        self,
+        account_id: int,
+        error_code: str | None = None,
+        error_message: str | None = None,
+        error_detail: str | None = None,
+        failure_stage: str | None = None,
+        last_order_id: str | None = None,
+    ) -> None:
+        """缓存单账户最近一次交易失败上下文，供主流程和恢复流程复用。"""
+        self.last_trade_error_context[account_id] = {
+            "error_code": error_code,
+            "error_message": error_message,
+            "error_detail": error_detail,
+            "failure_stage": failure_stage or "open_position",
+            "last_order_id": last_order_id,
+        }
+
+    def pop_trade_error_context(self, account_id: int) -> dict:
+        """取出并清空账户最近一次交易失败上下文，避免旧错误串到新信号。"""
+        return self.last_trade_error_context.pop(account_id, {}) or {}
+
+    async def _get_eligible_accounts_for_signal(
+        self, account_list: list[int], signal: Dict[str, Any]
+    ) -> tuple[list[int], list[int]]:
+        """筛选当前信号真正可执行的账户，跳过冻结账户和已有同向持仓账户。"""
+        eligible_accounts = []
+        skipped_accounts = []
+        is_close_signal = self._is_close_signal(signal)
+
+        for account_id in account_list:
+            if await self.db.is_account_trade_blocked(account_id) and not is_close_signal:
+                logging.warning(
+                    f"⏭️ 账户 {account_id} 已冻结，跳过开仓信号 {signal['id']}"
+                )
+                continue
+
+            if not is_close_signal:
+                try:
+                    positions = await fetch_current_positions(
+                        self, account_id, signal["symbol"], "SWAP"
+                    )
+                except Exception as e:
+                    logging.error(
+                        f"❌ 检查账户持仓异常: account_id={account_id}, signal_id={signal['id']}, err={e}",
+                        exc_info=True,
+                    )
+                    positions = []
+
+                same_direction = False
+                for pos in positions or []:
+                    pos_side = (pos.get("side") or pos.get("posSide") or "").lower()
+                    pos_size = Decimal(
+                        str(pos.get("contracts") or pos.get("positionAmt") or 0)
+                    )
+                    if (
+                        pos_side == (signal.get("direction") or "").lower()
+                        and abs(pos_size) > 0
+                    ):
+                        same_direction = True
+                        break
+
+                if same_direction:
+                    logging.info(
+                        f"⏭️ 账户 {account_id} 已有同方向持仓，跳过新开仓信号 {signal['id']}"
+                    )
+                    skipped_accounts.append(account_id)
+                    continue
+
+            eligible_accounts.append(account_id)
+
+        return eligible_accounts, skipped_accounts
+
+    async def _mark_partial_signal_and_enqueue_recovery(
+        self,
+        signal: Dict[str, Any],
+        success_accounts: list[int],
+        failed_accounts: list[dict],
+    ) -> None:
+        """将主信号标记为 partial，并把失败账户下沉到恢复任务表。"""
+        signal_id = signal["id"]
+        try:
+            await self.db.create_signal_recovery_tasks(
+                signal, failed_accounts, max_retry_count=self.recovery_max_retry_count
+            )
+            conn = self.db.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """UPDATE g_signals
+                       SET status='partial',
+                           success_accounts=%s,
+                           failed_accounts=%s,
+                           pair_id=%s,
+                           last_update_time=NOW()
+                       WHERE id=%s""",
+                    (
+                        json.dumps(success_accounts),
+                        json.dumps(failed_accounts),
+                        signal_id,
+                        signal_id,
+                    ),
+                )
+            conn.commit()
+            conn.close()
+            logging.info(
+                f"⚠️ 信号 {signal_id} 进入 partial: 成功={len(success_accounts)}, 失败={len(failed_accounts)}"
+            )
+        except Exception as e:
+            logging.error(
+                f"❌ 写入 partial/恢复任务失败: signal_id={signal_id}, err={e}",
+                exc_info=True,
+            )
+            self._update_signal_status(signal_id, "failed")
 
     async def signal_processing_task(self):
         """信号调度任务，支持多个信号并发"""
@@ -171,14 +288,7 @@ class SignalProcessingTask:
             try:
                 logging.info(f"🎯 账户 {account_id} 开始执行信号 {signal['id']}")
 
-                await self.process_signal(signal, account_id)
-
-                return {
-                    "success": True,
-                    "msg": "ok",
-                    "account_id": account_id,
-                    "data": None,
-                }
+                return await self.process_signal(signal, account_id)
 
             except Exception as e:
                 logging.error(f"❌ 账户 {account_id} 信号处理失败: {e}")
@@ -251,10 +361,12 @@ class SignalProcessingTask:
                         results[acc_id] = result
                         logging.info(f"    ✅ 账户 {acc_id} 成功")
                     else:
-                        next_remaining.append(acc_id)
+                        if result.get("retryable", True):
+                            next_remaining.append(acc_id)
                         logging.warning(
                             f"    ⚠️ 账户 {acc_id} 失败: {result.get('msg', 'unknown')}"
                         )
+                        results[acc_id] = result
 
                 # ✅ 批与批之间加小延迟（给 OKX API 恢复时间，不影响首次请求）
                 if i + batch_size < len(remaining_accounts):
@@ -554,28 +666,10 @@ class SignalProcessingTask:
                     signal_id,
                 )
                 if prev_same_open:
-                    if prev_same_open.get("status") == "processing":
-                        logging.warning(
-                            f"⏭️ 忽略开仓信号 {signal_id}：上一条同策略同币种同方向开仓仍在 processing "
-                            f"(prev_id={prev_same_open.get('id')}, "
-                            f"symbol={signal['symbol']}, direction={signal['direction']})"
-                        )
-                        self._update_signal_status(signal_id, "processed")
-                        return
-
-                    has_same_direction_position = (
-                        await self._has_same_direction_position_any_account(
-                            account_list, signal["symbol"], signal["direction"]
-                        )
+                    logging.info(
+                        f"ℹ️ 检测到上一条同方向开仓信号: prev_id={prev_same_open.get('id')}, "
+                        f"status={prev_same_open.get('status')}，本次按账户真实持仓继续处理"
                     )
-                    if has_same_direction_position:
-                        logging.warning(
-                            f"⏭️ 忽略开仓信号 {signal_id}：上一条同方向信号仍有持仓 "
-                            f"(prev_id={prev_same_open.get('id')}, "
-                            f"symbol={signal['symbol']}, direction={signal['direction']})"
-                        )
-                        self._update_signal_status(signal_id, "processed")
-                        return
 
             # ✅ 平仓防抖：若1分钟内已有同策略进场信号，则忽略本次平仓
             if is_close_signal:
@@ -591,83 +685,112 @@ class SignalProcessingTask:
                     self._update_signal_status(signal_id, "processed")
                     return
 
-            # ✅ 【关键】检查并处理前置 processing 信号（排除当前信号）
-            prev_signal = self._check_previous_processing_signal(
-                signal["name"], signal_id
+            eligible_accounts, skipped_accounts = await self._get_eligible_accounts_for_signal(
+                account_list, signal
             )
-            if prev_signal:
-                prev_signal_id = prev_signal["id"]
-                logging.warning(
-                    f"⚠️ 检测到前置信号 {prev_signal_id} 处于 processing 状态"
-                )
-                # 新信号来了，前置信号立即标记为 failed（不再被 price_monitoring 处理）
-                self._mark_signal_failed(prev_signal_id)
-                logging.warning(
-                    f"🔄 新信号 {signal_id} 覆盖旧信号 {prev_signal_id}，"
-                    f"旧信号标记为 failed，不再恢复处理"
-                )
-
-            # ✅ 获取全量账户列表（新信号优先，不考虑前置信号）
 
             logging.info(
                 f"📢 信号 {signal.get('name')} (ID={signal_id}) "
                 f"{'平仓' if is_close_signal else '开仓'} "
-                f"账户: {account_list}"
+                f"账户: {eligible_accounts}"
             )
 
-            # ✅ 处理账户（全量处理，新信号为主导）
+            if not eligible_accounts:
+                logging.info(f"ℹ️ 信号 {signal_id} 无可执行账户，直接标记 processed")
+                self._update_signal_full_success(signal_id, [])
+                return
+
             results = await self._process_accounts_with_retry(
-                signal, account_list, batch_size=8, max_retries=3
+                signal, eligible_accounts, batch_size=8, max_retries=3
             )
 
-            # ✅ 分类成功和失败
             success_accounts = []
-            failed_accounts = []
+            execution_failed_accounts = []
 
             for acc_id, res in results.items():
                 if isinstance(res, Exception):
                     logging.error(f"❌ 账户 {acc_id} 执行异常: {res}")
-                    failed_accounts.append(acc_id)
+                    execution_failed_accounts.append(
+                        {
+                            "account_id": acc_id,
+                            "failure_stage": "dispatch",
+                            "error_message": str(res),
+                            "status": "pending",
+                        }
+                    )
                 elif not res.get("success", False):
                     logging.warning(
                         f"⚠️ 账户 {acc_id} 执行失败: {res.get('msg', 'unknown')}"
                     )
-                    failed_accounts.append(acc_id)
+                    err_ctx = res.get("error_context") or self.pop_trade_error_context(
+                        acc_id
+                    )
+                    execution_failed_accounts.append(
+                        {
+                            "account_id": acc_id,
+                            "failure_stage": err_ctx.get("failure_stage", "dispatch"),
+                            "error_code": err_ctx.get("error_code"),
+                            "error_message": err_ctx.get("error_message")
+                            or res.get("msg"),
+                            "error_detail": err_ctx.get("error_detail"),
+                            "last_order_id": err_ctx.get("last_order_id"),
+                            "status": "pending",
+                        }
+                    )
                 else:
                     success_accounts.append(acc_id)
 
-            # ✅ 执行平仓逻辑
             if is_close_signal:
-                if not failed_accounts or len(success_accounts) > 0:
+                if not execution_failed_accounts or len(success_accounts) > 0:
                     logging.info(f"✅ 平仓信号 {signal_id} 处理完成，执行后续处理")
                     await self.handle_close_position_update(signal)
                 else:
                     logging.error(f"❌ 平仓信号 {signal_id} 全部失败，跳过后续处理")
 
-            # ✅ 验证仓位并收集失败账户
             logging.info(f"📊 开始验证信号 {signal_id} 中账户的执行情况...")
-            position_failed_accounts = (
-                await self._verify_positions_and_collect_failures(
-                    signal, account_list, results
-                )
+            position_failed_accounts = await self._verify_positions_and_collect_failures(
+                signal, eligible_accounts, results
             )
 
-            # ✅ 更新信号状态
-            if not position_failed_accounts:
-                # 全部成功
-                self._update_signal_full_success(signal_id, success_accounts)
+            merged_failed_accounts = {}
+            for item in execution_failed_accounts + position_failed_accounts:
+                account_id = item.get("account_id")
+                if account_id is None:
+                    continue
+                merged = merged_failed_accounts.get(account_id, {})
+                merged.update(item)
+                merged.setdefault("account_id", account_id)
+                merged.setdefault("direction", signal.get("direction"))
+                merged.setdefault("symbol", signal.get("symbol"))
+                merged.setdefault("price", float(signal.get("price") or 0))
+                merged.setdefault("size", signal.get("size"))
+                merged.setdefault(
+                    "signal_type", "close" if is_close_signal else "open"
+                )
+                merged.setdefault("status", "pending")
+                merged_failed_accounts[account_id] = merged
+
+            final_failed_accounts = list(merged_failed_accounts.values())
+            final_success_accounts = sorted(set(success_accounts + skipped_accounts))
+
+            if len(final_failed_accounts) == len(eligible_accounts) and not final_success_accounts:
+                self._update_signal_status(signal_id, "failed")
+                logging.error(f"❌ 信号 {signal_id} 全部失败，状态改为 failed")
+            elif not final_failed_accounts:
+                self._update_signal_full_success(signal_id, final_success_accounts)
                 logging.info(f"✅ 信号 {signal_id} 全部成功，状态改为 processed")
             else:
-                # 部分失败：保持 processing，记录成功和失败账户
-                self._update_signal_partial_success(
-                    signal_id,
-                    success_accounts,
-                    position_failed_accounts,
-                    pair_id=signal.get("id"),
-                )
-                logging.warning(
-                    f"⚠️ 信号 {signal_id} 部分失败({len(position_failed_accounts)}个)，"
-                    f"状态保持processing，等待恢复"
+                for item in final_failed_accounts:
+                    if item.get("error_code") in self.hard_error_codes:
+                        reason = (
+                            item.get("error_message")
+                            or item.get("error_detail")
+                            or "hard_error"
+                        )
+                        await self.db.block_account_trade(item["account_id"], reason)
+                        item["status"] = "blocked"
+                await self._mark_partial_signal_and_enqueue_recovery(
+                    signal, final_success_accounts, final_failed_accounts
                 )
 
         except Exception as e:
@@ -715,34 +838,10 @@ class SignalProcessingTask:
     def _update_signal_partial_success(
         self, signal_id, success_accounts, failed_accounts, pair_id=None
     ):
-        """信号部分失败：记录成功和失败账户，状态保持processing"""
-        try:
-            conn = self.db.get_db_connection()
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    """UPDATE g_signals 
-                       SET status='processing',
-                           success_accounts=%s,
-                           failed_accounts=%s,
-                           pair_id=%s,
-                           last_update_time=NOW()
-                       WHERE id=%s""",
-                    (
-                        json.dumps(success_accounts),
-                        json.dumps(failed_accounts),
-                        pair_id or signal_id,
-                        signal_id,
-                    ),
-                )
-            conn.commit()
-            conn.close()
-            logging.info(
-                f"⚠️ 信号 {signal_id} 部分成功: "
-                f"成功={len(success_accounts)}, 失败={len(failed_accounts)}, "
-                f"状态=processing（等待恢复）"
-            )
-        except Exception as e:
-            logging.error(f"❌ 更新信号 {signal_id} 部分成功状态失败: {e}")
+        """兼容旧调用，新的 partial 逻辑由 _mark_partial_signal_and_enqueue_recovery 负责。"""
+        logging.warning(
+            f"⚠️ _update_signal_partial_success 已废弃，请改用 partial + recovery task 流程: signal_id={signal_id}"
+        )
 
     async def process_signal(
         self, signal: Dict[str, Any], account_id: str
@@ -764,17 +863,38 @@ class SignalProcessingTask:
                 logging.warning(f"⚠️ {msg} (account_id={account_id})")
                 return {"account_id": account_id, "success": False, "msg": msg}
             side = "buy" if signal["direction"] == "long" else "sell"  # 'buy' 或 'sell'
+            if signal.get("size") != 0 and await self.db.is_account_trade_blocked(
+                account_id
+            ):
+                msg = "账户已冻结，跳过自动开仓"
+                logging.warning(
+                    f"⚠️ {msg}: account_id={account_id}, signal_id={signal['id']}"
+                )
+                return {
+                    "account_id": account_id,
+                    "success": False,
+                    "msg": msg,
+                    "retryable": False,
+                }
             # Step 2: 根据信号执行动作
             if (side == "buy" and signal["size"] == 1) or (
                 side == "sell" and signal["size"] == -1
             ):  # 开仓
                 open_success = await self._open_position(account_id, signal, account_info)
                 if not open_success:
+                    error_context = self.pop_trade_error_context(account_id)
                     msg = "开仓失败"
                     logging.error(
                         f"❌ 账户 {account_id} 信号 {signal['id']} 处理失败: {msg}"
                     )
-                    return {"account_id": account_id, "success": False, "msg": msg}
+                    return {
+                        "account_id": account_id,
+                        "success": False,
+                        "msg": msg,
+                        "retryable": error_context.get("error_code")
+                        not in self.hard_error_codes,
+                        "error_context": error_context,
+                    }
             elif (side == "buy" and signal["size"] == 0) or (
                 side == "sell" and signal["size"] == 0
             ):  # 平仓
@@ -1393,6 +1513,7 @@ class SignalProcessingTask:
         managed_exchange = False
         try:
             """处理开仓"""
+            self.last_trade_error_context.pop(account_id, None)
             # print(f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}")
             logging.info(
                 f"⚡ 开仓操作: {account_id} {pos_side} {side} {price} {symbol}"
@@ -1559,6 +1680,7 @@ class SignalProcessingTask:
                     }
                 )
                 logging.info(f"用户 {account_id} 开仓成功，订单记录成功")
+                self.last_trade_error_context.pop(account_id, None)
                 return True
             else:
                 # print(f"用户 {account_id} 开仓失败")
