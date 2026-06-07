@@ -66,9 +66,8 @@
       </el-table-column>
       <el-table-column prop="status" label="状态" align="center">
         <template slot-scope="scope">
-          <el-tag
-            :type="scope.row.status === 'pending' ? 'warning' : (scope.row.status === 'processed' ? 'success' : 'info')">
-            {{ scope.row.status === 'pending' ? '进行中' : (scope.row.status === 'processed' ? '已完成' : scope.row.status) }}
+          <el-tag :type="getSignalStatusTagType(scope.row)">
+            {{ getSignalStatusText(scope.row) }}
           </el-tag>
         </template>
       </el-table-column>
@@ -198,24 +197,44 @@ export default {
       return (row.direction || '').toLowerCase() === 'long' ? 'buy' : 'sell';
     },
 
-    getStatusTagType(status) {
+    parseJsonArray(value) {
+      if (!value) return [];
+      if (Array.isArray(value)) return value;
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    },
+
+    getFailedAccountCount(row) {
+      return this.parseJsonArray(row.failed_accounts).length;
+    },
+
+    getSignalStatusTagType(row) {
+      const status = (row.status || '').toLowerCase();
       const statusMap = {
-        'pending': 'warning',
-        'executed': 'success',
-        'canceled': 'info',
-        'failed': 'danger'
+        pending: 'warning',
+        processing: 'warning',
+        partial: '',
+        processed: 'success',
+        failed: 'danger'
       };
       return statusMap[status] || 'info';
     },
 
-    getStatusText(status) {
-      const statusTextMap = {
-        'pending': '待执行',
-        'executed': '已执行',
-        'canceled': '已取消',
-        'failed': '失败'
-      };
-      return statusTextMap[status] || status;
+    getSignalStatusText(row) {
+      const status = (row.status || '').toLowerCase();
+      const failedCount = this.getFailedAccountCount(row);
+
+      if (status === 'pending') return '待处理';
+      if (status === 'processing') return '处理中';
+      if (status === 'processed') return '已完成';
+      if (status === 'failed') return failedCount > 0 ? `失败(${failedCount}账户)` : '失败';
+      if (status === 'partial') return failedCount > 0 ? `部分完成(${failedCount}待恢复)` : '部分完成';
+
+      return row.status || '--';
     },
     limitPaging(limit) {
       //赋值当前条数

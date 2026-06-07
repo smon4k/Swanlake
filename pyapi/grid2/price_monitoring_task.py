@@ -474,8 +474,8 @@ class PriceMonitoringTask:
             current_time = datetime.now()
             time_diff_minutes = (current_time - order_time).total_seconds() / 60
 
-            # 设置时间阈值（10小时）
-            TIME_THRESHOLD = 10 * 60  # 单位：分钟
+            # 设置时间阈值（24小时）
+            TIME_THRESHOLD = 24 * 60  # 单位：分钟
 
             if time_diff_minutes < TIME_THRESHOLD:
                 # 订单刚创建，可能是刚下单未成交的情况，继续等待
@@ -2068,12 +2068,13 @@ class PriceMonitoringTask:
             actual_positions: 实际持仓
             
         Returns:
-            tuple: (should_retry: bool, reason: str)
+            tuple: (should_retry: bool, reason: str, state: str)
+            state 用于区分“真正失败待重试”和“已有挂单等待成交”这两类恢复语义。
         """
         try:
             # 1️⃣ 检查持仓（快速路径）
             if actual_positions is not None and actual_positions > 0:
-                return (False, "已有持仓")
+                return (False, "已有持仓", "has_position")
             
             # 2️⃣ 检查未成交订单（关键检查）
             pending_orders = await self.get_pending_orders(account_id, symbol)
@@ -2084,14 +2085,14 @@ class PriceMonitoringTask:
                 order_time = oldest_order.get('timestamp', 0) / 1000  # 毫秒转秒
                 order_age = time.time() - order_time if order_time > 0 else 0
                 
-                if order_age < 36000:  # 10小时内的挂单，认为是正常的
-                    return (False, f"有新挂单({order_age:.0f}秒)，等待成交")
-                else:  # 超过10小时还没成交
+                if order_age < 86400:  # 24小时内的挂单，认为是正常的
+                    return (False, f"有新挂单({order_age:.0f}秒)，等待成交", "waiting_pending_order")
+                else:  # 超过24小时还没成交
                     # ⚠️ 这里可以选择取消旧订单，但为了安全先不自动取消
                     logging.warning(
                         f"⚠️ 账户 {account_id} 有超时挂单({order_age:.0f}秒)，建议人工检查"
                     )
-                    return (False, f"有超时挂单({order_age:.0f}秒)，需人工确认")
+                    return (False, f"有超时挂单({order_age:.0f}秒)，需人工确认", "timed_out_pending_order")
             
             # 3️⃣ 没有持仓也没有挂单，检查最近是否尝试过开仓
             last_attempt = await self.get_last_open_attempt(signal_id, account_id)
@@ -2101,22 +2102,22 @@ class PriceMonitoringTask:
                 
                 # 如果上次尝试很快失败（<30秒），说明是真的失败，立即重试
                 if time_since_attempt < 30 and last_attempt["result"] == "failed":
-                    return (True, f"上次开仓快速失败({time_since_attempt:.0f}秒)，立即重试")
+                    return (True, f"上次开仓快速失败({time_since_attempt:.0f}秒)，立即重试", "retry_now")
                 
-                # 如果上次尝试是10小时内，可能是订单挂出去了但API延迟查不到
-                if time_since_attempt < 36000:
-                    return (False, f"上次尝试仅{time_since_attempt:.0f}秒，给API查询留时间")
+                # 如果上次尝试是24小时内，可能是订单挂出去了但API延迟查不到
+                if time_since_attempt < 86400:
+                    return (False, f"上次尝试仅{time_since_attempt:.0f}秒，给API查询留时间", "waiting_recent_attempt")
                 
-                # 超过10小时，可以重试了
-                return (True, f"上次尝试已{time_since_attempt:.0f}秒，可以重试")
+                # 超过24小时，可以重试了
+                return (True, f"上次尝试已{time_since_attempt:.0f}秒，可以重试", "retry_after_cooldown")
             
             # 4️⃣ 没有任何记录，可以开仓
-            return (True, "无持仓、无挂单、无记录，可以开仓")
+            return (True, "无持仓、无挂单、无记录，可以开仓", "retry_now")
             
         except Exception as e:
             # ⚠️ 降级处理：如果判断逻辑出错，默认允许重试（避免阻塞）
             logging.error(f"❌ should_retry_open_position 判断异常: {e}")
-            return (True, f"判断异常，降级为允许重试: {e}")
+            return (True, f"判断异常，降级为允许重试: {e}", "retry_on_exception")
 
     async def recover_failed_signal_accounts(self):
         """恢复 partial 信号关联的失败账户（由恢复表驱动）"""
@@ -2149,43 +2150,6 @@ class PriceMonitoringTask:
                             task_id,
                             {
                                 "status": "blocked",
-                                "resolved_at": datetime.now().strftime(
-                                    "%Y-%m-%d %H:%M:%S"
-                                ),
-                            },
-                        )
-                        await self._sync_signal_recovery_state(signal_id)
-                        continue
-
-                    elapsed = (
-                        (datetime.now() - first_failed_at).total_seconds()
-                        if first_failed_at
-                        else 0
-                    )
-                    if elapsed > 600:
-                        logging.warning(
-                            f"⏱️ 恢复任务超时: signal_id={signal_id}, account_id={account_id}"
-                        )
-                        await self.db.update_signal_recovery_task(
-                            task_id,
-                            {
-                                "status": "failed",
-                                "resolved_at": datetime.now().strftime(
-                                    "%Y-%m-%d %H:%M:%S"
-                                ),
-                            },
-                        )
-                        await self._sync_signal_recovery_state(signal_id)
-                        continue
-
-                    if retry_count >= max_retry_count:
-                        logging.warning(
-                            f"⛔ 恢复任务达到最大重试次数: signal_id={signal_id}, account_id={account_id}"
-                        )
-                        await self.db.update_signal_recovery_task(
-                            task_id,
-                            {
-                                "status": "failed",
                                 "resolved_at": datetime.now().strftime(
                                     "%Y-%m-%d %H:%M:%S"
                                 ),
@@ -2245,10 +2209,67 @@ class PriceMonitoringTask:
                         await self._sync_signal_recovery_state(signal_id, account_id)
                         continue
 
-                    should_retry, retry_reason = await self.should_retry_open_position(
+                    should_retry, retry_reason, retry_state = await self.should_retry_open_position(
                         signal_id, account_id, symbol, actual_positions
                     )
                     if not should_retry:
+                        # 已成功挂出 live 挂单时，不应再套用 600 秒恢复失败窗口。
+                        # 这类场景属于“等待市场成交”，主信号继续维持 partial 即可。
+                        if retry_state == "waiting_pending_order":
+                            await self.db.update_signal_recovery_task(
+                                task_id,
+                                {
+                                    "status": "retrying",
+                                    "last_retry_at": datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S"
+                                    ),
+                                    "next_retry_at": (
+                                        datetime.now() + timedelta(seconds=60)
+                                    ).strftime("%Y-%m-%d %H:%M:%S"),
+                                    "error_message": retry_reason[:255],
+                                },
+                            )
+                            continue
+
+                        if retry_state == "timed_out_pending_order":
+                            logging.warning(
+                                f"⏱️ 恢复任务检测到长期未成交挂单: signal_id={signal_id}, account_id={account_id}, reason={retry_reason}"
+                            )
+                            await self.db.update_signal_recovery_task(
+                                task_id,
+                                {
+                                    "status": "failed",
+                                    "resolved_at": datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S"
+                                    ),
+                                    "error_message": retry_reason[:255],
+                                },
+                            )
+                            await self._sync_signal_recovery_state(signal_id)
+                            continue
+
+                        elapsed = (
+                            (datetime.now() - first_failed_at).total_seconds()
+                            if first_failed_at
+                            else 0
+                        )
+                        if elapsed > 600:
+                            logging.warning(
+                                f"⏱️ 恢复任务超时: signal_id={signal_id}, account_id={account_id}, reason={retry_reason}"
+                            )
+                            await self.db.update_signal_recovery_task(
+                                task_id,
+                                {
+                                    "status": "failed",
+                                    "resolved_at": datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S"
+                                    ),
+                                    "error_message": retry_reason[:255],
+                                },
+                            )
+                            await self._sync_signal_recovery_state(signal_id)
+                            continue
+
                         await self.db.update_signal_recovery_task(
                             task_id,
                             {
@@ -2262,6 +2283,43 @@ class PriceMonitoringTask:
                                 "error_message": retry_reason[:255],
                             },
                         )
+                        continue
+
+                    elapsed = (
+                        (datetime.now() - first_failed_at).total_seconds()
+                        if first_failed_at
+                        else 0
+                    )
+                    if elapsed > 600:
+                        logging.warning(
+                            f"⏱️ 恢复任务超时: signal_id={signal_id}, account_id={account_id}"
+                        )
+                        await self.db.update_signal_recovery_task(
+                            task_id,
+                            {
+                                "status": "failed",
+                                "resolved_at": datetime.now().strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                ),
+                            },
+                        )
+                        await self._sync_signal_recovery_state(signal_id)
+                        continue
+
+                    if retry_count >= max_retry_count:
+                        logging.warning(
+                            f"⛔ 恢复任务达到最大重试次数: signal_id={signal_id}, account_id={account_id}"
+                        )
+                        await self.db.update_signal_recovery_task(
+                            task_id,
+                            {
+                                "status": "failed",
+                                "resolved_at": datetime.now().strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                ),
+                            },
+                        )
+                        await self._sync_signal_recovery_state(signal_id)
                         continue
 
                     strategy_info = await self.db.get_strategy_info(task["strategy_name"])
@@ -2358,6 +2416,7 @@ class PriceMonitoringTask:
         self, signal_id: int, recovered_account_id: Optional[int] = None
     ):
         """根据恢复表最新状态回写 g_signals 的 success_accounts / failed_accounts / status。"""
+        all_tasks = await self.db.get_signal_recovery_tasks(signal_id)
         unresolved_tasks = await self.db.get_signal_recovery_tasks(
             signal_id, unresolved_only=True
         )
@@ -2369,11 +2428,27 @@ class PriceMonitoringTask:
                     "SELECT success_accounts FROM g_signals WHERE id=%s", (signal_id,)
                 )
                 signal_row = cursor.fetchone() or {}
-                success_accounts = json.loads(
+                original_success_accounts = json.loads(
                     signal_row.get("success_accounts") or "[]"
                 )
-                if recovered_account_id is not None and recovered_account_id not in success_accounts:
-                    success_accounts.append(recovered_account_id)
+
+                # 恢复表中的账户是“主流程里曾失败过”的账户。
+                # 这些账户只有当恢复任务显式 success 后，才允许重新进入 success_accounts。
+                recovery_account_ids = {
+                    row["account_id"] for row in all_tasks if row.get("account_id") is not None
+                }
+                success_accounts = {
+                    account_id
+                    for account_id in original_success_accounts
+                    if account_id not in recovery_account_ids
+                }
+                success_accounts.update(
+                    row["account_id"]
+                    for row in all_tasks
+                    if row.get("status") == "success" and row.get("account_id") is not None
+                )
+                if recovered_account_id is not None:
+                    success_accounts.add(recovered_account_id)
 
                 failed_accounts = [
                     {
@@ -2398,7 +2473,7 @@ class PriceMonitoringTask:
                                failed_accounts=NULL,
                                last_update_time=NOW()
                            WHERE id=%s""",
-                        (json.dumps(sorted(set(success_accounts))), signal_id),
+                        (json.dumps(sorted(success_accounts)), signal_id),
                     )
                 else:
                     cursor.execute(
@@ -2409,7 +2484,7 @@ class PriceMonitoringTask:
                                last_update_time=NOW()
                            WHERE id=%s""",
                         (
-                            json.dumps(sorted(set(success_accounts))),
+                            json.dumps(sorted(success_accounts)),
                             json.dumps(failed_accounts),
                             signal_id,
                         ),

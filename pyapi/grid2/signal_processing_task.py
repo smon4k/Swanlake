@@ -142,6 +142,18 @@ class SignalProcessingTask:
         """将主信号标记为 partial，并把失败账户下沉到恢复任务表。"""
         signal_id = signal["id"]
         try:
+            # 失败账户不能同时留在 success_accounts 中，否则主信号展示会出现“同一账户既成功又失败”的脏状态。
+            failed_account_ids = {
+                item.get("account_id") for item in failed_accounts if item.get("account_id")
+            }
+            clean_success_accounts = sorted(
+                {
+                    account_id
+                    for account_id in success_accounts
+                    if account_id not in failed_account_ids
+                }
+            )
+
             await self.db.create_signal_recovery_tasks(
                 signal, failed_accounts, max_retry_count=self.recovery_max_retry_count
             )
@@ -156,7 +168,7 @@ class SignalProcessingTask:
                            last_update_time=NOW()
                        WHERE id=%s""",
                     (
-                        json.dumps(success_accounts),
+                        json.dumps(clean_success_accounts),
                         json.dumps(failed_accounts),
                         signal_id,
                         signal_id,
@@ -165,7 +177,7 @@ class SignalProcessingTask:
             conn.commit()
             conn.close()
             logging.info(
-                f"⚠️ 信号 {signal_id} 进入 partial: 成功={len(success_accounts)}, 失败={len(failed_accounts)}"
+                f"⚠️ 信号 {signal_id} 进入 partial: 成功={len(clean_success_accounts)}, 失败={len(failed_accounts)}"
             )
         except Exception as e:
             logging.error(
