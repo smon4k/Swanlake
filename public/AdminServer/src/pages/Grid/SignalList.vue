@@ -36,7 +36,7 @@
       </el-table-column>
       <el-table-column prop="size" label="信号类型" align="center">
         <template slot-scope="scope">
-          {{ scope.row.size == '1' || scope.row.size == '-1' || scope.row.size == 1 || scope.row.size == -1 ? '开仓' : '平仓' }}
+          {{ normalizeSignalSize(scope.row.size) === 0 ? '平仓' : '开仓' }}
         </template>
       </el-table-column>
       <el-table-column prop="price" label="价格" align="center">
@@ -175,12 +175,20 @@ export default {
       return parseFloat(num).toFixed(1);
     },
 
+    normalizeSignalSize(size) {
+      const numericSize = Number(size);
+      if (isNaN(numericSize)) return 0;
+      if (numericSize > 0) return 1;
+      if (numericSize < 0) return -1;
+      return 0;
+    },
+
     /**
      * 与 api_service / 新 leader 一致：direction 为委托侧（buy→long, sell→short）。
      * 平仓 long+0=平空→空头出场；short+0=平多→多头出场。
      */
     positionTypeLabel(row) {
-      const sz = parseInt(row.size, 10);
+      const sz = this.normalizeSignalSize(row.size);
       const dir = (row.direction || '').toLowerCase();
       if (sz === 1) return '多头进场';
       if (sz === -1) return '空头进场';

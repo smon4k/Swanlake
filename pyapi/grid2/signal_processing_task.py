@@ -60,6 +60,20 @@ class SignalProcessingTask:
         # ✅ 【新增】任务协调标志
         self.signal_processing_active = signal_processing_active
 
+    def _normalize_signal_size(self, raw_size: Any) -> int:
+        """将 size 容错归一化为 -1 / 0 / 1，兼容历史脏数据和外部小数信号。"""
+        try:
+            size_decimal = Decimal(str(raw_size).strip())
+        except Exception:
+            logging.warning(f"⚠️ 信号 size 无法解析，按 0 处理: raw_size={raw_size}")
+            return 0
+
+        if size_decimal > 0:
+            return 1
+        if size_decimal < 0:
+            return -1
+        return 0
+
     def record_trade_error_context(
         self,
         account_id: int,
@@ -417,7 +431,7 @@ class SignalProcessingTask:
 
     def _is_close_signal(self, signal):
         """判断是否是平仓信号（size=0表示平仓）"""
-        return signal.get("size", 1) == 0
+        return self._normalize_signal_size(signal.get("size", 1)) == 0
 
     def _find_recent_open_signal(self, signal: Dict[str, Any], window_seconds: int = 60):
         """
@@ -875,7 +889,14 @@ class SignalProcessingTask:
                 logging.warning(f"⚠️ {msg} (account_id={account_id})")
                 return {"account_id": account_id, "success": False, "msg": msg}
             side = "buy" if signal["direction"] == "long" else "sell"  # 'buy' 或 'sell'
-            if signal.get("size") != 0 and await self.db.is_account_trade_blocked(
+            normalized_size = self._normalize_signal_size(signal.get("size"))
+            if signal.get("size") != normalized_size:
+                logging.info(
+                    f"🧭 信号 size 已归一化: signal_id={signal['id']}, raw_size={signal.get('size')}, normalized_size={normalized_size}"
+                )
+            signal["size"] = normalized_size
+
+            if normalized_size != 0 and await self.db.is_account_trade_blocked(
                 account_id
             ):
                 msg = "账户已冻结，跳过自动开仓"
@@ -889,8 +910,8 @@ class SignalProcessingTask:
                     "retryable": False,
                 }
             # Step 2: 根据信号执行动作
-            if (side == "buy" and signal["size"] == 1) or (
-                side == "sell" and signal["size"] == -1
+            if (side == "buy" and normalized_size == 1) or (
+                side == "sell" and normalized_size == -1
             ):  # 开仓
                 open_success = await self._open_position(account_id, signal, account_info)
                 if not open_success:
@@ -907,8 +928,8 @@ class SignalProcessingTask:
                         not in self.hard_error_codes,
                         "error_context": error_context,
                     }
-            elif (side == "buy" and signal["size"] == 0) or (
-                side == "sell" and signal["size"] == 0
+            elif (side == "buy" and normalized_size == 0) or (
+                side == "sell" and normalized_size == 0
             ):  # 平仓
                 await self._close_position(account_id, signal, account_info)
             else:
@@ -1234,16 +1255,12 @@ class SignalProcessingTask:
             _dir = (signal.get("direction") or "").lower()
             # 与 api_service 一致：direction 表示委托侧（buy→long, sell→short）
             side = "buy" if _dir == "long" else "sell"
-            size = signal["size"]  # 1, 0, -1
+            size = self._normalize_signal_size(signal.get("size"))  # 1, 0, -1
             price = signal["price"]  # 0.00001
             # 仅平仓：取 id<当前 的开仓行（size=1/-1）。
             # API/新 leader：long,0=平空→配对 short,-1；short,0=平多→配对 long,1。
             # 旧 leader 曾用「持仓腿」作 direction，若上一步未命中再按 _dir 查一次。
-            try:
-                sz = int(size)
-            except (TypeError, ValueError):
-                sz = -1
-            if sz != 0:
+            if size != 0:
                 logging.warning(
                     f"handle_close_position_update: 非平仓信号 size={size} id={sign_id}，跳过配对更新"
                 )
@@ -1358,6 +1375,7 @@ class SignalProcessingTask:
     # ---------- 核心子方法 ----------
     def parse_operation(self, action: str, size: int) -> dict:
         """解析信号类型"""
+        size = self._normalize_signal_size(size)
         if action == "buy":
             if size == 1:  # 买入开多
                 return {"type": "open", "side": "buy", "direction": "long"}
