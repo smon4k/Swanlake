@@ -109,22 +109,42 @@ class GridController extends BaseController
         }
 
         $normalizedList = [];
+        $seenSymbols = [];
         foreach ($maxPositionList as $item) {
             if (!is_array($item) || empty($item['symbol']) || empty($item['tactics'])) {
                 continue;
             }
+
+            $normalizedSymbol = strtoupper(trim($item['symbol']));
+            if (substr($normalizedSymbol, -5) === '-SWAP') {
+                $normalizedSymbol = substr($normalizedSymbol, 0, -5);
+            }
+            if ($normalizedSymbol === '') {
+                continue;
+            }
+            $existingIndex = $seenSymbols[$normalizedSymbol] ?? null;
 
             $itemGridPercentList = $this->normalizeGridPercentList($item['grid_percent_list'] ?? []);
             if (count($itemGridPercentList) <= 0) {
                 $itemGridPercentList = $this->normalizeGridPercentList($fallbacks['grid_percent_list'] ?? []);
             }
 
-            $normalizedList[] = array_merge($item, [
+            $normalizedItem = array_merge($item, [
+                'symbol' => $normalizedSymbol,
                 'stop_profit_loss' => $this->hasConfigValue($item['stop_profit_loss'] ?? null) ? $item['stop_profit_loss'] : ($fallbacks['stop_profit_loss'] ?? ''),
                 'grid_step' => $this->hasConfigValue($item['grid_step'] ?? null) ? $item['grid_step'] : ($fallbacks['grid_step'] ?? ''),
                 'commission_price_difference' => $this->hasConfigValue($item['commission_price_difference'] ?? null) ? $item['commission_price_difference'] : ($fallbacks['commission_price_difference'] ?? ''),
                 'grid_percent_list' => $itemGridPercentList,
             ]);
+
+            // 同一账户下同一币种只保留最后一次配置，避免后端落库后命中顺序不稳定
+            if ($existingIndex !== null && isset($normalizedList[$existingIndex])) {
+                $normalizedList[$existingIndex] = $normalizedItem;
+                continue;
+            }
+
+            $normalizedList[] = $normalizedItem;
+            $seenSymbols[$normalizedSymbol] = count($normalizedList) - 1;
         }
 
         return $normalizedList;
@@ -283,11 +303,15 @@ class GridController extends BaseController
         $page = $request->request('page', 1, 'intval');
         $limits = $request->request('limit', 20, 'intval');
         $tactics_name = $request->request('strategy_name', '', 'trim');
+        $symbol = strtoupper($request->request('symbol', '', 'trim'));
 
         $where = [];
         $where['pair_id'] = ['<>', 0];
         if($tactics_name && $tactics_name !== "") {
             $where['name'] = $tactics_name;
+        }
+        if($symbol && $symbol !== "") {
+            $where['symbol'] = ['like', $symbol . '%'];
         }
         $result = Signals::getSignalsList($page, $where, $limits);
         return $this->as_json($result);

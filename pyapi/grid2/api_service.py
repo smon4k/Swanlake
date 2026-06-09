@@ -178,10 +178,12 @@ class PositionService:
     
     async def refresh_config_cache(self, account_id: int):
         try:
-            # 刷新配置缓存数据
+            # 刷新单账户配置缓存，确保账户级配置读取的是最新值
             config = await self.db.get_config_by_account_id(account_id)
             if not config:
                 return JSONResponse(status_code=404, content={"success": False, "error": "配置不存在"})
+            # 同步重建策略+币种到账户列表的缓存，避免后台改完配置后分发仍命中旧数据
+            await self.db.get_account_max_position()
             return {"success": True, "message": "配置缓存数据已刷新"}
         except Exception as e:
             logging.error(f"刷新配置缓存数据出错: {e}")

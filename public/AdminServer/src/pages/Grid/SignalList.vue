@@ -6,11 +6,27 @@
       <el-breadcrumb-item>信号列表</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">
-      <el-select v-model="strategy_name" clearable placeholder="选择策略" @change="getSignalList" @clear="getSignalList">
+      <el-select v-model="strategy_name" clearable placeholder="选择策略" @change="handleFilterChange" @clear="handleFilterChange">
         <el-option v-for="item in strategyOptions" :key="item.name" :label="item.name" :value="item.name">
           <span style="float: left">{{ item.name }}</span>
           <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
         </el-option>
+      </el-select>
+      <el-select
+        v-model="symbol"
+        clearable
+        filterable
+        placeholder="选择币种"
+        style="margin-left: 10px;"
+        @change="handleFilterChange"
+        @clear="handleFilterChange"
+      >
+        <el-option
+          v-for="item in symbolOptions"
+          :key="item"
+          :label="normalizeSymbol(item)"
+          :value="item"
+        />
       </el-select>
       <el-button type="primary" @click="refreshSignalList()">刷新列表</el-button>
     </div>
@@ -26,7 +42,11 @@
           <span>{{ positionTypeLabel(scope.row) }}</span>
         </template>
       </el-table-column>
-      <!-- <el-table-column prop="symbol" label="交易对" align="center"></el-table-column> -->
+      <el-table-column prop="symbol" label="交易对" align="center" width="150">
+        <template slot-scope="scope">
+          {{ normalizeSymbol(scope.row.symbol) || '--' }}
+        </template>
+      </el-table-column>
       <el-table-column prop="direction" label="方向" align="center">
         <template slot-scope="scope">
           <el-tag :type="orderSideLabel(scope.row) === 'buy' ? 'success' : 'danger'">
@@ -102,6 +122,8 @@ export default {
       loading: false,
       strategyOptions: [],
       strategy_name: 'Y1.1',
+      symbol: '',
+      symbolOptions: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT', 'DOGE-USDT'],
     };
   },
   created() {
@@ -142,12 +164,17 @@ export default {
         }
       });
     },
+    handleFilterChange() {
+      this.currentPage = 1;
+      this.getSignalList();
+    },
     getSignalList() {
       this.loading = true;
       const params = {
         page: this.currentPage,
         limit: this.pageSize,
         strategy_name: this.strategy_name,
+        symbol: this.symbol,
       };
 
       get("/Grid/grid/getSignalsList", params, response => {
@@ -173,6 +200,14 @@ export default {
       if (isNaN(num)) return '--';
       // Format number with 4 decimal places
       return parseFloat(num).toFixed(1);
+    },
+
+    normalizeSymbol(symbol) {
+      if (!symbol) return '';
+      const normalizedSymbol = String(symbol).toUpperCase();
+      return normalizedSymbol.endsWith('-SWAP')
+        ? normalizedSymbol.slice(0, -5)
+        : normalizedSymbol;
     },
 
     normalizeSignalSize(size) {
