@@ -41,7 +41,7 @@
                 <span class="symbol-config-title">{{ symbolIndex + 1 }}. {{ symbolItem.symbol }}</span>
                 <div class="symbol-config-tags">
                   <span class="symbol-config-tag">策略 {{ symbolItem.tactics }}</span>
-                  <span class="symbol-config-tag">仓位 {{ symbolItem.value }}</span>
+                  <span class="symbol-config-tag">最大仓位 {{ symbolItem.value }}</span>
                 </div>
               </div>
 
