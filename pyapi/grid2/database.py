@@ -70,7 +70,7 @@ class Database:
             with conn.cursor() as cursor:
                 cursor.execute(
                     f"""
-                    SELECT id, exchange, api_key, api_secret, api_passphrase, financ_state, status, auto_loan
+                    SELECT id, exchange, api_key, api_secret, api_passphrase, financ_state, status, auto_loan, trade_status, trade_block_reason, trade_blocked_at
                     FROM {table('accounts')} WHERE id=%s AND status=%s
                 """,
                     (account_id, 1),
@@ -991,6 +991,170 @@ class Database:
             print(f"获取最大仓位配置数据失败: {e}")
             logging.error(f"获取最大仓位配置数据失败: {e}")
             return None
+        finally:
+            if conn:
+                conn.close()
+
+    async def is_account_trade_blocked(self, account_id: int) -> bool:
+        """判断账户是否已被冻结，冻结账户不再参与自动开仓。"""
+        account = self.account_cache.get(account_id)
+        if account and account.get("trade_status") == "blocked":
+            return True
+        account = await self.get_account_info(account_id)
+        return bool(account and account.get("trade_status") == "blocked")
+
+    async def block_account_trade(self, account_id: int, reason: str) -> bool:
+        """冻结账户自动交易能力，并记录冻结原因与冻结时间。"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    UPDATE {table('accounts')}
+                    SET trade_status=%s,
+                        trade_block_reason=%s,
+                        trade_blocked_at=NOW()
+                    WHERE id=%s
+                """,
+                    ("blocked", reason[:255], account_id),
+                )
+            conn.commit()
+            await self.get_account_info(account_id)
+            return True
+        except Exception as e:
+            logging.error(f"冻结账户交易失败: account_id={account_id}, err={e}", exc_info=True)
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+    async def create_signal_recovery_tasks(self, signal: Dict, failed_accounts: List[Dict], max_retry_count: int = 3) -> bool:
+        """为部分失败信号批量创建恢复任务，一条信号账户对应一条恢复记录。"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                for item in failed_accounts:
+                    cursor.execute(
+                        f"""
+                        INSERT INTO {table('signal_recovery_tasks')} (
+                            signal_id, account_id, strategy_name, symbol, direction, signal_type,
+                            signal_price, signal_size, status, retry_count, max_retry_count,
+                            first_failed_at, last_retry_at, next_retry_at,
+                            error_code, error_message, error_detail, failure_stage, last_order_id,
+                            created_at, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NULL, NOW(), %s, %s, %s, %s, %s, NOW(), NOW())
+                        ON DUPLICATE KEY UPDATE
+                            strategy_name=VALUES(strategy_name),
+                            symbol=VALUES(symbol),
+                            direction=VALUES(direction),
+                            signal_type=VALUES(signal_type),
+                            signal_price=VALUES(signal_price),
+                            signal_size=VALUES(signal_size),
+                            status=IF(status='success', status, VALUES(status)),
+                            max_retry_count=VALUES(max_retry_count),
+                            next_retry_at=IF(status='success', next_retry_at, VALUES(next_retry_at)),
+                            error_code=VALUES(error_code),
+                            error_message=VALUES(error_message),
+                            error_detail=VALUES(error_detail),
+                            failure_stage=VALUES(failure_stage),
+                            last_order_id=VALUES(last_order_id),
+                            updated_at=NOW()
+                    """,
+                        (
+                            signal["id"],
+                            item["account_id"],
+                            signal["name"],
+                            item.get("symbol") or signal.get("symbol"),
+                            item.get("direction") or signal.get("direction"),
+                            item.get("signal_type") or ("close" if signal.get("size") == 0 else "open"),
+                            item.get("price") or signal.get("price"),
+                            item.get("size") if item.get("size") is not None else signal.get("size"),
+                            item.get("status", "pending"),
+                            item.get("retry_count", 0),
+                            item.get("max_retry_count", max_retry_count),
+                            item.get("error_code"),
+                            item.get("error_message"),
+                            item.get("error_detail"),
+                            item.get("failure_stage"),
+                            item.get("last_order_id"),
+                        ),
+                    )
+            conn.commit()
+            return True
+        except Exception as e:
+            logging.error(f"创建恢复任务失败: signal_id={signal.get('id')}, err={e}", exc_info=True)
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+    async def get_due_signal_recovery_tasks(self, limit: int = 10) -> List[Dict]:
+        """获取当前到期可执行的恢复任务，供监控任务低优先级补偿使用。"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT * FROM {table('signal_recovery_tasks')}
+                    WHERE status IN ('pending', 'retrying')
+                      AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+                    ORDER BY next_retry_at ASC, id ASC
+                    LIMIT %s
+                """,
+                    (limit,),
+                )
+                return cursor.fetchall() or []
+        except Exception as e:
+            logging.error(f"获取待恢复任务失败: {e}", exc_info=True)
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    async def update_signal_recovery_task(self, task_id: int, updates: Dict) -> bool:
+        """更新单条恢复任务状态、重试信息或错误信息。"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                set_clause = ", ".join([f"{key}=%s" for key in updates.keys()])
+                values = list(updates.values()) + [task_id]
+                cursor.execute(
+                    f"""
+                    UPDATE {table('signal_recovery_tasks')}
+                    SET {set_clause}, updated_at=NOW()
+                    WHERE id=%s
+                """,
+                    values,
+                )
+            conn.commit()
+            return True
+        except Exception as e:
+            logging.error(f"更新恢复任务失败: task_id={task_id}, err={e}", exc_info=True)
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+    async def get_signal_recovery_tasks(self, signal_id: int, unresolved_only: bool = False) -> List[Dict]:
+        """按信号ID查询恢复任务，可选择只取未完成任务。"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                query = f"SELECT * FROM {table('signal_recovery_tasks')} WHERE signal_id=%s"
+                params = [signal_id]
+                if unresolved_only:
+                    query += " AND status != 'success'"
+                query += " ORDER BY id ASC"
+                cursor.execute(query, tuple(params))
+                return cursor.fetchall() or []
+        except Exception as e:
+            logging.error(f"获取信号恢复任务失败: signal_id={signal_id}, err={e}", exc_info=True)
+            return []
         finally:
             if conn:
                 conn.close()

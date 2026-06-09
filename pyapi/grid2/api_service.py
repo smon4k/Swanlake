@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import asyncio
 from contextlib import asynccontextmanager
 import os
@@ -48,6 +48,20 @@ logger = logging.getLogger()
 logger.addFilter(InfoAndErrorFilter())
 
 
+def normalize_signal_size(raw_size) -> int:
+    """将外部信号 size 统一归一化为 -1 / 0 / 1，兼容小数型仓位方向信号。"""
+    try:
+        size_decimal = Decimal(str(raw_size).strip())
+    except (InvalidOperation, AttributeError, ValueError, TypeError):
+        raise ValueError(f"invalid size: {raw_size}")
+
+    if size_decimal > 0:
+        return 1
+    if size_decimal < 0:
+        return -1
+    return 0
+
+
 # ✅ 封装业务逻辑类
 class PositionService:
     def __init__(self, config: TradingBotConfig, db: Database):
@@ -75,6 +89,12 @@ class PositionService:
             
             if not symbol or not direction:
                 return JSONResponse(status_code=500, content={"success": False, "error": 'Missing required parameters'})
+
+            normalized_size = normalize_signal_size(size)
+            if normalized_size != size:
+                logging.info(
+                    f"🧭 信号 size 已归一化: name={name}, symbol={symbol}, side={side}, raw_size={size}, normalized_size={normalized_size}"
+                )
             
             # 调用数据库方法写入信号
             result = await self.db.insert_signal({
@@ -82,7 +102,7 @@ class PositionService:
                 'symbol': symbol,
                 'direction': direction,
                 'price': price,  # 假设价格为0，实际使用时需要根据需求设置
-                'size': size,  # 假设大小为0，实际使用时需要根据需求设置
+                'size': normalized_size,  # 统一只入库 -1 / 0 / 1 三种语义
                 'status': 'pending',
                 'timestamp': timestamp,
                 'signal_source': 'api',
@@ -94,10 +114,11 @@ class PositionService:
     
     async def get_positions_history(self, account_id: int, inst_id: Optional[str], inst_type: str, limit: str, after: str = None, before: str = None):
         try:
+            normalized_inst_id = (inst_id or "").strip() or None
             result = await fetch_positions_history(
                 self,
                 account_id=account_id,
-                inst_id=inst_id,
+                inst_id=normalized_inst_id,
                 inst_type=inst_type,
                 limit=limit,
                 after=after,
@@ -110,11 +131,12 @@ class PositionService:
 
     async def get_current_positions(self, account_id: int, inst_id: Optional[str], inst_type: str):
         try:
+            normalized_inst_id = (inst_id or "").strip() or None
             # 获取当前持仓数据
             result = await fetch_current_positions(
                 self,  # 如果将来有 bot 实例，这里可传入
                 account_id=account_id,
-                symbol=inst_id,
+                symbol=normalized_inst_id,
                 inst_type=inst_type
             )
 
@@ -271,7 +293,8 @@ async def handle_insert_signal(request: Request):
         symbol = data.get('symbol')
         # account_id = os.getenv("ACCOUNT_ID", 1)
         price = Decimal(data.get('price', 0))  # 假设请求体中的'price'对应数据库中的'price'
-        size = float(data.get('size', 0))  # 假设请求体中的'size'对应数据库中的'size'
+        raw_size = data.get('size', 0)
+        size = normalize_signal_size(raw_size)
         result = await service.insert_signal(name, symbol, data.get('side'), price, size)
         if result['status'] == 'success':
             return {"success": True, "data": result}
