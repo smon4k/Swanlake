@@ -13,6 +13,7 @@
 namespace app\grid\model;
 
 use think\Model;
+use think\Db;
 use RequestService\RequestService;
 
 class Orders extends Base
@@ -47,20 +48,26 @@ class Orders extends Base
         // 先按“订单组”分页，避免把全部订单一次性加载进 PHP 内存。
         $groupExpr = "CASE WHEN a.position_group_id IS NOT NULL AND a.position_group_id <> '' THEN CONCAT('group:', a.position_group_id) ELSE CONCAT('single:', a.id) END";
 
-        $groupRows = self::name("orders")
+        $groupBaseQuery = self::name("orders")
             ->alias("a")
             ->where($where)
-            ->field("{$groupExpr} as group_key, MAX(a.id) as latest_id")
+            ->field("{$groupExpr} as group_key, MAX(a.id) as latest_id");
+
+        $groupRows = clone $groupBaseQuery;
+        $groupRows = $groupRows
             ->group($groupExpr)
             ->order("latest_id desc")
             ->page($page, $limits)
             ->select()
             ->toArray();
 
-        $total = self::name("orders")
-            ->alias("a")
-            ->where($where)
-            ->count("DISTINCT {$groupExpr}");
+        // ThinkPHP 5.0.24 对 count("DISTINCT CASE WHEN ...") 兼容性不好，
+        // 这里改成先生成分组子查询，再在外层做 count(*)。
+        $groupCountSql = clone $groupBaseQuery;
+        $groupCountSql = $groupCountSql
+            ->group($groupExpr)
+            ->buildSql();
+        $total = Db::table($groupCountSql . ' tp_group_count')->count();
 
         if (empty($groupRows)) {
             $allpage = intval(ceil($total / $limits));
