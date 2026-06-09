@@ -35,27 +35,39 @@
         <el-descriptions-item label="开仓比例">{{ item.position_percent }}</el-descriptions-item>
         <el-descriptions-item label="总仓位">{{ item.total_position }}</el-descriptions-item>
         <el-descriptions-item label="币种策略配置">
-          <div v-for="(symbolItem, symbolIndex) in item.max_position_list" :key="symbolIndex" style="margin-top: 10px;width: max-content;">
-            <span>{{ symbolIndex + 1 }}.{{ symbolItem.symbol }}：</span><br>
-            <span>最大仓位：{{ symbolItem.value }}</span>&nbsp;&nbsp;
-            <span>币种策略：{{ symbolItem.tactics }}</span>
-            <br>
-            <span>止盈止损比：{{ symbolItem.stop_profit_loss }}</span>&nbsp;&nbsp;
-            <span>网格间距：{{ symbolItem.grid_step }}</span>&nbsp;&nbsp;
-            <span>价格浮动比：{{ symbolItem.commission_price_difference }}</span>
-            <br>
-            <div v-for="(gridItem, gridIndex) in symbolItem.grid_percent_list" :key="gridIndex">
-              <span>{{ gridItem.direction }}：</span>
-              <span>买入比例{{ gridItem.buy }}</span>&nbsp;&nbsp;
-              <span>卖出比例{{ gridItem.sell }}</span>
+          <div class="symbol-config-list">
+            <div v-for="(symbolItem, symbolIndex) in item.max_position_list" :key="symbolIndex" class="symbol-config-card">
+              <div class="symbol-config-header">
+                <span class="symbol-config-title">{{ symbolIndex + 1 }}. {{ symbolItem.symbol }}</span>
+                <div class="symbol-config-tags">
+                  <span class="symbol-config-tag">策略 {{ symbolItem.tactics }}</span>
+                  <span class="symbol-config-tag">仓位 {{ symbolItem.value }}</span>
+                </div>
+              </div>
+
+              <div class="symbol-config-metrics">
+                <span>止盈止损比 {{ symbolItem.stop_profit_loss }}</span>
+                <span>网格间距 {{ symbolItem.grid_step }}</span>
+                <span>价格浮动比 {{ symbolItem.commission_price_difference }}</span>
+                <span>最大亏损次数 {{ symbolItem.max_loss_number || 0 }}/{{ symbolItem.loss_number || 0 }}</span>
+                <span>最小亏损比例 {{ symbolItem.min_loss_ratio * 100 || 0 }}%</span>
+                <span>盈利增加比例 {{ symbolItem.increase_ratio || 0 }}%</span>
+                <span>盈利减少比例 {{ symbolItem.decrease_ratio || 0 }}%</span>
+                <span>清0值 {{ symbolItem.clear_value || 0 }}</span>
+              </div>
+
+              <div class="symbol-config-ratios">
+                <div
+                  v-for="(gridItem, gridIndex) in symbolItem.grid_percent_list"
+                  :key="gridIndex"
+                  class="ratio-chip"
+                >
+                  <span class="ratio-chip-direction">{{ gridItem.direction }}</span>
+                  <span>买 {{ gridItem.buy }}</span>
+                  <span>卖 {{ gridItem.sell }}</span>
+                </div>
+              </div>
             </div>
-            <span>最大亏损次数：{{ symbolItem.max_loss_number || 0 }}/{{ symbolItem.loss_number || 0 }}</span>&nbsp;&nbsp;
-            <span>最小亏损比例：{{ symbolItem.min_loss_ratio * 100 || 0 }}%</span>
-            <br>
-            <span>盈利增加比例：{{ symbolItem.increase_ratio || 0 }}%</span>&nbsp;&nbsp;
-            <span>盈利减少比例：{{ symbolItem.decrease_ratio || 0 }}%</span>
-            <br>
-            <span>清0值：{{ symbolItem.clear_value || 0 }}</span>
           </div>
         </el-descriptions-item>
       </el-descriptions>
@@ -894,6 +906,86 @@
       margin-bottom: 10px;
     }
   }
+  .symbol-config-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .symbol-config-card {
+    padding: 12px 14px;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fafafa;
+  }
+
+  .symbol-config-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .symbol-config-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .symbol-config-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .symbol-config-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #f0f7ff;
+    color: #409eff;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .symbol-config-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px 16px;
+    margin-bottom: 10px;
+    color: #606266;
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .symbol-config-ratios {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .ratio-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    color: #606266;
+    font-size: 12px;
+  }
+
+  .ratio-chip-direction {
+    font-weight: 600;
+    color: #303133;
+    text-transform: lowercase;
+  }
+
   .el-descriptions__title {
     display: flex;
   }
@@ -916,6 +1008,10 @@
 
     .ratio-direction {
       max-width: none;
+    }
+
+    .symbol-config-header {
+      align-items: flex-start;
     }
   }
 </style>
