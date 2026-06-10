@@ -1576,12 +1576,15 @@ class PriceMonitoringTask:
                 # 查找该币种最近的已成交开仓订单
                 try:
                     recent_filled_order = await self.db.get_recent_filled_open_order(
-                        account_id, symbol, minutes_back=30
+                        account_id,
+                        symbol,
+                        minutes_back=30,
+                        fallback_to_latest=True,
                     )
 
                     if not recent_filled_order:
                         logging.info(
-                            f"📭 账户 {account_id} 币种 {symbol} 无最近的已成交开仓订单"
+                            f"📭 账户 {account_id} 币种 {symbol} 无可用的已成交开仓订单"
                         )
                         continue
 

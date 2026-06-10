@@ -634,7 +634,11 @@ class Database:
 
     # ✅ 【新增方法】获取最近的已成交开仓订单（用于补救网格单）
     async def get_recent_filled_open_order(
-        self, account_id: int, symbol: str, minutes_back: int = 30
+        self,
+        account_id: int,
+        symbol: str,
+        minutes_back: int = 30,
+        fallback_to_latest: bool = False,
     ) -> Optional[Dict]:
         """
         获取该币种最近的已成交开仓订单（limit订单）
@@ -645,6 +649,7 @@ class Database:
             account_id: 账户ID
             symbol: 交易对
             minutes_back: 查询过去多少分钟内的订单（默认30分钟）
+            fallback_to_latest: 最近窗口内没有命中时，是否回退到最新一笔已成交开仓单
 
         Returns:
             最近的已成交开仓订单
@@ -654,18 +659,19 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 注意：如果 updated_at 为 NULL，则使用 created_at 作为备选
-                query = f"""
+                recent_query = f"""
                     SELECT * FROM {table('orders')}
                     WHERE account_id = %s 
                     AND symbol = %s 
                     AND status = 'filled'
                     AND order_type = 'limit'
                     AND (side = 'buy' OR side = 'sell')
+                    AND is_clopos = 0
                     AND COALESCE(updated_at, created_at, NOW()) > DATE_SUB(NOW(), INTERVAL %s MINUTE)
                     ORDER BY COALESCE(updated_at, created_at) DESC
                     LIMIT 1
                 """
-                cursor.execute(query, (account_id, symbol, minutes_back))
+                cursor.execute(recent_query, (account_id, symbol, minutes_back))
                 result = cursor.fetchone()
 
                 if result:
@@ -674,6 +680,31 @@ class Database:
                         f"订单ID={result.get('order_id', 'N/A')[:15]}..., "
                         f"更新时间={result.get('updated_at', result.get('created_at', 'N/A'))}"
                     )
+                elif fallback_to_latest:
+                    latest_query = f"""
+                        SELECT * FROM {table('orders')}
+                        WHERE account_id = %s
+                        AND symbol = %s
+                        AND status = 'filled'
+                        AND order_type = 'limit'
+                        AND (side = 'buy' OR side = 'sell')
+                        AND is_clopos = 0
+                        ORDER BY COALESCE(updated_at, created_at) DESC
+                        LIMIT 1
+                    """
+                    cursor.execute(latest_query, (account_id, symbol))
+                    result = cursor.fetchone()
+
+                    if result:
+                        logging.info(
+                            f"♻️ 回退找到最新已成交订单: 账户={account_id}, 币种={symbol}, "
+                            f"订单ID={result.get('order_id', 'N/A')[:15]}..., "
+                            f"更新时间={result.get('updated_at', result.get('created_at', 'N/A'))}"
+                        )
+                    else:
+                        logging.debug(
+                            f"📭 无可回退的已成交订单: 账户={account_id}, 币种={symbol}"
+                        )
                 else:
                     logging.debug(
                         f"📭 无最近的已成交订单: 账户={account_id}, 币种={symbol}"
