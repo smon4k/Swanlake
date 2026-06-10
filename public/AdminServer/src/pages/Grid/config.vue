@@ -49,11 +49,11 @@
                 <span>止盈止损比 {{ symbolItem.stop_profit_loss }}</span>
                 <span>网格间距 {{ symbolItem.grid_step }}</span>
                 <span>价格浮动比 {{ symbolItem.commission_price_difference }}</span>
-                <span>最大亏损次数 {{ symbolItem.max_loss_number || 0 }}/{{ symbolItem.loss_number || 0 }}</span>
-                <span>最小亏损比例 {{ symbolItem.min_loss_ratio * 100 || 0 }}%</span>
-                <span>盈利增加比例 {{ symbolItem.increase_ratio || 0 }}%</span>
-                <span>盈利减少比例 {{ symbolItem.decrease_ratio || 0 }}%</span>
-                <span>清0值 {{ symbolItem.clear_value || 0 }}</span>
+                <span>最大亏损次数 {{ symbolItem.max_loss_number !== '' && symbolItem.max_loss_number !== null && symbolItem.max_loss_number !== undefined ? symbolItem.max_loss_number : '--' }}/{{ symbolItem.loss_number || 0 }}</span>
+                <span>最小亏损比例 {{ symbolItem.min_loss_ratio !== '' && symbolItem.min_loss_ratio !== null && symbolItem.min_loss_ratio !== undefined ? symbolItem.min_loss_ratio * 100 + '%' : '--' }}</span>
+                <span>盈利增加比例 {{ symbolItem.increase_ratio !== '' && symbolItem.increase_ratio !== null && symbolItem.increase_ratio !== undefined ? symbolItem.increase_ratio : '--' }}</span>
+                <span>盈利减少比例 {{ symbolItem.decrease_ratio !== '' && symbolItem.decrease_ratio !== null && symbolItem.decrease_ratio !== undefined ? symbolItem.decrease_ratio : '--' }}</span>
+                <span>清0值 {{ symbolItem.clear_value !== '' && symbolItem.clear_value !== null && symbolItem.clear_value !== undefined ? symbolItem.clear_value : '--' }}</span>
               </div>
 
               <div class="symbol-config-ratios">
@@ -339,6 +339,11 @@
             stop_profit_loss: '0.007',
             grid_step: '0.002',
             commission_price_difference: '50',
+            max_loss_number: '',
+            min_loss_ratio: '',
+            increase_ratio: '',
+            decrease_ratio: '',
+            clear_value: '',
             max_position: '', // 最终提交还是字符串
             max_position_list: [], // 中间结构用于动态配置
             grid_percent_list: [
@@ -406,31 +411,37 @@
           stop_profit_loss: this.FormData.stop_profit_loss || '0.007',
           grid_step: this.FormData.grid_step || '0.002',
           commission_price_difference: this.FormData.commission_price_difference || '50',
-          grid_percent_list: this.getDefaultGridPercentList(this.FormData.grid_percent_list)
+          grid_percent_list: this.getDefaultGridPercentList(this.FormData.grid_percent_list),
+          max_loss_number: this.FormData.max_loss_number ?? '',
+          min_loss_ratio: this.FormData.min_loss_ratio ?? '',
+          increase_ratio: this.FormData.increase_ratio ?? '',
+          decrease_ratio: this.FormData.decrease_ratio ?? '',
+          clear_value: this.FormData.clear_value ?? ''
         };
       },
       normalizeMaxPositionItem(item = {}, fallbackValues = {}) {
-        const defaults = {
-          max_loss_number: 5,
-          min_loss_ratio: 0.001,
-          increase_ratio: 5,
-          decrease_ratio: 5,
-          clear_value: 2000,
-          ...fallbackValues
+        const readValue = (field) => {
+          if (item[field] !== undefined && item[field] !== null && item[field] !== '') {
+            return item[field];
+          }
+          if (fallbackValues[field] !== undefined && fallbackValues[field] !== null && fallbackValues[field] !== '') {
+            return fallbackValues[field];
+          }
+          return '';
         };
         return {
           symbol: item.symbol || '',
           value: item.value || 0,
           tactics: item.tactics || '',
-          stop_profit_loss: item.stop_profit_loss || defaults.stop_profit_loss,
-          grid_step: item.grid_step || defaults.grid_step,
-          commission_price_difference: item.commission_price_difference || defaults.commission_price_difference,
-          grid_percent_list: this.getDefaultGridPercentList(item.grid_percent_list || defaults.grid_percent_list),
-          max_loss_number: item.max_loss_number !== undefined ? item.max_loss_number : defaults.max_loss_number,
-          min_loss_ratio: item.min_loss_ratio !== undefined ? item.min_loss_ratio : defaults.min_loss_ratio,
-          increase_ratio: item.increase_ratio !== undefined ? item.increase_ratio : defaults.increase_ratio,
-          decrease_ratio: item.decrease_ratio !== undefined ? item.decrease_ratio : defaults.decrease_ratio,
-          clear_value: item.clear_value !== undefined ? item.clear_value : defaults.clear_value,
+          stop_profit_loss: readValue('stop_profit_loss'),
+          grid_step: readValue('grid_step'),
+          commission_price_difference: readValue('commission_price_difference'),
+          grid_percent_list: this.getDefaultGridPercentList(item.grid_percent_list || fallbackValues.grid_percent_list),
+          max_loss_number: readValue('max_loss_number'),
+          min_loss_ratio: readValue('min_loss_ratio'),
+          increase_ratio: readValue('increase_ratio'),
+          decrease_ratio: readValue('decrease_ratio'),
+          clear_value: readValue('clear_value'),
           loss_number: item.loss_number || 0
         };
       },
@@ -478,7 +489,12 @@
                     stop_profit_loss: robot.stop_profit_loss,
                     grid_step: robot.grid_step,
                     commission_price_difference: robot.commission_price_difference,
-                    grid_percent_list: robot.grid_percent_list
+                    grid_percent_list: robot.grid_percent_list,
+                    max_loss_number: robot.max_loss_number,
+                    min_loss_ratio: robot.min_loss_ratio,
+                    increase_ratio: robot.increase_ratio,
+                    decrease_ratio: robot.decrease_ratio,
+                    clear_value: robot.clear_value
                   };
                   return {
                     ...robot,
@@ -594,7 +610,12 @@
             stop_profit_loss: row.stop_profit_loss,
             grid_step: row.grid_step,
             commission_price_difference: row.commission_price_difference,
-            grid_percent_list: row.grid_percent_list
+            grid_percent_list: row.grid_percent_list,
+            max_loss_number: row.max_loss_number,
+            min_loss_ratio: row.min_loss_ratio,
+            increase_ratio: row.increase_ratio,
+            decrease_ratio: row.decrease_ratio,
+            clear_value: row.clear_value
           };
           this.FormData = {
                 id: row.id,
@@ -606,6 +627,11 @@
                 stop_profit_loss: row.stop_profit_loss,
                 grid_step: row.grid_step,
                 commission_price_difference: row.commission_price_difference,
+                max_loss_number: row.max_loss_number,
+                min_loss_ratio: row.min_loss_ratio,
+                increase_ratio: row.increase_ratio,
+                decrease_ratio: row.decrease_ratio,
+                clear_value: row.clear_value,
                 max_position_list: this.normalizeMaxPositionListForForm(row.max_position_list, fallbackValues),
                 grid_percent_list: this.getDefaultGridPercentList(row.grid_percent_list)
             };
@@ -683,6 +709,11 @@
             stop_profit_loss: '0.007',
             grid_step: '0.002',
             commission_price_difference: '50',
+            max_loss_number: '',
+            min_loss_ratio: '',
+            increase_ratio: '',
+            decrease_ratio: '',
+            clear_value: '',
             max_position_list: [],
             grid_percent_list: this.getDefaultGridPercentList()
         };

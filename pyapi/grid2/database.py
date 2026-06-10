@@ -929,7 +929,16 @@ class Database:
         merged["value"] = merged.get("value", 0)
         merged["tactics"] = merged.get("tactics")
 
-        for field in ("stop_profit_loss", "grid_step", "commission_price_difference"):
+        for field in (
+            "stop_profit_loss",
+            "grid_step",
+            "commission_price_difference",
+            "max_loss_number",
+            "min_loss_ratio",
+            "increase_ratio",
+            "decrease_ratio",
+            "clear_value",
+        ):
             if merged.get(field) in (None, ""):
                 merged[field] = base_config.get(field)
 

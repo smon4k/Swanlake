@@ -135,6 +135,11 @@ class GridController extends BaseController
                 'grid_step' => $this->hasConfigValue($item['grid_step'] ?? null) ? $item['grid_step'] : ($fallbacks['grid_step'] ?? ''),
                 'commission_price_difference' => $this->hasConfigValue($item['commission_price_difference'] ?? null) ? $item['commission_price_difference'] : ($fallbacks['commission_price_difference'] ?? ''),
                 'grid_percent_list' => $itemGridPercentList,
+                'max_loss_number' => $this->hasConfigValue($item['max_loss_number'] ?? null) ? $item['max_loss_number'] : ($fallbacks['max_loss_number'] ?? ''),
+                'min_loss_ratio' => $this->hasConfigValue($item['min_loss_ratio'] ?? null) ? $item['min_loss_ratio'] : ($fallbacks['min_loss_ratio'] ?? ''),
+                'increase_ratio' => $this->hasConfigValue($item['increase_ratio'] ?? null) ? $item['increase_ratio'] : ($fallbacks['increase_ratio'] ?? ''),
+                'decrease_ratio' => $this->hasConfigValue($item['decrease_ratio'] ?? null) ? $item['decrease_ratio'] : ($fallbacks['decrease_ratio'] ?? ''),
+                'clear_value' => $this->hasConfigValue($item['clear_value'] ?? null) ? $item['clear_value'] : ($fallbacks['clear_value'] ?? ''),
             ]);
 
             // 同一账户下同一币种只保留最后一次配置，避免后端落库后命中顺序不稳定
@@ -172,6 +177,11 @@ class GridController extends BaseController
         $stop_profit_loss = $request->post('stop_profit_loss', '', 'trim');
         $grid_step = $request->post('grid_step', '', 'trim');
         $commission_price_difference = $request->post('commission_price_difference', '', 'trim');
+        $max_loss_number = $request->post('max_loss_number', '', 'trim');
+        $min_loss_ratio = $request->post('min_loss_ratio', '', 'trim');
+        $increase_ratio = $request->post('increase_ratio', '', 'trim');
+        $decrease_ratio = $request->post('decrease_ratio', '', 'trim');
+        $clear_value = $request->post('clear_value', '', 'trim');
         $max_position_list = $request->post('max_position_list/a', '', 'trim');
         $grid_percent_list = $request->post('grid_percent_list/a', '', 'trim');
 
@@ -180,6 +190,11 @@ class GridController extends BaseController
             'grid_step' => $grid_step,
             'commission_price_difference' => $commission_price_difference,
             'grid_percent_list' => $grid_percent_list,
+            'max_loss_number' => $max_loss_number,
+            'min_loss_ratio' => $min_loss_ratio,
+            'increase_ratio' => $increase_ratio,
+            'decrease_ratio' => $decrease_ratio,
+            'clear_value' => $clear_value,
         ];
         $normalized_max_position_list = $this->normalizeMaxPositionList($max_position_list, $fallbacks);
         $normalized_grid_percent_list = $this->normalizeGridPercentList($grid_percent_list);
@@ -223,6 +238,11 @@ class GridController extends BaseController
         $stop_profit_loss = $request->post('stop_profit_loss', '', 'trim');
         $grid_step = $request->post('grid_step', '', 'trim');
         $commission_price_difference = $request->post('commission_price_difference', '', 'trim');
+        $max_loss_number = $request->post('max_loss_number', '', 'trim');
+        $min_loss_ratio = $request->post('min_loss_ratio', '', 'trim');
+        $increase_ratio = $request->post('increase_ratio', '', 'trim');
+        $decrease_ratio = $request->post('decrease_ratio', '', 'trim');
+        $clear_value = $request->post('clear_value', '', 'trim');
         $max_position_list = $request->post('max_position_list/a', '', 'trim');
         $grid_percent_list = $request->post('grid_percent_list/a', '', 'trim');
 
@@ -231,6 +251,11 @@ class GridController extends BaseController
             'grid_step' => $grid_step,
             'commission_price_difference' => $commission_price_difference,
             'grid_percent_list' => $grid_percent_list,
+            'max_loss_number' => $max_loss_number,
+            'min_loss_ratio' => $min_loss_ratio,
+            'increase_ratio' => $increase_ratio,
+            'decrease_ratio' => $decrease_ratio,
+            'clear_value' => $clear_value,
         ];
         $normalized_max_position_list = $this->normalizeMaxPositionList($max_position_list, $fallbacks);
         $normalized_grid_percent_list = $this->normalizeGridPercentList($grid_percent_list);
