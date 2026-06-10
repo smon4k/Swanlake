@@ -56,6 +56,7 @@ class SignalProcessingTask:
         self.recovery_max_retry_count = 3
         self.hard_error_codes = {"51010", "50113", "50114", "51000", "51131"}
         self.last_trade_error_context: dict[int, dict] = {}
+        self.price_monitoring_task = None
 
         # ✅ 【新增】任务协调标志
         self.signal_processing_active = signal_processing_active
@@ -95,6 +96,23 @@ class SignalProcessingTask:
     def pop_trade_error_context(self, account_id: int) -> dict:
         """取出并清空账户最近一次交易失败上下文，避免旧错误串到新信号。"""
         return self.last_trade_error_context.pop(account_id, {}) or {}
+
+    async def _record_open_attempt_safe(
+        self, signal_id: int, account_id: int, result: str
+    ) -> None:
+        """尽力写入开仓尝试记录，失败仅记日志，不影响主交易流程。"""
+        if not self.price_monitoring_task:
+            return
+
+        try:
+            await self.price_monitoring_task.record_open_attempt(
+                signal_id, account_id, result
+            )
+        except Exception as e:
+            logging.warning(
+                f"⚠️ 记录开仓尝试失败: signal_id={signal_id}, account_id={account_id}, "
+                f"result={result}, err={e}"
+            )
 
     async def _get_eligible_accounts_for_signal(
         self, account_list: list[int], signal: Dict[str, Any]
@@ -556,7 +574,7 @@ class SignalProcessingTask:
         for account_id in account_list:
             try:
                 positions = await fetch_current_positions(self, account_id, symbol, "SWAP")
-                for pos in positions:
+                for pos in positions or []:
                     pos_side = (pos.get("side") or pos.get("posSide") or "").lower()
                     pos_size = Decimal(
                         str(pos.get("contracts") or pos.get("positionAmt") or 0)
@@ -621,6 +639,13 @@ class SignalProcessingTask:
                     self, acc_id, signal["symbol"], "SWAP"
                 )
 
+                if actual_positions is None:
+                    logging.warning(
+                        f"⚠️ 账户 {acc_id} 仓位验证跳过 - 信号={signal['id']}, "
+                        f"币种={signal['symbol']}, 原因=查询持仓失败"
+                    )
+                    continue
+
                 if is_close_signal:
                     # ✅ 平仓信号：应该无仓位，如果还有仓位则平仓失败
                     if actual_positions is not None and actual_positions > 0:
@@ -644,7 +669,7 @@ class SignalProcessingTask:
                         )
                 else:
                     # ✅ 开仓信号：应该有仓位，如果无仓位则开仓失败
-                    if actual_positions is None or actual_positions == 0:
+                    if actual_positions == 0:
                         logging.warning(
                             f"⚠️ 账户 {acc_id} 开仓失败（无仓位）- 信号={signal['id']}, "
                             f"币种={signal['symbol']}, 方向={signal['direction']}"
@@ -1002,6 +1027,7 @@ class SignalProcessingTask:
             # print(f"🟢 账户 {account_id} 信号 {signal['id']} {end_time - start_time:.2f} 秒")
             side = "buy" if signal["direction"] == "long" else "sell"  # 'buy' 或 'sell'
             # 1.3 开仓
+            await self._record_open_attempt_safe(signal["id"], account_id, "pending")
             open_position = await self.handle_open_position(
                 account_id,
                 signal["symbol"],
@@ -1013,8 +1039,11 @@ class SignalProcessingTask:
             )
 
             if not open_position:
+                await self._record_open_attempt_safe(signal["id"], account_id, "failed")
                 logging.error(f"❌ 开仓失败: {signal['id']}, 账户: {account_id}")
                 return False
+
+            await self._record_open_attempt_safe(signal["id"], account_id, "success")
             # 1.4 处理记录开仓方向数据
             # has_open_position = await self.db.has_open_position(name, side)
             # if has_open_position:

@@ -140,6 +140,12 @@ class PositionService:
                 inst_type=inst_type
             )
 
+            if result is None:
+                return JSONResponse(
+                    status_code=503,
+                    content={"success": False, "error": "查询当前持仓失败"},
+                )
+
             # 过滤出 contracts > 0 的持仓数据
             filtered_result = [position for position in result if position.get("contracts", 0) > 0]
 

@@ -2073,13 +2073,19 @@ class PriceMonitoringTask:
         """
         try:
             # 1️⃣ 检查持仓（快速路径）
+            if actual_positions is None:
+                return (False, "持仓查询失败，暂停自动补开", "position_query_failed")
+
             if actual_positions is not None and actual_positions > 0:
                 return (False, "已有持仓", "has_position")
             
             # 2️⃣ 检查未成交订单（关键检查）
             pending_orders = await self.get_pending_orders(account_id, symbol)
+
+            if pending_orders is None:
+                return (False, "挂单查询失败，暂停自动补开", "pending_order_query_failed")
             
-            if pending_orders is not None and len(pending_orders) > 0:
+            if len(pending_orders) > 0:
                 # 有挂单，检查挂单时长
                 oldest_order = pending_orders[0]
                 order_time = oldest_order.get('timestamp', 0) / 1000  # 毫秒转秒
@@ -2116,9 +2122,9 @@ class PriceMonitoringTask:
             return (True, "无持仓、无挂单、无记录，可以开仓", "retry_now")
             
         except Exception as e:
-            # ⚠️ 降级处理：如果判断逻辑出错，默认允许重试（避免阻塞）
+            # ⚠️ 降级处理：判断逻辑异常时宁可暂停恢复，也不要冒险重复开仓
             logging.error(f"❌ should_retry_open_position 判断异常: {e}")
-            return (True, f"判断异常，降级为允许重试: {e}", "retry_on_exception")
+            return (False, f"判断异常，暂停自动补开: {e}", "retry_guard_error")
 
     async def recover_failed_signal_accounts(self):
         """恢复 partial 信号关联的失败账户（由恢复表驱动）"""
@@ -2164,7 +2170,26 @@ class PriceMonitoringTask:
                     )
 
                     if signal_type == "close":
-                        if actual_positions is None or actual_positions == 0:
+                        if actual_positions is None:
+                            logging.warning(
+                                f"🛑 平仓恢复暂停: signal_id={signal_id}, account_id={account_id}, reason=持仓查询失败"
+                            )
+                            await self.db.update_signal_recovery_task(
+                                task_id,
+                                {
+                                    "status": "retrying",
+                                    "last_retry_at": datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S"
+                                    ),
+                                    "next_retry_at": (
+                                        datetime.now() + timedelta(seconds=30)
+                                    ).strftime("%Y-%m-%d %H:%M:%S"),
+                                    "error_message": "持仓查询失败，暂停自动恢复",
+                                },
+                            )
+                            continue
+
+                        if actual_positions == 0:
                             await self.db.update_signal_recovery_task(
                                 task_id,
                                 {
@@ -2253,6 +2278,43 @@ class PriceMonitoringTask:
                                 },
                             )
                             await self._sync_signal_recovery_state(signal_id)
+                            continue
+
+                        if retry_state in {
+                            "position_query_failed",
+                            "pending_order_query_failed",
+                            "retry_guard_error",
+                        }:
+                            logging.warning(
+                                f"🛑 恢复任务暂停自动补开: signal_id={signal_id}, account_id={account_id}, reason={retry_reason}"
+                            )
+                            waiting_error_message = (
+                                task.get("error_message")
+                                if task.get("error_message")
+                                and "上次尝试仅" not in str(task.get("error_message"))
+                                else retry_reason
+                            )
+                            waiting_error_detail = retry_reason
+                            if task.get("error_detail"):
+                                waiting_error_detail = (
+                                    f"{task.get('error_detail')}\n{retry_reason}"
+                                    if retry_reason not in str(task.get("error_detail"))
+                                    else task.get("error_detail")
+                                )
+                            await self.db.update_signal_recovery_task(
+                                task_id,
+                                {
+                                    "status": "retrying",
+                                    "last_retry_at": datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S"
+                                    ),
+                                    "next_retry_at": (
+                                        datetime.now() + timedelta(seconds=30)
+                                    ).strftime("%Y-%m-%d %H:%M:%S"),
+                                    "error_message": waiting_error_message[:255],
+                                    "error_detail": waiting_error_detail,
+                                },
+                            )
                             continue
 
                         elapsed = (

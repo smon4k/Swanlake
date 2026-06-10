@@ -1156,7 +1156,7 @@ async def fetch_current_positions(
             f"❌ 获取当前持仓失败: 账户={account_id}, 币种={normalized_symbol or 'ALL'}, 错误={e}",
             exc_info=True,
         )
-        return []
+        return None
     finally:
         if close_exchange and created_exchange and current_exchange:
             await current_exchange.close()
@@ -1211,6 +1211,12 @@ async def get_total_positions(
             close_exchange=exchange is None,
         )
 
+        if positions is None:
+            logging.warning(
+                f"⚠️ 查询总持仓终止: 账户={account_id}, 币种={symbol}, 原因=持仓查询失败"
+            )
+            return None
+
         position_details = []
         total_positions = Decimal("0")
         for position in positions:
@@ -1231,7 +1237,7 @@ async def get_total_positions(
             f"❌ 获取账户总持仓数失败: 账户={account_id}, 币种={symbol}, 错误={e}",
             exc_info=True,
         )
-        return Decimal("0")
+        return None
 
 
 # 更新订单状态以及进行配对订单、计算利润

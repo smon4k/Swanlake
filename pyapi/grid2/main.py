@@ -95,6 +95,7 @@ class OKXTradingBot:
             self.api_limiter,
             self.signal_processing_active,  # ✅ 传入活跃标志
         )
+        self.signal_task.price_monitoring_task = self.price_task
 
         self.leader_copy_task: LeaderCopyTask | None = None
         if os.getenv("LEADER_COPY_ENABLED", "0") == "1":
