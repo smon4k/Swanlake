@@ -185,6 +185,8 @@ class PriceMonitoringTask:
         # 定期清理超过1小时的旧记录
         self.open_attempts_cleanup_interval = 3600  # 1小时
         self.last_cleanup_time = time.time()
+        self.grid_skip_cooldowns = {}
+        self.grid_skip_cooldown_seconds = 300
 
         # 📊 统计信息
         self.stats = {
@@ -877,7 +879,7 @@ class PriceMonitoringTask:
 
                     # ✅ 【方案2改进】网格单创建单独设置超时（30秒，给买卖单留足时间）
                     try:
-                        managed = await asyncio.wait_for(
+                        managed_result = await asyncio.wait_for(
                             self.manage_grid_orders(latest_order, account_id),
                             timeout=30.0,
                         )
@@ -885,15 +887,25 @@ class PriceMonitoringTask:
                         logging.error(
                             f"⏱️ 账户 {account_id} 网格单创建超时(30秒)，将在下一轮补救检查中处理"
                         )
-                        managed = False
+                        managed_result = self._grid_manage_result(
+                            "retry", "网格单创建超时"
+                        )
                     except Exception as e:
                         logging.error(
                             f"❌ 账户 {account_id} 网格单创建异常: {e}",
                             exc_info=True,
                         )
-                        managed = False
+                        managed_result = self._grid_manage_result(
+                            "retry", f"网格单创建异常: {e}"
+                        )
 
-                    if managed:
+                    managed_status = (
+                        managed_result.get("status", "retry")
+                        if isinstance(managed_result, dict)
+                        else ("success" if managed_result else "retry")
+                    )
+
+                    if managed_status == "success":
                         logging.info(
                             f"✅ 网格订单管理成功，更新订单状态: 账户={account_id}, "
                             f"订单={latest_order['id']}, 币种={symbol}, "
@@ -915,6 +927,11 @@ class PriceMonitoringTask:
                         logging.info(f"🛡️ 触发止损任务: 账户={account_id}（立即执行）")
                         await self.stop_loss_task.accounts_stop_loss_task(
                             account_id, immediate=True
+                        )
+                    elif managed_status == "skip":
+                        logging.info(
+                            f"⏭️ 网格订单管理跳过: 账户={account_id}, 币种={symbol}, "
+                            f"原因={managed_result.get('reason', '策略判断跳过')}"
                         )
                     else:
                         logging.error(
@@ -1063,7 +1080,7 @@ class PriceMonitoringTask:
                     logging.warning(f"⚠️ 关闭exchange失败: 账户={account_id}, {e}")
 
     async def manage_grid_orders(self, order: dict, account_id: int):
-        """网格订单管理（逻辑不变，仅优化并发安全性）"""
+        """网格订单管理，返回结构化结果区分成功、跳过和失败。"""
         symbol = None  # ✅ 提前初始化，防止异常处理中未定义
         exchange = None  # ✅ 提前初始化，防止finally中未定义
         try:
@@ -1072,7 +1089,7 @@ class PriceMonitoringTask:
             if not exchange:
                 print("❌ 未找到交易所实例")
                 logging.error("❌ 未找到交易所实例")
-                return False
+                return self._grid_manage_result("retry", "未找到交易所实例")
 
             # ✅ 安全地获取 symbol，兼容两种格式（CCXT 和数据库格式）
             if (
@@ -1101,14 +1118,14 @@ class PriceMonitoringTask:
                     f"❌ 用户 {account_id} 获取到无效市价，跳过网格单创建: "
                     f"币种={symbol}, 市价={price}"
                 )
-                return False
+                return self._grid_manage_result("retry", "市价无效")
 
             if price <= 0:
                 logging.error(
                     f"❌ 用户 {account_id} 获取到非正市价，跳过网格单创建: "
                     f"币种={symbol}, 市价={price}"
                 )
-                return False
+                return self._grid_manage_result("retry", "市价非正数")
 
             # ✅ 安全地获取成交价，兼容两种格式；为空或非法时回退最新市价
             raw_filled_price = None
@@ -1168,7 +1185,7 @@ class PriceMonitoringTask:
                 )
             except asyncio.TimeoutError:
                 logging.error(f"⏱️ 用户 {account_id} 获取持仓超时(5秒)")
-                return False
+                return self._grid_manage_result("retry", "获取持仓超时")
 
             if not positions:
                 logging.warning(
@@ -1176,7 +1193,7 @@ class PriceMonitoringTask:
                     f"成交价={filled_price}, 市价={price}"
                 )
                 print(f"🚫 用户 {account_id} 网格下单：无持仓")
-                return True
+                return self._grid_manage_result("skip", "无持仓，无需补网格")
 
             total_position_value = await get_total_positions(
                 self, account_id, symbol, "SWAP"
@@ -1186,7 +1203,7 @@ class PriceMonitoringTask:
                     f"⚠️ 持仓价值为0，跳过网格下单: 账户={account_id}, 币种={symbol}, "
                     f"持仓价值={total_position_value}"
                 )
-                return True
+                return self._grid_manage_result("skip", "持仓价值为0")
 
             logging.info(
                 f"📊 网格下单准备: 账户={account_id}, 币种={symbol}, "
@@ -1205,7 +1222,7 @@ class PriceMonitoringTask:
             )
             if not tactics:
                 logging.error(f"🚫 未找到策略: {account_id} {symbol_tactics}")
-                return False
+                return self._grid_manage_result("retry", "未找到策略配置")
 
             signal = await self.db.get_latest_signal(symbol, tactics)
             side = "buy" if signal["direction"] == "long" else "sell"
@@ -1245,7 +1262,7 @@ class PriceMonitoringTask:
                     self, exchange, account_id, symbol, cancel_conditional
                 )
 
-                return False
+                return self._grid_manage_result("skip", "持仓低于最小阈值，已清理")
 
             logging.info(f"🗑️ 取消所有挂单: 账户={account_id}, 币种={symbol}")
             await cancel_all_orders(self, exchange, account_id, symbol)
@@ -1269,7 +1286,7 @@ class PriceMonitoringTask:
             )
             if buy_size < market_precision["min_amount"]:
                 logging.info(f"📉 用户 {account_id} 买单过小: {buy_size}")
-                return False
+                return self._grid_manage_result("skip", "买单数量低于最小下单量")
 
             sell_size = (total_position_value * Decimal(str(sell_percent))).quantize(
                 Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
@@ -1279,7 +1296,7 @@ class PriceMonitoringTask:
             )
             if sell_size < market_precision["min_amount"]:
                 logging.info(f"📉 用户 {account_id} 卖单过小: {sell_size}")
-                return False
+                return self._grid_manage_result("skip", "卖单数量低于最小下单量")
 
             buy_total = (
                 total_position_quantity
@@ -1293,7 +1310,7 @@ class PriceMonitoringTask:
                 logging.info(
                     f"⚠️ 用户 {account_id} 开仓以及总持仓价值超过最大持仓，取消挂单"
                 )
-                return False
+                return self._grid_manage_result("skip", "超过最大持仓限制")
 
             group_id = str(uuid.uuid4())
             pos_side = "long"
@@ -1455,7 +1472,7 @@ class PriceMonitoringTask:
                 logging.info(
                     f"✅ 用户 {account_id} 已挂单: 买{buy_price}({buy_size}) 卖{sell_price}({sell_size})"
                 )
-                return True
+                return self._grid_manage_result("success", "买卖网格单全部挂出")
 
             elif buy_success and not sell_success:
                 # 🟡 部分成功：只存储买单（关键改进点）
@@ -1484,7 +1501,7 @@ class PriceMonitoringTask:
                     f"下次检查时将继续创建卖单"
                 )
                 # ⚠️ 返回 True 表示操作成功（买单成功），卖单会在后续轮次重试
-                return True
+                return self._grid_manage_result("success", "买单已挂出，后续补卖单")
 
             elif not buy_success and sell_success:
                 # 🟠 异常情况：卖单成功但买单失败（极少见，可能是买单在最后阶段失败）
@@ -1509,7 +1526,7 @@ class PriceMonitoringTask:
                     }
                 )
                 # ⚠️ 返回 False 让上层知道网格不完整
-                return False
+                return self._grid_manage_result("retry", "卖单成功但买单失败")
 
             else:
                 # 🔴 完全失败：买单和卖单都失败
@@ -1519,7 +1536,7 @@ class PriceMonitoringTask:
                 )
                 # ⚠️ 只在完全失败时才取消所有订单
                 await cancel_all_orders(self, exchange, account_id, symbol)
-                return False
+                return self._grid_manage_result("retry", "买卖网格单都失败")
 
         except Exception as e:
             logging.error(
@@ -1527,7 +1544,7 @@ class PriceMonitoringTask:
                 exc_info=True,
             )
             traceback.print_exc()
-            return False
+            return self._grid_manage_result("retry", f"网格管理异常: {e}")
         finally:
             # ✅ 防御性检查：确保 exchange 已初始化再关闭
             if exchange:
@@ -1696,26 +1713,63 @@ class PriceMonitoringTask:
                             continue
 
                     # 重新触发网格单创建
+                    cooldown_key = (account_id, symbol)
+                    cooldown_info = self.grid_skip_cooldowns.get(cooldown_key)
+                    if cooldown_info:
+                        expires_at = cooldown_info.get("expires_at")
+                        if expires_at and expires_at > datetime.now():
+                            remaining = int(
+                                (expires_at - datetime.now()).total_seconds()
+                            )
+                            logging.info(
+                                f"⏳ 补救网格单冷却中: 账户={account_id}, 币种={symbol}, "
+                                f"剩余{remaining}秒, 原因={cooldown_info.get('reason', '未知')}"
+                            )
+                            continue
+                        self.grid_skip_cooldowns.pop(cooldown_key, None)
+
                     logging.info(
                         f"🔧 开始补救创建网格单: 账户={account_id}, "
                         f"币种={symbol}, 订单={recent_filled_order['order_id'][:15]}..."
                     )
 
                     try:
-                        managed = await asyncio.wait_for(
+                        managed_result = await asyncio.wait_for(
                             self.manage_grid_orders(recent_filled_order, account_id),
                             timeout=20.0,
                         )
 
-                        if managed:
+                        managed_status = (
+                            managed_result.get("status", "retry")
+                            if isinstance(managed_result, dict)
+                            else ("success" if managed_result else "retry")
+                        )
+                        managed_reason = (
+                            managed_result.get("reason", "")
+                            if isinstance(managed_result, dict)
+                            else ""
+                        )
+
+                        if managed_status == "success":
                             logging.info(
                                 f"✅ 补救网格单创建成功: 账户={account_id}, "
                                 f"币种={symbol}"
                             )
+                        elif managed_status == "skip":
+                            cooldown_key = (account_id, symbol)
+                            self.grid_skip_cooldowns[cooldown_key] = {
+                                "reason": managed_reason or "策略判断跳过",
+                                "expires_at": datetime.now()
+                                + timedelta(seconds=self.grid_skip_cooldown_seconds),
+                            }
+                            logging.info(
+                                f"⏭️ 补救网格单跳过: 账户={account_id}, 币种={symbol}, "
+                                f"原因={managed_reason or '策略判断跳过'}"
+                            )
                         else:
                             logging.error(
                                 f"❌ 补救网格单创建失败: 账户={account_id}, "
-                                f"币种={symbol}，将在下轮继续尝试"
+                                f"币种={symbol}，原因={managed_reason or '未知'}，将在下轮继续尝试"
                             )
 
                     except asyncio.TimeoutError:
@@ -2012,6 +2066,10 @@ class PriceMonitoringTask:
         except Exception as e:
             logging.warning(f"⚠️ 查询账户 {account_id} 未成交订单失败: {e}")
             return None
+
+    def _grid_manage_result(self, status: str, reason: str = "") -> dict:
+        """统一网格管理返回值，便于上层区分成功、跳过和可重试失败。"""
+        return {"status": status, "reason": reason}
     
     async def record_open_attempt(self, signal_id: int, account_id: int, result: str, order_id: str = None):
         """
