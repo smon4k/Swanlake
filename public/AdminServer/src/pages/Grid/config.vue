@@ -412,11 +412,11 @@
           grid_step: this.FormData.grid_step || '0.002',
           commission_price_difference: this.FormData.commission_price_difference || '50',
           grid_percent_list: this.getDefaultGridPercentList(this.FormData.grid_percent_list),
-          max_loss_number: this.FormData.max_loss_number ?? '',
-          min_loss_ratio: this.FormData.min_loss_ratio ?? '',
-          increase_ratio: this.FormData.increase_ratio ?? '',
-          decrease_ratio: this.FormData.decrease_ratio ?? '',
-          clear_value: this.FormData.clear_value ?? ''
+          max_loss_number: this.FormData.max_loss_number !== undefined && this.FormData.max_loss_number !== null ? this.FormData.max_loss_number : '',
+          min_loss_ratio: this.FormData.min_loss_ratio !== undefined && this.FormData.min_loss_ratio !== null ? this.FormData.min_loss_ratio : '',
+          increase_ratio: this.FormData.increase_ratio !== undefined && this.FormData.increase_ratio !== null ? this.FormData.increase_ratio : '',
+          decrease_ratio: this.FormData.decrease_ratio !== undefined && this.FormData.decrease_ratio !== null ? this.FormData.decrease_ratio : '',
+          clear_value: this.FormData.clear_value !== undefined && this.FormData.clear_value !== null ? this.FormData.clear_value : ''
         };
       },
       normalizeMaxPositionItem(item = {}, fallbackValues = {}) {
