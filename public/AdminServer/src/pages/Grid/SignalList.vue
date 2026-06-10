@@ -87,12 +87,59 @@
       </el-table-column>
       <el-table-column prop="status" label="状态" align="center">
         <template slot-scope="scope">
-          <el-tag :type="getSignalStatusTagType(scope.row)">
+          <el-tag
+            :type="getSignalStatusTagType(scope.row)"
+            :class="{ 'clickable-status': canViewFailedAccounts(scope.row) }"
+            @click.native="openFailedAccountsDialog(scope.row)"
+          >
             {{ getSignalStatusText(scope.row) }}
           </el-tag>
         </template>
       </el-table-column>
     </el-table>
+
+    <el-dialog
+      title="失败账户详情"
+      :visible.sync="failedAccountsDialogVisible"
+      width="760px"
+    >
+      <div v-if="failedAccountsDialogSignal" class="failed-dialog-summary">
+        <span>策略：{{ failedAccountsDialogSignal.name || '--' }}</span>
+        <span>币种：{{ normalizeSymbol(failedAccountsDialogSignal.symbol) || '--' }}</span>
+        <span>状态：{{ getSignalStatusText(failedAccountsDialogSignal) }}</span>
+      </div>
+      <el-table
+        :data="failedAccountsDialogData"
+        border
+        size="mini"
+        empty-text="暂无失败账户详情"
+      >
+        <el-table-column prop="account_id" label="账户ID" width="100" align="center" />
+        <el-table-column label="恢复状态" width="110" align="center">
+          <template slot-scope="scope">
+            {{ getRecoveryStatusText(scope.row.status) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="失败阶段" width="120" align="center">
+          <template slot-scope="scope">
+            {{ getFailureStageText(scope.row.failure_stage) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="错误码" width="110" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.error_code || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="错误信息" min-width="260">
+          <template slot-scope="scope">
+            <div>{{ scope.row.error_message || '--' }}</div>
+            <div v-if="scope.row.error_detail" class="failed-detail-extra">
+              {{ scope.row.error_detail }}
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
 
     <el-row class="pages">
       <el-col :span="24">
@@ -125,6 +172,9 @@ export default {
       strategy_name: 'Y1.1',
       symbol: '',
       symbolOptions: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT', 'DOGE-USDT'],
+      failedAccountsDialogVisible: false,
+      failedAccountsDialogData: [],
+      failedAccountsDialogSignal: null,
     };
   },
   created() {
@@ -256,6 +306,41 @@ export default {
       return this.parseJsonArray(row.failed_accounts).length;
     },
 
+    canViewFailedAccounts(row) {
+      const status = (row.status || '').toLowerCase();
+      return ['partial', 'failed'].indexOf(status) > -1 && this.getFailedAccountCount(row) > 0;
+    },
+
+    openFailedAccountsDialog(row) {
+      if (!this.canViewFailedAccounts(row)) {
+        return;
+      }
+      this.failedAccountsDialogSignal = row;
+      this.failedAccountsDialogData = this.parseJsonArray(row.failed_accounts);
+      this.failedAccountsDialogVisible = true;
+    },
+
+    getRecoveryStatusText(status) {
+      const statusMap = {
+        pending: '待恢复',
+        retrying: '重试中',
+        success: '已恢复',
+        failed: '失败',
+        blocked: '已冻结'
+      };
+      return statusMap[(status || '').toLowerCase()] || (status || '--');
+    },
+
+    getFailureStageText(stage) {
+      const stageMap = {
+        dispatch: '下发阶段',
+        verify: '验仓阶段',
+        open_position: '开仓下单',
+        close_position: '平仓下单'
+      };
+      return stageMap[(stage || '').toLowerCase()] || (stage || '--');
+    },
+
     getSignalStatusTagType(row) {
       const status = (row.status || '').toLowerCase();
       const statusMap = {
@@ -328,5 +413,25 @@ export default {
 .pages {
   margin-top: 0 !important;
   margin-bottom: 80px !important;
+}
+
+.clickable-status {
+  cursor: pointer;
+}
+
+.failed-dialog-summary {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  color: #606266;
+}
+
+.failed-detail-extra {
+  margin-top: 4px;
+  color: #909399;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>
