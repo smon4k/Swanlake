@@ -17,60 +17,85 @@
           </el-form-item>
         </el-form>
       </div>
-      <el-descriptions v-for="(item, index) in tableData" :key="index" border :column="2">
-        <template slot="title">
-          <div>{{ item.account_id }} &nbsp;&nbsp; {{ item.account_name }}</div> 
-          <div class="balance-container">
-            <span>{{ keepDecimalNotRounding(item.total_balance || 0, 2) }} USDT</span>
+      <div v-for="(item, index) in tableData" :key="index" class="config-overview-card">
+        <div class="config-card-header">
+          <div class="config-card-title">
+            <div>{{ item.account_id }} &nbsp;&nbsp; {{ item.account_name }}</div>
+            <div class="balance-container">
+              <span>{{ keepDecimalNotRounding(item.total_balance || 0, 2) }} USDT</span>
+            </div>
           </div>
-        </template>
-        <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item>
-        <template slot="extra">
+          <div class="config-card-actions">
           <el-button size="mini" type="primary" @click="UpdateAdminUserInfo(item)">编辑</el-button>
           <el-button size="mini" type="danger" @click="DelData(item)">删除</el-button>
-        </template>
-        <!-- <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item> -->
-        <el-descriptions-item label="API Secret">{{ item.api_secret }}</el-descriptions-item>
-        <el-descriptions-item label="倍数">{{ item.multiple }}</el-descriptions-item>
-        <el-descriptions-item label="开仓比例">{{ item.position_percent }}</el-descriptions-item>
-        <el-descriptions-item label="总仓位">{{ item.total_position }}</el-descriptions-item>
-        <el-descriptions-item label="币种策略配置">
-          <div class="symbol-config-list">
-            <div v-for="(symbolItem, symbolIndex) in item.max_position_list" :key="symbolIndex" class="symbol-config-card">
-              <div class="symbol-config-header">
-                <span class="symbol-config-title">{{ symbolIndex + 1 }}. {{ symbolItem.symbol }}</span>
-                <div class="symbol-config-tags">
-                  <span class="symbol-config-tag">策略 {{ symbolItem.tactics }}</span>
-                  <span class="symbol-config-tag">最大仓位 {{ symbolItem.value }}</span>
+          </div>
+        </div>
+
+        <div class="config-card-body">
+          <div class="config-card-left">
+            <div class="config-field">
+              <div class="config-field-label">API Key</div>
+              <div class="config-field-value">{{ item.api_key }}</div>
+            </div>
+            <div class="config-field">
+              <div class="config-field-label">API Secret</div>
+              <div class="config-field-value">{{ item.api_secret }}</div>
+            </div>
+            <div class="config-field-row">
+              <div class="config-field">
+                <div class="config-field-label">倍数</div>
+                <div class="config-field-value">{{ item.multiple }}</div>
+              </div>
+              <div class="config-field">
+                <div class="config-field-label">开仓比例</div>
+                <div class="config-field-value">{{ item.position_percent }}</div>
+              </div>
+            </div>
+            <div class="config-field">
+              <div class="config-field-label">总仓位</div>
+              <div class="config-field-value">{{ item.total_position }}</div>
+            </div>
+          </div>
+
+          <div class="config-card-right">
+            <div class="config-section-label">币种策略配置</div>
+            <div class="symbol-config-list">
+              <div v-for="(symbolItem, symbolIndex) in item.max_position_list" :key="symbolIndex" class="symbol-config-card">
+                <div class="symbol-config-header">
+                  <span class="symbol-config-title">{{ symbolIndex + 1 }}. {{ symbolItem.symbol }}</span>
+                  <div class="symbol-config-tags">
+                    <span class="symbol-config-tag">策略 {{ symbolItem.tactics }}</span>
+                    <span class="symbol-config-tag">最大仓位 {{ symbolItem.value }}</span>
+                  </div>
                 </div>
-              </div>
 
-              <div class="symbol-config-metrics">
-                <span>止盈止损比 {{ symbolItem.stop_profit_loss }}</span>
-                <span>网格间距 {{ symbolItem.grid_step }}</span>
-                <span>价格浮动比 {{ symbolItem.commission_price_difference }}</span>
-                <span>最大亏损次数 {{ symbolItem.max_loss_number !== '' && symbolItem.max_loss_number !== null && symbolItem.max_loss_number !== undefined ? symbolItem.max_loss_number : '--' }}/{{ symbolItem.loss_number || 0 }}</span>
-                <span>最小亏损比例 {{ symbolItem.min_loss_ratio !== '' && symbolItem.min_loss_ratio !== null && symbolItem.min_loss_ratio !== undefined ? symbolItem.min_loss_ratio * 100 + '%' : '--' }}</span>
-                <span>盈利增加比例 {{ symbolItem.increase_ratio !== '' && symbolItem.increase_ratio !== null && symbolItem.increase_ratio !== undefined ? symbolItem.increase_ratio : '--' }}</span>
-                <span>盈利减少比例 {{ symbolItem.decrease_ratio !== '' && symbolItem.decrease_ratio !== null && symbolItem.decrease_ratio !== undefined ? symbolItem.decrease_ratio : '--' }}</span>
-                <span>清0值 {{ symbolItem.clear_value !== '' && symbolItem.clear_value !== null && symbolItem.clear_value !== undefined ? symbolItem.clear_value : '--' }}</span>
-              </div>
+                <div class="symbol-config-metrics">
+                  <span>止盈止损比 {{ symbolItem.stop_profit_loss }}</span>
+                  <span>网格间距 {{ symbolItem.grid_step }}</span>
+                  <span>价格浮动比 {{ symbolItem.commission_price_difference }}</span>
+                  <span>最大亏损次数 {{ symbolItem.max_loss_number !== '' && symbolItem.max_loss_number !== null && symbolItem.max_loss_number !== undefined ? symbolItem.max_loss_number : '--' }}/{{ symbolItem.loss_number || 0 }}</span>
+                  <span>最小亏损比例 {{ symbolItem.min_loss_ratio !== '' && symbolItem.min_loss_ratio !== null && symbolItem.min_loss_ratio !== undefined ? symbolItem.min_loss_ratio * 100 + '%' : '--' }}</span>
+                  <span>盈利增加比例 {{ symbolItem.increase_ratio !== '' && symbolItem.increase_ratio !== null && symbolItem.increase_ratio !== undefined ? symbolItem.increase_ratio : '--' }}</span>
+                  <span>盈利减少比例 {{ symbolItem.decrease_ratio !== '' && symbolItem.decrease_ratio !== null && symbolItem.decrease_ratio !== undefined ? symbolItem.decrease_ratio : '--' }}</span>
+                  <span>清0值 {{ symbolItem.clear_value !== '' && symbolItem.clear_value !== null && symbolItem.clear_value !== undefined ? symbolItem.clear_value : '--' }}</span>
+                </div>
 
-              <div class="symbol-config-ratios">
-                <div
-                  v-for="(gridItem, gridIndex) in symbolItem.grid_percent_list"
-                  :key="gridIndex"
-                  class="ratio-chip"
-                >
-                  <span class="ratio-chip-direction">{{ gridItem.direction }}</span>
-                  <span>买 {{ gridItem.buy }}</span>
-                  <span>卖 {{ gridItem.sell }}</span>
+                <div class="symbol-config-ratios">
+                  <div
+                    v-for="(gridItem, gridIndex) in symbolItem.grid_percent_list"
+                    :key="gridIndex"
+                    class="ratio-chip"
+                  >
+                    <span class="ratio-chip-direction">{{ gridItem.direction }}</span>
+                    <span>买 {{ gridItem.buy }}</span>
+                    <span>卖 {{ gridItem.sell }}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </el-descriptions-item>
-      </el-descriptions>
+        </div>
+      </div>
       <el-row v-if="tableData && tableData.length > 0" style="margin-bottom: 50px;">
         <el-col :span="24">
           <div style="float:right;">
@@ -944,6 +969,91 @@
     width: 100%;
   }
 
+  .config-overview-card {
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fff;
+  }
+
+  .config-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .config-card-title {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 18px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .config-card-actions {
+    display: flex;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+
+  .config-card-body {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .config-card-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .config-card-right {
+    min-width: 0;
+  }
+
+  .config-section-label {
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #606266;
+  }
+
+  .config-field-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .config-field {
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fafafa;
+    overflow: hidden;
+  }
+
+  .config-field-label {
+    padding: 10px 12px;
+    border-bottom: 1px solid #ebeef5;
+    font-size: 13px;
+    color: #909399;
+    background: #f5f7fa;
+  }
+
+  .config-field-value {
+    padding: 14px 12px;
+    font-size: 14px;
+    color: #303133;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+
   .symbol-config-card {
     padding: 12px 14px;
     border: 1px solid #ebeef5;
@@ -1033,6 +1143,20 @@
   }
 
   @media (max-width: 1200px) {
+    .config-card-body,
+    .config-field-row {
+      grid-template-columns: 1fr;
+    }
+
+    .config-card-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .config-card-actions {
+      justify-content: flex-end;
+    }
+
     .ratio-row {
       grid-template-columns: 1fr;
     }
