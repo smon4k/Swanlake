@@ -187,6 +187,7 @@ class PriceMonitoringTask:
         self.last_cleanup_time = time.time()
         self.grid_skip_cooldowns = {}
         self.grid_skip_cooldown_seconds = 300
+        self.last_trade_error_context: dict[int, dict] = {}
 
         # 📊 统计信息
         self.stats = {
@@ -1328,6 +1329,8 @@ class PriceMonitoringTask:
             sell_order = None
             buy_success = False
             sell_success = False
+            buy_error_context = {}
+            sell_error_context = {}
 
             buy_client_order_id = ""
             sell_client_order_id = ""
@@ -1340,6 +1343,7 @@ class PriceMonitoringTask:
             # ✅ 【方案1改进】第1步：先下买单，加独立超时防止卡死
             if buy_size > 0:
                 try:
+                    self.pop_trade_error_context(account_id)
                     buy_client_order_id = await get_client_order_id()
                     logging.info(
                         f"📝 下买单: 账户={account_id}, 币种={symbol}, "
@@ -1372,6 +1376,7 @@ class PriceMonitoringTask:
                         await asyncio.sleep(0.1)
 
                     else:
+                        buy_error_context = self.pop_trade_error_context(account_id)
                         logging.error(
                             f"❌ 买单下单失败: 账户={account_id}, 币种={symbol}"
                         )
@@ -1381,6 +1386,7 @@ class PriceMonitoringTask:
                         f"❌ 买单API超时(10秒): 账户={account_id}, 币种={symbol}"
                     )
                 except Exception as e:
+                    buy_error_context = self.pop_trade_error_context(account_id)
                     logging.error(
                         f"❌ 买单下单异常: 账户={account_id}, 错误={e}", exc_info=True
                     )
@@ -1388,6 +1394,7 @@ class PriceMonitoringTask:
             # ✅ 【方案1改进】第2步：再下卖单（独立处理，不受买单影响），加独立超时
             if sell_size > 0:
                 try:
+                    self.pop_trade_error_context(account_id)
                     sell_client_order_id = await get_client_order_id()
                     logging.info(
                         f"📝 下卖单: 账户={account_id}, 币种={symbol}, "
@@ -1417,6 +1424,7 @@ class PriceMonitoringTask:
                         )
 
                     else:
+                        sell_error_context = self.pop_trade_error_context(account_id)
                         logging.error(
                             f"❌ 卖单下单失败: 账户={account_id}, 币种={symbol}"
                         )
@@ -1428,6 +1436,7 @@ class PriceMonitoringTask:
                     )
                     # ⚠️ 卖单超时也不取消买单，会被补救机制处理
                 except Exception as e:
+                    sell_error_context = self.pop_trade_error_context(account_id)
                     logging.error(
                         f"❌ 卖单下单异常: 账户={account_id}, 错误={e}", exc_info=True
                     )
@@ -1475,6 +1484,21 @@ class PriceMonitoringTask:
                 return self._grid_manage_result("success", "买卖网格单全部挂出")
 
             elif buy_success and not sell_success:
+                if self._is_no_position_sell_failure(sell_error_context):
+                    logging.warning(
+                        f"🛑 网格订单收口清理: 账户={account_id}, 币种={symbol}, "
+                        f"买单成功但卖单失败且无对应仓位，撤销买单避免遗留挂单"
+                    )
+                    await self._cancel_single_grid_order(
+                        exchange,
+                        account_id,
+                        symbol,
+                        buy_order["id"],
+                    )
+                    return self._grid_manage_result(
+                        "skip", "卖单失败且无对应仓位，已撤买单"
+                    )
+
                 # 🟡 部分成功：只存储买单（关键改进点）
                 logging.warning(
                     f"🟡 网格订单部分成功: 账户={account_id}, 币种={symbol}, "
@@ -2070,7 +2094,74 @@ class PriceMonitoringTask:
     def _grid_manage_result(self, status: str, reason: str = "") -> dict:
         """统一网格管理返回值，便于上层区分成功、跳过和可重试失败。"""
         return {"status": status, "reason": reason}
-    
+
+    def record_trade_error_context(
+        self,
+        account_id: int,
+        error_code: Optional[str] = None,
+        error_message: Optional[str] = None,
+        error_detail: Optional[str] = None,
+        failure_stage: Optional[str] = None,
+    ):
+        self.last_trade_error_context[account_id] = {
+            "error_code": error_code,
+            "error_message": error_message,
+            "error_detail": error_detail,
+            "failure_stage": failure_stage,
+            "recorded_at": datetime.now(),
+        }
+
+    def pop_trade_error_context(self, account_id: int) -> dict:
+        return self.last_trade_error_context.pop(account_id, None) or {}
+
+    @staticmethod
+    def _is_no_position_sell_failure(error_context: dict) -> bool:
+        if not error_context:
+            return False
+
+        error_code = str(error_context.get("error_code") or "")
+        error_message = str(error_context.get("error_message") or "")
+        error_detail = str(error_context.get("error_detail") or "")
+        haystack = f"{error_code} {error_message} {error_detail}".lower()
+
+        return error_code == "51169" or (
+            "don't have any positions in this direction" in haystack
+            and "reduce or close" in haystack
+        )
+
+    async def _cancel_single_grid_order(
+        self, exchange, account_id: int, symbol: str, order_id: str
+    ):
+        try:
+            if self.api_limiter:
+                await self.api_limiter.check_and_wait()
+
+            cancel_result = await exchange.cancel_order(
+                order_id, symbol, {"instType": "SWAP"}
+            )
+            error_code = cancel_result.get("info", {}).get("sCode", "")
+            if error_code == "0":
+                logging.info(
+                    f"✅ 孤立买单已撤销: 账户={account_id}, 币种={symbol}, 订单={order_id[:15]}..."
+                )
+            else:
+                logging.warning(
+                    f"⚠️ 孤立买单撤销返回非成功: 账户={account_id}, 币种={symbol}, "
+                    f"订单={order_id[:15]}..., 错误码={error_code}, "
+                    f"错误={cancel_result.get('info', {}).get('sMsg', '未知错误')}"
+                )
+
+            existing_order = await self.db.get_order_by_id(account_id, order_id)
+            if existing_order:
+                await self.db.update_order_by_id(
+                    account_id, order_id, {"status": "canceled"}
+                )
+        except Exception as e:
+            logging.error(
+                f"❌ 孤立买单撤销异常: 账户={account_id}, 币种={symbol}, 订单={order_id[:15]}..., 错误={e}",
+                exc_info=True,
+            )
+
     async def record_open_attempt(self, signal_id: int, account_id: int, result: str, order_id: str = None):
         """
         记录开仓尝试
