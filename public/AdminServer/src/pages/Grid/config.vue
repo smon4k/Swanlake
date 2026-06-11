@@ -57,6 +57,11 @@
                       <div class="symbol-config-tags">
                         <span class="symbol-config-tag">策略 {{ symbolItem.tactics }}</span>
                         <span class="symbol-config-tag">最大仓位 {{ symbolItem.value }}</span>
+                        <span
+                          v-if="symbolItem.uses_legacy_fallback"
+                          class="symbol-config-tag symbol-config-tag-warning">
+                          兼容旧账户配置
+                        </span>
                       </div>
                     </div>
 
@@ -151,6 +156,11 @@
 
               <div class="config-section">
                 <div class="section-title">基础参数</div>
+                <div
+                  v-if="item.uses_legacy_fallback"
+                  class="legacy-fallback-note">
+                  当前有部分参数继承自旧账户级配置，保存后会按当前币种配置写入。
+                </div>
                 <div class="config-grid basic-grid">
                   <div class="field-block">
                     <div class="field-label">交易对</div>
@@ -438,15 +448,23 @@
         };
       },
       normalizeMaxPositionItem(item = {}, fallbackValues = {}) {
+        const fallbackFields = [];
         const readValue = (field) => {
           if (item[field] !== undefined && item[field] !== null && item[field] !== '') {
             return item[field];
           }
           if (fallbackValues[field] !== undefined && fallbackValues[field] !== null && fallbackValues[field] !== '') {
+            fallbackFields.push(field);
             return fallbackValues[field];
           }
           return '';
         };
+        const itemGridPercentList = Array.isArray(item.grid_percent_list) ? item.grid_percent_list : [];
+        const fallbackGridPercentList = Array.isArray(fallbackValues.grid_percent_list) ? fallbackValues.grid_percent_list : [];
+        const useFallbackGridPercentList = itemGridPercentList.length <= 0 && fallbackGridPercentList.length > 0;
+        if (useFallbackGridPercentList) {
+          fallbackFields.push('grid_percent_list');
+        }
         return {
           symbol: item.symbol || '',
           value: item.value || 0,
@@ -454,13 +472,15 @@
           stop_profit_loss: readValue('stop_profit_loss'),
           grid_step: readValue('grid_step'),
           commission_price_difference: readValue('commission_price_difference'),
-          grid_percent_list: this.getDefaultGridPercentList(item.grid_percent_list || fallbackValues.grid_percent_list),
+          grid_percent_list: this.getDefaultGridPercentList(itemGridPercentList.length > 0 ? itemGridPercentList : fallbackGridPercentList),
           max_loss_number: readValue('max_loss_number'),
           min_loss_ratio: readValue('min_loss_ratio'),
           increase_ratio: readValue('increase_ratio'),
           decrease_ratio: readValue('decrease_ratio'),
           clear_value: readValue('clear_value'),
-          loss_number: item.loss_number || 0
+          loss_number: item.loss_number || 0,
+          uses_legacy_fallback: fallbackFields.length > 0,
+          legacy_fallback_fields: fallbackFields
         };
       },
       normalizeMaxPositionListForForm(maxPositionList = [], fallbackValues = {}) {
@@ -685,8 +705,19 @@
         const payload = {
           ...this.FormData,
           max_position_list: this.FormData.max_position_list.map(item => ({
-            ...item,
-            grid_percent_list: this.getDefaultGridPercentList(item.grid_percent_list)
+            symbol: item.symbol,
+            value: item.value,
+            tactics: item.tactics,
+            stop_profit_loss: item.stop_profit_loss,
+            grid_step: item.grid_step,
+            commission_price_difference: item.commission_price_difference,
+            grid_percent_list: this.getDefaultGridPercentList(item.grid_percent_list),
+            max_loss_number: item.max_loss_number,
+            min_loss_ratio: item.min_loss_ratio,
+            increase_ratio: item.increase_ratio,
+            decrease_ratio: item.decrease_ratio,
+            clear_value: item.clear_value,
+            loss_number: item.loss_number || 0
           })),
           grid_percent_list: this.getDefaultGridPercentList(this.FormData.grid_percent_list)
         };
@@ -902,6 +933,17 @@
     color: #303133;
   }
 
+  .legacy-fallback-note {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border: 1px solid #f3d19e;
+    border-radius: 6px;
+    background: #fdf6ec;
+    color: #8a5a00;
+    font-size: 13px;
+    line-height: 20px;
+  }
+
   .config-grid {
     display: grid;
     gap: 12px;
@@ -1079,6 +1121,12 @@
     color: #409eff;
     font-size: 12px;
     line-height: 1;
+  }
+
+  .symbol-config-tag-warning {
+    border: 1px solid #f3d19e;
+    background: #fdf6ec;
+    color: #8a5a00;
   }
 
   .symbol-config-metrics {

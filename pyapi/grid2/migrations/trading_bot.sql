@@ -74,6 +74,11 @@ CREATE TABLE IF NOT EXISTS `g_config` (
   `grid_percent_list` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '网格比例配置',
   `max_position_list` text COLLATE utf8_unicode_ci COMMENT '币种最大仓位数配置',
   `commission_price_difference` decimal(10,2) DEFAULT '50.00',
+  `max_loss_number` int(11) DEFAULT NULL COMMENT '旧账户级兼容：最大亏损次数',
+  `min_loss_ratio` decimal(10,4) DEFAULT NULL COMMENT '旧账户级兼容：最小亏损比例',
+  `increase_ratio` decimal(10,4) DEFAULT NULL COMMENT '旧账户级兼容：盈利增加比例',
+  `decrease_ratio` decimal(10,4) DEFAULT NULL COMMENT '旧账户级兼容：盈利减少比例',
+  `clear_value` decimal(20,4) DEFAULT NULL COMMENT '旧账户级兼容：清0值',
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
