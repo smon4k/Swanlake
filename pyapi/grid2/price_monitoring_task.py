@@ -1770,10 +1770,21 @@ class PriceMonitoringTask:
                     )
 
                     try:
-                        managed_result = await asyncio.wait_for(
-                            self.manage_grid_orders(recent_filled_order, account_id),
-                            timeout=20.0,
-                        )
+                        if has_missing_sell:
+                            managed_result = await asyncio.wait_for(
+                                self._repair_missing_sell_grid_order(
+                                    account_id,
+                                    symbol,
+                                    recent_filled_order,
+                                    exchange,
+                                ),
+                                timeout=20.0,
+                            )
+                        else:
+                            managed_result = await asyncio.wait_for(
+                                self.manage_grid_orders(recent_filled_order, account_id),
+                                timeout=20.0,
+                            )
 
                         managed_status = (
                             managed_result.get("status", "retry")
@@ -2141,6 +2152,18 @@ class PriceMonitoringTask:
             and "reduce or close" in haystack
         )
 
+    @staticmethod
+    def _is_insufficient_margin_failure(error_context: dict) -> bool:
+        if not error_context:
+            return False
+
+        error_code = str(error_context.get("error_code") or "")
+        error_message = str(error_context.get("error_message") or "")
+        error_detail = str(error_context.get("error_detail") or "")
+        haystack = f"{error_code} {error_message} {error_detail}".lower()
+
+        return error_code == "51008" or "insufficient usdt margin" in haystack
+
     async def _cancel_single_grid_order(
         self, exchange, account_id: int, symbol: str, order_id: str
     ):
@@ -2173,6 +2196,147 @@ class PriceMonitoringTask:
                 f"❌ 孤立买单撤销异常: 账户={account_id}, 币种={symbol}, 订单={order_id[:15]}..., 错误={e}",
                 exc_info=True,
             )
+
+    async def _repair_missing_sell_grid_order(
+        self,
+        account_id: int,
+        symbol: str,
+        recent_filled_order: dict,
+        exchange,
+    ) -> dict:
+        """已有买单时，仅补缺失卖单，避免整套网格重建导致买单反复撤挂。"""
+        try:
+            price = await get_market_price(
+                exchange, symbol, self.api_limiter, close_exchange=False
+            )
+            price = Decimal(str(price))
+            if price <= 0:
+                return self._grid_manage_result("retry", "市价无效")
+
+            raw_filled_price = recent_filled_order.get("executed_price")
+            try:
+                filled_price = (
+                    Decimal(str(raw_filled_price))
+                    if raw_filled_price not in (None, "")
+                    else price
+                )
+            except (InvalidOperation, ValueError, TypeError):
+                filled_price = price
+
+            symbol_config = await self.db.get_config_by_account_and_symbol(
+                account_id, symbol
+            )
+            if not symbol_config:
+                return self._grid_manage_result("retry", "未找到完整币种配置")
+
+            grid_step = Decimal(str(symbol_config.get("grid_step", 0.002)))
+            if price > 0 and abs(filled_price - price) / price > grid_step:
+                filled_price = price
+
+            symbol_tactics = (
+                symbol.replace("-SWAP", "") if symbol.endswith("-SWAP") else symbol
+            )
+            tactics = await self.db.get_tactics_by_account_and_symbol(
+                account_id, symbol_tactics
+            )
+            if not tactics:
+                return self._grid_manage_result("retry", "未找到策略配置")
+
+            signal = await self.db.get_latest_signal(symbol, tactics)
+            market_precision = await get_market_precision(
+                self, exchange, symbol, close_exchange=False
+            )
+            total_position_value = await get_total_positions(
+                self, account_id, symbol, "SWAP"
+            )
+            if total_position_value <= 0:
+                return self._grid_manage_result("skip", "无持仓，无需补卖单")
+
+            percent_list = await get_grid_percent_list(
+                self, account_id, symbol, signal["direction"]
+            )
+            sell_percent = percent_list.get("sell")
+            if sell_percent in (None, ""):
+                return self._grid_manage_result("retry", "缺少卖单比例配置")
+
+            sell_size = (total_position_value * Decimal(str(sell_percent))).quantize(
+                Decimal(market_precision["amount"]), rounding="ROUND_DOWN"
+            )
+            if sell_size < market_precision["min_amount"]:
+                return self._grid_manage_result("skip", "卖单数量低于最小下单量")
+
+            pos_side = "long"
+            side = "buy" if signal["direction"] == "long" else "sell"
+            if side == "sell" and signal["size"] == -1:
+                pos_side = "short"
+
+            sell_price = filled_price * (1 + grid_step)
+            logging.info(
+                f"🔧 单边补卖单: 账户={account_id}, 币种={symbol}, "
+                f"数量={sell_size}, 价格={sell_price}, 持仓方向={pos_side}"
+            )
+
+            self.pop_trade_error_context(account_id)
+            sell_client_order_id = await get_client_order_id()
+            sell_order = await asyncio.wait_for(
+                open_position(
+                    self,
+                    account_id,
+                    symbol,
+                    "sell",
+                    pos_side,
+                    float(sell_size),
+                    float(sell_price),
+                    "limit",
+                    sell_client_order_id,
+                    False,
+                    exchange=exchange,
+                    close_exchange=False,
+                ),
+                timeout=10.0,
+            )
+
+            if not sell_order:
+                sell_error_context = self.pop_trade_error_context(account_id)
+                if self._is_insufficient_margin_failure(sell_error_context):
+                    return self._grid_manage_result("skip", "卖单保证金不足")
+                if self._is_no_position_sell_failure(sell_error_context):
+                    return self._grid_manage_result("skip", "卖单无对应仓位")
+                return self._grid_manage_result("retry", "补卖单失败")
+
+            await self.db.add_order(
+                {
+                    "account_id": account_id,
+                    "symbol": symbol,
+                    "order_id": sell_order["id"],
+                    "clorder_id": sell_client_order_id,
+                    "price": float(sell_price),
+                    "executed_price": None,
+                    "quantity": float(sell_size),
+                    "pos_side": pos_side,
+                    "order_type": "limit",
+                    "side": "sell",
+                    "status": "live",
+                    "position_group_id": "",
+                }
+            )
+            logging.info(
+                f"✅ 单边补卖单成功: 账户={account_id}, 币种={symbol}, "
+                f"订单={sell_order['id'][:15]}..."
+            )
+            return self._grid_manage_result("success", "缺失卖单已补齐")
+        except asyncio.TimeoutError:
+            logging.error(f"⏱️ 单边补卖单超时(10秒): 账户={account_id}, 币种={symbol}")
+            return self._grid_manage_result("retry", "补卖单超时")
+        except Exception as e:
+            sell_error_context = self.pop_trade_error_context(account_id)
+            if self._is_insufficient_margin_failure(sell_error_context):
+                return self._grid_manage_result("skip", "卖单保证金不足")
+            logging.error(
+                f"❌ 单边补卖单异常: 账户={account_id}, 币种={symbol}, 错误={e}",
+                exc_info=True,
+            )
+            return self._grid_manage_result("retry", "补卖单异常")
 
     async def record_open_attempt(self, signal_id: int, account_id: int, result: str, order_id: str = None):
         """
