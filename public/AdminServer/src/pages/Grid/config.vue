@@ -17,49 +17,78 @@
           </el-form-item>
         </el-form>
       </div>
-      <el-descriptions v-for="(item, index) in tableData" :key="index" border :column="2">
-        <template slot="title">
-          <div>{{ item.account_id }} &nbsp;&nbsp; {{ item.account_name }}</div> 
-          <div class="balance-container">
-            <span>{{ keepDecimalNotRounding(item.total_balance || 0, 2) }} USDT</span>
+      <div v-for="(item, index) in tableData" :key="index" class="config-overview-card">
+        <div class="config-card-header">
+          <div class="config-card-title">
+            <div>{{ item.account_id }} &nbsp;&nbsp; {{ item.account_name }}</div>
+            <div class="balance-container">
+              <span>{{ keepDecimalNotRounding(item.total_balance || 0, 2) }} USDT</span>
+            </div>
           </div>
-        </template>
-        <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item>
-        <template slot="extra">
+          <div class="config-card-actions">
           <el-button size="mini" type="primary" @click="UpdateAdminUserInfo(item)">编辑</el-button>
           <el-button size="mini" type="danger" @click="DelData(item)">删除</el-button>
-        </template>
-        <!-- <el-descriptions-item label="API Key">{{ item.api_key }}</el-descriptions-item> -->
-        <el-descriptions-item label="API Secret">{{ item.api_secret }}</el-descriptions-item>
-        <el-descriptions-item label="倍数">{{ item.multiple }}</el-descriptions-item>
-        <el-descriptions-item label="开仓比例">{{ item.position_percent }}</el-descriptions-item>
-        <el-descriptions-item label="总仓位">{{ item.total_position }}</el-descriptions-item>
-        <el-descriptions-item label="止盈止损">{{ item.stop_profit_loss }}</el-descriptions-item>
-        <el-descriptions-item label="网格间距">{{ item.grid_step }}</el-descriptions-item>
-        <el-descriptions-item label="网格比例配置">
-          <div v-for="(item, index) in item.grid_percent_list" :key="index">
-            <span>{{ item.direction }}：</span>
-            <span>买入比例{{ item.buy }}</span>&nbsp;&nbsp;
-            <span>卖出比例{{ item.sell }}</span>
           </div>
-        </el-descriptions-item>
-        <el-descriptions-item label="币种最大仓位数配置	">
-          <div v-for="(item, index) in item.max_position_list" :key="index" style="margin-top: 10px;width: max-content;">
-            <span>{{ index + 1 }}.{{ item.symbol }}：</span><br>
-            <span>最大仓位：{{ item.value }}</span>&nbsp;&nbsp;
-            <span>币种策略：{{ item.tactics }}</span>
-            <br>
-            <span>最大亏损次数：{{ item.max_loss_number || 0 }}/{{ item.loss_number || 0 }}</span>&nbsp;&nbsp;
-            <span>最小亏损比例：{{ item.min_loss_ratio * 100 || 0 }}%</span>
-            <br>
-            <span>盈利增加比例：{{ item.increase_ratio || 0 }}%</span>&nbsp;&nbsp;
-            <span>盈利减少比例：{{ item.decrease_ratio || 0 }}%</span>
-            <br>
-            <span>清0值：{{ item.clear_value || 0 }}</span>
+        </div>
+
+        <div class="config-card-body">
+          <div class="config-overview-table">
+            <div class="config-overview-row">
+              <div class="config-overview-label">API Key</div>
+              <div class="config-overview-value">{{ item.api_key }}</div>
+              <div class="config-overview-label">API Secret</div>
+              <div class="config-overview-value">{{ item.api_secret }}</div>
+            </div>
+            <div class="config-overview-row">
+              <div class="config-overview-label">倍数</div>
+              <div class="config-overview-value">{{ item.multiple }}</div>
+              <div class="config-overview-label">开仓比例</div>
+              <div class="config-overview-value">{{ item.position_percent }}</div>
+            </div>
+            <div class="config-overview-row config-overview-row-large">
+              <div class="config-overview-label">总仓位</div>
+              <div class="config-overview-value">{{ item.total_position }}</div>
+              <div class="config-overview-label">币种策略配置</div>
+              <div class="config-overview-value config-overview-value-wide">
+                <div class="symbol-config-list">
+                  <div v-for="(symbolItem, symbolIndex) in item.max_position_list" :key="symbolIndex" class="symbol-config-card">
+                    <div class="symbol-config-header">
+                      <span class="symbol-config-title">{{ symbolIndex + 1 }}. {{ symbolItem.symbol }}</span>
+                      <div class="symbol-config-tags">
+                        <span class="symbol-config-tag">策略 {{ symbolItem.tactics }}</span>
+                        <span class="symbol-config-tag">最大仓位 {{ symbolItem.value }}</span>
+                      </div>
+                    </div>
+
+                    <div class="symbol-config-metrics">
+                      <span>止盈止损比 {{ symbolItem.stop_profit_loss }}</span>
+                      <span>网格间距 {{ symbolItem.grid_step }}</span>
+                      <span>价格浮动比 {{ symbolItem.commission_price_difference }}</span>
+                      <span>最大亏损次数 {{ symbolItem.max_loss_number !== '' && symbolItem.max_loss_number !== null && symbolItem.max_loss_number !== undefined ? symbolItem.max_loss_number : '--' }}/{{ symbolItem.loss_number || 0 }}</span>
+                      <span>最小亏损比例 {{ symbolItem.min_loss_ratio !== '' && symbolItem.min_loss_ratio !== null && symbolItem.min_loss_ratio !== undefined ? symbolItem.min_loss_ratio * 100 + '%' : '--' }}</span>
+                      <span>盈利增加比例 {{ symbolItem.increase_ratio !== '' && symbolItem.increase_ratio !== null && symbolItem.increase_ratio !== undefined ? symbolItem.increase_ratio : '--' }}</span>
+                      <span>盈利减少比例 {{ symbolItem.decrease_ratio !== '' && symbolItem.decrease_ratio !== null && symbolItem.decrease_ratio !== undefined ? symbolItem.decrease_ratio : '--' }}</span>
+                      <span>清0值 {{ symbolItem.clear_value !== '' && symbolItem.clear_value !== null && symbolItem.clear_value !== undefined ? symbolItem.clear_value : '--' }}</span>
+                    </div>
+
+                    <div class="symbol-config-ratios">
+                      <div
+                        v-for="(gridItem, gridIndex) in symbolItem.grid_percent_list"
+                        :key="gridIndex"
+                        class="ratio-chip"
+                      >
+                        <span class="ratio-chip-direction">{{ gridItem.direction }}</span>
+                        <span>买 {{ gridItem.buy }}</span>
+                        <span>卖 {{ gridItem.sell }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </el-descriptions-item>
-        <el-descriptions-item label="价格浮动比例">{{ item.commission_price_difference }}</el-descriptions-item>
-      </el-descriptions>
+        </div>
+      </div>
       <el-row v-if="tableData && tableData.length > 0" style="margin-bottom: 50px;">
         <el-col :span="24">
           <div style="float:right;">
@@ -96,96 +125,143 @@
           <el-input v-model="FormData.position_percent" placeholder="如 0.8"></el-input>
         </el-form-item>
         <el-form-item label="最大仓位配置">
-          <div v-for="(item, index) in FormData.max_position_list" :key="index" style="display: block; align-items: center; margin-bottom: 10px;">
-            <div style="display: flex;">
-              <el-select v-model="item.symbol" placeholder="选择交易对" style="width: 180px; margin-right: 10px;">
-                <el-option
-                  v-for="symbol in availableSymbols"
-                  :key="symbol"
-                  :label="symbol"
-                  :value="symbol"
-                  :disabled="isSymbolSelected(symbol) && item.symbol !== symbol">
-                </el-option>
-              </el-select>
-              <el-input-number
-                v-model="item.value"
-                :min="0"
-                :step="100"
-                style="width: 140px; margin-right: 10px;">
-              </el-input-number>
-              <el-select v-model="item.tactics" placeholder="选择策略" style="width: 180px; margin-right: 10px;">
-                <el-option
-                  v-for="item in strategyOptions"
-                  :key="item.name"
-                  :label="item.name"
-                  :value="item.name">
-                    <span style="float: left">{{ item.name }}</span>
-                    <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
-                </el-option>
-              </el-select>
-            </div>
-            <div style="display: flex;margin-top: 5px;margin-bottom: 10px;">
-              <div style="display: block;margin-right: 5px;">
-                <div style="width: 180px;line-height: 20px;">最大亏损次数</div>
-                <el-input type="number" style="width:180px" v-model="item.max_loss_number" placeholder="请输入最大亏损次数"></el-input>
+          <el-collapse v-model="activeMaxPositionPanels" class="max-position-collapse">
+            <el-collapse-item
+              v-for="(item, index) in FormData.max_position_list"
+              :key="getMaxPositionPanelName(index)"
+              :name="getMaxPositionPanelName(index)"
+            >
+              <template slot="title">
+                <div class="max-position-header">
+                  <div class="max-position-summary">
+                    <span class="summary-primary">{{ item.symbol || '未选择交易对' }}</span>
+                    <span class="summary-meta">策略 {{ item.tactics || '--' }}</span>
+                    <span class="summary-meta">最大仓位 {{ item.value || 0 }}</span>
+                  </div>
+                  <el-button
+                    type="danger"
+                    icon="el-icon-delete"
+                    circle
+                    size="mini"
+                    class="max-position-delete"
+                    @click.stop="removeMaxPosition(index)"
+                  ></el-button>
+                </div>
+              </template>
+
+              <div class="config-section">
+                <div class="section-title">基础参数</div>
+                <div class="config-grid basic-grid">
+                  <div class="field-block">
+                    <div class="field-label">交易对</div>
+                    <el-select v-model="item.symbol" placeholder="选择交易对">
+                      <el-option
+                        v-for="symbol in availableSymbols"
+                        :key="symbol"
+                        :label="symbol"
+                        :value="symbol"
+                        :disabled="isSymbolSelected(symbol) && item.symbol !== symbol">
+                      </el-option>
+                    </el-select>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">最大仓位</div>
+                    <el-input-number
+                      v-model="item.value"
+                      :min="0"
+                      :step="100"
+                      class="field-full">
+                    </el-input-number>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">策略</div>
+                    <el-select v-model="item.tactics" placeholder="选择策略">
+                      <el-option
+                        v-for="strategy in strategyOptions"
+                        :key="strategy.name"
+                        :label="strategy.name"
+                        :value="strategy.name">
+                          <span style="float: left">{{ strategy.name }}</span>
+                          <span style="float: right; color: #8492a6; font-size: 13px">{{ strategy.label }}</span>
+                      </el-option>
+                    </el-select>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">止盈止损比</div>
+                    <el-input v-model="item.stop_profit_loss" placeholder="如 0.007"></el-input>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">网格间距</div>
+                    <el-input v-model="item.grid_step" placeholder="如 0.002"></el-input>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">价格浮动比(百分比)</div>
+                    <el-input v-model="item.commission_price_difference" placeholder="如 50"></el-input>
+                  </div>
+                </div>
               </div>
-              <div style="display: block;margin-right: 5px;">
-                <div style="width: 180px;line-height: 20px;">最小亏损比例，单位小数</div>
-                <el-input type="number" style="width:180px" v-model="item.min_loss_ratio" placeholder="请输入最小亏损比例 例如：0.001"></el-input>
+
+              <div class="config-section">
+                <div class="section-title">多空比例</div>
+                <div class="ratio-list">
+                  <div
+                    v-for="(gridItem, gridIndex) in item.grid_percent_list"
+                    :key="gridIndex"
+                    class="ratio-row"
+                  >
+                    <div class="field-block ratio-direction">
+                      <div class="field-label">方向</div>
+                      <el-select v-model="gridItem.direction" disabled>
+                        <el-option label="做多 (long)" value="long"></el-option>
+                        <el-option label="做空 (short)" value="short"></el-option>
+                      </el-select>
+                    </div>
+                    <div class="field-block">
+                      <div class="field-label">买入比例</div>
+                      <el-input v-model="gridItem.buy" placeholder="买入比例"></el-input>
+                    </div>
+                    <div class="field-block">
+                      <div class="field-label">卖出比例</div>
+                      <el-input v-model="gridItem.sell" placeholder="卖出比例"></el-input>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div style="display: block;margin-right: 5px;">
-                <div style="width: 180px;line-height: 20px;">盈利增加比例，单位百分比</div>
-                <el-input type="number" style="width:180px" v-model="item.increase_ratio" placeholder="请输入盈利增加比例 例如：5%"></el-input>
+
+              <div class="config-section">
+                <div class="section-title">风控参数</div>
+                <div class="config-grid risk-grid">
+                  <div class="field-block">
+                    <div class="field-label">最大亏损次数</div>
+                    <el-input type="number" v-model="item.max_loss_number" placeholder="请输入最大亏损次数"></el-input>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">最小亏损比例，单位小数</div>
+                    <el-input type="number" v-model="item.min_loss_ratio" placeholder="请输入最小亏损比例 例如：0.001"></el-input>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">盈利增加比例，单位百分比</div>
+                    <el-input type="number" v-model="item.increase_ratio" placeholder="请输入盈利增加比例 例如：5%"></el-input>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">盈利减少比例，单位百分比</div>
+                    <el-input type="number" v-model="item.decrease_ratio" placeholder="请输入盈利减少比例 例如：5%"></el-input>
+                  </div>
+                  <div class="field-block">
+                    <div class="field-label">清0值</div>
+                    <el-input type="number" v-model="item.clear_value" placeholder="请输入清0值 例如：5000"></el-input>
+                  </div>
+                </div>
               </div>
-              <div style="display: block;margin-right: 5px;">
-                <div style="width: 180px;line-height: 20px;">盈利减少比例，单位百分比</div>
-                <el-input type="number" style="width:180px" v-model="item.decrease_ratio" placeholder="请输入盈利减少比例 例如：5%"></el-input>
-              </div>
-              <div style="display: block;margin-right: 5px;">
-                <div style="width: 180px;line-height: 20px;">清0值</div>
-                <el-input type="number" style="width:180px" v-model="item.clear_value" placeholder="请输入清0值 例如：5000"></el-input>
-              </div>
-            </div>
-            <el-button type="danger" icon="el-icon-delete" @click="removeMaxPosition(index)"></el-button>
-          </div>
+            </el-collapse-item>
+          </el-collapse>
           <el-button type="primary" icon="el-icon-plus" @click="addMaxPosition"  :disabled="FormData.max_position_list.length >= availableSymbols.length">添加</el-button>
           <p v-if="FormData.max_position_list.length >= availableSymbols.length" style="color: #999;">
             已添加所有可配置交易对
           </p>
         </el-form-item>
-        <el-form-item label="网格买卖比例配置">
-          <div v-for="(item, index) in FormData.grid_percent_list" :key="index" style="display: flex; align-items: center; margin-bottom: 10px;">
-            <el-select v-model="item.direction" style="width: 120px; margin-right: 10px;" disabled>
-              <el-option label="做多 (long)" value="long"></el-option>
-              <el-option label="做空 (short)" value="short"></el-option>
-            </el-select>
-            <el-form-item label="买入比例" prop="" class="grid-form-label">
-              <el-input
-                v-model="item.buy"
-                placeholder="买入比例"
-                style="">
-              </el-input>
-            </el-form-item>
-            <el-form-item label="卖出比例" prop="" class="grid-form-label">
-              <el-input
-                v-model="item.sell"
-                placeholder="卖出比例"
-                style="">
-              </el-input>
-            </el-form-item>
-          </div>
-        </el-form-item>
         <el-form-item label="总仓位" prop="total_position">
           <el-input v-model="FormData.total_position" placeholder="如 5000"></el-input>
-        </el-form-item>
-        <el-form-item label="止盈止损比" prop="stop_profit_loss">
-          <el-input v-model="FormData.stop_profit_loss" placeholder="如 0.007"></el-input>
-        </el-form-item>
-        <el-form-item label="网格间距" prop="grid_step">
-          <el-input v-model="FormData.grid_step" placeholder="如 0.002"></el-input>
-        </el-form-item>
-        <el-form-item label="价格浮动比(百分比)" prop="commission_price_difference">
-          <el-input v-model="FormData.commission_price_difference" placeholder="如 0.06%"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button @click="resetForm('FormData')">取消</el-button>
@@ -281,6 +357,11 @@
             stop_profit_loss: '0.007',
             grid_step: '0.002',
             commission_price_difference: '50',
+            max_loss_number: '',
+            min_loss_ratio: '',
+            increase_ratio: '',
+            decrease_ratio: '',
+            clear_value: '',
             max_position: '', // 最终提交还是字符串
             max_position_list: [], // 中间结构用于动态配置
             grid_percent_list: [
@@ -322,16 +403,86 @@
           price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
           direction: [{ required: true, message: '请选择操作类型', trigger: 'change' }],
         },
-        balanceCacheTTL: 60 * 1000
+        balanceCacheTTL: 60 * 1000,
+        activeMaxPositionPanels: []
       };
     },
     methods: {
+      getMaxPositionPanelName(index) {
+        return `max-position-${index}`;
+      },
+      getDefaultGridPercentList(sourceList) {
+        const fallbackList = Array.isArray(sourceList) && sourceList.length > 0
+          ? sourceList
+          : [
+              { direction: 'long', buy: 0.04, sell: 0.05 },
+              { direction: 'short', buy: 0.05, sell: 0.04 }
+            ];
+        return fallbackList.map(item => ({
+          direction: item.direction,
+          buy: item.buy,
+          sell: item.sell
+        }));
+      },
+      getDefaultSymbolConfigValues() {
+        return {
+          stop_profit_loss: this.FormData.stop_profit_loss || '0.007',
+          grid_step: this.FormData.grid_step || '0.002',
+          commission_price_difference: this.FormData.commission_price_difference || '50',
+          grid_percent_list: this.getDefaultGridPercentList(this.FormData.grid_percent_list),
+          max_loss_number: this.FormData.max_loss_number !== undefined && this.FormData.max_loss_number !== null ? this.FormData.max_loss_number : '',
+          min_loss_ratio: this.FormData.min_loss_ratio !== undefined && this.FormData.min_loss_ratio !== null ? this.FormData.min_loss_ratio : '',
+          increase_ratio: this.FormData.increase_ratio !== undefined && this.FormData.increase_ratio !== null ? this.FormData.increase_ratio : '',
+          decrease_ratio: this.FormData.decrease_ratio !== undefined && this.FormData.decrease_ratio !== null ? this.FormData.decrease_ratio : '',
+          clear_value: this.FormData.clear_value !== undefined && this.FormData.clear_value !== null ? this.FormData.clear_value : ''
+        };
+      },
+      normalizeMaxPositionItem(item = {}, fallbackValues = {}) {
+        const readValue = (field) => {
+          if (item[field] !== undefined && item[field] !== null && item[field] !== '') {
+            return item[field];
+          }
+          if (fallbackValues[field] !== undefined && fallbackValues[field] !== null && fallbackValues[field] !== '') {
+            return fallbackValues[field];
+          }
+          return '';
+        };
+        return {
+          symbol: item.symbol || '',
+          value: item.value || 0,
+          tactics: item.tactics || '',
+          stop_profit_loss: readValue('stop_profit_loss'),
+          grid_step: readValue('grid_step'),
+          commission_price_difference: readValue('commission_price_difference'),
+          grid_percent_list: this.getDefaultGridPercentList(item.grid_percent_list || fallbackValues.grid_percent_list),
+          max_loss_number: readValue('max_loss_number'),
+          min_loss_ratio: readValue('min_loss_ratio'),
+          increase_ratio: readValue('increase_ratio'),
+          decrease_ratio: readValue('decrease_ratio'),
+          clear_value: readValue('clear_value'),
+          loss_number: item.loss_number || 0
+        };
+      },
+      normalizeMaxPositionListForForm(maxPositionList = [], fallbackValues = {}) {
+        return (maxPositionList || []).map(item => this.normalizeMaxPositionItem(item, fallbackValues));
+      },
       addMaxPosition() {
-        console.log(this.FormData.max_position_list)
-        this.FormData.max_position_list.push({ symbol: '', value: 0, max_loss_number: 5, min_loss_ratio: 0.001, increase_ratio: 5, decrease_ratio: 5, clear_value: 2000 });
+        this.FormData.max_position_list.push(this.normalizeMaxPositionItem({}, this.getDefaultSymbolConfigValues()));
+        this.$nextTick(() => {
+          this.activeMaxPositionPanels = [this.getMaxPositionPanelName(this.FormData.max_position_list.length - 1)];
+        });
       },
       removeMaxPosition(index) {
         this.FormData.max_position_list.splice(index, 1);
+        this.activeMaxPositionPanels = this.activeMaxPositionPanels
+          .filter(name => name !== this.getMaxPositionPanelName(index))
+          .map((name) => {
+            const currentIndex = Number(String(name).split('-').pop());
+            if (Number.isNaN(currentIndex) || currentIndex < index) {
+              return name;
+            }
+            return this.getMaxPositionPanelName(currentIndex - 1);
+          });
       },
       isSymbolSelected(symbol) {
         return this.FormData.max_position_list.some(item => item.symbol === symbol);
@@ -351,10 +502,21 @@
                 // 将 getRobotConfig 的数据与 accountList 进行匹配，补充余额信息
                 const robotData = json.data.data.data || [];
                 const enrichedData = robotData.map(robot => {
-                  // 通过 account_id 查找对应的账户余额
                   const account = this.accountList.find(acc => acc.id === robot.account_id);
+                  const fallbackValues = {
+                    stop_profit_loss: robot.stop_profit_loss,
+                    grid_step: robot.grid_step,
+                    commission_price_difference: robot.commission_price_difference,
+                    grid_percent_list: robot.grid_percent_list,
+                    max_loss_number: robot.max_loss_number,
+                    min_loss_ratio: robot.min_loss_ratio,
+                    increase_ratio: robot.increase_ratio,
+                    decrease_ratio: robot.decrease_ratio,
+                    clear_value: robot.clear_value
+                  };
                   return {
                     ...robot,
+                    max_position_list: this.normalizeMaxPositionListForForm(robot.max_position_list, fallbackValues),
                     total_balance: account ? account.total_balance : 0
                   };
                 });
@@ -460,9 +622,19 @@
           });
       },
       UpdateAdminUserInfo(row) { //修改管理员信息 弹框
-          console.log(row);
           this.is_save_add_start = 2;
           this.DialogTitle = "修改";
+          const fallbackValues = {
+            stop_profit_loss: row.stop_profit_loss,
+            grid_step: row.grid_step,
+            commission_price_difference: row.commission_price_difference,
+            grid_percent_list: row.grid_percent_list,
+            max_loss_number: row.max_loss_number,
+            min_loss_ratio: row.min_loss_ratio,
+            increase_ratio: row.increase_ratio,
+            decrease_ratio: row.decrease_ratio,
+            clear_value: row.clear_value
+          };
           this.FormData = {
                 id: row.id,
                 account_id: row.account_id,
@@ -473,57 +645,71 @@
                 stop_profit_loss: row.stop_profit_loss,
                 grid_step: row.grid_step,
                 commission_price_difference: row.commission_price_difference,
-                max_position_list: row.max_position_list, // 中间结构用于动态配置
-                grid_percent_list: row.grid_percent_list
+                max_loss_number: row.max_loss_number,
+                min_loss_ratio: row.min_loss_ratio,
+                increase_ratio: row.increase_ratio,
+                decrease_ratio: row.decrease_ratio,
+                clear_value: row.clear_value,
+                max_position_list: this.normalizeMaxPositionListForForm(row.max_position_list, fallbackValues),
+                grid_percent_list: this.getDefaultGridPercentList(row.grid_percent_list)
             };
+          this.activeMaxPositionPanels = this.FormData.max_position_list.map((_, index) => this.getMaxPositionPanelName(index));
           this.dialogVisibleShow = true;
       },
       onUpdateSubmit(formName) { //修改
-        const map = {};
         if(this.FormData.max_position_list.length <= 0) {
           this.$message.error('请添加仓位配置');
           return;
         }
-        this.FormData.max_position_list.forEach(item => {
-          if (item.symbol) map[item.symbol + '-SWAP'] = item.value;  // 加 -SWAP 是为了兼容原有字段
-        });
+
+        if (this.FormData.max_position_list.some(item => !item.symbol)) {
+          this.$message.error('请为所有交易对选择币种');
+          return;
+        }
 
         if (this.FormData.max_position_list.some(item => !item.tactics || item.tactics.trim() === '')) {
           this.$message.error('请为所有交易对选择策略');
           return;
         }
 
-        const gridObj = {};
-        this.FormData.grid_percent_list.forEach(item => {
-          gridObj[item.direction] = {
-            buy: parseFloat(item.buy),
-            sell: parseFloat(item.sell)
-          };
-        });
+        if (this.FormData.max_position_list.some(item => !item.stop_profit_loss || !item.grid_step || !item.commission_price_difference)) {
+          this.$message.error('请补全每个交易对的止盈止损、网格间距和价格浮动比');
+          return;
+        }
+
+        if (this.FormData.max_position_list.some(item => !item.grid_percent_list || item.grid_percent_list.length <= 0)) {
+          this.$message.error('请补全每个交易对的网格买卖比例');
+          return;
+        }
+
+        const payload = {
+          ...this.FormData,
+          max_position_list: this.FormData.max_position_list.map(item => ({
+            ...item,
+            grid_percent_list: this.getDefaultGridPercentList(item.grid_percent_list)
+          })),
+          grid_percent_list: this.getDefaultGridPercentList(this.FormData.grid_percent_list)
+        };
+
         this.$refs[formName].validate((valid) => {
           if (valid) {
             const url = this.is_save_add_start === 1
                 ? '/Grid/grid/addRobotConfig'
                 : '/Grid/grid/updateRobotConfig';
-              post(url, this.FormData, (json) => {
-                  console.log(json);
+              post(url, payload, (json) => {
                   if (json && json.data.code == 10000) {
                       this.dialogVisibleShow = false;
                       this.$message({
                           type: 'success',
                           message: this.DialogTitle + '成功! 1分钟后生效'
                       });
-                      // this.refreshConfig(json.data.data.data);
                       this.getListData();
                   } else {
                       this.dialogVisibleShow = false;
-                      // this.$refs.multipleTable.clearSelection();
-                      // this.$message.error(this.DialogTitle + '失败');
                       this.$message.error(json.data.msg);
                   }
               })
           } else {
-          //   console.log('error submit!!');
             return false;
           }
         });
@@ -541,12 +727,15 @@
             stop_profit_loss: '0.007',
             grid_step: '0.002',
             commission_price_difference: '50',
-            max_position_list: [], // 中间结构用于动态配置
-            grid_percent_list: [
-              { direction: 'long', buy: 0.04, sell: 0.05 },
-              { direction: 'short', buy: 0.05, sell: 0.04 }
-            ]
+            max_loss_number: '',
+            min_loss_ratio: '',
+            increase_ratio: '',
+            decrease_ratio: '',
+            clear_value: '',
+            max_position_list: [],
+            grid_percent_list: this.getDefaultGridPercentList()
         };
+        this.activeMaxPositionPanels = [];
         this.dialogVisibleShow = true;
       },
       startKeywordList(row) { //更改状态
@@ -589,6 +778,7 @@
       // },
       resetForm(formName) {
         this.$refs[formName].resetFields();
+        this.activeMaxPositionPanels = [];
         this.dialogVisibleShow = false;
       },
       // 新增交易信号相关方法
@@ -641,20 +831,290 @@
   </script>
 
 <style lang="scss">
-  .grid-form-label {
-    .el-form-item__label {
-      width: 70px !important;
+  .max-position-collapse {
+    border-top: none;
+    margin-bottom: 12px;
+
+    .el-collapse-item {
+      margin-bottom: 12px;
+      border: 1px solid #ebeef5;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #fff;
     }
-    .el-form-item__content {
-      margin-left: 70px!important;
+
+    .el-collapse-item__header {
+      height: auto;
+      line-height: normal;
+      padding: 14px 16px;
+      border-bottom: 1px solid transparent;
+      background: #fafafa;
+    }
+
+    .el-collapse-item__wrap {
+      border-bottom: none;
+    }
+
+    .el-collapse-item__content {
+      padding: 16px;
     }
   }
+
+  .max-position-header {
+    width: calc(100% - 24px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .max-position-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .summary-primary {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .summary-meta {
+    font-size: 13px;
+    color: #606266;
+  }
+
+  .max-position-delete {
+    flex: 0 0 auto;
+  }
+
+  .config-section + .config-section {
+    margin-top: 20px;
+  }
+
+  .section-title {
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .config-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .basic-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .risk-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .field-block {
+    min-width: 0;
+  }
+
+  .field-label {
+    margin-bottom: 6px;
+    line-height: 20px;
+    color: #606266;
+    font-size: 13px;
+  }
+
+  .field-block .el-select,
+  .field-block .el-input,
+  .field-block .el-input-number,
+  .field-full {
+    width: 100%;
+  }
+
+  .ratio-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ratio-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 1fr;
+    gap: 12px;
+  }
+
+  .ratio-direction {
+    max-width: 180px;
+  }
+
   .el-descriptions {
     margin-bottom: 20px;
     .el-descriptions__header {
       margin-bottom: 10px;
     }
   }
+  .symbol-config-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .config-overview-card {
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fff;
+  }
+
+  .config-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .config-card-title {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 18px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .config-card-actions {
+    display: flex;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+
+  .config-card-body {
+    min-width: 0;
+  }
+
+  .config-overview-table {
+    border: 1px solid #ebeef5;
+    border-bottom: none;
+    background: #fff;
+  }
+
+  .config-overview-row {
+    display: grid;
+    grid-template-columns: 140px minmax(220px, 0.78fr) 140px minmax(420px, 1.22fr);
+  }
+
+  .config-overview-row-large {
+    align-items: stretch;
+  }
+
+  .config-overview-label,
+  .config-overview-value {
+    padding: 24px 16px;
+    border-right: 1px solid #ebeef5;
+    border-bottom: 1px solid #ebeef5;
+    min-width: 0;
+  }
+
+  .config-overview-label {
+    display: flex;
+    align-items: center;
+    color: #909399;
+    background: #fafafa;
+    font-size: 14px;
+  }
+
+  .config-overview-value {
+    display: flex;
+    align-items: center;
+    color: #303133;
+    font-size: 14px;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+
+  .config-overview-value-wide {
+    display: block;
+  }
+
+  .symbol-config-card {
+    padding: 12px 14px;
+    border: 1px solid #ebeef5;
+    border-radius: 6px;
+    background: #fafafa;
+  }
+
+  .symbol-config-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .symbol-config-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .symbol-config-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .symbol-config-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #f0f7ff;
+    color: #409eff;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .symbol-config-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px 16px;
+    margin-bottom: 10px;
+    color: #606266;
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .symbol-config-ratios {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .ratio-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    color: #606266;
+    font-size: 12px;
+  }
+
+  .ratio-chip-direction {
+    font-weight: 600;
+    color: #303133;
+    text-transform: lowercase;
+  }
+
   .el-descriptions__title {
     display: flex;
   }
@@ -668,5 +1128,37 @@
   @keyframes loading {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 1200px) {
+    .config-card-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .config-card-actions {
+      justify-content: flex-end;
+    }
+
+    .ratio-row {
+      grid-template-columns: 1fr;
+    }
+
+    .ratio-direction {
+      max-width: none;
+    }
+
+    .symbol-config-header {
+      align-items: flex-start;
+    }
+
+    .config-overview-row {
+      grid-template-columns: 120px minmax(0, 1fr);
+    }
+
+    .config-overview-row .config-overview-label:nth-child(3),
+    .config-overview-row .config-overview-value:nth-child(4) {
+      border-top: none;
+    }
   }
 </style>

@@ -1028,27 +1028,48 @@ async def cancel_all_orders(
 
 async def get_max_position_value(self, account_id: int, symbol: str) -> Decimal:
     """根据交易对匹配对应的最大仓位值"""
-    normalized_symbol = symbol.upper().replace("-SWAP", "")
-    max_position_list = self.db.account_config_cache.get(account_id, {}).get(
-        "max_position_list", []
-    )
-    max_position_list_arr = json.loads(max_position_list)
-    for item in max_position_list_arr:
-        if item.get("symbol") == normalized_symbol:
-            return Decimal(item.get("value"))
-    return Decimal("0")  # 如果没有匹配到，返回0
+    symbol_config = await self.db.get_config_by_account_and_symbol(account_id, symbol)
+    if not symbol_config:
+        logging.warning(f"⚠️ 未找到最大仓位配置: 账户={account_id}, 币种={symbol}")
+        return Decimal("0")
+
+    value = symbol_config.get("value", 0)
+    try:
+        return Decimal(str(value or 0))
+    except Exception:
+        logging.warning(
+            f"⚠️ 最大仓位配置格式异常: 账户={account_id}, 币种={symbol}, value={value}"
+        )
+        return Decimal("0")
 
 
-async def get_grid_percent_list(self, account_id: int, direction: str) -> Decimal:
-    """根据交易对匹配对应的最大仓位值"""
-    grid_percent_list = self.db.account_config_cache.get(account_id, {}).get(
-        "grid_percent_list", []
-    )
-    grid_percent_list_arr = json.loads(grid_percent_list)
+async def get_grid_percent_list(self, account_id: int, symbol: str, direction: str) -> Dict:
+    """根据账户和币种获取对应方向的网格比例配置"""
+    symbol_config = await self.db.get_config_by_account_and_symbol(account_id, symbol)
+    if symbol_config:
+        grid_percent_list_arr = symbol_config.get("grid_percent_list", []) or []
+        for item in grid_percent_list_arr:
+            if item.get("direction") == direction:
+                return item
+
+    account_config = self.db.account_config_cache.get(account_id, {})
+    grid_percent_list = account_config.get("grid_percent_list", [])
+    if isinstance(grid_percent_list, str):
+        try:
+            grid_percent_list_arr = json.loads(grid_percent_list)
+        except (TypeError, json.JSONDecodeError):
+            grid_percent_list_arr = []
+    else:
+        grid_percent_list_arr = grid_percent_list or []
+
     for item in grid_percent_list_arr:
         if item.get("direction") == direction:
             return item
-    return []  # 如果没有匹配到，返回[]
+
+    logging.warning(
+        f"⚠️ 未找到网格比例配置: 账户={account_id}, 币种={symbol}, 方向={direction}"
+    )
+    return {}
 
 
 async def fetch_positions_history(

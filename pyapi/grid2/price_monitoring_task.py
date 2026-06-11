@@ -1163,9 +1163,16 @@ class PriceMonitoringTask:
             print(f"📌 用户 {account_id} 最新订单成交价: {filled_price}")
             logging.info(f"📌 用户 {account_id} 最新订单成交价: {filled_price}")
 
-            grid_step = Decimal(
-                str(self.db.account_config_cache[account_id].get("grid_step", 0.002))
+            symbol_config = await self.db.get_config_by_account_and_symbol(
+                account_id, symbol
             )
+            if not symbol_config:
+                logging.error(
+                    f"🚫 未找到完整币种配置: 账户={account_id}, 币种={symbol}"
+                )
+                return False
+
+            grid_step = Decimal(str(symbol_config.get("grid_step", 0.002)))
             price_diff_ratio = abs(filled_price - price) / price
 
             if price_diff_ratio > grid_step:
@@ -1269,10 +1276,15 @@ class PriceMonitoringTask:
             await cancel_all_orders(self, exchange, account_id, symbol)
 
             percent_list = await get_grid_percent_list(
-                self, account_id, signal["direction"]
+                self, account_id, symbol, signal["direction"]
             )
             buy_percent = percent_list.get("buy")
             sell_percent = percent_list.get("sell")
+            if buy_percent in (None, "") or sell_percent in (None, ""):
+                logging.error(
+                    f"🚫 网格比例配置缺失: 账户={account_id}, 币种={symbol}, 方向={signal['direction']}, 配置={percent_list}"
+                )
+                return False
 
             logging.info(
                 f"📊 网格比例配置: 账户={account_id}, 方向={signal['direction']}, "

@@ -6,13 +6,30 @@
       <el-breadcrumb-item>信号列表</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="project-top">
-      <el-select v-model="strategy_name" clearable placeholder="选择策略" @change="getSignalList" @clear="getSignalList">
-        <el-option v-for="item in strategyOptions" :key="item.name" :label="item.name" :value="item.name">
-          <span style="float: left">{{ item.name }}</span>
-          <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
-        </el-option>
-      </el-select>
-      <el-button type="primary" @click="refreshSignalList()">刷新列表</el-button>
+      <div class="filter-group">
+        <el-select v-model="strategy_name" clearable placeholder="选择策略" @change="handleFilterChange" @clear="handleFilterChange">
+          <el-option v-for="item in strategyOptions" :key="item.name" :label="item.name" :value="item.name">
+            <span style="float: left">{{ item.name }}</span>
+            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
+          </el-option>
+        </el-select>
+        <el-select
+          v-model="symbol"
+          clearable
+          filterable
+          placeholder="选择币种"
+          @change="handleFilterChange"
+          @clear="handleFilterChange"
+        >
+          <el-option
+            v-for="item in symbolOptions"
+            :key="item"
+            :label="normalizeSymbol(item)"
+            :value="item"
+          />
+        </el-select>
+        <el-button type="primary" @click="refreshSignalList()">刷新列表</el-button>
+      </div>
     </div>
     <el-table :span-method="objectSpanMethod" :data="signalList" border style="width: 100%; margin-top: 20px;"
       v-loading="loading">
@@ -26,7 +43,11 @@
           <span>{{ positionTypeLabel(scope.row) }}</span>
         </template>
       </el-table-column>
-      <!-- <el-table-column prop="symbol" label="交易对" align="center"></el-table-column> -->
+      <el-table-column prop="symbol" label="交易对" align="center" width="150">
+        <template slot-scope="scope">
+          {{ normalizeSymbol(scope.row.symbol) || '--' }}
+        </template>
+      </el-table-column>
       <el-table-column prop="direction" label="方向" align="center">
         <template slot-scope="scope">
           <el-tag :type="orderSideLabel(scope.row) === 'buy' ? 'success' : 'danger'">
@@ -66,12 +87,59 @@
       </el-table-column>
       <el-table-column prop="status" label="状态" align="center">
         <template slot-scope="scope">
-          <el-tag :type="getSignalStatusTagType(scope.row)">
+          <el-tag
+            :type="getSignalStatusTagType(scope.row)"
+            :class="{ 'clickable-status': canViewFailedAccounts(scope.row) }"
+            @click.native="openFailedAccountsDialog(scope.row)"
+          >
             {{ getSignalStatusText(scope.row) }}
           </el-tag>
         </template>
       </el-table-column>
     </el-table>
+
+    <el-dialog
+      title="失败账户详情"
+      :visible.sync="failedAccountsDialogVisible"
+      width="760px"
+    >
+      <div v-if="failedAccountsDialogSignal" class="failed-dialog-summary">
+        <span>策略：{{ failedAccountsDialogSignal.name || '--' }}</span>
+        <span>币种：{{ normalizeSymbol(failedAccountsDialogSignal.symbol) || '--' }}</span>
+        <span>状态：{{ getSignalStatusText(failedAccountsDialogSignal) }}</span>
+      </div>
+      <el-table
+        :data="failedAccountsDialogData"
+        border
+        size="mini"
+        empty-text="暂无失败账户详情"
+      >
+        <el-table-column prop="account_id" label="账户ID" width="100" align="center" />
+        <el-table-column label="恢复状态" width="110" align="center">
+          <template slot-scope="scope">
+            {{ getRecoveryStatusText(scope.row.status) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="失败阶段" width="120" align="center">
+          <template slot-scope="scope">
+            {{ getFailureStageText(scope.row.failure_stage) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="错误码" width="110" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.error_code || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="错误信息" min-width="260">
+          <template slot-scope="scope">
+            <div>{{ scope.row.error_message || '--' }}</div>
+            <div v-if="scope.row.error_detail" class="failed-detail-extra">
+              {{ scope.row.error_detail }}
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
 
     <el-row class="pages">
       <el-col :span="24">
@@ -102,6 +170,11 @@ export default {
       loading: false,
       strategyOptions: [],
       strategy_name: 'Y1.1',
+      symbol: '',
+      symbolOptions: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT', 'DOGE-USDT'],
+      failedAccountsDialogVisible: false,
+      failedAccountsDialogData: [],
+      failedAccountsDialogSignal: null,
     };
   },
   created() {
@@ -142,12 +215,17 @@ export default {
         }
       });
     },
+    handleFilterChange() {
+      this.currentPage = 1;
+      this.getSignalList();
+    },
     getSignalList() {
       this.loading = true;
       const params = {
         page: this.currentPage,
         limit: this.pageSize,
         strategy_name: this.strategy_name,
+        symbol: this.symbol,
       };
 
       get("/Grid/grid/getSignalsList", params, response => {
@@ -173,6 +251,14 @@ export default {
       if (isNaN(num)) return '--';
       // Format number with 4 decimal places
       return parseFloat(num).toFixed(1);
+    },
+
+    normalizeSymbol(symbol) {
+      if (!symbol) return '';
+      const normalizedSymbol = String(symbol).toUpperCase();
+      return normalizedSymbol.endsWith('-SWAP')
+        ? normalizedSymbol.slice(0, -5)
+        : normalizedSymbol;
     },
 
     normalizeSignalSize(size) {
@@ -220,6 +306,41 @@ export default {
       return this.parseJsonArray(row.failed_accounts).length;
     },
 
+    canViewFailedAccounts(row) {
+      const status = (row.status || '').toLowerCase();
+      return ['partial', 'failed'].indexOf(status) > -1 && this.getFailedAccountCount(row) > 0;
+    },
+
+    openFailedAccountsDialog(row) {
+      if (!this.canViewFailedAccounts(row)) {
+        return;
+      }
+      this.failedAccountsDialogSignal = row;
+      this.failedAccountsDialogData = this.parseJsonArray(row.failed_accounts);
+      this.failedAccountsDialogVisible = true;
+    },
+
+    getRecoveryStatusText(status) {
+      const statusMap = {
+        pending: '待恢复',
+        retrying: '重试中',
+        success: '已恢复',
+        failed: '失败',
+        blocked: '已冻结'
+      };
+      return statusMap[(status || '').toLowerCase()] || (status || '--');
+    },
+
+    getFailureStageText(stage) {
+      const stageMap = {
+        dispatch: '下发阶段',
+        verify: '验仓阶段',
+        open_position: '开仓下单',
+        close_position: '平仓下单'
+      };
+      return stageMap[(stage || '').toLowerCase()] || (stage || '--');
+    },
+
     getSignalStatusTagType(row) {
       const status = (row.status || '').toLowerCase();
       const statusMap = {
@@ -264,7 +385,17 @@ export default {
   align-items: center;
   margin-bottom: 20px;
   margin-top: 20px;
-  justify-content: space-between;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-group .el-select {
+  width: 220px;
 }
 .el-breadcrumb {
   margin-bottom: 20px;
@@ -282,5 +413,25 @@ export default {
 .pages {
   margin-top: 0 !important;
   margin-bottom: 80px !important;
+}
+
+.clickable-status {
+  cursor: pointer;
+}
+
+.failed-dialog-summary {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  color: #606266;
+}
+
+.failed-detail-extra {
+  margin-top: 4px;
+  color: #909399;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>
