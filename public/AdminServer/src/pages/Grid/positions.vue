@@ -6,11 +6,15 @@
           <el-breadcrumb-item to="">数据统计</el-breadcrumb-item>
       </el-breadcrumb>
       <div class="project-top">
-        <el-select v-model="account_id" placeholder="选择要搜索的账户" @change="accountChange">
+        <el-select v-model="account_id" placeholder="选择要搜索的账户" clearable @change="accountChange" @clear="accountClear">
+          <el-option
+            label="全部账户"
+            :value="''">
+          </el-option>
           <el-option
             v-for="(item, index) in accountList"
             :key="index"
-            :label="item.name"
+            :label="formatAccountLabel(item)"
             :value="item.id">
           </el-option>
         </el-select>
@@ -24,9 +28,10 @@
           </el-form-item>
         </el-form> -->
       </div>
-      <el-tabs type="card" @tab-click="tabClick">
-          <el-tab-pane label="当前持仓">
+      <el-tabs v-model="activeTab" type="card" @tab-click="tabClick">
+          <el-tab-pane label="当前持仓" name="current">
             <el-table :data="currentPositionsList" style="width: 100%;" v-loading="currentLoading">
+              <el-table-column prop="account_id" label="账户ID" align="center" width="100"></el-table-column>
               <!-- 交易品种 -->
               <el-table-column prop="symbol" label="交易品种" align="center"></el-table-column>
               
@@ -90,8 +95,9 @@
               </el-table-column>
             </el-table>
           </el-tab-pane>
-          <el-tab-pane label="历史持仓">
+          <el-tab-pane label="历史持仓" name="history">
             <el-table :data="positionsHistoryList" style="width: 100%;" v-loading="historyLoading">
+              <el-table-column prop="account_id" label="账户ID" align="left" width="100"></el-table-column>
               <!-- 交易品种 -->
               <el-table-column prop="symbol" label="交易品种" align="left" width="150">
                 <template slot-scope="scope">
@@ -259,11 +265,12 @@
   export default {
     data() {
       return {
-          account_id: 1,
+          account_id: '',
           inst_id: '',
+          activeTab: 'current',
           currPage: 1, //当前页
-          pageSize: 100, //每页显示条数
-          total: 100, //总条数
+          pageSize: 20, //每页显示条数
+          total: 0, //总条数
           PageSearchWhere: [], //分页搜索数组
           positionsHistoryList: [],
           historyLoading: false,
@@ -274,17 +281,21 @@
     },
     methods: {
       tabClick(item) {
-          console.log(item);
-          // if(item.label === '') {
-          // }
-          // if(item.label === '') {
-          // }
+          if (item.name === 'history' && this.positionsHistoryList.length === 0) {
+            this.getPositionsHistoryListData();
+          }
       },
       accountChange(val) {
-        if(val) {
-          this.getCurrentPositionsListData();
+        this.currPage = 1;
+        this.total = 0;
+        this.positionsHistoryList = [];
+        this.getCurrentPositionsListData();
+        if (this.activeTab === 'history') {
           this.getPositionsHistoryListData();
         }
+      },
+      accountClear() {
+        this.accountChange('');
       },
       getCurrentPositionsListData(ServerWhere) { //获取当前持仓列表
         var that = this.$data;
@@ -296,7 +307,7 @@
           };
         }
         get("/sigadmin/get_current_positions", {
-          account_id: that.account_id,
+          account_id: that.account_id || undefined,
           inst_id: that.inst_id,
         }, json => {
             // console.log(json);
@@ -319,14 +330,16 @@
           };
         }
         get("/sigadmin/get_positions_history", {
-          account_id: that.account_id,
+          account_id: that.account_id || undefined,
           inst_id: that.inst_id,
           limit: that.pageSize,
+          page: that.currPage,
         }, json => {
             // console.log(json);
             this.historyLoading = false;
           if (json.status == 200) {
             this.positionsHistoryList = json.data.data;
+            this.total = Array.isArray(json.data.data) ? json.data.data.length : 0;
           } else {
             this.$message.error("加载数据失败");
           }
@@ -350,24 +363,13 @@
       limitPaging(limit) {
         //赋值当前条数
         this.pageSize = limit;
-        if (
-          this.PageSearchWhere.limit &&
-          this.PageSearchWhere.limit !== undefined
-        ) {
-          this.PageSearchWhere.limit = limit;
-        }
-        this.getListData(this.PageSearchWhere); //刷新列表
+        this.currPage = 1;
+        this.getPositionsHistoryListData(); //刷新列表
       },
       skipPaging(page) {
         //赋值当前页数
         this.currPage = page;
-        if (
-          this.PageSearchWhere.page &&
-          this.PageSearchWhere.page !== undefined
-        ) {
-          this.PageSearchWhere.page = page;
-        }
-        this.getListData(this.PageSearchWhere); //刷新列表
+        this.getPositionsHistoryListData(); //刷新列表
       },
       handleClose() {
           this.dialogVisibleShow = false;
@@ -394,6 +396,10 @@
               hour12: false
           }).format(date).replace(/\//g, '-');
       },
+      formatAccountLabel(item) {
+        if (!item) return '';
+        return `${item.id} - ${item.name}`;
+      },
       getAccountList() {
         get("/Grid/grid/getAccountList", {}, json => {
             // console.log(json);
@@ -414,7 +420,6 @@
     created() {
       this.getAccountList();
       this.getCurrentPositionsListData();
-      this.getPositionsHistoryListData();
     },
     components: {
       "wbc-page": Page, //加载分页组件

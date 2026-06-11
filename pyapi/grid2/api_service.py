@@ -18,7 +18,7 @@ import redis
 # 模块依赖
 from database import Database
 from trading_bot_config import TradingBotConfig
-from common_functions import fetch_positions_history, fetch_current_positions, get_account_balance, get_exchange, get_market_precision
+from common_functions import fetch_positions_history, fetch_current_positions, fetch_current_positions_all_accounts, get_account_balance, get_exchange, get_market_precision
 
 load_dotenv()
 
@@ -112,7 +112,7 @@ class PositionService:
         except Exception as e:
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
     
-    async def get_positions_history(self, account_id: int, inst_id: Optional[str], inst_type: str, limit: str, after: str = None, before: str = None):
+    async def get_positions_history(self, account_id: Optional[int], inst_id: Optional[str], inst_type: str, limit: str, after: str = None, before: str = None):
         try:
             normalized_inst_id = (inst_id or "").strip() or None
             result = await fetch_positions_history(
@@ -129,16 +129,23 @@ class PositionService:
             logging.error(f"获取历史持仓出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
-    async def get_current_positions(self, account_id: int, inst_id: Optional[str], inst_type: str):
+    async def get_current_positions(self, account_id: Optional[int], inst_id: Optional[str], inst_type: str):
         try:
             normalized_inst_id = (inst_id or "").strip() or None
             # 获取当前持仓数据
-            result = await fetch_current_positions(
-                self,  # 如果将来有 bot 实例，这里可传入
-                account_id=account_id,
-                symbol=normalized_inst_id,
-                inst_type=inst_type
-            )
+            if account_id:
+                result = await fetch_current_positions(
+                    self,  # 如果将来有 bot 实例，这里可传入
+                    account_id=account_id,
+                    symbol=normalized_inst_id,
+                    inst_type=inst_type
+                )
+            else:
+                result = await fetch_current_positions_all_accounts(
+                    self,
+                    symbol=normalized_inst_id,
+                    inst_type=inst_type
+                )
 
             if result is None:
                 return JSONResponse(
@@ -237,7 +244,7 @@ async def root():
 # ✅ 获取历史持仓
 @app.get("/get_positions_history")
 async def get_positions_history(
-    account_id: int = Query(..., description="账户ID"),
+    account_id: Optional[int] = Query(None, description="账户ID，不传表示全部账户"),
     inst_id: Optional[str] = Query(None, description="交易对ID，例如 BTC-USDT-SWAP"),
     inst_type: str = Query("SWAP", description="合约类型"),
     limit: int = Query(100, description="分页数量"),
@@ -249,7 +256,7 @@ async def get_positions_history(
 # ✅ 获取当前持仓
 @app.get("/get_current_positions")
 async def get_current_positions(
-    account_id: int = Query(..., description="账户ID"),
+    account_id: Optional[int] = Query(None, description="账户ID，不传表示全部账户"),
     inst_id: Optional[str] = Query(None, description="交易对ID"),
     inst_type: str = Query("SWAP", description="合约类型")
 ):

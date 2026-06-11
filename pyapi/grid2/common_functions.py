@@ -3,7 +3,7 @@ import os
 import random
 import re
 import time
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 import ccxt.async_support as ccxt
 from decimal import Decimal
 import asyncio
@@ -1074,7 +1074,7 @@ async def get_grid_percent_list(self, account_id: int, symbol: str, direction: s
 
 async def fetch_positions_history(
     self,
-    account_id: int,
+    account_id: Optional[int],
     inst_type: str = "SWAP",
     inst_id: str = None,
     limit: str = "100",
@@ -1089,35 +1089,72 @@ async def fetch_positions_history(
     :param limit: 每页获取数量（最大100）
     :return: 历史持仓记录列表
     """
-    exchange = await get_exchange(self, account_id)
-    if not exchange:
-        return []
-
     normalized_inst_id = (inst_id or "").strip() or None
+    normalized_limit = max(1, min(int(limit or 100), 100))
 
-    try:
-        params = {
-            "instType": inst_type,
-            "after": after,
-            "before": before,
-        }
+    async def _fetch_single_history(target_account_id: int) -> List[dict]:
+        exchange = await get_exchange(self, target_account_id)
+        if not exchange:
+            return []
 
-        symbols = [normalized_inst_id] if normalized_inst_id else None
-        result = await exchange.fetch_positions_history(symbols, None, limit, params)
-        return result or []
+        try:
+            params = {
+                "instType": inst_type,
+                "after": after,
+                "before": before,
+            }
 
-    except Exception as e:
-        logging.error(
-            f"获取历史持仓失败: 账户={account_id}, 币种={normalized_inst_id or 'ALL'}, 错误={e}"
-        )
+            symbols = [normalized_inst_id] if normalized_inst_id else None
+            result = await exchange.fetch_positions_history(
+                symbols, None, normalized_limit, params
+            )
+            records = result or []
+            for item in records:
+                item["account_id"] = target_account_id
+            return records
+        except Exception as e:
+            logging.error(
+                f"获取历史持仓失败: 账户={target_account_id}, 币种={normalized_inst_id or 'ALL'}, 错误={e}"
+            )
+            return []
+        finally:
+            await exchange.close()
+
+    if account_id:
+        return await _fetch_single_history(account_id)
+
+    account_ids = await self.db.get_all_active_accounts()
+    if not account_ids:
         return []
-    finally:
-        await exchange.close()
+
+    semaphore = asyncio.Semaphore(4)
+
+    async def _bounded_fetch(target_account_id: int) -> List[dict]:
+        async with semaphore:
+            return await _fetch_single_history(target_account_id)
+
+    all_results = await asyncio.gather(
+        *[_bounded_fetch(target_account_id) for target_account_id in account_ids],
+        return_exceptions=True,
+    )
+
+    merged_records = []
+    for result in all_results:
+        if isinstance(result, Exception):
+            logging.error(f"聚合历史持仓失败: {result}")
+            continue
+        merged_records.extend(result)
+
+    merged_records.sort(
+        key=lambda item: str((item.get("info") or {}).get("uTime") or item.get("timestamp") or ""),
+        reverse=True,
+    )
+    return merged_records[:normalized_limit]
 
 
 async def fetch_current_positions(
     self,
-    account_id: int,
+    account_id: Optional[int],
     symbol: str,
     inst_type: str = "SWAP",
     exchange: ccxt.Exchange = None,
@@ -1181,6 +1218,46 @@ async def fetch_current_positions(
     finally:
         if close_exchange and created_exchange and current_exchange:
             await current_exchange.close()
+
+
+async def fetch_current_positions_all_accounts(
+    self,
+    symbol: str,
+    inst_type: str = "SWAP",
+) -> list:
+    """聚合所有启用账户的当前持仓"""
+    account_ids = await self.db.get_all_active_accounts()
+    if not account_ids:
+        return []
+
+    semaphore = asyncio.Semaphore(4)
+
+    async def _bounded_fetch(target_account_id: int) -> list:
+        async with semaphore:
+            positions = await fetch_current_positions(
+                self,
+                account_id=target_account_id,
+                symbol=symbol,
+                inst_type=inst_type,
+            )
+            records = positions or []
+            for item in records:
+                item["account_id"] = target_account_id
+            return records
+
+    all_results = await asyncio.gather(
+        *[_bounded_fetch(target_account_id) for target_account_id in account_ids],
+        return_exceptions=True,
+    )
+
+    merged_positions = []
+    for result in all_results:
+        if isinstance(result, Exception):
+            logging.error(f"聚合当前持仓失败: {result}")
+            continue
+        merged_positions.extend(result)
+
+    return merged_positions
 
 
 # 获取账户总持仓数
