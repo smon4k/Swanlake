@@ -213,11 +213,6 @@ class GridController extends BaseController
             'max_position_list' => json_encode($normalized_max_position_list, JSON_UNESCAPED_UNICODE),
             'grid_percent_list' => json_encode($normalized_grid_percent_list, JSON_UNESCAPED_UNICODE), 
             'commission_price_difference' => $commission_price_difference,
-            'max_loss_number' => $max_loss_number,
-            'min_loss_ratio' => $min_loss_ratio,
-            'increase_ratio' => $increase_ratio,
-            'decrease_ratio' => $decrease_ratio,
-            'clear_value' => $clear_value,
             'is_active' => 1,
         ];
         $res = Config::addRobotConfig($data);
@@ -278,11 +273,6 @@ class GridController extends BaseController
             'max_position_list' => json_encode($normalized_max_position_list, JSON_UNESCAPED_UNICODE),
             'grid_percent_list' => json_encode($normalized_grid_percent_list, JSON_UNESCAPED_UNICODE), 
             'commission_price_difference' => $commission_price_difference,
-            'max_loss_number' => $max_loss_number,
-            'min_loss_ratio' => $min_loss_ratio,
-            'increase_ratio' => $increase_ratio,
-            'decrease_ratio' => $decrease_ratio,
-            'clear_value' => $clear_value,
             'updated_at' => date('Y-m-d H:i:s'), 
         ];
         $res = Config::updateRobotConfig($id, $data);

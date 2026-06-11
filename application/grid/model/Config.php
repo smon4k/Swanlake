@@ -17,6 +17,26 @@ use RequestService\RequestService;
 
 class Config extends Base
 {
+    protected static $configTableFields = null;
+
+    protected static function filterConfigTableFields($data)
+    {
+        if (!is_array($data) || empty($data)) {
+            return $data;
+        }
+
+        if (self::$configTableFields === null) {
+            $model = new self();
+            $fields = $model->getTableInfo('', 'fields');
+            self::$configTableFields = is_array($fields) ? $fields : [];
+        }
+
+        if (empty(self::$configTableFields)) {
+            return $data;
+        }
+
+        return array_intersect_key($data, array_flip(self::$configTableFields));
+    }
 
     /**
     * 获取配置列表
@@ -52,6 +72,7 @@ class Config extends Base
     * @author [qinlh] [WeChat QinLinHui0706]
     */
     public static function addRobotConfig($data) {
+        $data = self::filterConfigTableFields($data);
         $res = self::where("account_id", $data['account_id'])->find();
         if($res) {
             return ['code'=>0,'msg'=>'该账户已存在配置'];
@@ -73,6 +94,7 @@ class Config extends Base
     * @author [qinlh] [WeChat QinLinHui0706]
     */
     public static function updateRobotConfig($id, $UpdateData) {
+        $UpdateData = self::filterConfigTableFields($UpdateData);
         $res = self::where("id", $id)->find();
         if(!$res) {
             return ['code'=>0, 'msg'=>'该配置不存在'];
