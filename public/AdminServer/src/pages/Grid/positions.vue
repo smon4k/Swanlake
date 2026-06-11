@@ -31,9 +31,21 @@
       <el-tabs v-model="activeTab" type="card" @tab-click="tabClick">
           <el-tab-pane label="当前持仓" name="current">
             <el-table :data="currentPositionsList" style="width: 100%;" v-loading="currentLoading">
-              <el-table-column prop="account_id" label="账户ID" align="center" width="100"></el-table-column>
+              <el-table-column label="账户" align="center" width="160">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.account_id }}</span>
+                  <br>
+                  <span>{{ getAccountName(scope.row.account_id) }}</span>
+                </template>
+              </el-table-column>
               <!-- 交易品种 -->
               <el-table-column prop="symbol" label="交易品种" align="center"></el-table-column>
+
+              <el-table-column label="仓位状态" align="center" width="120">
+                <template slot-scope="scope">
+                  <span>{{ formatMarginMode(scope.row) }}</span>
+                </template>
+              </el-table-column>
               
               <!-- 持仓方向 -->
               <el-table-column prop="side" label="持仓方向" align="center">
@@ -91,6 +103,12 @@
               <el-table-column label="盈亏平衡价" align="center">
                 <template slot-scope="scope">
                   <span>{{ keepDecimalNotRounding(scope.row.entryPrice + (scope.row.unrealizedPnl / scope.row.contracts), 2, true) }} USDT</span>
+                </template>
+              </el-table-column>
+
+              <el-table-column label="开仓时间" align="center" width="180">
+                <template slot-scope="scope">
+                  <span>{{ getPositionOpenTime(scope.row) }}</span>
                 </template>
               </el-table-column>
             </el-table>
@@ -399,6 +417,24 @@
       formatAccountLabel(item) {
         if (!item) return '';
         return `${item.id} - ${item.name}`;
+      },
+      getAccountName(accountId) {
+        const targetId = Number(accountId);
+        const account = this.accountList.find(item => Number(item.id) === targetId);
+        return account ? account.name : '-';
+      },
+      formatMarginMode(row) {
+        const mode = (((row || {}).info || {}).mgnMode || row.marginMode || '').toLowerCase();
+        if (mode === 'cross') return '全仓';
+        if (mode === 'isolated') return '逐仓';
+        return '-';
+      },
+      getPositionOpenTime(row) {
+        const info = (row || {}).info || {};
+        const rawTime = info.cTime || row.timestamp || row.datetime || '';
+        if (!rawTime) return '-';
+        if (typeof rawTime === 'string' && rawTime.includes('-')) return rawTime;
+        return this.timestampToTime(rawTime);
       },
       getAccountList() {
         get("/Grid/grid/getAccountList", {}, json => {
