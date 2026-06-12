@@ -32,23 +32,37 @@
         </div>
 
         <div class="config-card-body">
-          <div class="config-overview-table">
-            <div class="config-overview-row">
-              <div class="config-overview-label">API Key</div>
-              <div class="config-overview-value">{{ item.api_key }}</div>
-              <div class="config-overview-label">API Secret</div>
-              <div class="config-overview-value">{{ item.api_secret }}</div>
+          <div class="config-overview-layout">
+            <div class="config-overview-panel config-overview-panel-base">
+              <div class="config-overview-panel-title">账户基础配置</div>
+              <div class="config-overview-table">
+                <div class="config-overview-row">
+                  <div class="config-overview-label">API Key</div>
+                  <div class="config-overview-value">{{ item.api_key }}</div>
+                </div>
+                <div class="config-overview-row">
+                  <div class="config-overview-label">API Secret</div>
+                  <div class="config-overview-value">{{ item.api_secret }}</div>
+                </div>
+                <div class="config-overview-row config-overview-row-double">
+                  <div class="config-overview-cell">
+                    <div class="config-overview-label">倍数</div>
+                    <div class="config-overview-value">{{ item.multiple }}</div>
+                  </div>
+                  <div class="config-overview-cell">
+                    <div class="config-overview-label">开仓比例</div>
+                    <div class="config-overview-value">{{ item.position_percent }}</div>
+                  </div>
+                </div>
+                <div class="config-overview-row">
+                  <div class="config-overview-label">总仓位</div>
+                  <div class="config-overview-value">{{ item.total_position }}</div>
+                </div>
+              </div>
             </div>
-            <div class="config-overview-row">
-              <div class="config-overview-label">倍数</div>
-              <div class="config-overview-value">{{ item.multiple }}</div>
-              <div class="config-overview-label">开仓比例</div>
-              <div class="config-overview-value">{{ item.position_percent }}</div>
-            </div>
-            <div class="config-overview-row config-overview-row-large">
-              <div class="config-overview-label">总仓位</div>
-              <div class="config-overview-value">{{ item.total_position }}</div>
-              <div class="config-overview-label">币种策略配置</div>
+
+            <div class="config-overview-panel config-overview-panel-strategy">
+              <div class="config-overview-panel-title">币种策略配置</div>
               <div class="config-overview-value config-overview-value-wide">
                 <div class="symbol-config-list">
                   <div v-for="(symbolItem, symbolIndex) in item.max_position_list" :key="symbolIndex" class="symbol-config-card">
@@ -57,11 +71,6 @@
                       <div class="symbol-config-tags">
                         <span class="symbol-config-tag">策略 {{ symbolItem.tactics }}</span>
                         <span class="symbol-config-tag">最大仓位 {{ symbolItem.value }}</span>
-                        <span
-                          v-if="symbolItem.uses_legacy_fallback"
-                          class="symbol-config-tag symbol-config-tag-warning">
-                          兼容旧账户配置
-                        </span>
                       </div>
                     </div>
 
