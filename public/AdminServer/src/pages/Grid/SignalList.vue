@@ -8,6 +8,7 @@
     <div class="project-top">
       <div class="filter-group">
         <el-select v-model="strategy_name" clearable placeholder="选择策略" @change="handleFilterChange" @clear="handleFilterChange">
+          <el-option :label="ALL_STRATEGY_LABEL" :value="ALL_STRATEGY_VALUE" />
           <el-option v-for="item in strategyOptions" :key="item.name" :label="item.name" :value="item.name">
             <span style="float: left">{{ item.name }}</span>
             <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
@@ -159,6 +160,8 @@ import { get } from "@/common/axios.js";
 export default {
   data() {
     return {
+      ALL_STRATEGY_LABEL: '全部信号',
+      ALL_STRATEGY_VALUE: '__ALL__',
       currentPage: 1,
       pageSize: 10,
       total: 0,
@@ -169,7 +172,7 @@ export default {
       signalList: [],
       loading: false,
       strategyOptions: [],
-      strategy_name: 'Y1.1',
+      strategy_name: '__ALL__',
       symbol: '',
       symbolOptions: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT', 'DOGE-USDT'],
       failedAccountsDialogVisible: false,
@@ -224,7 +227,7 @@ export default {
       const params = {
         page: this.currentPage,
         limit: this.pageSize,
-        strategy_name: this.strategy_name,
+        strategy_name: this.strategy_name === this.ALL_STRATEGY_VALUE ? '' : this.strategy_name,
         symbol: this.symbol,
       };
 
