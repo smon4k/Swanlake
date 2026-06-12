@@ -73,5 +73,24 @@ class Strategy extends Base
         }
     }
 
+    /**
+    * 新增策略
+    * @param array $data
+    * @return array
+    */
+    public static function addStrategy($data)
+    {
+        $exists = self::where('name', $data['name'])->find();
+        if ($exists) {
+            return ['code'=>0, 'msg'=>'Strategy already exists'];
+        }
+        $res = self::insert($data);
+        if($res) {
+            return ['code'=>1, 'msg'=>'Add success'];
+        } else {
+            return ['code'=>0, 'msg'=>'Add failed'];
+        }
+    }
+
 
 }

@@ -1127,7 +1127,7 @@
     padding: 12px 14px;
     border: 1px solid #ebeef5;
     border-radius: 6px;
-    background: #fafafa;
+    background: #fff;
   }
 
   .symbol-config-header {

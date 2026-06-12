@@ -6,9 +6,9 @@
             <el-breadcrumb-item>策略列表</el-breadcrumb-item>
         </el-breadcrumb>
 
-        <!-- <div style="text-align:right;margin-bottom: 10px;">
-            <el-button type="primary" @click="fetchStrategyList">刷新列表</el-button>
-        </div> -->
+        <div class="strategy-toolbar">
+            <el-button type="primary" @click="openAddDialog">添加策略</el-button>
+        </div>
 
         <el-table :data="strategyList" border v-loading="loading" style="width: 100%; margin-top: 20px;">
             <el-table-column prop="name" label="策略名称" align="center" />
@@ -41,11 +41,11 @@
             </el-col>
         </el-row>
 
-        <!-- 编辑弹窗 -->
-        <el-dialog title="编辑最大/最小仓位" :visible.sync="dialogVisible" width="30%">
+        <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="30%">
             <el-form :model="editForm" label-width="100px">
                 <el-form-item label="策略名称">
-                    <span>{{ editForm.name }}</span>
+                    <el-input v-if="dialogMode === 'add'" v-model="editForm.name" placeholder="请输入策略名称" />
+                    <span v-else>{{ editForm.name }}</span>
                 </el-form-item>
                 <el-form-item label="最大仓位数">
                     <el-input-number v-model="editForm.max_position" :min="1" />
@@ -80,6 +80,8 @@ export default {
             pageSize: 10,
             currentPage: 1,
             dialogVisible: false,
+            dialogMode: 'edit',
+            dialogTitle: '编辑策略',
             editForm: {
                 id: null,
                 name: '',
@@ -132,6 +134,8 @@ export default {
         },
 
         openEditDialog(row) {
+            this.dialogMode = 'edit';
+            this.dialogTitle = '编辑策略';
             this.editForm = {
                 id: row.id,
                 name: row.name,
@@ -143,22 +147,40 @@ export default {
             this.dialogVisible = true;
         },
 
+        openAddDialog() {
+            this.dialogMode = 'add';
+            this.dialogTitle = '添加策略';
+            this.editForm = {
+                id: null,
+                name: '',
+                max_position: 1,
+                min_position: 0,
+                stop_loss_percent: 0,
+                open_coefficient: 0
+            };
+            this.dialogVisible = true;
+        },
+
         async submitUpdate() {
             try {
                 const params = {
+                    name: this.editForm.name,
                     id: this.editForm.id,
                     max_position: this.editForm.max_position,
                     min_position: this.editForm.min_position,
                     stop_loss_percent: this.editForm.stop_loss_percent,
                     open_coefficient: this.editForm.open_coefficient
                 };
-                post("/Grid/grid/updateStrategyMaxMinPosition", params, response => {
+                const url = this.dialogMode === 'add'
+                    ? "/Grid/grid/addStrategy"
+                    : "/Grid/grid/updateStrategyMaxMinPosition";
+                post(url, params, response => {
                     if (response.data.code === 10000) {
-                        this.$message.success("修改成功");
+                        this.$message.success(this.dialogMode === 'add' ? "添加成功" : "修改成功");
                         this.dialogVisible = false;
                         this.fetchStrategyList();
                     } else {
-                        this.$message.error(response.data.msg || "修改失败");
+                        this.$message.error(response.data.msg || (this.dialogMode === 'add' ? "添加失败" : "修改失败"));
                     }
                 })
             } catch (err) {
@@ -173,5 +195,14 @@ export default {
 <style scoped>
 .el-breadcrumb {
     margin-bottom: 20px;
+}
+
+.strategy-toolbar {
+    margin-bottom: 16px;
+}
+
+.pages {
+    margin-top: 16px;
+    padding-bottom: 24px;
 }
 </style>

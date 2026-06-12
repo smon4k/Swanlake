@@ -405,6 +405,43 @@ class GridController extends BaseController
     }
 
     /**
+     * 新增策略
+     * @author qinlh
+     * @since 2026-06-12
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function addStrategy(Request $request) {
+        $name = $request->post('name', '', 'trim');
+        $max_position = $request->post('max_position', '', 'trim');
+        $min_position = $request->post('min_position', '', 'trim');
+        $stop_loss_percent = $request->post('stop_loss_percent', '', 'trim');
+        $open_coefficient = $request->post('open_coefficient', '', 'trim');
+        if ($name === '' || $max_position === '' || $min_position === '' || $stop_loss_percent === '' || $open_coefficient === '') {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+        $now = date('Y-m-d H:i:s');
+        $data = [
+            'name' => $name,
+            'max_position' => $max_position,
+            'min_position' => $min_position,
+            'stop_loss_percent' => $stop_loss_percent,
+            'open_coefficient' => $open_coefficient,
+            'loss_number' => 0,
+            'count_profit_loss' => 0,
+            'status' => 1,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        $res = Strategy::addStrategy($data);
+        if($res['code'] == 1) {
+            return $this->as_json($res); 
+        } else {
+            return $this->as_json(70001, $res['msg']); 
+        }
+    }
+
+    /**
      * 获取用户仓位变更历史记录列表
      * @author qinlh
      * @since 2025-08-01
