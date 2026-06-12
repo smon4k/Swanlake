@@ -33,7 +33,7 @@
       </div>
       <el-tabs v-model="activeTab" type="card" @tab-click="tabClick">
           <el-tab-pane label="当前持仓" name="current">
-            <el-table :data="currentPositionsList" style="width: 100%;" v-loading="currentLoading">
+            <el-table :data="pagedCurrentPositionsList" style="width: 100%;" v-loading="currentLoading">
               <el-table-column v-if="isAllAccountsSelected" label="账户" align="center" width="160">
                 <template slot-scope="scope">
                   <span>{{ scope.row.account_id }}</span>
@@ -115,6 +115,19 @@
                 </template>
               </el-table-column>
             </el-table>
+            <el-row class="pages" v-if="currentPositionsTotal > currentPositionsPageSize">
+              <el-col :span="24">
+                <div style="float:right;">
+                  <wbc-page
+                    :total="currentPositionsTotal"
+                    :pageSize="currentPositionsPageSize"
+                    :currPage="currentPositionsCurrPage"
+                    @changeLimit="changeCurrentPositionsLimit"
+                    @changeSkip="changeCurrentPositionsPage"
+                  ></wbc-page>
+                </div>
+              </el-col>
+            </el-row>
           </el-tab-pane>
           <el-tab-pane label="历史持仓" name="history">
             <el-table :data="positionsHistoryList" style="width: 100%;" v-loading="historyLoading">
@@ -298,6 +311,9 @@
           historyLoading: false,
           currentPositionsList: [],
           currentLoading: false,
+          currentPositionsCurrPage: 1,
+          currentPositionsPageSize: 20,
+          currentPositionsTotal: 0,
           accountList: [],
       };
     },
@@ -307,6 +323,11 @@
       },
       normalizedAccountId() {
         return this.isAllAccountsSelected ? undefined : this.account_id;
+      },
+      pagedCurrentPositionsList() {
+        const start = (this.currentPositionsCurrPage - 1) * this.currentPositionsPageSize;
+        const end = start + this.currentPositionsPageSize;
+        return this.currentPositionsList.slice(start, end);
       }
     },
     methods: {
@@ -320,6 +341,8 @@
         this.total = 0;
         this.positionsHistoryList = [];
         this.currentPositionsList = [];
+        this.currentPositionsCurrPage = 1;
+        this.currentPositionsTotal = 0;
         if (!val) {
           return;
         }
@@ -335,6 +358,7 @@
         if (!this.account_id) {
           this.currentLoading = false;
           this.currentPositionsList = [];
+          this.currentPositionsTotal = 0;
           return;
         }
         var that = this.$data;
@@ -353,10 +377,19 @@
             this.currentLoading = false;
           if (json.status == 200) {
             this.currentPositionsList = json.data.data;
+            this.currentPositionsTotal = Array.isArray(json.data.data) ? json.data.data.length : 0;
+            this.currentPositionsCurrPage = 1;
           } else {
             this.$message.error("加载数据失败");
           }
         });
+      },
+      changeCurrentPositionsLimit(limit) {
+        this.currentPositionsPageSize = limit;
+        this.currentPositionsCurrPage = 1;
+      },
+      changeCurrentPositionsPage(page) {
+        this.currentPositionsCurrPage = page;
       },
       getPositionsHistoryListData(ServerWhere) { //获取历史持仓列表
         if (!this.account_id) {
