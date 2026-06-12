@@ -69,6 +69,9 @@ class PositionService:
         self.config = config
         self.redis = redis.Redis(host="localhost", port=6379, decode_responses=True)
         self.balance_sync_task = BalanceSyncTask(db)  # ✅ 初始化余额同步任务
+        self.current_positions_cache_ttl = 15
+        self.current_positions_cache = {}
+        self.current_positions_cache_locks = {}
     
     # 接口：处理写入信号的API请求
     async def insert_signal(self, name: str, symbol: str, side: str, price: Decimal, size: float):
@@ -141,8 +144,7 @@ class PositionService:
                     inst_type=inst_type
                 )
             else:
-                result = await fetch_current_positions_all_accounts(
-                    self,
+                result = await self.get_cached_all_accounts_current_positions(
                     symbol=normalized_inst_id,
                     inst_type=inst_type
                 )
@@ -166,6 +168,39 @@ class PositionService:
         except Exception as e:
             logging.error(f"获取当前持仓出错: {e}")
             return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+    async def get_cached_all_accounts_current_positions(self, symbol: Optional[str], inst_type: str):
+        cache_key = f"{inst_type}:{symbol or 'ALL'}"
+        now_ts = datetime.now(timezone.utc).timestamp()
+        cached_payload = self.current_positions_cache.get(cache_key)
+
+        if cached_payload and now_ts - cached_payload["timestamp"] < self.current_positions_cache_ttl:
+            logging.info(
+                f"⚡ 命中全部账户当前持仓缓存: key={cache_key}, age={now_ts - cached_payload['timestamp']:.1f}s"
+            )
+            return cached_payload["data"]
+
+        cache_lock = self.current_positions_cache_locks.setdefault(cache_key, asyncio.Lock())
+        async with cache_lock:
+            now_ts = datetime.now(timezone.utc).timestamp()
+            cached_payload = self.current_positions_cache.get(cache_key)
+            if cached_payload and now_ts - cached_payload["timestamp"] < self.current_positions_cache_ttl:
+                logging.info(
+                    f"⚡ 命中全部账户当前持仓缓存(锁内): key={cache_key}, age={now_ts - cached_payload['timestamp']:.1f}s"
+                )
+                return cached_payload["data"]
+
+            logging.info(f"🔄 刷新全部账户当前持仓缓存: key={cache_key}")
+            result = await fetch_current_positions_all_accounts(
+                self,
+                symbol=symbol,
+                inst_type=inst_type
+            )
+            self.current_positions_cache[cache_key] = {
+                "timestamp": datetime.now(timezone.utc).timestamp(),
+                "data": result or [],
+            }
+            return result or []
 
     async def get_account_balances(self, account_id: int, inst_id: Optional[str]):
         try:
