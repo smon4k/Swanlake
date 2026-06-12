@@ -1049,6 +1049,24 @@
     min-width: 0;
   }
 
+  .config-overview-layout {
+    display: grid;
+    grid-template-columns: minmax(340px, 0.92fr) minmax(560px, 1.48fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .config-overview-panel {
+    min-width: 0;
+  }
+
+  .config-overview-panel-title {
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
+  }
+
   .config-overview-table {
     border: 1px solid #ebeef5;
     border-bottom: none;
@@ -1057,17 +1075,26 @@
 
   .config-overview-row {
     display: grid;
-    grid-template-columns: 140px minmax(220px, 0.78fr) 140px minmax(420px, 1.22fr);
+    grid-template-columns: 140px minmax(220px, 1fr);
   }
 
-  .config-overview-row-large {
-    align-items: stretch;
+  .config-overview-row-double {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .config-overview-cell {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  .config-overview-cell + .config-overview-cell {
+    border-left: 1px solid #ebeef5;
   }
 
   .config-overview-label,
   .config-overview-value {
-    padding: 24px 16px;
-    border-right: 1px solid #ebeef5;
+    padding: 18px 16px;
     border-bottom: 1px solid #ebeef5;
     min-width: 0;
   }
@@ -1091,6 +1118,9 @@
 
   .config-overview-value-wide {
     display: block;
+    padding: 0;
+    border: 1px solid #ebeef5;
+    background: #fff;
   }
 
   .symbol-config-card {
@@ -1130,12 +1160,6 @@
     color: #409eff;
     font-size: 12px;
     line-height: 1;
-  }
-
-  .symbol-config-tag-warning {
-    border: 1px solid #f3d19e;
-    background: #fdf6ec;
-    color: #8a5a00;
   }
 
   .symbol-config-metrics {
@@ -1188,6 +1212,10 @@
   }
 
   @media (max-width: 1200px) {
+    .config-overview-layout {
+      grid-template-columns: 1fr;
+    }
+
     .config-card-header {
       flex-direction: column;
       align-items: stretch;
@@ -1209,13 +1237,13 @@
       align-items: flex-start;
     }
 
-    .config-overview-row {
-      grid-template-columns: 120px minmax(0, 1fr);
+    .config-overview-row-double {
+      grid-template-columns: 1fr;
     }
 
-    .config-overview-row .config-overview-label:nth-child(3),
-    .config-overview-row .config-overview-value:nth-child(4) {
-      border-top: none;
+    .config-overview-cell + .config-overview-cell {
+      border-left: none;
+      border-top: 1px solid #ebeef5;
     }
   }
 </style>
