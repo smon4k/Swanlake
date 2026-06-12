@@ -8,16 +8,15 @@
       <div class="project-top">
         <el-select v-model="account_id" placeholder="选择要搜索的账户" clearable @change="accountChange" @clear="accountClear">
           <el-option
-            label="全部账户"
-            :value="''">
-          </el-option>
-          <el-option
             v-for="(item, index) in accountList"
             :key="index"
             :label="formatAccountLabel(item)"
             :value="item.id">
           </el-option>
         </el-select>
+        <div v-if="!account_id" class="empty-tip">
+          请选择账户后查看当前持仓和历史持仓
+        </div>
         <!-- <el-form :inline="true" class="demo-form-inline" size="mini">
           <el-form-item label="产品名称:">
             <el-input clearable placeholder="产品名称" v-model="product_name"></el-input>
@@ -33,8 +32,8 @@
             <el-table :data="currentPositionsList" style="width: 100%;" v-loading="currentLoading">
               <el-table-column label="账户" align="center" width="160">
                 <template slot-scope="scope">
-                  <span>{{ scope.row.account_id }}</span>
-                  <br>
+                  <span v-if="!account_id">{{ scope.row.account_id }}</span>
+                  <br v-if="!account_id">
                   <span>{{ getAccountName(scope.row.account_id) }}</span>
                 </template>
               </el-table-column>
@@ -307,6 +306,10 @@
         this.currPage = 1;
         this.total = 0;
         this.positionsHistoryList = [];
+        this.currentPositionsList = [];
+        if (!val) {
+          return;
+        }
         this.getCurrentPositionsListData();
         if (this.activeTab === 'history') {
           this.getPositionsHistoryListData();
@@ -316,6 +319,11 @@
         this.accountChange('');
       },
       getCurrentPositionsListData(ServerWhere) { //获取当前持仓列表
+        if (!this.account_id) {
+          this.currentLoading = false;
+          this.currentPositionsList = [];
+          return;
+        }
         var that = this.$data;
         this.currentLoading = true;
         if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
@@ -338,6 +346,12 @@
         });
       },
       getPositionsHistoryListData(ServerWhere) { //获取历史持仓列表
+        if (!this.account_id) {
+          this.historyLoading = false;
+          this.positionsHistoryList = [];
+          this.total = 0;
+          return;
+        }
         var that = this.$data;
         this.historyLoading = true;
         if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
@@ -455,7 +469,6 @@
     },
     created() {
       this.getAccountList();
-      this.getCurrentPositionsListData();
     },
     components: {
       "wbc-page": Page, //加载分页组件
@@ -466,6 +479,11 @@
     .project-top {
       margin-bottom: 20px;
       margin-top: 20px;
+    }
+    .empty-tip {
+      margin-top: 12px;
+      color: #909399;
+      font-size: 14px;
     }
     .avatar-uploader .el-upload {
       border: 1px dashed #d9d9d9;
