@@ -8,6 +8,10 @@
       <div class="project-top">
         <el-select v-model="account_id" placeholder="选择要搜索的账户" clearable @change="accountChange" @clear="accountClear">
           <el-option
+            label="全部账户"
+            :value="ALL_ACCOUNT_VALUE">
+          </el-option>
+          <el-option
             v-for="(item, index) in accountList"
             :key="index"
             :label="formatAccountLabel(item)"
@@ -30,10 +34,10 @@
       <el-tabs v-model="activeTab" type="card" @tab-click="tabClick">
           <el-tab-pane label="当前持仓" name="current">
             <el-table :data="currentPositionsList" style="width: 100%;" v-loading="currentLoading">
-              <el-table-column label="账户" align="center" width="160">
+              <el-table-column v-if="isAllAccountsSelected" label="账户" align="center" width="160">
                 <template slot-scope="scope">
-                  <span v-if="!account_id">{{ scope.row.account_id }}</span>
-                  <br v-if="!account_id">
+                  <span>{{ scope.row.account_id }}</span>
+                  <br>
                   <span>{{ getAccountName(scope.row.account_id) }}</span>
                 </template>
               </el-table-column>
@@ -282,6 +286,7 @@
   export default {
     data() {
       return {
+          ALL_ACCOUNT_VALUE: '__ALL__',
           account_id: '',
           inst_id: '',
           activeTab: 'current',
@@ -295,6 +300,14 @@
           currentLoading: false,
           accountList: [],
       };
+    },
+    computed: {
+      isAllAccountsSelected() {
+        return this.account_id === this.ALL_ACCOUNT_VALUE;
+      },
+      normalizedAccountId() {
+        return this.isAllAccountsSelected ? undefined : this.account_id;
+      }
     },
     methods: {
       tabClick(item) {
@@ -328,12 +341,12 @@
         this.currentLoading = true;
         if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
           ServerWhere = {
-            account_id: that.account_id,
+            account_id: this.normalizedAccountId,
             inst_id: that.inst_id,
           };
         }
         get("/sigadmin/get_current_positions", {
-          account_id: that.account_id || undefined,
+          account_id: this.normalizedAccountId,
           inst_id: that.inst_id,
         }, json => {
             // console.log(json);
@@ -356,13 +369,13 @@
         this.historyLoading = true;
         if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
           ServerWhere = {
-            account_id: that.account_id,
+            account_id: this.normalizedAccountId,
             limit: that.pageSize,
             page: that.currPage,
           };
         }
         get("/sigadmin/get_positions_history", {
-          account_id: that.account_id || undefined,
+          account_id: this.normalizedAccountId,
           inst_id: that.inst_id,
           limit: that.pageSize,
           page: that.currPage,
