@@ -115,7 +115,7 @@
                 </template>
               </el-table-column>
             </el-table>
-            <el-row class="pages" v-if="currentPositionsTotal > currentPositionsPageSize">
+            <el-row class="pages" v-if="currentPositionsTotal > 0">
               <el-col :span="24">
                 <div style="float:right;">
                   <wbc-page
