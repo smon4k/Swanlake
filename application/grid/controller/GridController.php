@@ -374,8 +374,12 @@ class GridController extends BaseController
     {
         $page = $request->request('page', 1, 'intval');
         $limits = $request->request('limit', 20, 'intval');
+        $strategy_name = $request->request('strategy_name', '', 'trim');
         $where = [];
         $where['status'] = 1;
+        if ($strategy_name !== '') {
+            $where['name'] = $strategy_name;
+        }
         $result = Strategy::getStrategyList($page, $where, $limits);
         if (!empty($result['lists']) && is_array($result['lists'])) {
             foreach ($result['lists'] as &$item) {

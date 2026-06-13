@@ -8,6 +8,20 @@
 
         <div class="strategy-toolbar">
             <el-button type="primary" @click="openAddDialog">添加策略</el-button>
+            <el-select
+                class="strategy-filter-select"
+                v-model="selectedStrategyName"
+                clearable
+                filterable
+                placeholder="按策略筛选"
+                @change="handleFilterChange"
+                @clear="handleFilterChange">
+                <el-option
+                    v-for="item in strategyFilterOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value" />
+            </el-select>
         </div>
 
         <el-table :data="strategyList" border v-loading="loading" style="width: 100%; margin-top: 20px;">
@@ -83,6 +97,8 @@ export default {
         return {
             loading: false,
             strategyList: [],
+            strategyOptions: [],
+            selectedStrategyName: '',
             total: 0,
             pageSize: 10,
             currentPage: 1,
@@ -106,21 +122,39 @@ export default {
                 return true;
             }
             return !this.editForm.is_referenced;
+        },
+        strategyFilterOptions() {
+            const options = (this.strategyOptions || []).map(item => ({
+                label: item.name,
+                value: item.name
+            }));
+            return [{ label: '全部策略', value: '' }, ...options];
         }
     },
     components: {
         "wbc-page": Page, //加载分页组件
     },
     created() {
+        this.getAllStrategyList();
         this.fetchStrategyList();
     },
     methods: {
+        getAllStrategyList() {
+            get("/Grid/grid/getAllStrategyList", {}, response => {
+                if (response.data.code === 10000) {
+                    this.strategyOptions = response.data.data || [];
+                } else {
+                    this.$message.error(response.data.msg || '获取策略选项失败');
+                }
+            });
+        },
         async fetchStrategyList() {
             this.loading = true;
             try {
                 get("/Grid/grid/getStrategyList", {
                     page: this.currentPage,
-                    limit: this.pageSize
+                    limit: this.pageSize,
+                    strategy_name: this.selectedStrategyName || ''
                 }, response => {
                     this.loading = false;
                     console.log(response)
@@ -136,6 +170,10 @@ export default {
             } finally {
                 this.loading = false;
             }
+        },
+        handleFilterChange() {
+            this.currentPage = 1;
+            this.fetchStrategyList();
         },
 
         limitPaging(limit) {
@@ -242,6 +280,14 @@ export default {
 
 .strategy-toolbar {
     margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.strategy-filter-select {
+    width: 220px;
 }
 
 .pages {
