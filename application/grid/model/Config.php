@@ -161,5 +161,33 @@ class Config extends Base
         }
     }
 
+    /**
+    * 判断策略是否已被机器人配置引用
+    * @param string $tacticsName
+    * @return bool
+    */
+    public static function isStrategyReferenced($tacticsName)
+    {
+        if ($tacticsName === '' || $tacticsName === null) {
+            return false;
+        }
+
+        $configs = self::select();
+        foreach ($configs as $config) {
+            $maxPositionList = json_decode($config['max_position_list'], true);
+            if (!is_array($maxPositionList)) {
+                continue;
+            }
+
+            foreach ($maxPositionList as $item) {
+                if (isset($item['tactics']) && $item['tactics'] === $tacticsName) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 
 }

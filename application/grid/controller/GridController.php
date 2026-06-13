@@ -79,8 +79,16 @@ class GridController extends BaseController
      */
     public function getRobotConfig(Request $request) { 
         $page = $request->request('page', 1, 'intval');
-        $limits = $request->request('limit', 1, 'intval'); 
+        $limits = $request->request('limit', 1, 'intval');
+        $tactics_name = $request->request('strategy_name', '', 'trim');
         $where = [];
+        if($tactics_name && $tactics_name !== "") {
+            $accountIds = Config::getAccountIdByTacticsName($tactics_name);
+            if (!$accountIds) {
+                return $this->as_json(['page'=>$page, 'allpage'=>0, 'count'=>0, 'data'=>[]]);
+            }
+            $where['a.account_id'] = ['in', (array)$accountIds];
+        }
         $data = Config::getConfigList($page, $where, $limits);
         $count = $data['count'];
         $allpage = $data['allpage'];
@@ -381,14 +389,31 @@ class GridController extends BaseController
      */
     public function updateStrategyMaxMinPosition(Request $request) {
         $id = $request->post('id', 0, 'intval');
+        $name = $request->post('name', '', 'trim');
         $max_position = $request->post('max_position', '', 'trim');
         $min_position = $request->post('min_position', '', 'trim');
         $stop_loss_percent = $request->post('stop_loss_percent', '', 'trim');
         $open_coefficient = $request->post('open_coefficient', '', 'trim');
-        if ($id <= 0 || !$max_position || !$min_position || !$stop_loss_percent || !$open_coefficient) {
+        if ($id <= 0 || $name === '' || $max_position === '' || $min_position === '' || $stop_loss_percent === '' || $open_coefficient === '') {
             return $this->as_json('70001', 'Missing parameters');
         }
+
+        $strategy = Strategy::getStrategyById($id);
+        if (!$strategy) {
+            return $this->as_json(70001, '该策略不存在');
+        }
+
+        if ($name !== $strategy['name']) {
+            if (Config::isStrategyReferenced($strategy['name'])) {
+                return $this->as_json(70001, '该策略已被机器人配置引用，不能修改名称');
+            }
+            if (Strategy::existsByName($name, $id)) {
+                return $this->as_json(70001, '策略名称已存在');
+            }
+        }
+
         $data = [
+            'name' => $name,
             'max_position' => $max_position,
             'min_position' => $min_position,
             'stop_loss_percent' => $stop_loss_percent,
@@ -402,6 +427,36 @@ class GridController extends BaseController
             return $this->as_json(70001, $res['msg']); 
         }
         return $this->as_json(70001, 'Update failed');
+    }
+
+    /**
+     * 删除策略
+     * @author qinlh
+     * @since 2026-06-13
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function deleteStrategy(Request $request) {
+        $id = $request->request('id', 0, 'intval');
+        if ($id <= 0) {
+            return $this->as_json('70001', 'Missing parameters');
+        }
+
+        $strategy = Strategy::getStrategyById($id);
+        if (!$strategy) {
+            return $this->as_json(70001, '该策略不存在');
+        }
+
+        if (Config::isStrategyReferenced($strategy['name'])) {
+            return $this->as_json(70001, '该策略已被机器人配置引用，不能删除');
+        }
+
+        $res = Strategy::deleteStrategy($id);
+        if($res['code'] == 1) {
+            return $this->as_json($res);
+        } else {
+            return $this->as_json(70001, $res['msg']);
+        }
     }
 
     /**

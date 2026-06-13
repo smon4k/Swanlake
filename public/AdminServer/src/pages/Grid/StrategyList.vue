@@ -26,9 +26,10 @@
                     <span>{{ keepDecimalNotRounding(scope.row.open_coefficient, 3) }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" align="center" width="100">
+            <el-table-column label="操作" align="center" width="160">
                 <template slot-scope="scope">
                     <el-button type="text" size="small" @click="openEditDialog(scope.row)">编辑</el-button>
+                    <el-button type="text" size="small" style="color: #f56c6c;" @click="handleDelete(scope.row)">删除</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -44,8 +45,7 @@
         <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="30%">
             <el-form :model="editForm" label-width="100px">
                 <el-form-item label="策略名称">
-                    <el-input v-if="dialogMode === 'add'" v-model="editForm.name" placeholder="请输入策略名称" />
-                    <span v-else>{{ editForm.name }}</span>
+                    <el-input v-model="editForm.name" placeholder="请输入策略名称" />
                 </el-form-item>
                 <el-form-item label="最大仓位数">
                     <el-input-number v-model="editForm.max_position" :min="1" />
@@ -161,10 +161,35 @@ export default {
             this.dialogVisible = true;
         },
 
+        handleDelete(row) {
+            this.$confirm(`确认删除策略「${row.name}」吗？未被机器人配置引用的策略才允许删除。`, '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                post("/Grid/grid/deleteStrategy", { id: row.id }, response => {
+                    if (response.data.code === 10000) {
+                        this.$message.success("删除成功");
+                        if (this.strategyList.length === 1 && this.currentPage > 1) {
+                            this.currentPage -= 1;
+                        }
+                        this.fetchStrategyList();
+                    } else {
+                        this.$message.error(response.data.msg || "删除失败");
+                    }
+                });
+            }).catch(() => {});
+        },
+
         async submitUpdate() {
             try {
+                const trimmedName = (this.editForm.name || '').trim();
+                if (!trimmedName) {
+                    this.$message.error("策略名称不能为空");
+                    return;
+                }
                 const params = {
-                    name: this.editForm.name,
+                    name: trimmedName,
                     id: this.editForm.id,
                     max_position: this.editForm.max_position,
                     min_position: this.editForm.min_position,

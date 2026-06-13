@@ -39,7 +39,7 @@ class Strategy extends Base
                     ->where($where)
                     ->page($page, $limits)
                     ->field('a.*')
-                    ->order("id asc")
+                    ->order("id desc")
                     ->select()
                     ->toArray();
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
@@ -66,11 +66,54 @@ class Strategy extends Base
     public static function updateStrategyMaxMinPosition($id, $data)
     {
         $res = self::where("id", $id)->update($data);
-        if($res) {
+        if($res !== false) {
             return ['code'=>1, 'msg'=>'Update success'];
         } else {
             return ['code'=>0, 'msg'=>'Update failed'];
         }
+    }
+
+    /**
+    * 根据ID获取策略
+    * @param int $id
+    * @return mixed
+    */
+    public static function getStrategyById($id)
+    {
+        return self::where('id', $id)->find();
+    }
+
+    /**
+    * 判断策略名是否已存在
+    * @param string $name
+    * @param int $excludeId
+    * @return bool
+    */
+    public static function existsByName($name, $excludeId = 0)
+    {
+        $query = self::where('name', $name);
+        if ($excludeId > 0) {
+            $query = $query->where('id', '<>', $excludeId);
+        }
+        return $query->count() > 0;
+    }
+
+    /**
+    * 删除策略
+    * @param int $id
+    * @return array
+    */
+    public static function deleteStrategy($id)
+    {
+        $strategy = self::where('id', $id)->find();
+        if (!$strategy) {
+            return ['code'=>0, 'msg'=>'该策略不存在'];
+        }
+        $res = self::where('id', $id)->delete();
+        if ($res) {
+            return ['code'=>1, 'msg'=>'删除成功'];
+        }
+        return ['code'=>0, 'msg'=>'删除失败'];
     }
 
     /**

@@ -15,6 +15,23 @@
             <el-button type="primary" @click="AddUserInfoShow()">添加配置</el-button>
             <el-button type="primary" @click="showTradeDialog()">手动操作</el-button>
           </el-form-item>
+          <el-form-item>
+            <el-select
+              class="strategy-filter-select"
+              v-model="selectedStrategyName"
+              clearable
+              filterable
+              placeholder="按策略筛选"
+              @change="handleStrategyFilterChange"
+            >
+              <el-option
+                v-for="item in strategyFilterOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
         </el-form>
       </div>
       <div v-for="(item, index) in tableData" :key="index" class="config-overview-card">
@@ -363,6 +380,7 @@
         total: 100, //总条数
         PageSearchWhere: [], //分页搜索数组
         name: "",
+        selectedStrategyName: "",
         tableData: [],
         TreeProps: {children: 'child', hasChildren: 'hasChildren'},
         dialogVisibleShow: false,
@@ -425,6 +443,15 @@
         balanceCacheTTL: 60 * 1000,
         activeMaxPositionPanels: []
       };
+    },
+    computed: {
+      strategyFilterOptions() {
+        const options = (this.strategyOptions || []).map(item => ({
+          label: item.name,
+          value: item.name
+        }));
+        return [{ label: '全部策略', value: '' }, ...options];
+      }
     },
     methods: {
       getMaxPositionPanelName(index) {
@@ -524,6 +551,11 @@
             page: that.currPage,
           };
         }
+        if (this.selectedStrategyName) {
+          ServerWhere.strategy_name = this.selectedStrategyName;
+        } else {
+          delete ServerWhere.strategy_name;
+        }
         get("/Grid/grid/getRobotConfig", ServerWhere, json => {
             console.log(json);
             if (json.data.code == 10000) {
@@ -592,15 +624,31 @@
         if (this.name && this.name !== "") {
           SearchWhere["name"] = this.name;
         }
+        if (this.selectedStrategyName) {
+          SearchWhere["strategy_name"] = this.selectedStrategyName;
+        }
         this.PageSearchWhere = [];
         this.PageSearchWhere = SearchWhere;
         this.getListData(SearchWhere);
+      },
+      handleStrategyFilterChange() {
+        this.currPage = 1;
+        const searchWhere = {
+          page: 1,
+          limit: this.pageSize
+        };
+        if (this.selectedStrategyName) {
+          searchWhere.strategy_name = this.selectedStrategyName;
+        }
+        this.PageSearchWhere = searchWhere;
+        this.getListData(searchWhere);
       },
       SearchReset() {
         //搜索条件重置
         this.province = "";
         this.city = "";
         this.area = "";
+        this.selectedStrategyName = "";
         this.PageSearchWhere = [];
         this.getListData();
       },
@@ -871,6 +919,24 @@
   </script>
 
 <style lang="scss">
+  .project-top {
+    .demo-form-inline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .strategy-filter-select {
+    width: 220px;
+  }
+
   .max-position-collapse {
     border-top: none;
     margin-bottom: 12px;
