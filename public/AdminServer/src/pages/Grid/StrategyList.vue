@@ -45,7 +45,8 @@
         <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="30%">
             <el-form :model="editForm" label-width="100px">
                 <el-form-item label="策略名称">
-                    <el-input v-model="editForm.name" placeholder="请输入策略名称" />
+                    <el-input v-if="canEditStrategyName" v-model="editForm.name" placeholder="请输入策略名称" />
+                    <span v-else>{{ editForm.name }}</span>
                 </el-form-item>
                 <el-form-item label="最大仓位数">
                     <el-input-number v-model="editForm.max_position" :min="1" />
@@ -85,12 +86,21 @@ export default {
             editForm: {
                 id: null,
                 name: '',
+                is_referenced: 0,
                 max_position: 0,
                 min_position: 0,
                 stop_loss_percent: 0,
                 open_coefficient: 0
             }
         };
+    },
+    computed: {
+        canEditStrategyName() {
+            if (this.dialogMode === 'add') {
+                return true;
+            }
+            return !this.editForm.is_referenced;
+        }
     },
     components: {
         "wbc-page": Page, //加载分页组件
@@ -139,6 +149,7 @@ export default {
             this.editForm = {
                 id: row.id,
                 name: row.name,
+                is_referenced: Number(row.is_referenced || 0),
                 max_position: row.max_position,
                 min_position: row.min_position,
                 stop_loss_percent: row.stop_loss_percent,
@@ -153,6 +164,7 @@ export default {
             this.editForm = {
                 id: null,
                 name: '',
+                is_referenced: 0,
                 max_position: 1,
                 min_position: 0,
                 stop_loss_percent: 0,

@@ -377,6 +377,12 @@ class GridController extends BaseController
         $where = [];
         $where['status'] = 1;
         $result = Strategy::getStrategyList($page, $where, $limits);
+        if (!empty($result['lists']) && is_array($result['lists'])) {
+            foreach ($result['lists'] as &$item) {
+                $item['is_referenced'] = Config::isStrategyReferenced($item['name']) ? 1 : 0;
+            }
+            unset($item);
+        }
         return $this->as_json($result);
     }
 
