@@ -7,21 +7,25 @@
         </el-breadcrumb>
 
         <div class="strategy-toolbar">
-            <el-button type="primary" @click="openAddDialog">添加策略</el-button>
-            <el-select
-                class="strategy-filter-select"
-                v-model="selectedStrategyName"
-                clearable
-                filterable
-                placeholder="按策略筛选"
-                @change="handleFilterChange"
-                @clear="handleFilterChange">
-                <el-option
-                    v-for="item in strategyFilterOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value" />
-            </el-select>
+            <div class="toolbar-left">
+                <el-select
+                    class="strategy-filter-select"
+                    v-model="selectedStrategyName"
+                    clearable
+                    filterable
+                    placeholder="按策略筛选"
+                    @change="handleFilterChange"
+                    @clear="handleFilterChange">
+                    <el-option
+                        v-for="item in strategyFilterOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value" />
+                </el-select>
+            </div>
+            <div class="toolbar-right">
+                <el-button type="primary" @click="openAddDialog">添加策略</el-button>
+            </div>
         </div>
 
         <el-table :data="strategyList" border v-loading="loading" style="width: 100%; margin-top: 20px;">
@@ -282,8 +286,22 @@ export default {
     margin-bottom: 16px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.toolbar-left,
+.toolbar-right {
+    display: flex;
+    align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+}
+
+.toolbar-right {
+    margin-left: auto;
+    justify-content: flex-end;
 }
 
 .strategy-filter-select {

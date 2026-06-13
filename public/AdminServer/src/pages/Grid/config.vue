@@ -7,15 +7,8 @@
         </el-breadcrumb>
       <div class="project-top">
         <el-form :inline="true" class="demo-form-inline">
-          <!-- <el-form-item label="接口名称:">
-            <el-input clearable placeholder="接口名称" v-model="name"></el-input>
-          </el-form-item> -->
-          <el-form-item>
-            <!-- <el-button type="primary" @click="SearchClick()">搜索</el-button> -->
-            <el-button type="primary" @click="AddUserInfoShow()">添加配置</el-button>
-            <el-button type="primary" @click="showTradeDialog()">手动操作</el-button>
-          </el-form-item>
-          <el-form-item>
+          <div class="toolbar-left">
+            <el-form-item>
             <el-select
               class="strategy-filter-select"
               v-model="selectedStrategyName"
@@ -31,7 +24,14 @@
                 :value="item.value"
               />
             </el-select>
-          </el-form-item>
+            </el-form-item>
+          </div>
+          <div class="toolbar-right">
+            <el-form-item>
+              <el-button type="primary" @click="AddUserInfoShow()">添加配置</el-button>
+              <el-button type="primary" @click="showTradeDialog()">手动操作</el-button>
+            </el-form-item>
+          </div>
         </el-form>
       </div>
       <div
@@ -940,8 +940,22 @@
     .demo-form-inline {
       display: flex;
       align-items: center;
-      gap: 12px;
       flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+
+      .toolbar-left,
+      .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .toolbar-right {
+        margin-left: auto;
+        justify-content: flex-end;
+      }
 
       .el-form-item {
         margin-right: 0;

@@ -29,6 +29,8 @@
             :value="item"
           />
         </el-select>
+      </div>
+      <div class="action-group">
         <el-button type="primary" @click="refreshSignalList()">刷新列表</el-button>
       </div>
     </div>
@@ -388,13 +390,22 @@ export default {
   align-items: center;
   margin-bottom: 20px;
   margin-top: 20px;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.filter-group {
+.filter-group,
+.action-group {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.action-group {
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .filter-group .el-select {

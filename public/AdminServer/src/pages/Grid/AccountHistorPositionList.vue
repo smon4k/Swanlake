@@ -6,10 +6,14 @@
     </el-breadcrumb>
 
     <div class="project-top">
-      <el-select v-model="account_id" clearable placeholder="选择账户" @change="refreshList" @clear="clearAccount">
-        <el-option v-for="item in accountList" :key="item.id" :label="item.name" :value="item.id" />
-      </el-select>
-      <el-button type="primary" @click="refreshList">刷新</el-button>
+      <div class="filter-group">
+        <el-select v-model="account_id" clearable placeholder="选择账户" @change="refreshList" @clear="clearAccount">
+          <el-option v-for="item in accountList" :key="item.id" :label="item.name" :value="item.id" />
+        </el-select>
+      </div>
+      <div class="action-group">
+        <el-button type="primary" @click="refreshList">刷新</el-button>
+      </div>
     </div>
 
     <el-table :data="historyList" border v-loading="loading" style="width: 100%; margin-top: 20px;">
@@ -109,6 +113,25 @@ export default {
   margin-bottom: 20px;
   margin-top: 20px;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-group,
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-group {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.filter-group .el-select {
+  width: 220px;
 }
 .el-breadcrumb {
   margin-bottom: 20px;
