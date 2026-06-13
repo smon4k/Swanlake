@@ -34,6 +34,10 @@
           </el-form-item>
         </el-form>
       </div>
+      <div
+        v-loading="listLoading"
+        element-loading-text="加载配置中..."
+        class="config-list-wrapper">
       <div v-for="(item, index) in tableData" :key="index" class="config-overview-card">
         <div class="config-card-header">
           <div class="config-card-title">
@@ -119,6 +123,12 @@
             </div>
           </div>
         </div>
+      </div>
+      <el-empty
+        v-if="!listLoading && (!tableData || tableData.length === 0)"
+        class="config-empty-state"
+        description="暂无匹配的机器人配置">
+      </el-empty>
       </div>
       <el-row v-if="tableData && tableData.length > 0" style="margin-bottom: 50px;">
         <el-col :span="24">
@@ -382,6 +392,7 @@
         name: "",
         selectedStrategyName: "",
         tableData: [],
+        listLoading: false,
         TreeProps: {children: 'child', hasChildren: 'hasChildren'},
         dialogVisibleShow: false,
         FormData: {
@@ -545,6 +556,7 @@
       },
       getListData(ServerWhere) {
         var that = this.$data;
+        this.listLoading = true;
         if (!ServerWhere || ServerWhere == undefined || ServerWhere.length <= 0) {
           ServerWhere = {
             limit: that.pageSize,
@@ -589,8 +601,13 @@
                   return balanceB - balanceA;
                 });
             } else {
+                this.tableData = [];
                 this.$message.error("加载数据失败");
             }
+            this.listLoading = false;
+        }, () => {
+            this.tableData = [];
+            this.listLoading = false;
         });
       },
       getAccountList() {
@@ -935,6 +952,15 @@
 
   .strategy-filter-select {
     width: 220px;
+  }
+
+  .config-list-wrapper {
+    min-height: 320px;
+  }
+
+  .config-empty-state {
+    padding: 48px 0 56px;
+    background: #fff;
   }
 
   .max-position-collapse {

@@ -29,7 +29,13 @@
             <el-table-column label="操作" align="center" width="160">
                 <template slot-scope="scope">
                     <el-button type="text" size="small" @click="openEditDialog(scope.row)">编辑</el-button>
-                    <el-button type="text" size="small" style="color: #f56c6c;" @click="handleDelete(scope.row)">删除</el-button>
+                    <el-button
+                        type="text"
+                        size="small"
+                        :disabled="Number(scope.row.is_referenced || 0) === 1"
+                        :style="{ color: Number(scope.row.is_referenced || 0) === 1 ? '#c0c4cc' : '#f56c6c' }"
+                        @click="handleDelete(scope.row)"
+                    >删除</el-button>
                 </template>
             </el-table-column>
         </el-table>
