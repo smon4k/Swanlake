@@ -447,7 +447,10 @@ class GridController extends BaseController
      * @return \think\response\Json
      */
     public function deleteStrategy(Request $request) {
-        $id = $request->request('id', 0, 'intval');
+        $id = $request->post('id', 0, 'intval');
+        if ($id <= 0) {
+            $id = $request->request('id', 0, 'intval');
+        }
         if ($id <= 0) {
             return $this->as_json('70001', 'Missing parameters');
         }
