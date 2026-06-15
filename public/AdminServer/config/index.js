@@ -40,7 +40,7 @@ module.exports = {
         timeout: 600000,
       },
       "/Admin": {
-        target: "http://www.swan.com",
+        target: "https://yutstly.xyz",
         changeOrigin: true,
         pathRewrite: {
           "^/Admin": "/Admin"
@@ -48,7 +48,7 @@ module.exports = {
         timeout: 600000,
       },
       "/Grid": {
-        target: "http://www.swan.com",
+        target: "https://yutstly.xyz",
         changeOrigin: true,
         pathRewrite: {
           "^/Grid": "/Grid"

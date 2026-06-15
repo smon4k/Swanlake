@@ -29,6 +29,20 @@
             :value="item"
           />
         </el-select>
+        <el-select
+          v-model="signal_scope"
+          clearable
+          placeholder="选择范围"
+          @change="handleFilterChange"
+          @clear="handleFilterChange"
+        >
+          <el-option
+            v-for="item in signalScopeOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </div>
       <div class="action-group">
         <el-button type="primary" @click="refreshSignalList()">刷新列表</el-button>
@@ -36,10 +50,13 @@
     </div>
     <el-table :span-method="objectSpanMethod" :data="signalList" border style="width: 100%; margin-top: 20px;"
       v-loading="loading">
-      <el-table-column prop="pair_id" label="配对ID">
+      <el-table-column prop="pair_id" label="配对ID" width="84">
       </el-table-column>
       <!-- <el-table-column prop="id" label="ID"></el-table-column> -->
-      <el-table-column prop="name" label="策略名称">
+      <el-table-column prop="name" label="策略名称" min-width="150" show-overflow-tooltip>
+        <template slot-scope="scope">
+          <span class="strategy-name-text">{{ scope.row.name || '--' }}</span>
+        </template>
       </el-table-column>
       <el-table-column label="类型" align="center">
         <template slot-scope="scope">
@@ -176,7 +193,12 @@ export default {
       strategyOptions: [],
       strategy_name: '__ALL__',
       symbol: '',
+      signal_scope: '',
       symbolOptions: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT', 'DOGE-USDT'],
+      signalScopeOptions: [
+        { label: '全部范围', value: '' },
+        { label: '信号持仓', value: 'open_position' }
+      ],
       failedAccountsDialogVisible: false,
       failedAccountsDialogData: [],
       failedAccountsDialogSignal: null,
@@ -231,6 +253,7 @@ export default {
         limit: this.pageSize,
         strategy_name: this.strategy_name === this.ALL_STRATEGY_VALUE ? '' : this.strategy_name,
         symbol: this.symbol,
+        signal_scope: this.signal_scope,
       };
 
       get("/Grid/grid/getSignalsList", params, response => {
@@ -410,6 +433,12 @@ export default {
 
 .filter-group .el-select {
   width: 220px;
+}
+
+.strategy-name-text {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
 }
 .el-breadcrumb {
   margin-bottom: 20px;

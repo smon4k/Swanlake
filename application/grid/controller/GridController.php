@@ -337,6 +337,7 @@ class GridController extends BaseController
         $limits = $request->request('limit', 20, 'intval');
         $tactics_name = $request->request('strategy_name', '', 'trim');
         $symbol = strtoupper($request->request('symbol', '', 'trim'));
+        $signal_scope = $request->request('signal_scope', '', 'trim');
 
         $where = [];
         $where['pair_id'] = ['<>', 0];
@@ -345,6 +346,20 @@ class GridController extends BaseController
         }
         if($symbol && $symbol !== "") {
             $where['symbol'] = ['like', $symbol . '%'];
+        }
+        if($signal_scope === 'open_position') {
+            $openWhere = [];
+            if (isset($where['name'])) {
+                $openWhere['name'] = $where['name'];
+            }
+            if (isset($where['symbol'])) {
+                $openWhere['symbol'] = $where['symbol'];
+            }
+            $pairIds = Signals::getOpenPositionPairIds($openWhere);
+            if (empty($pairIds)) {
+                return $this->as_json(['count'=>0, 'allpage'=>0, 'lists'=>[]]);
+            }
+            $where['pair_id'] = ['in', $pairIds];
         }
         $result = Signals::getSignalsList($page, $where, $limits);
         return $this->as_json($result);

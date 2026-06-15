@@ -59,4 +59,44 @@ class Signals extends Base
         return ['count'=>$count,'allpage'=>$allpage,'lists'=>$lists];
     }
 
+    /**
+    * 获取当前仍在持仓中的信号 pair_id 列表
+    * 规则：取每个 pair_id 最新一条信号，size != 0 视为当前仍在持仓
+    * @param array $where
+    * @return array
+    */
+    public static function getOpenPositionPairIds($where = [])
+    {
+        $baseWhere = array_merge(['pair_id' => ['<>', 0]], $where);
+        $rows = self::name("signals")
+                    ->alias("a")
+                    ->where($baseWhere)
+                    ->field('a.pair_id,a.size,a.id')
+                    ->order("a.pair_id desc, a.id desc")
+                    ->select()
+                    ->toArray();
+
+        if (!$rows) {
+            return [];
+        }
+
+        $latestByPair = [];
+        foreach ($rows as $row) {
+            $pairId = intval($row['pair_id']);
+            if ($pairId <= 0 || isset($latestByPair[$pairId])) {
+                continue;
+            }
+            $latestByPair[$pairId] = $row;
+        }
+
+        $pairIds = [];
+        foreach ($latestByPair as $pairId => $row) {
+            if (floatval($row['size']) != 0) {
+                $pairIds[] = $pairId;
+            }
+        }
+
+        return $pairIds;
+    }
+
 }
