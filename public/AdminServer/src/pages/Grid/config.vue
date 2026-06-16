@@ -90,8 +90,8 @@
                     <div class="symbol-config-header">
                       <span class="symbol-config-title">{{ symbolIndex + 1 }}. {{ symbolItem.symbol }}</span>
                       <div class="symbol-config-tags">
-                        <span class="symbol-config-tag">策略 {{ symbolItem.tactics }}</span>
-                        <span class="symbol-config-tag">最大仓位 {{ symbolItem.value }}</span>
+                        <span class="symbol-config-tag symbol-config-tag-clickable" @click="openSignalDialog(item, symbolItem)">策略 {{ symbolItem.tactics }}</span>
+                        <span class="symbol-config-tag symbol-config-tag-clickable" @click="openPositionDialog(item, symbolItem)">最大仓位 {{ symbolItem.value }}</span>
                       </div>
                     </div>
 
@@ -377,6 +377,208 @@
           </el-form-item>
         </el-form>
       </el-dialog>
+
+      <el-dialog
+        :title="signalDialogTitle"
+        :visible.sync="signalDialogVisible"
+        width="1000px"
+        @close="resetSignalDialog"
+      >
+        <div class="dialog-summary-bar">
+          <span>账户：{{ signalDialogContext.account_id || '--' }}</span>
+          <span>币种：{{ signalDialogContext.symbol || '--' }}</span>
+          <span>策略：{{ signalDialogContext.tactics || '--' }}</span>
+        </div>
+        <el-table
+          :data="signalDialogRows"
+          border
+          v-loading="signalDialogLoading"
+          empty-text="暂无匹配的信号数据"
+          style="width: 100%;"
+        >
+          <el-table-column prop="pair_id" label="配对ID" width="90" align="center" />
+          <el-table-column label="类型" align="center" width="120">
+            <template slot-scope="scope">
+              <span>{{ positionTypeLabel(scope.row) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="direction" label="方向" align="center" width="90">
+            <template slot-scope="scope">
+              <el-tag :type="orderSideLabel(scope.row) === 'buy' ? 'success' : 'danger'">
+                {{ orderSideLabel(scope.row) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="信号类型" align="center" width="90">
+            <template slot-scope="scope">
+              {{ normalizeSignalSize(scope.row.size) === 0 ? '平仓' : '开仓' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="price" label="价格" align="center" width="110">
+            <template slot-scope="scope">
+              {{ formatSignalNumber(scope.row.price) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="timestamp" label="日期/时间" align="center" width="180">
+            <template slot-scope="scope">
+              {{ scope.row.position_at || scope.row.timestamp || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态" align="center" min-width="130">
+            <template slot-scope="scope">
+              <el-tag :type="getSignalStatusTagType(scope.row)">
+                {{ getSignalStatusText(scope.row) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-empty
+          v-if="!signalDialogLoading && signalDialogRows.length === 0"
+          description="暂无匹配的信号数据"
+        />
+        <el-row v-if="signalDialogTotal > 0" class="dialog-pagination">
+          <el-col :span="24">
+            <div style="float:right;">
+              <wbc-page
+                :total="signalDialogTotal"
+                :pageSize="signalDialogPageSize"
+                :currPage="signalDialogCurrPage"
+                @changeLimit="changeSignalDialogLimit"
+                @changeSkip="changeSignalDialogPage"
+              ></wbc-page>
+            </div>
+          </el-col>
+        </el-row>
+      </el-dialog>
+
+      <el-dialog
+        :title="positionDialogTitle"
+        :visible.sync="positionDialogVisible"
+        width="1100px"
+        @close="resetPositionDialog"
+      >
+        <div class="dialog-summary-bar">
+          <span>账户：{{ positionDialogContext.account_id || '--' }}</span>
+          <span>币种：{{ positionDialogContext.symbol || '--' }}</span>
+          <span>策略：{{ positionDialogContext.tactics || '--' }}</span>
+        </div>
+        <el-tabs v-model="positionDialogTab" @tab-click="handlePositionDialogTabClick">
+          <el-tab-pane label="当前持仓" name="current">
+            <el-table
+              :data="currentPositionRows"
+              border
+              v-loading="currentPositionLoading"
+              empty-text="暂无当前持仓"
+              style="width: 100%;"
+            >
+              <el-table-column prop="symbol" label="交易品种" align="center" width="140" />
+              <el-table-column label="仓位状态" align="center" width="100">
+                <template slot-scope="scope">
+                  <span>{{ formatMarginMode(scope.row) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="side" label="持仓方向" align="center" width="90">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.side === 'long'">开多</span>
+                  <span v-else-if="scope.row.side === 'short'">开空</span>
+                  <span v-else>--</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="持仓量" align="center" min-width="120">
+                <template slot-scope="scope">
+                  <span>{{ scope.row.contracts || 0 }} 张</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="开仓均价" align="center" width="120">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.entryPrice || 0, 2, true) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="标记价格" align="center" width="120">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.markPrice || 0, 2, true) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="浮动收益" align="center" width="120">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.unrealizedPnl || 0, 2, true) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="开仓时间" align="center" width="180">
+                <template slot-scope="scope">
+                  <span>{{ getPositionOpenTime(scope.row) }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-empty
+              v-if="!currentPositionLoading && currentPositionRows.length === 0"
+              description="暂无当前持仓"
+            />
+          </el-tab-pane>
+          <el-tab-pane label="历史持仓" name="history">
+            <el-table
+              :data="pagedHistoryPositionRows"
+              border
+              v-loading="historyPositionLoading"
+              empty-text="暂无历史持仓"
+              style="width: 100%;"
+            >
+              <el-table-column prop="symbol" label="交易品种" align="center" width="120" />
+              <el-table-column label="仓位状态" align="center" width="96">
+                <template slot-scope="scope">
+                  <span>{{ getHistoryPositionStatus(scope.row) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="交易方向" align="center" width="96">
+                <template slot-scope="scope">
+                  <span>{{ getHistoryPositionDirection(scope.row) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="开仓均价 / 平仓均价" align="center" width="132">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.entryPrice || 0, 2, true) }}</span>
+                  <br>
+                  <span>{{ keepDecimalNotRounding(scope.row.lastPrice || 0, 2, true) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="收益 / 收益率" align="center" width="128">
+                <template slot-scope="scope">
+                  <span>{{ keepDecimalNotRounding(scope.row.realizedPnl || 0, 2, true) }}</span>
+                  <br>
+                  <span>{{ formatHistoryProfitRate(scope.row) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="开仓时间" align="center" width="160">
+                <template slot-scope="scope">
+                  <span>{{ timestampToTime(getHistoryInfo(scope.row).cTime) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="平仓时间" align="center" width="160">
+                <template slot-scope="scope">
+                  <span>{{ timestampToTime(getHistoryInfo(scope.row).uTime) }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-empty
+              v-if="!historyPositionLoading && historyPositionRows.length === 0"
+              description="暂无历史持仓"
+            />
+            <el-row v-if="historyPositionTotal > 0" class="dialog-pagination">
+              <el-col :span="24">
+                <div style="float:right;">
+                  <wbc-page
+                    :total="historyPositionTotal"
+                    :pageSize="historyPositionPageSize"
+                    :currPage="historyPositionCurrPage"
+                    @changeLimit="changeHistoryPositionLimit"
+                    @changeSkip="changeHistoryPositionPage"
+                  ></wbc-page>
+                </div>
+              </el-col>
+            </el-row>
+          </el-tab-pane>
+        </el-tabs>
+      </el-dialog>
     </div>
   </template>
   <script>
@@ -451,6 +653,32 @@
           price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
           direction: [{ required: true, message: '请选择操作类型', trigger: 'change' }],
         },
+        signalDialogVisible: false,
+        signalDialogLoading: false,
+        signalDialogRows: [],
+        signalDialogTotal: 0,
+        signalDialogPageSize: 10,
+        signalDialogCurrPage: 1,
+        signalDialogContext: {
+          account_id: '',
+          symbol: '',
+          tactics: ''
+        },
+        positionDialogVisible: false,
+        positionDialogTab: 'current',
+        currentPositionLoading: false,
+        historyPositionLoading: false,
+        currentPositionRows: [],
+        historyPositionRows: [],
+        historyPositionTotal: 0,
+        historyPositionPageSize: 10,
+        historyPositionCurrPage: 1,
+        positionDialogContext: {
+          account_id: '',
+          symbol: '',
+          inst_id: '',
+          tactics: ''
+        },
         balanceCacheTTL: 60 * 1000,
         activeMaxPositionPanels: []
       };
@@ -462,6 +690,19 @@
           value: item.name
         }));
         return [{ label: '全部策略', value: '' }, ...options];
+      },
+      signalDialogTitle() {
+        const ctx = this.signalDialogContext || {};
+        return `策略信号 - 账户${ctx.account_id || '--'} / ${ctx.symbol || '--'} / ${ctx.tactics || '--'}`;
+      },
+      positionDialogTitle() {
+        const ctx = this.positionDialogContext || {};
+        return `持仓详情 - 账户${ctx.account_id || '--'} / ${ctx.symbol || '--'}`;
+      },
+      pagedHistoryPositionRows() {
+        const start = (this.historyPositionCurrPage - 1) * this.historyPositionPageSize;
+        const end = start + this.historyPositionPageSize;
+        return this.historyPositionRows.slice(start, end);
       }
     },
     methods: {
@@ -553,6 +794,269 @@
       },
       isSymbolSelected(symbol) {
         return this.FormData.max_position_list.some(item => item.symbol === symbol);
+      },
+      openSignalDialog(accountItem, symbolItem) {
+        this.signalDialogContext = {
+          account_id: accountItem.account_id,
+          symbol: symbolItem.symbol || '',
+          tactics: symbolItem.tactics || ''
+        };
+        this.signalDialogRows = [];
+        this.signalDialogTotal = 0;
+        this.signalDialogCurrPage = 1;
+        this.signalDialogVisible = true;
+        this.loadSignalDialogData();
+      },
+      loadSignalDialogData() {
+        const ctx = this.signalDialogContext || {};
+        if (!ctx.tactics || !ctx.symbol) {
+          this.signalDialogRows = [];
+          return;
+        }
+        this.signalDialogLoading = true;
+        get('/Grid/grid/getSignalsList', {
+          page: this.signalDialogCurrPage,
+          limit: this.signalDialogPageSize,
+          strategy_name: ctx.tactics,
+          symbol: ctx.symbol
+        }, json => {
+          this.signalDialogLoading = false;
+          if (json.data.code == 10000) {
+            this.signalDialogRows = (json.data.data && json.data.data.lists) || [];
+            this.signalDialogTotal = (json.data.data && json.data.data.count) || 0;
+          } else {
+            this.signalDialogRows = [];
+            this.signalDialogTotal = 0;
+            this.$message.error(json.data.msg || '加载策略信号失败');
+          }
+        });
+      },
+      changeSignalDialogLimit(limit) {
+        this.signalDialogPageSize = limit;
+        this.signalDialogCurrPage = 1;
+        this.loadSignalDialogData();
+      },
+      changeSignalDialogPage(page) {
+        this.signalDialogCurrPage = page;
+        this.loadSignalDialogData();
+      },
+      resetSignalDialog() {
+        this.signalDialogVisible = false;
+        this.signalDialogLoading = false;
+        this.signalDialogRows = [];
+        this.signalDialogTotal = 0;
+        this.signalDialogPageSize = 10;
+        this.signalDialogCurrPage = 1;
+        this.signalDialogContext = {
+          account_id: '',
+          symbol: '',
+          tactics: ''
+        };
+      },
+      openPositionDialog(accountItem, symbolItem) {
+        const symbol = symbolItem.symbol || '';
+        this.positionDialogContext = {
+          account_id: accountItem.account_id,
+          symbol: symbol,
+          inst_id: this.toSwapInstId(symbol),
+          tactics: symbolItem.tactics || ''
+        };
+        this.positionDialogTab = 'current';
+        this.currentPositionRows = [];
+        this.historyPositionRows = [];
+        this.historyPositionTotal = 0;
+        this.historyPositionCurrPage = 1;
+        this.positionDialogVisible = true;
+        this.loadCurrentPositionData();
+      },
+      resetPositionDialog() {
+        this.positionDialogVisible = false;
+        this.positionDialogTab = 'current';
+        this.currentPositionLoading = false;
+        this.historyPositionLoading = false;
+        this.currentPositionRows = [];
+        this.historyPositionRows = [];
+        this.historyPositionTotal = 0;
+        this.historyPositionPageSize = 10;
+        this.historyPositionCurrPage = 1;
+        this.positionDialogContext = {
+          account_id: '',
+          symbol: '',
+          inst_id: '',
+          tactics: ''
+        };
+      },
+      handlePositionDialogTabClick(tab) {
+        if (tab.name === 'history' && this.historyPositionRows.length === 0) {
+          this.loadHistoryPositionData();
+        }
+      },
+      toSwapInstId(symbol) {
+        if (!symbol) return '';
+        const normalized = String(symbol).toUpperCase();
+        return normalized.endsWith('-SWAP') ? normalized : `${normalized}-SWAP`;
+      },
+      loadCurrentPositionData() {
+        const ctx = this.positionDialogContext || {};
+        if (!ctx.account_id || !ctx.inst_id) {
+          this.currentPositionRows = [];
+          return;
+        }
+        this.currentPositionLoading = true;
+        get('/sigadmin/get_current_positions', {
+          account_id: ctx.account_id,
+          inst_id: ctx.inst_id
+        }, json => {
+          this.currentPositionLoading = false;
+          if (json.status == 200) {
+            this.currentPositionRows = Array.isArray(json.data.data) ? json.data.data : [];
+          } else {
+            this.currentPositionRows = [];
+            this.$message.error('加载当前持仓失败');
+          }
+        });
+      },
+      loadHistoryPositionData() {
+        const ctx = this.positionDialogContext || {};
+        if (!ctx.account_id || !ctx.inst_id) {
+          this.historyPositionRows = [];
+          return;
+        }
+        this.historyPositionLoading = true;
+        get('/sigadmin/get_positions_history', {
+          account_id: ctx.account_id,
+          inst_id: ctx.inst_id,
+          limit: 50,
+          page: 1
+        }, json => {
+          this.historyPositionLoading = false;
+          if (json.status == 200) {
+            this.historyPositionRows = Array.isArray(json.data.data) ? json.data.data : [];
+            this.historyPositionTotal = this.historyPositionRows.length;
+            this.historyPositionCurrPage = 1;
+          } else {
+            this.historyPositionRows = [];
+            this.historyPositionTotal = 0;
+            this.$message.error('加载历史持仓失败');
+          }
+        });
+      },
+      changeHistoryPositionLimit(limit) {
+        this.historyPositionPageSize = limit;
+        this.historyPositionCurrPage = 1;
+      },
+      changeHistoryPositionPage(page) {
+        this.historyPositionCurrPage = page;
+      },
+      normalizeSignalSize(size) {
+        const numericSize = Number(size);
+        if (isNaN(numericSize)) return 0;
+        if (numericSize > 0) return 1;
+        if (numericSize < 0) return -1;
+        return 0;
+      },
+      positionTypeLabel(row) {
+        const sz = this.normalizeSignalSize(row.size);
+        const dir = (row.direction || '').toLowerCase();
+        if (sz === 1) return '多头进场';
+        if (sz === -1) return '空头进场';
+        if (sz === 0) {
+          if (dir === 'long') return '空头出场';
+          if (dir === 'short') return '多头出场';
+          return '平仓';
+        }
+        return '--';
+      },
+      orderSideLabel(row) {
+        return (row.direction || '').toLowerCase() === 'long' ? 'buy' : 'sell';
+      },
+      formatSignalNumber(num) {
+        if (isNaN(num)) return '--';
+        return parseFloat(num).toFixed(1);
+      },
+      parseJsonArray(value) {
+        if (!value) return [];
+        if (Array.isArray(value)) return value;
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      },
+      getFailedAccountCount(row) {
+        return this.parseJsonArray(row.failed_accounts).length;
+      },
+      getSignalStatusTagType(row) {
+        const status = (row.status || '').toLowerCase();
+        const statusMap = {
+          pending: 'warning',
+          processing: 'warning',
+          partial: '',
+          processed: 'success',
+          failed: 'danger'
+        };
+        return statusMap[status] || 'info';
+      },
+      getSignalStatusText(row) {
+        const status = (row.status || '').toLowerCase();
+        const failedCount = this.getFailedAccountCount(row);
+        if (status === 'pending') return '待处理';
+        if (status === 'processing') return '处理中';
+        if (status === 'processed') return '已完成';
+        if (status === 'failed') return failedCount > 0 ? `失败(${failedCount}账户)` : '失败';
+        if (status === 'partial') return failedCount > 0 ? `部分完成(${failedCount}待恢复)` : '部分完成';
+        return row.status || '--';
+      },
+      formatMarginMode(row) {
+        if (!row || !row.marginMode) return '--';
+        if (row.marginMode === 'cross') return '全仓';
+        if (row.marginMode === 'isolated') return '逐仓';
+        return row.marginMode;
+      },
+      getPositionOpenTime(row) {
+        const rowInfo = row && row.info ? row.info : {};
+        return this.timestampToTime((row && (row.datetime || row.timestamp || row.openTime)) || rowInfo.cTime);
+      },
+      getHistoryInfo(row) {
+        return row && row.info ? row.info : {};
+      },
+      getHistoryPositionStatus(row) {
+        const type = this.getHistoryInfo(row).type;
+        if (type === '1') return '部分平仓';
+        if (type === '2') return '完全平仓';
+        if (type === '3') return '强平';
+        if (type === '4') return '强减';
+        if (type === '5') return 'ADL自动减仓';
+        return '--';
+      },
+      getHistoryPositionDirection(row) {
+        const info = this.getHistoryInfo(row);
+        if (info.direction === 'long' && info.posSide === 'long') return '买入开多';
+        if (info.direction === 'long' && info.posSide === 'short') return '买入平空';
+        if (info.direction === 'short' && info.posSide === 'long') return '卖出平多';
+        if (info.direction === 'short' && info.posSide === 'short') return '卖出开空';
+        return '--';
+      },
+      formatHistoryProfitRate(row) {
+        const entryPrice = Number(row.entryPrice || 0);
+        const contractSize = Number(row.contractSize || 0);
+        const realizedPnl = Number(row.realizedPnl || 0);
+        const base = contractSize * entryPrice;
+        if (!base) {
+          return '--';
+        }
+        return `${this.keepDecimalNotRounding ? this.keepDecimalNotRounding(realizedPnl / base * 100, 2, true) : ((realizedPnl / base) * 100).toFixed(2)}%`;
+      },
+      timestampToTime(value) {
+        if (!value) return '--';
+        const numeric = Number(value);
+        if (isNaN(numeric) || numeric <= 0) {
+          return value;
+        }
+        const date = new Date(String(value).length === 13 ? numeric : numeric * 1000);
+        const pad = (num) => String(num).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
       },
       getListData(ServerWhere) {
         var that = this.$data;
@@ -1033,6 +1537,16 @@
     color: #606266;
   }
 
+  .symbol-config-tag-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #409eff;
+      background: #ecf5ff;
+    }
+  }
+
   .max-position-delete {
     flex: 0 0 auto;
   }
@@ -1171,6 +1685,27 @@
     font-size: 14px;
     font-weight: 600;
     color: #303133;
+  }
+
+  .dialog-summary-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #f5f7fa;
+    color: #606266;
+    font-size: 13px;
+  }
+
+  .dialog-pagination {
+    margin-top: 16px;
+  }
+
+  .el-dialog__body .el-empty {
+    padding: 24px 0 8px;
   }
 
   .config-overview-table {
