@@ -818,7 +818,8 @@
           page: this.signalDialogCurrPage,
           limit: this.signalDialogPageSize,
           strategy_name: ctx.tactics,
-          symbol: ctx.symbol
+          symbol: ctx.symbol,
+          open_only: 1
         }, json => {
           this.signalDialogLoading = false;
           if (json.data.code == 10000) {

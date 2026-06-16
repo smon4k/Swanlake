@@ -338,6 +338,7 @@ class GridController extends BaseController
         $tactics_name = $request->request('strategy_name', '', 'trim');
         $symbol = strtoupper($request->request('symbol', '', 'trim'));
         $signal_scope = $request->request('signal_scope', '', 'trim');
+        $open_only = $request->request('open_only', 0, 'intval');
 
         $where = [];
         $where['pair_id'] = ['<>', 0];
@@ -346,6 +347,9 @@ class GridController extends BaseController
         }
         if($symbol && $symbol !== "") {
             $where['symbol'] = ['like', $symbol . '%'];
+        }
+        if($open_only === 1) {
+            $where['size'] = ['<>', 0];
         }
         if($signal_scope === 'open_position') {
             $openWhere = [];
