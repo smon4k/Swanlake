@@ -146,6 +146,8 @@ export default {
         if(json && json.data.code == 10000) {
           this.MenuList = json.data.data;
           // console.log(this.MenuList);
+        } else if (json && Number(json.data.code) === 70001) {
+          this.MenuList = [];
         } else {
            this.$message({type: 'error', message: "获取菜单数据失败"});
         }
