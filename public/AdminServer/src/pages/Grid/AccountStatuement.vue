@@ -14,7 +14,7 @@
         </div>
         <el-tabs v-model="activeName" :tab-position="isMobel ? 'top' : 'top'" :stretch="isMobel ? true : false" style="background-color: #fff;" @tab-click="tabsHandleClick">
             <el-tab-pane :data-id="item.id" :label="item.name" :name="item.name" v-for="(item, index) in accountList" :key="index">
-                <div v-if="!isMobel">
+                <div v-if="!isMobel" v-loading="loading">
                     <el-table
                         :data="tableData"
                         style="width: 100%">
@@ -102,7 +102,7 @@
                         </el-col>
                     </el-row>
                 </div>
-                <div v-else>
+                <div v-else v-loading="loading">
                     <div v-if="tableData.length">
                         <el-descriptions :colon="false" :border="false" :column="1" title="" v-for="(item, index) in tableData" :key="index">
                             <el-descriptions-item label="日期">{{ item.date }}</el-descriptions-item>
@@ -864,6 +864,7 @@ export default {
             cacheHistoryPageSize: 10,
             cacheHistoryTotal: 0,
             cachePositionRow: null,
+            cachePositionDataCache: {},
         }
     },
     computed: {
@@ -942,10 +943,10 @@ export default {
                     }
 
                     this.total = json.data.data.count;
-                    this.loading = false;
                 } else {
                     this.$message.error("加载数据失败");
                 }
+                this.loading = false;
             });
         },
         getList(ServerWhere) {
@@ -988,10 +989,10 @@ export default {
                         }
                     }
                     this.total = json.data.data.count;
-                    this.loading = false;
                 } else {
                     this.$message.error("加载数据失败");
                 }
+                this.loading = false;
             });
         },
         getAccountList() {
@@ -1172,10 +1173,7 @@ export default {
             this.cachePositionActiveTab = 'current';
             this.cacheCurrentPositionsCurrPage = 1;
             this.cacheHistoryPage = 1;
-            this.cacheCurrentPositionsList = [];
-            this.cacheCurrentPositionsTotal = 0;
-            this.cacheHistoryPositionsList = [];
-            this.cacheHistoryTotal = 0;
+            this.restoreCachePositionData();
             this.getCacheCurrentPositionsList();
         },
         handleCachePositionTabClick(tab) {
@@ -1202,6 +1200,13 @@ export default {
                 this.cacheCurrentPositionsTotal = 0;
                 return;
             }
+            const accountCache = this.getCachePositionDataBucket();
+            if (accountCache.currentLoaded) {
+                this.cacheCurrentPositionsList = accountCache.currentRows.slice();
+                this.cacheCurrentPositionsTotal = accountCache.currentTotal;
+                this.cacheCurrentPositionsCurrPage = 1;
+                return;
+            }
             this.cacheCurrentLoading = true;
             get("/sigadmin/get_current_positions", {
                 account_id: this.tabAccountId,
@@ -1211,6 +1216,10 @@ export default {
                     this.cacheCurrentPositionsList = Array.isArray(json.data.data) ? json.data.data : [];
                     this.cacheCurrentPositionsTotal = this.cacheCurrentPositionsList.length;
                     this.cacheCurrentPositionsCurrPage = 1;
+                    const nextCache = this.getCachePositionDataBucket();
+                    nextCache.currentRows = this.cacheCurrentPositionsList.slice();
+                    nextCache.currentTotal = this.cacheCurrentPositionsTotal;
+                    nextCache.currentLoaded = true;
                 } else {
                     this.cacheCurrentPositionsList = [];
                     this.cacheCurrentPositionsTotal = 0;
@@ -1224,6 +1233,13 @@ export default {
                 this.cacheHistoryTotal = 0;
                 return;
             }
+            const accountCache = this.getCachePositionDataBucket();
+            if (accountCache.historyLoaded) {
+                this.cacheHistoryPositionsList = accountCache.historyRows.slice();
+                this.cacheHistoryTotal = accountCache.historyTotal;
+                this.cacheHistoryPage = 1;
+                return;
+            }
             this.cacheHistoryLoading = true;
             get("/sigadmin/get_positions_history", {
                 account_id: this.tabAccountId,
@@ -1234,12 +1250,47 @@ export default {
                 if (json.status == 200) {
                     this.cacheHistoryPositionsList = Array.isArray(json.data.data) ? json.data.data : [];
                     this.cacheHistoryTotal = this.cacheHistoryPositionsList.length;
+                    const nextCache = this.getCachePositionDataBucket();
+                    nextCache.historyRows = this.cacheHistoryPositionsList.slice();
+                    nextCache.historyTotal = this.cacheHistoryTotal;
+                    nextCache.historyLoaded = true;
                 } else {
                     this.cacheHistoryPositionsList = [];
                     this.cacheHistoryTotal = 0;
                     this.$message.error("加载历史持仓失败");
                 }
             });
+        },
+        getCachePositionDataBucket() {
+            const cacheKey = String(this.tabAccountId || '');
+            if (!cacheKey) {
+                return {
+                    currentRows: [],
+                    currentTotal: 0,
+                    currentLoaded: false,
+                    historyRows: [],
+                    historyTotal: 0,
+                    historyLoaded: false,
+                };
+            }
+            if (!this.cachePositionDataCache[cacheKey]) {
+                this.$set(this.cachePositionDataCache, cacheKey, {
+                    currentRows: [],
+                    currentTotal: 0,
+                    currentLoaded: false,
+                    historyRows: [],
+                    historyTotal: 0,
+                    historyLoaded: false,
+                });
+            }
+            return this.cachePositionDataCache[cacheKey];
+        },
+        restoreCachePositionData() {
+            const accountCache = this.getCachePositionDataBucket();
+            this.cacheCurrentPositionsList = accountCache.currentRows.slice();
+            this.cacheCurrentPositionsTotal = accountCache.currentTotal;
+            this.cacheHistoryPositionsList = accountCache.historyRows.slice();
+            this.cacheHistoryTotal = accountCache.historyTotal;
         },
         changeCacheCurrentPositionsLimit(limit) {
             this.cacheCurrentPositionsPageSize = limit;
