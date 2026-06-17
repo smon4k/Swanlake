@@ -61,7 +61,7 @@ class AdminuserController extends BaseController
             return $this->as_json(70001, 'token不能为空');
         }
         $uid = AdminUser::getUidByToken($token);
-        if(!$uid && $uid < 0) {
+        if(!$uid) {
             return $this->as_json(70001, '获取用户信息失败');
         }
         $AdminInfo = AdminUser::getById($uid);
