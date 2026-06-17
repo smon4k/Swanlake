@@ -643,31 +643,19 @@
                 </el-tab-pane>
                 <el-tab-pane label="历史持仓" name="history">
                     <el-table
-                        :data="cacheHistoryPositionsList"
+                        :data="pagedCacheHistoryPositionsList"
                         style="width: 100%;"
                         height="500"
                         v-loading="cacheHistoryLoading">
                         <el-table-column prop="symbol" label="交易品种" align="center" min-width="140"></el-table-column>
                         <el-table-column label="仓位状态" align="center" width="120">
                             <template slot-scope="scope">
-                                <span v-if="scope.row.info.type === '1'" style="color:#05C48E">部分平仓</span>
-                                <span v-else-if="scope.row.info.type === '2'" style="color:#df473d;">完全平仓</span>
-                                <span v-else-if="scope.row.info.type === '3'" style="color:#df473d;">强平</span>
-                                <span v-else-if="scope.row.info.type === '4'" style="color:#df473d;">强减</span>
-                                <span v-else-if="scope.row.info.type === '5'" style="color:#df473d;">ADL自动减仓</span>
-                                <span v-else>-</span>
+                                <span>{{ getCacheHistoryStatus(scope.row) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column label="交易方向" align="center" width="120">
                             <template slot-scope="scope">
-                                <div v-if="scope.row.info">
-                                    <span v-if="scope.row.info.direction === 'long' && scope.row.info.posSide === 'long'" style="color:#05C48E">买入开多</span>
-                                    <span v-else-if="scope.row.info.direction === 'long' && scope.row.info.posSide === 'short'" style="color:#05C48E">买入平空</span>
-                                    <span v-else-if="scope.row.info.direction === 'short' && scope.row.info.posSide === 'long'" style="color:#df473d;">卖出平多</span>
-                                    <span v-else-if="scope.row.info.direction === 'short' && scope.row.info.posSide === 'short'" style="color:#df473d;">卖出开空</span>
-                                    <span v-else>-</span>
-                                </div>
-                                <span v-else>-</span>
+                                <span>{{ getCacheHistoryDirection(scope.row) }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column label="开仓均价 / 平仓均价" align="center" min-width="150">
@@ -892,6 +880,11 @@ export default {
             var start = (this.cacheCurrentPositionsCurrPage - 1) * this.cacheCurrentPositionsPageSize;
             var end = start + this.cacheCurrentPositionsPageSize;
             return this.cacheCurrentPositionsList.slice(start, end);
+        },
+        pagedCacheHistoryPositionsList() {
+            var start = (this.cacheHistoryPage - 1) * this.cacheHistoryPageSize;
+            var end = start + this.cacheHistoryPageSize;
+            return this.cacheHistoryPositionsList.slice(start, end);
         },
     },
     created() {
@@ -1258,11 +1251,9 @@ export default {
         changeCacheHistoryLimit(limit) {
             this.cacheHistoryPageSize = limit;
             this.cacheHistoryPage = 1;
-            this.getCacheHistoryPositionsList();
         },
         changeCacheHistoryPage(page) {
             this.cacheHistoryPage = page;
-            this.getCacheHistoryPositionsList();
         },
         getCachePositionOpenTime(row) {
             const info = (row || {}).info || {};
@@ -1271,16 +1262,36 @@ export default {
             return this.normalizePositionTime(rawTime);
         },
         getCacheHistoryOpenTime(row) {
-            const info = (row || {}).info || {};
+            const info = this.getCacheHistoryInfo(row);
             const rawTime = info.cTime || row.timestamp || row.datetime || '';
             if (!rawTime) return '-';
             return this.normalizePositionTime(rawTime);
         },
         getCacheHistoryCloseTime(row) {
-            const info = (row || {}).info || {};
+            const info = this.getCacheHistoryInfo(row);
             const rawTime = info.uTime || row.infoTime || row.lastTradeTimestamp || '';
             if (!rawTime) return '-';
             return this.normalizePositionTime(rawTime);
+        },
+        getCacheHistoryInfo(row) {
+            return row && row.info ? row.info : {};
+        },
+        getCacheHistoryStatus(row) {
+            const type = this.getCacheHistoryInfo(row).type;
+            if (type === '1') return '部分平仓';
+            if (type === '2') return '完全平仓';
+            if (type === '3') return '强平';
+            if (type === '4') return '强减';
+            if (type === '5') return 'ADL自动减仓';
+            return '-';
+        },
+        getCacheHistoryDirection(row) {
+            const info = this.getCacheHistoryInfo(row);
+            if (info.direction === 'long' && info.posSide === 'long') return '买入开多';
+            if (info.direction === 'long' && info.posSide === 'short') return '买入平空';
+            if (info.direction === 'short' && info.posSide === 'long') return '卖出平多';
+            if (info.direction === 'short' && info.posSide === 'short') return '卖出开空';
+            return '-';
         },
         normalizePositionTime(rawTime) {
             if (!rawTime) return '-';
