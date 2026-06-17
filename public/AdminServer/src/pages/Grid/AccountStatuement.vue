@@ -1302,7 +1302,13 @@ export default {
             if (!num || isNaN(num)) {
                 return rawTime;
             }
-            return this.timestampToTime(num);
+            const timestamp = String(rawTime).length === 13 ? num : num * 1000;
+            const date = new Date(timestamp);
+            if (isNaN(date.getTime())) {
+                return rawTime;
+            }
+            const pad = (value) => String(value).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
         },
         formatCacheHistoryPnlRate(row) {
             const contractSize = Number(row.contractSize) || 0;
