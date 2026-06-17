@@ -1,6 +1,17 @@
 import qs from 'qs';
 import { Message } from 'element-ui';
 export default function (axios,router) {
+  function redirectToLogin() {
+    localStorage.removeItem('token')
+    localStorage.removeItem('UserAuthName')
+    localStorage.removeItem('UserAuthUid')
+    localStorage.removeItem('ServerIp')
+    if (router && router.currentRoute && router.currentRoute.path !== "/login") {
+      router.replace("/login")
+    } else if (window && window.location) {
+      window.location.hash = '#/login'
+    }
+  }
 
   axios.defaults.timeout = 180000; //超时时间
   axios.defaults.baseURL = ''; //默认地址
@@ -30,15 +41,11 @@ export default function (axios,router) {
       }
       config.transformResponse = [
         function (data) {
-          if (data.indexOf("\\u767b\\u5f55\\u5931\\u8d25\\uff0c\\u8bf7\\u91cd\\u65b0\\u767b\\u5f55") != -1) {
-            localStorage.removeItem('token')
-            localStorage.removeItem('UserAuthName')
-            localStorage.removeItem('UserAuthUid')
-            localStorage.removeItem('ServerIp')
-            router.replace("/login")
+          if (!data) {
             return false
           }
-          if (!data) {
+          if (typeof data === 'string' && data.indexOf("\\u767b\\u5f55\\u5931\\u8d25\\uff0c\\u8bf7\\u91cd\\u65b0\\u767b\\u5f55") != -1) {
+            redirectToLogin()
             return false
           }
           // if (JSON.parse(data)) {
@@ -47,17 +54,7 @@ export default function (axios,router) {
           //   return data
           // }
           try {
-            let res = JSON.parse(data)
-            if (res && Number(res.code) === 70001) {
-              localStorage.removeItem('token')
-              localStorage.removeItem('UserAuthName')
-              localStorage.removeItem('UserAuthUid')
-              localStorage.removeItem('ServerIp')
-              if (router.currentRoute.path !== "/login") {
-                router.replace("/login")
-              }
-            }
-            return res
+            return JSON.parse(data)
           } catch (err) {
             return data
           }
@@ -65,6 +62,17 @@ export default function (axios,router) {
       ]
       return config;
     })
+
+    axios.interceptors.response.use(function (response) {
+      const data = response && response.data;
+      if (data && Number(data.code) === 70001) {
+        redirectToLogin();
+      }
+      return response;
+    }, function (error) {
+      return Promise.reject(error);
+    })
+
     return axios
 }
 
