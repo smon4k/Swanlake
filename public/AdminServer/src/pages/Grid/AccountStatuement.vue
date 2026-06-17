@@ -37,7 +37,7 @@
                             <template slot-scope="scope">
                                 <!-- <el-link type="primary" @click="accountBalanceDetailsFun(scope.row.account_id)"> -->
                                 <span v-if="activeName == '全部'">{{ Math.floor(scope.row.yubibao_balance) }}</span>
-                                <el-link v-else type="primary">
+                                <el-link v-else type="primary" @click="openCachePositionDialog(scope.row)">
                                     <span>{{ Math.floor(scope.row.yubibao_balance) }}</span>
                                 </el-link>
                             </template>
@@ -566,6 +566,153 @@
             </el-row>
         </el-dialog>
 
+        <el-dialog
+            :title="cachePositionDialogTitle"
+            :visible.sync="cachePositionDialogVisible"
+            width="80%"
+            @close="handleCachePositionDialogClose">
+            <div class="cache-position-summary">
+                <span>账户ID：{{ tabAccountId }}</span>
+                <span>缓存(U)：{{ cachePositionSummaryValue }}</span>
+            </div>
+            <el-tabs v-model="cachePositionActiveTab" @tab-click="handleCachePositionTabClick">
+                <el-tab-pane label="当前持仓" name="current">
+                    <el-table
+                        :data="pagedCacheCurrentPositionsList"
+                        style="width: 100%;"
+                        height="500"
+                        v-loading="cacheCurrentLoading">
+                        <el-table-column prop="symbol" label="交易品种" align="center" min-width="140"></el-table-column>
+                        <el-table-column label="仓位状态" align="center" width="120">
+                            <template slot-scope="scope">
+                                <span>{{ formatMarginMode(scope.row) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="持仓方向" align="center" width="100">
+                            <template slot-scope="scope">
+                                <span v-if="scope.row.side === 'long'">开多</span>
+                                <span v-else-if="scope.row.side === 'short'">开空</span>
+                                <span v-else>-</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="持仓量" align="center" min-width="140">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.contracts, 4, true) }} 张</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="开仓均价" align="center" min-width="120">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.entryPrice, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="标记价格" align="center" min-width="120">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.markPrice, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="浮动收益" align="center" min-width="120">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.unrealizedPnl, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="保证金" align="center" min-width="120">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.collateral, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="开仓时间" align="center" width="180">
+                            <template slot-scope="scope">
+                                <span>{{ getCachePositionOpenTime(scope.row) }}</span>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <el-empty v-if="!cacheCurrentLoading && !cacheCurrentPositionsList.length" description="暂无当前持仓"></el-empty>
+                    <el-row class="pages" v-if="cacheCurrentPositionsTotal > 0">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                                <wbc-page
+                                    :total="cacheCurrentPositionsTotal"
+                                    :pageSize="cacheCurrentPositionsPageSize"
+                                    :currPage="cacheCurrentPositionsCurrPage"
+                                    @changeLimit="changeCacheCurrentPositionsLimit"
+                                    @changeSkip="changeCacheCurrentPositionsPage"
+                                ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-tab-pane>
+                <el-tab-pane label="历史持仓" name="history">
+                    <el-table
+                        :data="cacheHistoryPositionsList"
+                        style="width: 100%;"
+                        height="500"
+                        v-loading="cacheHistoryLoading">
+                        <el-table-column prop="symbol" label="交易品种" align="center" min-width="140"></el-table-column>
+                        <el-table-column label="仓位状态" align="center" width="120">
+                            <template slot-scope="scope">
+                                <span v-if="scope.row.info.type === '1'" style="color:#05C48E">部分平仓</span>
+                                <span v-else-if="scope.row.info.type === '2'" style="color:#df473d;">完全平仓</span>
+                                <span v-else-if="scope.row.info.type === '3'" style="color:#df473d;">强平</span>
+                                <span v-else-if="scope.row.info.type === '4'" style="color:#df473d;">强减</span>
+                                <span v-else-if="scope.row.info.type === '5'" style="color:#df473d;">ADL自动减仓</span>
+                                <span v-else>-</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="交易方向" align="center" width="120">
+                            <template slot-scope="scope">
+                                <div v-if="scope.row.info">
+                                    <span v-if="scope.row.info.direction === 'long' && scope.row.info.posSide === 'long'" style="color:#05C48E">买入开多</span>
+                                    <span v-else-if="scope.row.info.direction === 'long' && scope.row.info.posSide === 'short'" style="color:#05C48E">买入平空</span>
+                                    <span v-else-if="scope.row.info.direction === 'short' && scope.row.info.posSide === 'long'" style="color:#df473d;">卖出平多</span>
+                                    <span v-else-if="scope.row.info.direction === 'short' && scope.row.info.posSide === 'short'" style="color:#df473d;">卖出开空</span>
+                                    <span v-else>-</span>
+                                </div>
+                                <span v-else>-</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="开仓均价 / 平仓均价" align="center" min-width="150">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.entryPrice, 2, true) }}</span>
+                                <br>
+                                <span>{{ keepDecimalNotRounding(scope.row.lastPrice, 2, true) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="收益 / 收益率" align="center" min-width="140">
+                            <template slot-scope="scope">
+                                <span>{{ keepDecimalNotRounding(scope.row.realizedPnl, 2, true) }}</span>
+                                <br>
+                                <span>{{ formatCacheHistoryPnlRate(scope.row) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="开仓时间" align="center" width="180">
+                            <template slot-scope="scope">
+                                <span>{{ getCacheHistoryOpenTime(scope.row) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="平仓时间" align="center" width="180">
+                            <template slot-scope="scope">
+                                <span>{{ getCacheHistoryCloseTime(scope.row) }}</span>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <el-empty v-if="!cacheHistoryLoading && !cacheHistoryPositionsList.length" description="暂无历史持仓"></el-empty>
+                    <el-row class="pages" v-if="cacheHistoryTotal > 0">
+                        <el-col :span="24">
+                            <div style="float:right;">
+                                <wbc-page
+                                    :total="cacheHistoryTotal"
+                                    :pageSize="cacheHistoryPageSize"
+                                    :currPage="cacheHistoryPage"
+                                    @changeLimit="changeCacheHistoryLimit"
+                                    @changeSkip="changeCacheHistoryPage"
+                                ></wbc-page>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-tab-pane>
+            </el-tabs>
+        </el-dialog>
+
         <!-- <el-dialog
             title="收益率列表"
             :visible.sync="maxMinUplRateShow"
@@ -716,10 +863,36 @@ export default {
                 type: '',
                 is_position: '1',
             },
+            cachePositionDialogVisible: false,
+            cachePositionActiveTab: 'current',
+            cacheCurrentLoading: false,
+            cacheHistoryLoading: false,
+            cacheCurrentPositionsList: [],
+            cacheCurrentPositionsCurrPage: 1,
+            cacheCurrentPositionsPageSize: 10,
+            cacheCurrentPositionsTotal: 0,
+            cacheHistoryPositionsList: [],
+            cacheHistoryPage: 1,
+            cacheHistoryPageSize: 10,
+            cacheHistoryTotal: 0,
+            cachePositionRow: null,
         }
     },
     computed: {
-
+        cachePositionDialogTitle() {
+            return this.activeName + ' 缓存持仓详情';
+        },
+        cachePositionSummaryValue() {
+            if (!this.cachePositionRow) {
+                return '-';
+            }
+            return this.keepDecimalNotRounding(this.cachePositionRow.yubibao_balance, 2, true);
+        },
+        pagedCacheCurrentPositionsList() {
+            var start = (this.cacheCurrentPositionsCurrPage - 1) * this.cacheCurrentPositionsPageSize;
+            var end = start + this.cacheCurrentPositionsPageSize;
+            return this.cacheCurrentPositionsList.slice(start, end);
+        },
     },
     created() {
         this.getAccountList();
@@ -997,6 +1170,139 @@ export default {
             this.accountBalanceDetailsFun();
             this.accountBalanceDetailsShow = true;
         },
+        openCachePositionDialog(row) {
+            if(this.activeName == '全部' || !this.tabAccountId) {
+                return;
+            }
+            this.cachePositionRow = row || null;
+            this.cachePositionDialogVisible = true;
+            this.cachePositionActiveTab = 'current';
+            this.cacheCurrentPositionsCurrPage = 1;
+            this.cacheHistoryPage = 1;
+            this.cacheCurrentPositionsList = [];
+            this.cacheCurrentPositionsTotal = 0;
+            this.cacheHistoryPositionsList = [];
+            this.cacheHistoryTotal = 0;
+            this.getCacheCurrentPositionsList();
+        },
+        handleCachePositionTabClick(tab) {
+            if(tab.name === 'history' && !this.cacheHistoryPositionsList.length) {
+                this.getCacheHistoryPositionsList();
+            }
+        },
+        handleCachePositionDialogClose() {
+            this.cachePositionDialogVisible = false;
+            this.cachePositionActiveTab = 'current';
+            this.cacheCurrentLoading = false;
+            this.cacheHistoryLoading = false;
+            this.cacheCurrentPositionsList = [];
+            this.cacheCurrentPositionsCurrPage = 1;
+            this.cacheCurrentPositionsTotal = 0;
+            this.cacheHistoryPositionsList = [];
+            this.cacheHistoryPage = 1;
+            this.cacheHistoryTotal = 0;
+            this.cachePositionRow = null;
+        },
+        getCacheCurrentPositionsList() {
+            if(!this.tabAccountId) {
+                this.cacheCurrentPositionsList = [];
+                this.cacheCurrentPositionsTotal = 0;
+                return;
+            }
+            this.cacheCurrentLoading = true;
+            get("/sigadmin/get_current_positions", {
+                account_id: this.tabAccountId,
+            }, json => {
+                this.cacheCurrentLoading = false;
+                if (json.status == 200) {
+                    this.cacheCurrentPositionsList = Array.isArray(json.data.data) ? json.data.data : [];
+                    this.cacheCurrentPositionsTotal = this.cacheCurrentPositionsList.length;
+                    this.cacheCurrentPositionsCurrPage = 1;
+                } else {
+                    this.cacheCurrentPositionsList = [];
+                    this.cacheCurrentPositionsTotal = 0;
+                    this.$message.error("加载当前持仓失败");
+                }
+            });
+        },
+        getCacheHistoryPositionsList() {
+            if(!this.tabAccountId) {
+                this.cacheHistoryPositionsList = [];
+                this.cacheHistoryTotal = 0;
+                return;
+            }
+            this.cacheHistoryLoading = true;
+            get("/sigadmin/get_positions_history", {
+                account_id: this.tabAccountId,
+                limit: this.cacheHistoryPageSize,
+                page: this.cacheHistoryPage,
+            }, json => {
+                this.cacheHistoryLoading = false;
+                if (json.status == 200) {
+                    this.cacheHistoryPositionsList = Array.isArray(json.data.data) ? json.data.data : [];
+                    this.cacheHistoryTotal = this.cacheHistoryPositionsList.length;
+                } else {
+                    this.cacheHistoryPositionsList = [];
+                    this.cacheHistoryTotal = 0;
+                    this.$message.error("加载历史持仓失败");
+                }
+            });
+        },
+        changeCacheCurrentPositionsLimit(limit) {
+            this.cacheCurrentPositionsPageSize = limit;
+            this.cacheCurrentPositionsCurrPage = 1;
+        },
+        changeCacheCurrentPositionsPage(page) {
+            this.cacheCurrentPositionsCurrPage = page;
+        },
+        changeCacheHistoryLimit(limit) {
+            this.cacheHistoryPageSize = limit;
+            this.cacheHistoryPage = 1;
+            this.getCacheHistoryPositionsList();
+        },
+        changeCacheHistoryPage(page) {
+            this.cacheHistoryPage = page;
+            this.getCacheHistoryPositionsList();
+        },
+        getCachePositionOpenTime(row) {
+            const info = (row || {}).info || {};
+            const rawTime = info.cTime || row.timestamp || row.datetime || '';
+            if (!rawTime) return '-';
+            return this.normalizePositionTime(rawTime);
+        },
+        getCacheHistoryOpenTime(row) {
+            const info = (row || {}).info || {};
+            const rawTime = info.cTime || row.timestamp || row.datetime || '';
+            if (!rawTime) return '-';
+            return this.normalizePositionTime(rawTime);
+        },
+        getCacheHistoryCloseTime(row) {
+            const info = (row || {}).info || {};
+            const rawTime = info.uTime || row.infoTime || row.lastTradeTimestamp || '';
+            if (!rawTime) return '-';
+            return this.normalizePositionTime(rawTime);
+        },
+        normalizePositionTime(rawTime) {
+            if (!rawTime) return '-';
+            if (typeof rawTime === 'string' && rawTime.indexOf('-') > -1) {
+                return rawTime;
+            }
+            const num = Number(rawTime);
+            if (!num || isNaN(num)) {
+                return rawTime;
+            }
+            return this.timestampToTime(num);
+        },
+        formatCacheHistoryPnlRate(row) {
+            const contractSize = Number(row.contractSize) || 0;
+            const entryPrice = Number(row.entryPrice) || 0;
+            const realizedPnl = Number(row.realizedPnl) || 0;
+            const base = contractSize * entryPrice;
+            if (!base) {
+                return '-';
+            }
+            return this.keepDecimalNotRounding(realizedPnl / base * 100, 2, true) + '%';
+        },
         getAccountCurrencyPositionsList() {
             get("/Grid/QuantifyAccount/getAccountCurrencyPositionsList", {
                 limit: this.currencyPositionsLimit,
@@ -1219,6 +1525,14 @@ export default {
                         }
                     }
                 }
+            }
+            .cache-position-summary {
+                display: flex;
+                align-items: center;
+                gap: 24px;
+                margin-bottom: 12px;
+                color: #606266;
+                font-size: 14px;
             }
     }
 </style>
