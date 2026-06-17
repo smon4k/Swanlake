@@ -32,6 +32,9 @@ export default function (axios,router) {
         function (data) {
           if (data.indexOf("\\u767b\\u5f55\\u5931\\u8d25\\uff0c\\u8bf7\\u91cd\\u65b0\\u767b\\u5f55") != -1) {
             localStorage.removeItem('token')
+            localStorage.removeItem('UserAuthName')
+            localStorage.removeItem('UserAuthUid')
+            localStorage.removeItem('ServerIp')
             router.replace("/login")
             return false
           }
@@ -45,6 +48,15 @@ export default function (axios,router) {
           // }
           try {
             let res = JSON.parse(data)
+            if (res && Number(res.code) === 70001) {
+              localStorage.removeItem('token')
+              localStorage.removeItem('UserAuthName')
+              localStorage.removeItem('UserAuthUid')
+              localStorage.removeItem('ServerIp')
+              if (router.currentRoute.path !== "/login") {
+                router.replace("/login")
+              }
+            }
             return res
           } catch (err) {
             return data
