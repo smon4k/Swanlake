@@ -110,6 +110,10 @@ class Signals extends Base
     public static function getCurrentOpenSignalIds($where = [])
     {
         $baseWhere = $where;
+        $validStrategyNames = self::getValidSignalStrategyNames();
+        if (empty($validStrategyNames)) {
+            return [];
+        }
         $rows = self::name("signals")
                     ->alias("a")
                     ->where($baseWhere)
@@ -124,6 +128,9 @@ class Signals extends Base
 
         $latestByGroup = [];
         foreach ($rows as $row) {
+            if (!in_array(strval($row['name']), $validStrategyNames, true)) {
+                continue;
+            }
             $positionSide = self::normalizePositionSide($row);
             if ($positionSide === '') {
                 continue;
@@ -148,6 +155,42 @@ class Signals extends Base
         }
 
         return $signalIds;
+    }
+
+    /**
+    * 获取有效的策略名称白名单
+    * 范围：启用中的策略 + 当前机器人配置仍在引用的策略
+    * @return array
+    */
+    protected static function getValidSignalStrategyNames()
+    {
+        $names = [];
+
+        $strategyList = Strategy::getAllStrategyList();
+        if (is_array($strategyList)) {
+            foreach ($strategyList as $strategy) {
+                if (!empty($strategy['name'])) {
+                    $names[] = strval($strategy['name']);
+                }
+            }
+        }
+
+        $configs = Config::select();
+        foreach ($configs as $config) {
+            $maxPositionList = json_decode($config['max_position_list'], true);
+            if (!is_array($maxPositionList)) {
+                continue;
+            }
+
+            foreach ($maxPositionList as $item) {
+                if (!empty($item['tactics'])) {
+                    $names[] = strval($item['tactics']);
+                }
+            }
+        }
+
+        $names = array_values(array_unique(array_filter($names)));
+        return $names;
     }
 
     /**
