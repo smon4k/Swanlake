@@ -364,6 +364,8 @@ class GridController extends BaseController
                 return $this->as_json(['count'=>0, 'allpage'=>0, 'lists'=>[]]);
             }
             $where['pair_id'] = ['in', $pairIds];
+            // “信号持仓”口径只展示仍未被平仓掉的开仓信号，不混入同 pair 的平仓行
+            $where['size'] = ['<>', 0];
         }
         $result = Signals::getSignalsList($page, $where, $limits);
         return $this->as_json($result);
