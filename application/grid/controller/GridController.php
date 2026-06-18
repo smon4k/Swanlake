@@ -359,13 +359,11 @@ class GridController extends BaseController
             if (isset($where['symbol'])) {
                 $openWhere['symbol'] = $where['symbol'];
             }
-            $pairIds = Signals::getOpenPositionPairIds($openWhere);
-            if (empty($pairIds)) {
+            $signalIds = Signals::getCurrentOpenSignalIds($openWhere);
+            if (empty($signalIds)) {
                 return $this->as_json(['count'=>0, 'allpage'=>0, 'lists'=>[]]);
             }
-            $where['pair_id'] = ['in', $pairIds];
-            // “信号持仓”口径只展示仍未被平仓掉的开仓信号，不混入同 pair 的平仓行
-            $where['size'] = ['<>', 0];
+            $where['id'] = ['in', $signalIds];
         }
         $result = Signals::getSignalsList($page, $where, $limits);
         return $this->as_json($result);

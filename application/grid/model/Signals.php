@@ -99,4 +99,82 @@ class Signals extends Base
         return $pairIds;
     }
 
+    /**
+    * 获取当前“仍在持仓中的信号”ID 列表
+    * 规则：按 策略 + 币种 + 实际持仓方向 分组，只取每组最新一条；
+    * 若最新一条是开仓信号(size != 0)，则视为当前仍在持仓中的信号。
+    * 这样不会把同策略较早、实际上已被后续信号覆盖的旧开仓腿继续展示出来。
+    * @param array $where
+    * @return array
+    */
+    public static function getCurrentOpenSignalIds($where = [])
+    {
+        $baseWhere = array_merge(['pair_id' => ['<>', 0]], $where);
+        $rows = self::name("signals")
+                    ->alias("a")
+                    ->where($baseWhere)
+                    ->field('a.id,a.name,a.symbol,a.direction,a.size,a.position_at')
+                    ->order("a.id desc")
+                    ->select()
+                    ->toArray();
+
+        if (!$rows) {
+            return [];
+        }
+
+        $latestByGroup = [];
+        foreach ($rows as $row) {
+            $positionSide = self::normalizePositionSide($row);
+            if ($positionSide === '') {
+                continue;
+            }
+            $groupKey = implode('|', [
+                strval($row['name']),
+                strval($row['symbol']),
+                $positionSide,
+            ]);
+            if (isset($latestByGroup[$groupKey])) {
+                continue;
+            }
+            $latestByGroup[$groupKey] = $row;
+        }
+
+        $signalIds = [];
+        foreach ($latestByGroup as $row) {
+            if (floatval($row['size']) != 0) {
+                $signalIds[] = intval($row['id']);
+            }
+        }
+
+        return $signalIds;
+    }
+
+    /**
+    * 统一推导信号对应的实际持仓方向
+    * 开仓：size > 0 => long, size < 0 => short
+    * 平仓：direction=long => 平空 => short, direction=short => 平多 => long
+    * @param array $row
+    * @return string
+    */
+    protected static function normalizePositionSide($row)
+    {
+        $size = floatval(isset($row['size']) ? $row['size'] : 0);
+        $direction = strtolower(strval(isset($row['direction']) ? $row['direction'] : ''));
+
+        if ($size > 0) {
+            return 'long';
+        }
+        if ($size < 0) {
+            return 'short';
+        }
+        if ($direction === 'long') {
+            return 'short';
+        }
+        if ($direction === 'short') {
+            return 'long';
+        }
+
+        return '';
+    }
+
 }
