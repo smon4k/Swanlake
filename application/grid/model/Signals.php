@@ -109,11 +109,11 @@ class Signals extends Base
     */
     public static function getCurrentOpenSignalIds($where = [])
     {
-        $baseWhere = array_merge(['pair_id' => ['<>', 0]], $where);
+        $baseWhere = $where;
         $rows = self::name("signals")
                     ->alias("a")
                     ->where($baseWhere)
-                    ->field('a.id,a.name,a.symbol,a.direction,a.size,a.position_at')
+                    ->field('a.id,a.pair_id,a.name,a.symbol,a.direction,a.size,a.position_at,a.status')
                     ->order("a.id desc")
                     ->select()
                     ->toArray();
@@ -141,7 +141,8 @@ class Signals extends Base
 
         $signalIds = [];
         foreach ($latestByGroup as $row) {
-            if (floatval($row['size']) != 0) {
+            $status = strtolower(strval(isset($row['status']) ? $row['status'] : ''));
+            if (floatval($row['size']) != 0 && $status !== 'failed' && intval($row['pair_id']) > 0) {
                 $signalIds[] = intval($row['id']);
             }
         }
