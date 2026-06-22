@@ -321,6 +321,7 @@ class LeaderCopyTask:
                 "direction": direction,
                 "price": price,
                 "size": size,
+                "lev": Decimal("1"),
                 "status": "pending",
                 "signal_source": "leader_copy",
                 "leader_account_id": self.leader_account_id,

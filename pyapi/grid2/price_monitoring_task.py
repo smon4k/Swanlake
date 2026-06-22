@@ -2761,6 +2761,7 @@ class PriceMonitoringTask:
                         pos_side="long" if direction == "long" else "short",
                         side="buy" if direction == "long" else "sell",
                         price=Decimal(str(task["signal_price"])),
+                        lev=Decimal(str(task.get("signal_lev") or "1")),
                         open_coefficient=Decimal(
                             str(strategy_info["open_coefficient"])
                         ),
@@ -2877,6 +2878,7 @@ class PriceMonitoringTask:
                         "direction": row.get("direction"),
                         "price": float(row.get("signal_price") or 0),
                         "size": row.get("signal_size"),
+                        "lev": float(row.get("signal_lev") or 1),
                         "signal_type": row.get("signal_type"),
                     }
                     for row in unresolved_tasks

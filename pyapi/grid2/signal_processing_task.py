@@ -75,6 +75,22 @@ class SignalProcessingTask:
             return -1
         return 0
 
+    def _normalize_signal_lev(self, raw_lev: Any) -> Decimal:
+        """将 lev 容错归一化为正数比例，缺失或异常时回落为 1。"""
+        if raw_lev in (None, "", "null"):
+            return Decimal("1")
+
+        try:
+            lev_decimal = Decimal(str(raw_lev).strip())
+        except Exception:
+            logging.warning(f"⚠️ 信号 lev 无法解析，按 1 处理: raw_lev={raw_lev}")
+            return Decimal("1")
+
+        if lev_decimal <= 0:
+            logging.warning(f"⚠️ 信号 lev 非法，按 1 处理: raw_lev={raw_lev}")
+            return Decimal("1")
+        return lev_decimal
+
     def record_trade_error_context(
         self,
         account_id: int,
@@ -661,6 +677,7 @@ class SignalProcessingTask:
                                 "symbol": signal["symbol"],
                                 "price": float(signal["price"]),
                                 "size": signal["size"],
+                                "lev": signal.get("lev", Decimal("1")),
                             }
                         )
                     else:
@@ -682,6 +699,7 @@ class SignalProcessingTask:
                                 "symbol": signal["symbol"],
                                 "price": float(signal["price"]),
                                 "size": signal["size"],
+                                "lev": signal.get("lev", Decimal("1")),
                             }
                         )
                     else:
@@ -820,6 +838,7 @@ class SignalProcessingTask:
                 merged.setdefault("symbol", signal.get("symbol"))
                 merged.setdefault("price", float(signal.get("price") or 0))
                 merged.setdefault("size", signal.get("size"))
+                merged.setdefault("lev", signal.get("lev", Decimal("1")))
                 merged.setdefault(
                     "signal_type", "close" if is_close_signal else "open"
                 )
@@ -925,6 +944,7 @@ class SignalProcessingTask:
                     f"🧭 信号 size 已归一化: signal_id={signal['id']}, raw_size={signal.get('size')}, normalized_size={normalized_size}"
                 )
             signal["size"] = normalized_size
+            signal["lev"] = self._normalize_signal_lev(signal.get("lev"))
 
             if normalized_size != 0 and await self.db.is_account_trade_blocked(
                 account_id
@@ -1039,6 +1059,7 @@ class SignalProcessingTask:
                 signal["direction"],
                 side,
                 signal["price"],
+                signal.get("lev", Decimal("1")),
                 Decimal(str(strategy_info["open_coefficient"])),  # 转换为Decimal
                 exchange=exchange,
             )
@@ -1173,29 +1194,8 @@ class SignalProcessingTask:
                 max_position = await get_max_position_value(
                     self, account_id, signal["symbol"]
                 )
-                position_percent = Decimal(
-                    str(
-                        self.db.account_config_cache[account_id].get(
-                            "position_percent", "1"
-                        )
-                    )
-                )
-                open_coefficient = Decimal("1")
-                if signal.get("direction") == "short":
-                    try:
-                        strategy_info = await self.db.get_strategy_info(signal["name"])
-                        if strategy_info and strategy_info.get("open_coefficient") is not None:
-                            open_coefficient = Decimal(
-                                str(strategy_info.get("open_coefficient"))
-                            )
-                    except Exception as e:
-                        logging.debug(
-                            f"⚠️ 账户 {account_id} 获取开仓系数失败，使用默认值1: {e}"
-                        )
-
-                estimated_required_balance = (
-                    max_position * position_percent * open_coefficient
-                )
+                signal_lev = self._normalize_signal_lev(signal.get("lev"))
+                estimated_required_balance = max_position * signal_lev
                 if trading_balance >= estimated_required_balance:
                     logging.info(
                         f"✅ 账户 {account_id} 交易余额充足，跳过赎回/划转: "
@@ -1571,6 +1571,7 @@ class SignalProcessingTask:
         pos_side: str,
         side: str,
         price: Decimal,
+        lev: Decimal,
         open_coefficient: Decimal,
         exchange=None,
     ):
@@ -1650,28 +1651,20 @@ class SignalProcessingTask:
             max_position = await get_max_position_value(
                 self, account_id, symbol
             )  # 获取配置文件对应币种最大持仓
-            position_percent = Decimal(
-                self.db.account_config_cache[account_id].get("position_percent")
-            )
-            # max_balance = max_position * position_percent #  最大仓位数 * 开仓比例
-            # if balance >= max_balance: # 超过最大仓位限制
-            #     balance = max_position
-            # print(f"最大开仓数量: {max_balance}")
+            signal_lev = self._normalize_signal_lev(lev)
             logging.info(
-                f"用户 {account_id} 最大开仓数量: {max_position} 开仓系数: {open_coefficient}"
+                f"用户 {account_id} 最大开仓数量: {max_position} 信号仓位比例: {signal_lev} 开仓系数: {open_coefficient}"
             )
             size = await self.calculate_position_size(
                 market_precision,
                 max_position,
-                position_percent,
+                signal_lev,
                 price,
                 account_id,
-                pos_side,
-                open_coefficient,
             )
             # print(f"开仓价: {price}")
             logging.info(
-                f"用户 {account_id} 开仓价: {price} 开仓比例: {position_percent}"
+                f"用户 {account_id} 开仓价: {price} 仓位比例: {signal_lev}"
             )
             # print(f"开仓量: {size}")
             print(f"用户 {account_id} 开仓量: {size} {market_precision['amount']}")
@@ -1777,31 +1770,23 @@ class SignalProcessingTask:
     async def calculate_position_size(
         self,
         market_precision: object,
-        balance: Decimal,
-        position_percent: Decimal,
+        max_position: Decimal,
+        lev: Decimal,
         price: float,
         account_id: int,
-        pos_side: str,
-        open_coefficient: Decimal,
     ) -> Decimal:
         """
         计算仓位大小
         :param market_precision: 市场精度
-        :param balance: 账户余额
-        :param position_percent: 开仓比例
+        :param max_position: 当前币种最大仓位
+        :param lev: 信号仓位比例
         :param price: 开仓价
         :param account_id: 账户 ID
-        :param pos_side: 仓位方向
-        :param open_coefficient: 开仓系数
         :return: Decimal 类型的仓位大小
         """
         try:
-            # market_precision = await get_market_precision(exchange, symbol, 'SWAP')
-            # print("market_precision", market_precision, price)
-            open_coefficient_num = 1
-            if pos_side == "short":  # 做空
-                open_coefficient_num = open_coefficient  # 空单系数
-            position_size = (balance * position_percent * open_coefficient_num) / (
+            target_position_value = max_position * lev
+            position_size = target_position_value / (
                 price * Decimal(market_precision["contract_size"])
             )
             position_size = position_size.quantize(

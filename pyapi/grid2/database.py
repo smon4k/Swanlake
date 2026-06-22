@@ -126,10 +126,10 @@ class Database:
                 cursor.execute(
                     f"""
                     INSERT INTO {table('signals')} (
-                        name, timestamp, symbol, direction, price, size, status,
+                        name, timestamp, symbol, direction, price, size, lev, status,
                         signal_source, leader_account_id, leader_bill_id, leader_ord_id
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                     (
                         signal_data["name"],
@@ -138,6 +138,7 @@ class Database:
                         signal_data["direction"],
                         signal_data["price"],
                         signal_data["size"],
+                        signal_data.get("lev", Decimal("1")),
                         signal_data["status"],
                         signal_source,
                         leader_account_id,
@@ -160,8 +161,8 @@ class Database:
         except OperationalError as e:
             if e.args and e.args[0] == 1054:
                 logging.error(
-                    "insert_signal: 表 %s 缺少新列（如 signal_source）。"
-                    "请在目标库执行 pyapi/grid2/migrations/add_g_signals_leader_source.sql 后重试。原始错误: %s",
+                    "insert_signal: 表 %s 缺少新列（如 signal_source / lev）。"
+                    "请在目标库执行相关 migration（如 add_g_signals_leader_source.sql、add_g_signals_lev.sql）后重试。原始错误: %s",
                     table("signals"),
                     e,
                 )
@@ -1080,11 +1081,11 @@ class Database:
                         f"""
                         INSERT INTO {table('signal_recovery_tasks')} (
                             signal_id, account_id, strategy_name, symbol, direction, signal_type,
-                            signal_price, signal_size, status, retry_count, max_retry_count,
+                            signal_price, signal_size, signal_lev, status, retry_count, max_retry_count,
                             first_failed_at, last_retry_at, next_retry_at,
                             error_code, error_message, error_detail, failure_stage, last_order_id,
                             created_at, updated_at
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NULL, NOW(), %s, %s, %s, %s, %s, NOW(), NOW())
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NULL, NOW(), %s, %s, %s, %s, %s, NOW(), NOW())
                         ON DUPLICATE KEY UPDATE
                             strategy_name=VALUES(strategy_name),
                             symbol=VALUES(symbol),
@@ -1092,6 +1093,7 @@ class Database:
                             signal_type=VALUES(signal_type),
                             signal_price=VALUES(signal_price),
                             signal_size=VALUES(signal_size),
+                            signal_lev=VALUES(signal_lev),
                             status=IF(status='success', status, VALUES(status)),
                             max_retry_count=VALUES(max_retry_count),
                             next_retry_at=IF(status='success', next_retry_at, VALUES(next_retry_at)),
@@ -1111,6 +1113,7 @@ class Database:
                             item.get("signal_type") or ("close" if signal.get("size") == 0 else "open"),
                             item.get("price") or signal.get("price"),
                             item.get("size") if item.get("size") is not None else signal.get("size"),
+                            item.get("lev") if item.get("lev") is not None else signal.get("lev", Decimal("1")),
                             item.get("status", "pending"),
                             item.get("retry_count", 0),
                             item.get("max_retry_count", max_retry_count),

@@ -80,6 +80,11 @@
           {{ normalizeSignalSize(scope.row.size) === 0 ? '平仓' : '开仓' }}
         </template>
       </el-table-column>
+      <el-table-column prop="lev" label="仓位比例" align="center" width="100">
+        <template slot-scope="scope">
+          {{ formatLevPercent(scope.row.lev) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="price" label="价格" align="center">
         <template slot-scope="scope">
           {{ formatNumber(scope.row.price) }}
@@ -295,6 +300,12 @@ export default {
       if (numericSize > 0) return 1;
       if (numericSize < 0) return -1;
       return 0;
+    },
+
+    formatLevPercent(lev) {
+      const numericLev = Number(lev);
+      const normalizedLev = !isNaN(numericLev) && numericLev > 0 ? numericLev : 1;
+      return `${(normalizedLev * 100).toFixed(normalizedLev >= 1 ? 0 : 2).replace(/\.00$/, '')}%`;
     },
 
     /**

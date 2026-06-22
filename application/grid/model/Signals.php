@@ -70,7 +70,7 @@ class Signals extends Base
         $baseWhere = array_merge(['pair_id' => ['<>', 0]], $where);
         $rows = self::name("signals")
                     ->alias("a")
-                    ->where($baseWhere)
+                    ->where($baseimage.pngWhere)
                     ->field('a.pair_id,a.size,a.id')
                     ->order("a.pair_id desc, a.id desc")
                     ->select()

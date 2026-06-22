@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `g_signal_recovery_tasks` (
   `signal_type` enum('open','close') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'open' COMMENT '信号类型',
   `signal_price` decimal(18,8) DEFAULT NULL COMMENT '信号价格',
   `signal_size` int(3) DEFAULT NULL COMMENT '信号size',
+  `signal_lev` decimal(10,4) NOT NULL DEFAULT '1.0000' COMMENT '信号仓位比例',
   `status` enum('pending','retrying','success','failed','blocked') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'pending' COMMENT '恢复状态',
   `retry_count` int(11) NOT NULL DEFAULT '0' COMMENT '重试次数',
   `max_retry_count` int(11) NOT NULL DEFAULT '3' COMMENT '最大重试次数',

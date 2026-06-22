@@ -62,6 +62,21 @@ def normalize_signal_size(raw_size) -> int:
     return 0
 
 
+def normalize_signal_lev(raw_lev) -> Decimal:
+    """将外部信号 lev 统一归一化为正数比例，默认 1。"""
+    if raw_lev in (None, "", "null"):
+        return Decimal("1")
+
+    try:
+        lev_decimal = Decimal(str(raw_lev).strip())
+    except (InvalidOperation, AttributeError, ValueError, TypeError):
+        raise ValueError(f"invalid lev: {raw_lev}")
+
+    if lev_decimal <= 0:
+        raise ValueError(f"invalid lev: {raw_lev}")
+    return lev_decimal
+
+
 # ✅ 封装业务逻辑类
 class PositionService:
     def __init__(self, config: TradingBotConfig, db: Database):
@@ -74,7 +89,15 @@ class PositionService:
         self.current_positions_cache_locks = {}
     
     # 接口：处理写入信号的API请求
-    async def insert_signal(self, name: str, symbol: str, side: str, price: Decimal, size: float):
+    async def insert_signal(
+        self,
+        name: str,
+        symbol: str,
+        side: str,
+        price: Decimal,
+        size: float,
+        lev: Decimal,
+    ):
         """接口：处理写入信号的API请求"""
         try:
             # data = await request.json()
@@ -87,7 +110,14 @@ class PositionService:
             # 当前时间的格式化字符串
             timestamp = datetime.now(ZoneInfo("Asia/Shanghai")).strftime('%Y-%m-%d %H:%M:%S')
 
-            if name is None or symbol is None or side is None or price is None or size is None:
+            if (
+                name is None
+                or symbol is None
+                or side is None
+                or price is None
+                or size is None
+                or lev is None
+            ):
                 return JSONResponse(status_code=500, content={"success": False, "error": 'Missing required parameters'})
             
             if not symbol or not direction:
@@ -106,6 +136,7 @@ class PositionService:
                 'direction': direction,
                 'price': price,  # 假设价格为0，实际使用时需要根据需求设置
                 'size': normalized_size,  # 统一只入库 -1 / 0 / 1 三种语义
+                'lev': lev,
                 'status': 'pending',
                 'timestamp': timestamp,
                 'signal_source': 'api',
@@ -345,7 +376,8 @@ async def handle_insert_signal(request: Request):
         price = Decimal(data.get('price', 0))  # 假设请求体中的'price'对应数据库中的'price'
         raw_size = data.get('size', 0)
         size = normalize_signal_size(raw_size)
-        result = await service.insert_signal(name, symbol, data.get('side'), price, size)
+        lev = normalize_signal_lev(data.get('lev'))
+        result = await service.insert_signal(name, symbol, data.get('side'), price, size, lev)
         if result['status'] == 'success':
             return {"success": True, "data": result}
         else:
