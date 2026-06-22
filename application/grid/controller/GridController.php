@@ -17,6 +17,7 @@ use app\grid\model\Config;
 use app\grid\model\Accounts;
 use app\grid\model\Signals;
 use app\grid\model\Strategy;
+use app\grid\model\TradeSymbol;
 use app\grid\model\AccountHistorPosition;
 use think\Request;
 use think\Controller;
@@ -379,6 +380,19 @@ class GridController extends BaseController
     public function getAllStrategyList(Request $request)
     {
         $result = Strategy::getAllStrategyList();
+        return $this->as_json($result);
+    }
+
+    /**
+     * 获取启用交易对列表
+     * @author qinlh
+     * @since 2026-06-22
+     * @param Request $request
+     * @return \think\response\Json
+     */
+    public function getTradeSymbols(Request $request)
+    {
+        $result = TradeSymbol::getActiveTradeSymbols();
         return $this->as_json($result);
     }
 

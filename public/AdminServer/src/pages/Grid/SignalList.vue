@@ -199,7 +199,15 @@ export default {
       strategy_name: '__ALL__',
       symbol: '',
       signal_scope: '',
-      symbolOptions: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT', 'DOGE-USDT'],
+      tradeSymbols: [],
+      fallbackTradeSymbols: [
+        { symbol: 'BTC-USDT', swap_symbol: 'BTC-USDT-SWAP' },
+        { symbol: 'ETH-USDT', swap_symbol: 'ETH-USDT-SWAP' },
+        { symbol: 'BNB-USDT', swap_symbol: 'BNB-USDT-SWAP' },
+        { symbol: 'DOGE-USDT', swap_symbol: 'DOGE-USDT-SWAP' },
+        { symbol: 'SOL-USDT', swap_symbol: 'SOL-USDT-SWAP' },
+        { symbol: 'HYPE-USDT', swap_symbol: 'HYPE-USDT-SWAP' }
+      ],
       signalScopeOptions: [
         { label: '全部范围', value: '' },
         { label: '信号持仓', value: 'open_position' }
@@ -210,11 +218,19 @@ export default {
     };
   },
   created() {
+    this.getTradeSymbols();
     this.getSignalList();
     this.getAllStrategyList();
   },
   components: {
     "wbc-page": Page, //加载分页组件
+  },
+  computed: {
+    symbolOptions() {
+      return (this.tradeSymbols.length > 0 ? this.tradeSymbols : this.fallbackTradeSymbols)
+        .map(item => item.symbol)
+        .filter(Boolean);
+    }
   },
   methods: {
     objectSpanMethod({ row, column, rowIndex, columnIndex }) {
@@ -244,6 +260,16 @@ export default {
           this.strategyOptions = json.data.data;
         } else {
           this.$message.error("加载策略数据失败");
+        }
+      });
+    },
+    getTradeSymbols() {
+      get("/Grid/grid/getTradeSymbols", {}, json => {
+        if (json.data.code == 10000 && Array.isArray(json.data.data)) {
+          this.tradeSymbols = json.data.data.map(item => ({
+            symbol: item.symbol,
+            swap_symbol: item.swap_symbol
+          })).filter(item => item.symbol);
         }
       });
     },

@@ -620,8 +620,15 @@
             ]
         },
         accountList: [], // 账户列表
-        availableSymbols: ['BTC-USDT', 'ETH-USDT', 'BNB-USDT', 'DOGE-USDT'],
-        availableSwapSymbols: ['BTC-USDT-SWAP', 'ETH-USDT-SWAP', 'BNB-USDT-SWAP', 'DOGE-USDT-SWAP'],
+        tradeSymbols: [],
+        fallbackTradeSymbols: [
+          { symbol: 'BTC-USDT', swap_symbol: 'BTC-USDT-SWAP' },
+          { symbol: 'ETH-USDT', swap_symbol: 'ETH-USDT-SWAP' },
+          { symbol: 'BNB-USDT', swap_symbol: 'BNB-USDT-SWAP' },
+          { symbol: 'DOGE-USDT', swap_symbol: 'DOGE-USDT-SWAP' },
+          { symbol: 'SOL-USDT', swap_symbol: 'SOL-USDT-SWAP' },
+          { symbol: 'HYPE-USDT', swap_symbol: 'HYPE-USDT-SWAP' }
+        ],
         strategyOptions: [],
         DialogTitle: '添加',
         is_save_add_start: 1, //1：添加 2：修改
@@ -684,6 +691,16 @@
       };
     },
     computed: {
+      availableSymbols() {
+        return (this.tradeSymbols.length > 0 ? this.tradeSymbols : this.fallbackTradeSymbols)
+          .map(item => item.symbol)
+          .filter(Boolean);
+      },
+      availableSwapSymbols() {
+        return (this.tradeSymbols.length > 0 ? this.tradeSymbols : this.fallbackTradeSymbols)
+          .map(item => item.swap_symbol)
+          .filter(Boolean);
+      },
       strategyFilterOptions() {
         const options = (this.strategyOptions || []).map(item => ({
           label: item.name,
@@ -1137,6 +1154,16 @@
             }
         });
       },
+      getTradeSymbols() {
+        get("/Grid/grid/getTradeSymbols", {}, json => {
+          if (json.data.code == 10000 && Array.isArray(json.data.data)) {
+            this.tradeSymbols = json.data.data.map(item => ({
+              symbol: item.symbol,
+              swap_symbol: item.swap_symbol
+            })).filter(item => item.symbol && item.swap_symbol);
+          }
+        });
+      },
       SearchClick() {
         //搜索事件
         var SearchWhere = {
@@ -1431,6 +1458,7 @@
       }
     },
     created() {
+      this.getTradeSymbols();
       this.getAllStrategyList();
       this.getAccountList();  // 这会触发 getListData()
     },
