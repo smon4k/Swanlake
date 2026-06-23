@@ -586,14 +586,6 @@ class QuantifyAccount extends Base
             //         @self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'GMX', $positionsList, $exchange);
             //     }
             // }
-            if($accountInfo['is_position'] == 1) {
-                $url = Config('okx_uri') . "/api/okex/get_positions?instType=SWAP&instId=BTC-USDT-SWAP";
-                $positionsList = self::getOkxRequesInfo($accountInfo, $url, true);
-                if($positionsList) {
-                    // @self::updateQuantifyAccountPositionsDetails($accountInfo['id'], 'GMX', $positionsList[0]['info'], $exchange);
-                    // self::updateQuantifyAccountPositionsDetailsAll($accountInfo['id'], 'BTC', $positionsList);
-                }
-            }
             $returnArray = ['usdtBalance' => $usdtBalance];
             return $returnArray;
         } catch (\Exception $e) {

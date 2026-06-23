@@ -200,14 +200,6 @@ export default {
       symbol: '',
       signal_scope: '',
       tradeSymbols: [],
-      fallbackTradeSymbols: [
-        { symbol: 'BTC-USDT', swap_symbol: 'BTC-USDT-SWAP' },
-        { symbol: 'ETH-USDT', swap_symbol: 'ETH-USDT-SWAP' },
-        { symbol: 'BNB-USDT', swap_symbol: 'BNB-USDT-SWAP' },
-        { symbol: 'DOGE-USDT', swap_symbol: 'DOGE-USDT-SWAP' },
-        { symbol: 'SOL-USDT', swap_symbol: 'SOL-USDT-SWAP' },
-        { symbol: 'HYPE-USDT', swap_symbol: 'HYPE-USDT-SWAP' }
-      ],
       signalScopeOptions: [
         { label: '全部范围', value: '' },
         { label: '信号持仓', value: 'open_position' }
@@ -227,7 +219,7 @@ export default {
   },
   computed: {
     symbolOptions() {
-      return (this.tradeSymbols.length > 0 ? this.tradeSymbols : this.fallbackTradeSymbols)
+      return this.tradeSymbols
         .map(item => item.symbol)
         .filter(Boolean);
     }

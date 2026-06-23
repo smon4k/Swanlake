@@ -621,14 +621,6 @@
         },
         accountList: [], // 账户列表
         tradeSymbols: [],
-        fallbackTradeSymbols: [
-          { symbol: 'BTC-USDT', swap_symbol: 'BTC-USDT-SWAP' },
-          { symbol: 'ETH-USDT', swap_symbol: 'ETH-USDT-SWAP' },
-          { symbol: 'BNB-USDT', swap_symbol: 'BNB-USDT-SWAP' },
-          { symbol: 'DOGE-USDT', swap_symbol: 'DOGE-USDT-SWAP' },
-          { symbol: 'SOL-USDT', swap_symbol: 'SOL-USDT-SWAP' },
-          { symbol: 'HYPE-USDT', swap_symbol: 'HYPE-USDT-SWAP' }
-        ],
         strategyOptions: [],
         DialogTitle: '添加',
         is_save_add_start: 1, //1：添加 2：修改
@@ -692,12 +684,12 @@
     },
     computed: {
       availableSymbols() {
-        return (this.tradeSymbols.length > 0 ? this.tradeSymbols : this.fallbackTradeSymbols)
+        return this.tradeSymbols
           .map(item => item.symbol)
           .filter(Boolean);
       },
       availableSwapSymbols() {
-        return (this.tradeSymbols.length > 0 ? this.tradeSymbols : this.fallbackTradeSymbols)
+        return this.tradeSymbols
           .map(item => item.swap_symbol)
           .filter(Boolean);
       },

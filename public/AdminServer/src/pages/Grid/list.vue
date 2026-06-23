@@ -197,11 +197,7 @@ export default {
       activeNames: ['1'],
       tradingPairData: {},
       accountList: [], // 账户列表
-      symbol_decimal: {
-        'BTC-USDT-SWAP': 0.01,
-        'ETH-USDT-SWAP': 0.1,
-        'BNB-USDT-SWAP': 1,
-      }, //小数位数
+      tradeSymbols: [],
       totalProfit: 0,
       strategyOptions: [], // 策略列表
       strategy_name: '', // 策略名称
@@ -219,6 +215,7 @@ export default {
   },
   created() {
     // this.getAllStrategyList();
+    this.getTradeSymbols();
     this.getAccountList();
     this.getListData();
   },
@@ -227,7 +224,18 @@ export default {
   },
   methods: {
     getSymbolDecimal(symbol) {
-      return Number(this.symbol_decimal[symbol] || 1);
+      const tradeSymbol = (this.tradeSymbols || []).find(item => item.swap_symbol === symbol);
+      if (tradeSymbol && tradeSymbol.contract_value !== null && tradeSymbol.contract_value !== undefined && tradeSymbol.contract_value !== '') {
+        return Number(tradeSymbol.contract_value) || 1;
+      }
+      return 1;
+    },
+    getTradeSymbols() {
+      get("/Grid/grid/getTradeSymbols", {}, json => {
+        if (json.data.code == 10000 && Array.isArray(json.data.data)) {
+          this.tradeSymbols = json.data.data;
+        }
+      });
     },
     getTradingPairData() { //获取交易币种信息
       get("/Admin/Piggybank/getTradingPairData", {}, json => {
