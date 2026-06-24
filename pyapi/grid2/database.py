@@ -126,10 +126,10 @@ class Database:
                 cursor.execute(
                     f"""
                     INSERT INTO {table('signals')} (
-                        name, timestamp, symbol, direction, price, size, lev, status,
+                        name, timestamp, symbol, direction, price, size, lev, sl, tp, status,
                         signal_source, leader_account_id, leader_bill_id, leader_ord_id
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                     (
                         signal_data["name"],
@@ -139,6 +139,8 @@ class Database:
                         signal_data["price"],
                         signal_data["size"],
                         signal_data.get("lev", Decimal("1")),
+                        signal_data.get("sl"),
+                        signal_data.get("tp"),
                         signal_data["status"],
                         signal_source,
                         leader_account_id,
@@ -161,8 +163,8 @@ class Database:
         except OperationalError as e:
             if e.args and e.args[0] == 1054:
                 logging.error(
-                    "insert_signal: 表 %s 缺少新列（如 signal_source / lev）。"
-                    "请在目标库执行相关 migration（如 add_g_signals_leader_source.sql、add_g_signals_lev.sql）后重试。原始错误: %s",
+                    "insert_signal: 表 %s 缺少新列（如 signal_source / lev / sl / tp）。"
+                    "请在目标库执行相关 migration（如 add_g_signals_leader_source.sql、add_g_signals_lev.sql、add_g_signals_sl_tp.sql）后重试。原始错误: %s",
                     table("signals"),
                     e,
                 )
@@ -221,6 +223,40 @@ class Database:
         except Exception as e:
             logging.error(
                 f"❌ 获取最新信号失败: symbol={symbol}, name={name}, 错误={e}",
+                exc_info=True,
+            )
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    async def get_latest_open_signal(
+        self, symbol: Optional[str] = None, name: Optional[str] = None
+    ) -> Optional[Dict]:
+        """获取最近一条开仓信号（size=1/-1），用于自定义 sl/tp 读取。"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                query = (
+                    f"SELECT * FROM {table('signals')} "
+                    "WHERE size IN (1, -1)"
+                )
+                params = []
+
+                if symbol:
+                    query += " AND symbol = %s"
+                    params.append(symbol)
+                if name:
+                    query += " AND name = %s"
+                    params.append(name)
+
+                query += " ORDER BY id DESC LIMIT 1"
+                cursor.execute(query, tuple(params))
+                return cursor.fetchone()
+        except Exception as e:
+            logging.error(
+                f"❌ 获取最新开仓信号失败: symbol={symbol}, name={name}, 错误={e}",
                 exc_info=True,
             )
             return None
@@ -1081,11 +1117,11 @@ class Database:
                         f"""
                         INSERT INTO {table('signal_recovery_tasks')} (
                             signal_id, account_id, strategy_name, symbol, direction, signal_type,
-                            signal_price, signal_size, signal_lev, status, retry_count, max_retry_count,
+                            signal_price, signal_size, signal_lev, signal_sl, signal_tp, status, retry_count, max_retry_count,
                             first_failed_at, last_retry_at, next_retry_at,
                             error_code, error_message, error_detail, failure_stage, last_order_id,
                             created_at, updated_at
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NULL, NOW(), %s, %s, %s, %s, %s, NOW(), NOW())
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NULL, NOW(), %s, %s, %s, %s, %s, NOW(), NOW())
                         ON DUPLICATE KEY UPDATE
                             strategy_name=VALUES(strategy_name),
                             symbol=VALUES(symbol),
@@ -1094,6 +1130,8 @@ class Database:
                             signal_price=VALUES(signal_price),
                             signal_size=VALUES(signal_size),
                             signal_lev=VALUES(signal_lev),
+                            signal_sl=VALUES(signal_sl),
+                            signal_tp=VALUES(signal_tp),
                             status=IF(status='success', status, VALUES(status)),
                             max_retry_count=VALUES(max_retry_count),
                             next_retry_at=IF(status='success', next_retry_at, VALUES(next_retry_at)),
@@ -1114,6 +1152,8 @@ class Database:
                             item.get("price") or signal.get("price"),
                             item.get("size") if item.get("size") is not None else signal.get("size"),
                             item.get("lev") if item.get("lev") is not None else signal.get("lev", Decimal("1")),
+                            item.get("sl") if item.get("sl") is not None else signal.get("sl"),
+                            item.get("tp") if item.get("tp") is not None else signal.get("tp"),
                             item.get("status", "pending"),
                             item.get("retry_count", 0),
                             item.get("max_retry_count", max_retry_count),

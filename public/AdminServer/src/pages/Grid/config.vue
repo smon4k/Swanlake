@@ -419,6 +419,16 @@
               {{ formatSignalNumber(scope.row.price) }}
             </template>
           </el-table-column>
+          <el-table-column prop="sl" label="SL" align="center" width="100">
+            <template slot-scope="scope">
+              {{ formatSignalNumber(scope.row.sl) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="tp" label="TP" align="center" width="100">
+            <template slot-scope="scope">
+              {{ formatSignalNumber(scope.row.tp) }}
+            </template>
+          </el-table-column>
           <el-table-column prop="timestamp" label="日期/时间" align="center" width="180">
             <template slot-scope="scope">
               {{ scope.row.position_at || scope.row.timestamp || '--' }}

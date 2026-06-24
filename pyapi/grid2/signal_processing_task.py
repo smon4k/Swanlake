@@ -678,6 +678,8 @@ class SignalProcessingTask:
                                 "price": float(signal["price"]),
                                 "size": signal["size"],
                                 "lev": signal.get("lev", Decimal("1")),
+                                "sl": signal.get("sl"),
+                                "tp": signal.get("tp"),
                             }
                         )
                     else:
@@ -700,6 +702,8 @@ class SignalProcessingTask:
                                 "price": float(signal["price"]),
                                 "size": signal["size"],
                                 "lev": signal.get("lev", Decimal("1")),
+                                "sl": signal.get("sl"),
+                                "tp": signal.get("tp"),
                             }
                         )
                     else:
@@ -839,6 +843,8 @@ class SignalProcessingTask:
                 merged.setdefault("price", float(signal.get("price") or 0))
                 merged.setdefault("size", signal.get("size"))
                 merged.setdefault("lev", signal.get("lev", Decimal("1")))
+                merged.setdefault("sl", signal.get("sl"))
+                merged.setdefault("tp", signal.get("tp"))
                 merged.setdefault(
                     "signal_type", "close" if is_close_signal else "open"
                 )

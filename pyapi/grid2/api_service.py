@@ -77,6 +77,21 @@ def normalize_signal_lev(raw_lev) -> Decimal:
     return lev_decimal
 
 
+def normalize_signal_price(raw_price, field_name: str) -> Optional[Decimal]:
+    """将外部信号价格字段规范成正数 Decimal，空值返回 None。"""
+    if raw_price in (None, "", "null"):
+        return None
+
+    try:
+        price_decimal = Decimal(str(raw_price).strip())
+    except (InvalidOperation, AttributeError, ValueError, TypeError):
+        raise ValueError(f"invalid {field_name}: {raw_price}")
+
+    if price_decimal <= 0:
+        raise ValueError(f"invalid {field_name}: {raw_price}")
+    return price_decimal
+
+
 # ✅ 封装业务逻辑类
 class PositionService:
     def __init__(self, config: TradingBotConfig, db: Database):
@@ -97,6 +112,8 @@ class PositionService:
         price: Decimal,
         size: float,
         lev: Decimal,
+        sl: Optional[Decimal] = None,
+        tp: Optional[Decimal] = None,
     ):
         """接口：处理写入信号的API请求"""
         try:
@@ -137,6 +154,8 @@ class PositionService:
                 'price': price,  # 假设价格为0，实际使用时需要根据需求设置
                 'size': normalized_size,  # 统一只入库 -1 / 0 / 1 三种语义
                 'lev': lev,
+                'sl': sl,
+                'tp': tp,
                 'status': 'pending',
                 'timestamp': timestamp,
                 'signal_source': 'api',
@@ -377,7 +396,9 @@ async def handle_insert_signal(request: Request):
         raw_size = data.get('size', 0)
         size = normalize_signal_size(raw_size)
         lev = normalize_signal_lev(data.get('lev'))
-        result = await service.insert_signal(name, symbol, data.get('side'), price, size, lev)
+        sl = normalize_signal_price(data.get('sl'), 'sl')
+        tp = normalize_signal_price(data.get('tp'), 'tp')
+        result = await service.insert_signal(name, symbol, data.get('side'), price, size, lev, sl, tp)
         if result['status'] == 'success':
             return {"success": True, "data": result}
         else:

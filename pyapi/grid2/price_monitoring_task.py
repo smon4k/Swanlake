@@ -1182,9 +1182,6 @@ class PriceMonitoringTask:
                     f"🔄 用户 {account_id} 价格偏差过大，使用市价: {filled_price}"
                 )
 
-            buy_price = filled_price * (1 - grid_step)
-            sell_price = filled_price * (1 + grid_step)
-
             # 添加超时控制（5秒）
             try:
                 positions = await asyncio.wait_for(
@@ -1233,6 +1230,7 @@ class PriceMonitoringTask:
                 return self._grid_manage_result("retry", "未找到策略配置")
 
             signal = await self.db.get_latest_signal(symbol, tactics)
+            latest_open_signal = await self.db.get_latest_open_signal(symbol, tactics)
             side = "buy" if signal["direction"] == "long" else "sell"
             market_precision = await get_market_precision(self, exchange, symbol)
 
@@ -1331,6 +1329,26 @@ class PriceMonitoringTask:
                 pos_side = "long"
             if side == "sell" and signal["size"] == -1:  # 开空
                 pos_side = "short"
+
+            buy_price = filled_price * (1 - grid_step)
+            sell_price = filled_price * (1 + grid_step)
+            custom_tp = None
+            if latest_open_signal and latest_open_signal.get("tp") not in (None, ""):
+                try:
+                    custom_tp = Decimal(str(latest_open_signal.get("tp")))
+                except (InvalidOperation, ValueError, TypeError):
+                    custom_tp = None
+            if custom_tp and custom_tp > 0:
+                if pos_side == "long":
+                    sell_price = custom_tp
+                    logging.info(
+                        f"🎯 使用信号自定义止盈价替换默认卖出价: 账户={account_id}, 币种={symbol}, tp={sell_price}"
+                    )
+                elif pos_side == "short":
+                    buy_price = custom_tp
+                    logging.info(
+                        f"🎯 使用信号自定义止盈价替换默认买入价: 账户={account_id}, 币种={symbol}, tp={buy_price}"
+                    )
 
             logging.info(
                 f"📈 确定开仓方向: 账户={account_id}, 信号方向={signal['direction']}, "
@@ -2243,6 +2261,7 @@ class PriceMonitoringTask:
                 return self._grid_manage_result("retry", "未找到策略配置")
 
             signal = await self.db.get_latest_signal(symbol, tactics)
+            latest_open_signal = await self.db.get_latest_open_signal(symbol, tactics)
             market_precision = await get_market_precision(
                 self, exchange, symbol, close_exchange=False
             )
@@ -2271,6 +2290,17 @@ class PriceMonitoringTask:
                 pos_side = "short"
 
             sell_price = filled_price * (1 + grid_step)
+            custom_tp = None
+            if latest_open_signal and latest_open_signal.get("tp") not in (None, ""):
+                try:
+                    custom_tp = Decimal(str(latest_open_signal.get("tp")))
+                except (InvalidOperation, ValueError, TypeError):
+                    custom_tp = None
+            if custom_tp and custom_tp > 0 and pos_side == "long":
+                sell_price = custom_tp
+                logging.info(
+                    f"🎯 单边补卖单使用信号自定义止盈价: 账户={account_id}, 币种={symbol}, tp={sell_price}"
+                )
             logging.info(
                 f"🔧 单边补卖单: 账户={account_id}, 币种={symbol}, "
                 f"数量={sell_size}, 价格={sell_price}, 持仓方向={pos_side}"
@@ -2879,6 +2909,16 @@ class PriceMonitoringTask:
                         "price": float(row.get("signal_price") or 0),
                         "size": row.get("signal_size"),
                         "lev": float(row.get("signal_lev") or 1),
+                        "sl": (
+                            float(row.get("signal_sl"))
+                            if row.get("signal_sl") not in (None, "")
+                            else None
+                        ),
+                        "tp": (
+                            float(row.get("signal_tp"))
+                            if row.get("signal_tp") not in (None, "")
+                            else None
+                        ),
                         "signal_type": row.get("signal_type"),
                     }
                     for row in unresolved_tasks

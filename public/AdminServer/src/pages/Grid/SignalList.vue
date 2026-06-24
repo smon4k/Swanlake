@@ -90,6 +90,16 @@
           {{ formatNumber(scope.row.price) }}
         </template>
       </el-table-column>
+      <el-table-column prop="sl" label="SL" align="center" width="100">
+        <template slot-scope="scope">
+          {{ formatPriceValue(scope.row.sl) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="tp" label="TP" align="center" width="100">
+        <template slot-scope="scope">
+          {{ formatPriceValue(scope.row.tp) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="timestamp" label="日期/时间" align="center" width="180">
         <template slot-scope="scope">
           {{ scope.row.position_at }}
@@ -302,6 +312,11 @@ export default {
       if (isNaN(num)) return '--';
       // Format number with 4 decimal places
       return parseFloat(num).toFixed(1);
+    },
+
+    formatPriceValue(value) {
+      if (value === null || value === undefined || value === '') return '--';
+      return this.formatNumber(value);
     },
 
     normalizeSymbol(symbol) {

@@ -311,6 +311,8 @@ CREATE TABLE `g_signals` (
   `price` decimal(18,8) NOT NULL COMMENT '信号价格',
   `size` int NOT NULL,
   `lev` decimal(10,4) NOT NULL DEFAULT '1.0000' COMMENT '最大仓位使用比例',
+  `sl` decimal(18,8) DEFAULT NULL COMMENT '自定义止损价',
+  `tp` decimal(18,8) DEFAULT NULL COMMENT '自定义止盈价',
   `position_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '进出场时间',
   `loss_profit` decimal(18,8) DEFAULT '0.00000000' COMMENT '盈亏（正为盈利，负为亏损）	',
   `count_profit_loss` decimal(18,8) DEFAULT '0.00000000' COMMENT '总盈亏',
