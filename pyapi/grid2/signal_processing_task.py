@@ -967,8 +967,8 @@ class SignalProcessingTask:
                 }
             # Step 2: 根据信号执行动作
             if (side == "buy" and normalized_size == 1) or (
-                side == "sell" and normalized_size == -1
-            ):  # 开仓
+                side == "sell" and normalized_size != 0
+            ):  # 开仓：buy 保持老协议，sell 兼容正负非0都开空
                 open_success = await self._open_position(account_id, signal, account_info)
                 if not open_success:
                     error_context = self.pop_trade_error_context(account_id)
@@ -1422,7 +1422,7 @@ class SignalProcessingTask:
             elif size == 0:  # 买入平空
                 return {"type": "close", "side": "buy", "direction": "short"}
         else:  # sell
-            if size == -1:  # 卖出开空
+            if size != 0:  # 卖出开空
                 return {"type": "open", "side": "sell", "direction": "short"}
             elif size == 0:  # 卖出平多
                 return {"type": "close", "side": "sell", "direction": "long"}

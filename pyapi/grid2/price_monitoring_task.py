@@ -1324,11 +1324,7 @@ class PriceMonitoringTask:
                 return self._grid_manage_result("skip", "超过最大持仓限制")
 
             group_id = str(uuid.uuid4())
-            pos_side = "long"
-            if side == "buy" and signal["size"] == 1:  # 开多
-                pos_side = "long"
-            if side == "sell" and signal["size"] == -1:  # 开空
-                pos_side = "short"
+            pos_side = "long" if side == "buy" else "short"
 
             buy_price = filled_price * (1 - grid_step)
             sell_price = filled_price * (1 + grid_step)
@@ -2284,10 +2280,8 @@ class PriceMonitoringTask:
             if sell_size < market_precision["min_amount"]:
                 return self._grid_manage_result("skip", "卖单数量低于最小下单量")
 
-            pos_side = "long"
             side = "buy" if signal["direction"] == "long" else "sell"
-            if side == "sell" and signal["size"] == -1:
-                pos_side = "short"
+            pos_side = "long" if side == "buy" else "short"
 
             sell_price = filled_price * (1 + grid_step)
             custom_tp = None

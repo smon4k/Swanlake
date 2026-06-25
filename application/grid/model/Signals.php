@@ -195,7 +195,7 @@ class Signals extends Base
 
     /**
     * 统一推导信号对应的实际持仓方向
-    * 开仓：size > 0 => long, size < 0 => short
+    * 开仓：direction=long 且 size>0 => long；direction=short 且 size!=0 => short
     * 平仓：direction=long => 平空 => short, direction=short => 平多 => long
     * @param array $row
     * @return string
@@ -205,10 +205,10 @@ class Signals extends Base
         $size = floatval(isset($row['size']) ? $row['size'] : 0);
         $direction = strtolower(strval(isset($row['direction']) ? $row['direction'] : ''));
 
-        if ($size > 0) {
+        if ($size > 0 && $direction === 'long') {
             return 'long';
         }
-        if ($size < 0) {
+        if ($size != 0 && $direction === 'short') {
             return 'short';
         }
         if ($direction === 'long') {
