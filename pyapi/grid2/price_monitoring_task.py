@@ -1309,20 +1309,6 @@ class PriceMonitoringTask:
                 logging.info(f"📉 用户 {account_id} 卖单过小: {sell_size}")
                 return self._grid_manage_result("skip", "卖单数量低于最小下单量")
 
-            buy_total = (
-                total_position_quantity
-                + buy_size * market_precision["amount"] * buy_price
-                - sell_size * market_precision["amount"] * sell_price
-            )  # 开仓以及总持仓挂买价值
-            logging.info(
-                f"用户 {account_id} 开仓以及总持仓挂买价值: {buy_total} 最大持仓: {max_position}"
-            )
-            if buy_total >= max_position:
-                logging.info(
-                    f"⚠️ 用户 {account_id} 开仓以及总持仓价值超过最大持仓，取消挂单"
-                )
-                return self._grid_manage_result("skip", "超过最大持仓限制")
-
             group_id = str(uuid.uuid4())
             pos_side = "long" if side == "buy" else "short"
 
@@ -1345,6 +1331,20 @@ class PriceMonitoringTask:
                     logging.info(
                         f"🎯 使用信号自定义止盈价替换默认买入价: 账户={account_id}, 币种={symbol}, tp={buy_price}"
                     )
+
+            buy_total = (
+                total_position_quantity
+                + buy_size * market_precision["amount"] * buy_price
+                - sell_size * market_precision["amount"] * sell_price
+            )  # 开仓以及总持仓挂买价值
+            logging.info(
+                f"用户 {account_id} 开仓以及总持仓挂买价值: {buy_total} 最大持仓: {max_position}"
+            )
+            if buy_total >= max_position:
+                logging.info(
+                    f"⚠️ 用户 {account_id} 开仓以及总持仓价值超过最大持仓，取消挂单"
+                )
+                return self._grid_manage_result("skip", "超过最大持仓限制")
 
             logging.info(
                 f"📈 确定开仓方向: 账户={account_id}, 信号方向={signal['direction']}, "
