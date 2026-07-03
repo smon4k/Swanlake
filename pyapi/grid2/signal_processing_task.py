@@ -1607,12 +1607,11 @@ class SignalProcessingTask:
                 self, exchange, symbol, close_exchange=False
             )  # 获取市场精度
 
+            contract_size = Decimal(str(market_precision["contract_size"]))
             total_position_quantity = 0
             if total_position_value > 0:
                 total_position_quantity = (
-                    Decimal(total_position_value)
-                    * Decimal(market_precision["amount"])
-                    * price
+                    Decimal(total_position_value) * contract_size * price
                 )  # 计算总持仓价值
                 # print("总持仓价值", total_position_quantity)
                 logging.info(f"用户 {account_id} 总持仓价值：{total_position_quantity}")
@@ -1678,9 +1677,7 @@ class SignalProcessingTask:
                 f"用户 {account_id} 开仓量: {size} {market_precision['amount']}"
             )
             # logging.info(f"开仓量: {size}")
-            size_total_quantity = (
-                Decimal(size) * Decimal(market_precision["amount"]) * price
-            )
+            size_total_quantity = Decimal(size) * contract_size * price
             # print(f"开仓价值: {size_total_quantity}")
             logging.info(f"用户 {account_id} 开仓价值: {size_total_quantity}")
             if size <= 0:

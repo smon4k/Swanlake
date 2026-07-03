@@ -1234,10 +1234,9 @@ class PriceMonitoringTask:
             side = "buy" if signal["direction"] == "long" else "sell"
             market_precision = await get_market_precision(self, exchange, symbol)
 
+            contract_size = Decimal(str(market_precision["contract_size"]))
             total_position_quantity = (
-                Decimal(total_position_value)
-                * Decimal(market_precision["amount"])
-                * price
+                Decimal(total_position_value) * contract_size * price
             )
             logging.info(f"用户 {account_id} 总持仓数量: {total_position_quantity}")
 
@@ -1334,8 +1333,8 @@ class PriceMonitoringTask:
 
             buy_total = (
                 total_position_quantity
-                + buy_size * market_precision["amount"] * buy_price
-                - sell_size * market_precision["amount"] * sell_price
+                + buy_size * contract_size * buy_price
+                - sell_size * contract_size * sell_price
             )  # 开仓以及总持仓挂买价值
             logging.info(
                 f"用户 {account_id} 开仓以及总持仓挂买价值: {buy_total} 最大持仓: {max_position}"
