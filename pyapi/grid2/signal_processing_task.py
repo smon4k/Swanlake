@@ -1201,7 +1201,16 @@ class SignalProcessingTask:
                     self, account_id, signal["symbol"]
                 )
                 signal_lev = self._normalize_signal_lev(signal.get("lev"))
-                estimated_required_balance = max_position * signal_lev
+                position_percent = Decimal(
+                    str(
+                        self.db.account_config_cache.get(account_id, {}).get(
+                            "position_percent", 1
+                        )
+                    )
+                )
+                estimated_required_balance = (
+                    max_position * position_percent * signal_lev
+                )
                 if trading_balance >= estimated_required_balance:
                     logging.info(
                         f"✅ 账户 {account_id} 交易余额充足，跳过赎回/划转: "
@@ -1657,19 +1666,30 @@ class SignalProcessingTask:
                 self, account_id, symbol
             )  # 获取配置文件对应币种最大持仓
             signal_lev = self._normalize_signal_lev(lev)
+            position_percent = Decimal(
+                str(
+                    self.db.account_config_cache.get(account_id, {}).get(
+                        "position_percent", 1
+                    )
+                )
+            )
             logging.info(
-                f"用户 {account_id} 最大开仓数量: {max_position} 信号仓位比例: {signal_lev} 开仓系数: {open_coefficient}"
+                f"用户 {account_id} 最大开仓数量: {max_position} 开仓比例: {position_percent} "
+                f"信号仓位比例: {signal_lev} 开仓系数: {open_coefficient}"
             )
             size = await self.calculate_position_size(
                 market_precision,
                 max_position,
+                position_percent,
                 signal_lev,
                 price,
                 account_id,
+                pos_side,
+                open_coefficient,
             )
             # print(f"开仓价: {price}")
             logging.info(
-                f"用户 {account_id} 开仓价: {price} 仓位比例: {signal_lev}"
+                f"用户 {account_id} 开仓价: {price} 开仓比例: {position_percent} 仓位比例: {signal_lev}"
             )
             # print(f"开仓量: {size}")
             print(f"用户 {account_id} 开仓量: {size} {market_precision['amount']}")
@@ -1774,21 +1794,32 @@ class SignalProcessingTask:
         self,
         market_precision: object,
         max_position: Decimal,
+        position_percent: Decimal,
         lev: Decimal,
         price: float,
         account_id: int,
+        pos_side: str,
+        open_coefficient: Decimal,
     ) -> Decimal:
         """
         计算仓位大小
         :param market_precision: 市场精度
         :param max_position: 当前币种最大仓位
+        :param position_percent: 开仓比例
         :param lev: 信号仓位比例
         :param price: 开仓价
         :param account_id: 账户 ID
+        :param pos_side: 持仓方向
+        :param open_coefficient: 空单开仓系数
         :return: Decimal 类型的仓位大小
         """
         try:
-            target_position_value = max_position * lev
+            open_coefficient_num = (
+                open_coefficient if pos_side == "short" else Decimal("1")
+            )
+            target_position_value = (
+                max_position * position_percent * lev * open_coefficient_num
+            )
             position_size = target_position_value / (
                 price * Decimal(market_precision["contract_size"])
             )
