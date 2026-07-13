@@ -35,6 +35,13 @@ class Database:
         self.tactics_symbol_accounts_cache: Dict[tuple[str, str], List[int]] = {}  # 策略+币种账户信息缓存
         self.tactics_accounts_cache: Dict[str, List[int]] = {}  # 兼容旧逻辑的策略账户缓存
 
+    @staticmethod
+    def normalize_tactics_name(tactics_name: Optional[str]) -> str:
+        """统一策略名称匹配口径，避免仅大小写不同导致的漏匹配。"""
+        if tactics_name is None:
+            return ""
+        return str(tactics_name).strip().upper()
+
     def get_db_connection(self):
         """获取数据库连接"""
         return pymysql.connect(**self.db_config)
@@ -1047,13 +1054,16 @@ class Database:
                         )
                         for pos in max_position_list_arr:
                             tactic = pos.get("tactics")
+                            normalized_tactic = self.normalize_tactics_name(tactic)
                             normalized_symbol = self.normalize_symbol(pos.get("symbol"))
-                            if not tactic or not normalized_symbol:
+                            if not normalized_tactic or not normalized_symbol:
                                 continue
                             tactics_symbol_accounts.setdefault(
-                                (tactic, normalized_symbol), []
+                                (normalized_tactic, normalized_symbol), []
                             ).append(account_id)
-                            tactics_accounts.setdefault(tactic, []).append(account_id)
+                            tactics_accounts.setdefault(normalized_tactic, []).append(
+                                account_id
+                            )
                     self.tactics_symbol_accounts_cache = {
                         key: list(dict.fromkeys(account_ids))
                         for key, account_ids in tactics_symbol_accounts.items()
@@ -1354,7 +1364,7 @@ class Database:
                 cursor.execute(
                     f"""
                     SELECT * FROM {table('signals')}
-                    WHERE name = %s AND direction = %s
+                    WHERE UPPER(name) = UPPER(%s) AND direction = %s
                     ORDER BY id DESC LIMIT 1
                 """,
                     (name, direction),
@@ -1387,7 +1397,7 @@ class Database:
                 cursor.execute(
                     f"""
                     SELECT * FROM {table('signals')}
-                    WHERE name = %s AND symbol = %s AND direction = %s
+                    WHERE UPPER(name) = UPPER(%s) AND symbol = %s AND direction = %s
                       AND size IN (1, -1) AND id < %s
                     ORDER BY id DESC LIMIT 1
                 """,
@@ -1733,7 +1743,7 @@ class Database:
                 cursor.execute(
                     f"""
                     SELECT * FROM {table('strategy')}
-                    WHERE name = %s
+                    WHERE UPPER(name) = UPPER(%s)
                 """,
                     (strategy_name,),
                 )

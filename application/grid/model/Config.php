@@ -134,13 +134,17 @@ class Config extends Base
     public static function getAccountIdByTacticsName($tacticsName)
     {
         $accountIds = [];
+        $targetName = mb_strtolower(trim((string)$tacticsName));
 
         $configs = self::select();
         foreach ($configs as $config) {
             $maxPositionList = json_decode($config['max_position_list'], true);
             if (is_array($maxPositionList)) {
                 foreach ($maxPositionList as $item) {
-                    if (isset($item['tactics']) && $item['tactics'] === $tacticsName) {
+                    if (
+                        isset($item['tactics']) &&
+                        mb_strtolower(trim((string)$item['tactics'])) === $targetName
+                    ) {
                         $accountIds[] = $config['account_id'];
                         break; // 当前 config 命中即可跳出内层循环，避免重复加入同一个 account_id
                     }
@@ -171,6 +175,7 @@ class Config extends Base
         if ($tacticsName === '' || $tacticsName === null) {
             return false;
         }
+        $targetName = mb_strtolower(trim((string)$tacticsName));
 
         $configs = self::select();
         foreach ($configs as $config) {
@@ -180,7 +185,10 @@ class Config extends Base
             }
 
             foreach ($maxPositionList as $item) {
-                if (isset($item['tactics']) && $item['tactics'] === $tacticsName) {
+                if (
+                    isset($item['tactics']) &&
+                    mb_strtolower(trim((string)$item['tactics'])) === $targetName
+                ) {
                     return true;
                 }
             }

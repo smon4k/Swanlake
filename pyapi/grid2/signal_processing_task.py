@@ -492,7 +492,7 @@ class SignalProcessingTask:
                     """SELECT id, timestamp, direction, size
                        FROM g_signals
                        WHERE id < %s
-                       AND name = %s
+                       AND UPPER(name) = UPPER(%s)
                        AND symbol = %s
                        AND direction = %s
                        AND size IN (1, -1)
@@ -525,7 +525,7 @@ class SignalProcessingTask:
                         """SELECT id, direction, size 
                            FROM g_signals 
                            WHERE status='processing' 
-                           AND name=%s 
+                           AND UPPER(name)=UPPER(%s) 
                            AND id < %s
                            ORDER BY id DESC 
                            LIMIT 1""",
@@ -537,7 +537,7 @@ class SignalProcessingTask:
                         """SELECT id, direction, size 
                            FROM g_signals 
                            WHERE status='processing' 
-                           AND name=%s 
+                           AND UPPER(name)=UPPER(%s) 
                            ORDER BY id DESC 
                            LIMIT 1""",
                         (strategy_name,),
@@ -566,7 +566,7 @@ class SignalProcessingTask:
                 cursor.execute(
                     """SELECT id, status, direction, size
                        FROM g_signals
-                       WHERE name=%s
+                       WHERE UPPER(name)=UPPER(%s)
                        AND symbol=%s
                        AND direction=%s
                        AND size IN (1, -1)
@@ -724,8 +724,9 @@ class SignalProcessingTask:
             logging.info(f"🚦 开始处理信号 {signal_id} ...")
 
             normalized_symbol = self.db.normalize_symbol(signal["symbol"])
+            normalized_tactic = self.db.normalize_tactics_name(signal["name"])
             account_list = self.db.tactics_symbol_accounts_cache.get(
-                (signal["name"], normalized_symbol), []
+                (normalized_tactic, normalized_symbol), []
             )
             if not account_list:
                 logging.info(
