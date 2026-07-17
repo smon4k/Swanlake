@@ -394,7 +394,7 @@ class PriceMonitoringTask:
                 await self._convert_single_timed_out_signal_entry_order(order)
             except Exception as e:
                 logging.error(
-                    f"❌ 超时 signal_entry 转市价异常: account_id={order.get("account_id")}, order_id={order.get("order_id")}, err={e}",
+                    f"❌ 超时 signal_entry 转市价异常: account_id={order.get('account_id')}, order_id={order.get('order_id')}, err={e}",
                     exc_info=True,
                 )
 
