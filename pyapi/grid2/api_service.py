@@ -114,6 +114,7 @@ class PositionService:
         lev: Decimal,
         sl: Optional[Decimal] = None,
         tp: Optional[Decimal] = None,
+        external_signal_id: Optional[str] = None,
     ):
         """接口：处理写入信号的API请求"""
         try:
@@ -159,6 +160,7 @@ class PositionService:
                 'status': 'pending',
                 'timestamp': timestamp,
                 'signal_source': 'api',
+                'external_signal_id': external_signal_id,
             })
             self.redis.publish("signal_channel", "new_signal")  # 发布消息
             return result
@@ -398,7 +400,8 @@ async def handle_insert_signal(request: Request):
         lev = normalize_signal_lev(data.get('lev'))
         sl = normalize_signal_price(data.get('sl'), 'sl')
         tp = normalize_signal_price(data.get('tp'), 'tp')
-        result = await service.insert_signal(name, symbol, data.get('side'), price, size, lev, sl, tp)
+        external_signal_id = (data.get('id') or data.get('external_signal_id') or '').strip() or None
+        result = await service.insert_signal(name, symbol, data.get('side'), price, size, lev, sl, tp, external_signal_id)
         if result['status'] == 'success':
             return {"success": True, "data": result}
         else:

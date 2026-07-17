@@ -127,6 +127,7 @@ class Database:
         leader_account_id = signal_data.get("leader_account_id")
         leader_bill_id = signal_data.get("leader_bill_id")
         leader_ord_id = signal_data.get("leader_ord_id")
+        external_signal_id = (signal_data.get("external_signal_id") or "").strip() or None
         try:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
@@ -134,9 +135,9 @@ class Database:
                     f"""
                     INSERT INTO {table('signals')} (
                         name, timestamp, symbol, direction, price, size, lev, sl, tp, status,
-                        signal_source, leader_account_id, leader_bill_id, leader_ord_id
+                        signal_source, leader_account_id, leader_bill_id, leader_ord_id, external_signal_id
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                     (
                         signal_data["name"],
@@ -153,6 +154,7 @@ class Database:
                         leader_account_id,
                         leader_bill_id,
                         leader_ord_id,
+                        external_signal_id,
                     ),
                 )
                 conn.commit()
@@ -170,8 +172,8 @@ class Database:
         except OperationalError as e:
             if e.args and e.args[0] == 1054:
                 logging.error(
-                    "insert_signal: 表 %s 缺少新列（如 signal_source / lev / sl / tp）。"
-                    "请在目标库执行相关 migration（如 add_g_signals_leader_source.sql、add_g_signals_lev.sql、add_g_signals_sl_tp.sql）后重试。原始错误: %s",
+                    "insert_signal: 表 %s 缺少新列（如 signal_source / lev / sl / tp / external_signal_id）。"
+                    "请在目标库执行相关 migration（如 trading_bot.sql 或对应增量 migration）后重试。原始错误: %s",
                     table("signals"),
                     e,
                 )
@@ -357,16 +359,20 @@ class Database:
                 cursor.execute(
                     f"""
                     INSERT INTO {table('orders')}
-                    (account_id, symbol, position_group_id, profit, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                    (account_id, symbol, signal_id, order_source, position_group_id, profit, order_id, clorder_id, side, order_type, pos_side, quantity, price, executed_price, status, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                     ON DUPLICATE KEY UPDATE
                     executed_price = VALUES(executed_price),
                     status = VALUES(status),
+                    signal_id = COALESCE(VALUES(signal_id), signal_id),
+                    order_source = COALESCE(VALUES(order_source), order_source),
                     updated_at = NOW()
                 """,
                     (
                         order_info["account_id"],
                         order_info["symbol"],
+                        order_info.get("signal_id"),
+                        order_info.get("order_source"),
                         (
                             order_info["position_group_id"]
                             if "position_group_id" in order_info
@@ -528,6 +534,59 @@ class Database:
                 return results
         except Exception as e:
             logging.error(f"❌ 账户 {account_id} 获取订单失败: {e}", exc_info=True)
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    async def get_signal_by_id(self, signal_id: int) -> Optional[Dict]:
+        """根据主键获取单条信号记录。"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"SELECT * FROM {table('signals')} WHERE id=%s LIMIT 1",
+                    (signal_id,),
+                )
+                return cursor.fetchone()
+        except Exception as e:
+            logging.error(
+                f"获取信号详情失败: signal_id={signal_id}, 错误={e}",
+                exc_info=True,
+            )
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    async def get_timed_out_signal_entry_orders(
+        self, timeout_minutes: int = 15, limit: int = 20
+    ) -> List[Dict]:
+        """获取超过指定分钟仍未成交的首笔信号开仓限价单。"""
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT * FROM {table('orders')}
+                    WHERE order_type = 'limit'
+                      AND order_source = 'signal_entry'
+                      AND signal_id IS NOT NULL
+                      AND status IN ('live', 'partially_filled')
+                      AND created_at <= DATE_SUB(NOW(), INTERVAL %s MINUTE)
+                    ORDER BY created_at ASC
+                    LIMIT %s
+                """,
+                    (timeout_minutes, limit),
+                )
+                return cursor.fetchall() or []
+        except Exception as e:
+            logging.error(
+                f"查询超时 signal_entry 订单失败: timeout_minutes={timeout_minutes}, 错误={e}",
+                exc_info=True,
+            )
             return []
         finally:
             if conn:

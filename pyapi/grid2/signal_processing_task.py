@@ -1069,6 +1069,7 @@ class SignalProcessingTask:
                 signal.get("lev", Decimal("1")),
                 Decimal(str(strategy_info["open_coefficient"])),  # 转换为Decimal
                 exchange=exchange,
+                signal=signal,
             )
 
             if not open_position:
@@ -1590,6 +1591,7 @@ class SignalProcessingTask:
         lev: Decimal,
         open_coefficient: Decimal,
         exchange=None,
+        signal: Optional[Dict[str, Any]] = None,
     ):
         managed_exchange = False
         try:
@@ -1734,6 +1736,22 @@ class SignalProcessingTask:
 
             # 3. 获取市场价格
             client_order_id = await get_client_order_id()
+            signal_id = signal.get("id") if signal else None
+            external_signal_id = str(signal.get("external_signal_id") or "").strip() if signal else ""
+            use_market_order = bool(external_signal_id and external_signal_id.lower().startswith("exit"))
+            order_type = "market" if use_market_order else "limit"
+            order_price = price
+
+            if use_market_order:
+                latest_market_price = await get_market_price(
+                    exchange, symbol, self.api_limiter, close_exchange=False
+                )
+                if latest_market_price and Decimal(str(latest_market_price)) > 0:
+                    order_price = Decimal(str(latest_market_price))
+                logging.info(
+                    f"🚀 Exit 信号直接走市价单: account_id={account_id}, signal_id={signal_id}, external_signal_id={external_signal_id}, symbol={symbol}, pos_side={pos_side}"
+                )
+
             # 4. 下单并记录
             order = await open_position(
                 self,
@@ -1742,8 +1760,8 @@ class SignalProcessingTask:
                 side,
                 pos_side,
                 float(size),
-                float(price),
-                "limit",
+                float(order_price),
+                order_type,
                 client_order_id,
                 exchange=exchange,
                 close_exchange=False,
@@ -1751,19 +1769,26 @@ class SignalProcessingTask:
             # print("order", order)
             if order:
                 logging.info(f"用户 {account_id} 交易所开仓成功，开始记录订单")
+                order_state = (
+                    (order.get("info", {}) or {}).get("state")
+                    or order.get("status")
+                    or ("filled" if order_type == "market" else "live")
+                )
                 await self.db.add_order(
                     {
                         "account_id": account_id,
                         "symbol": symbol,
+                        "signal_id": signal_id,
+                        "order_source": "signal_entry",
                         "order_id": order["id"],
                         "clorder_id": client_order_id,
-                        "price": float(price),
+                        "price": float(order_price),
                         "executed_price": None,
                         "quantity": float(size),
                         "pos_side": pos_side,
-                        "order_type": "limit",
+                        "order_type": order_type,
                         "side": side,
-                        "status": "live",
+                        "status": order_state,
                         "position_group_id": "",
                     }
                 )

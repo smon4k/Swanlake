@@ -90,6 +90,8 @@ CREATE TABLE IF NOT EXISTS `g_orders` (
   `account_id` int(11) NOT NULL COMMENT '账户ID，关联用户账户',
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '发生时间，记录订单的创建时间',
   `symbol` varchar(50) COLLATE utf8_unicode_ci NOT NULL COMMENT '交易对，如 BTC-USDT',
+  `signal_id` int(11) DEFAULT NULL COMMENT '关联 g_signals.id',
+  `order_source` varchar(30) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '订单来源 signal_entry/grid_entry/force_close/stop_loss',
   `position_group_id` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT '分组id',
   `profit` decimal(18,8) NOT NULL DEFAULT '0.00000000' COMMENT '利润',
   `order_id` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT '交易所返回的订单ID',
@@ -316,7 +318,8 @@ CREATE TABLE IF NOT EXISTS `g_signals` (
   `signal_source` varchar(32) NOT NULL DEFAULT 'api' COMMENT 'api/leader_copy/manual',
   `leader_account_id` int(11) DEFAULT NULL COMMENT 'Leader g_accounts.id',
   `leader_bill_id` varchar(64) DEFAULT NULL COMMENT 'OKX billId',
-  `leader_ord_id` varchar(64) DEFAULT NULL COMMENT 'OKX ordId'
+  `leader_ord_id` varchar(64) DEFAULT NULL COMMENT 'OKX ordId',
+  `external_signal_id` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '外部信号ID（如 Exit*）'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

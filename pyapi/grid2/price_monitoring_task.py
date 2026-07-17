@@ -197,6 +197,352 @@ class PriceMonitoringTask:
             "success_accounts": 0,
         }
 
+    
+    def _is_exit_external_signal_id(self, external_signal_id: Optional[str]) -> bool:
+        if not external_signal_id:
+            return False
+        return str(external_signal_id).strip().lower().startswith("exit")
+
+    async def convert_timed_out_signal_entry_orders(
+        self, timeout_minutes: int = 15, limit: int = 20
+    ):
+        """将超时未成交的首笔信号开仓限价单撤掉并改为市价单。"""
+        timed_out_orders = await self.db.get_timed_out_signal_entry_orders(
+            timeout_minutes=timeout_minutes, limit=limit
+        )
+        if not timed_out_orders:
+            return
+
+        logging.info(
+            f"⏰ 发现 {len(timed_out_orders)} 个超时 signal_entry 限价单，开始尝试转市价"
+        )
+        for order in timed_out_orders:
+            try:
+                await self._convert_single_timed_out_signal_entry_order(order)
+            except Exception as e:
+                logging.error(
+                    f"❌ 超时 signal_entry 转市价异常: account_id={order.get('account_id')}, order_id={order.get('order_id')}, err={e}",
+                    exc_info=True,
+                )
+
+    async def _convert_single_timed_out_signal_entry_order(self, order: dict):
+        account_id = order["account_id"]
+        order_id = order["order_id"]
+        symbol = order["symbol"]
+        signal_id = order.get("signal_id")
+        signal = await self.db.get_signal_by_id(signal_id) if signal_id else None
+        external_signal_id = (signal or {}).get("external_signal_id")
+
+        if self._is_exit_external_signal_id(external_signal_id):
+            logging.info(
+                f"⏭️ 跳过 Exit 信号的超时转市价扫描: signal_id={signal_id}, external_signal_id={external_signal_id}"
+            )
+            return
+
+        exchange = None
+        try:
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
+                return
+
+            order_info = await fetch_order_with_retry(
+                exchange,
+                account_id,
+                order_id,
+                symbol,
+                {"instType": "SWAP"},
+                api_limiter=self.api_limiter,
+            )
+
+            if order_info is None:
+                await self.db.update_order_by_id(account_id, order_id, {"status": "canceled"})
+                logging.info(
+                    f"ℹ️ 超时单在交易所侧已不存在，直接更新本地为 canceled: account_id={account_id}, order_id={order_id}"
+                )
+                return
+
+            state = str((order_info.get("info", {}) or {}).get("state") or order_info.get("status") or "").lower()
+            if state in {"filled", "closed"}:
+                executed_price = (order_info.get("info", {}) or {}).get("fillPx")
+                fill_time_ms = float((order_info.get("info", {}) or {}).get("fillTime", 0) or 0)
+                updates = {"status": "filled"}
+                if executed_price not in (None, ""):
+                    updates["executed_price"] = executed_price
+                if fill_time_ms > 0:
+                    updates["fill_time"] = await milliseconds_to_local_datetime(fill_time_ms)
+                await self.db.update_order_by_id(account_id, order_id, updates)
+                logging.info(
+                    f"✅ 超时扫描发现订单已成交，无需转市价: account_id={account_id}, order_id={order_id}"
+                )
+                return
+
+            if state in {"canceled", "cancelled"}:
+                await self.db.update_order_by_id(account_id, order_id, {"status": "canceled"})
+                return
+
+            if state not in {"live", "partially_filled", "open"}:
+                logging.info(
+                    f"⏭️ 超时扫描跳过非活跃订单: account_id={account_id}, order_id={order_id}, state={state}"
+                )
+                return
+
+            remaining_amount = Decimal(str(order_info.get("remaining") or 0))
+            if remaining_amount <= 0:
+                remaining_amount = Decimal(str(order.get("quantity") or 0))
+                filled_amount = Decimal(str(order_info.get("filled") or 0))
+                if filled_amount > 0:
+                    remaining_amount = max(Decimal("0"), remaining_amount - filled_amount)
+
+            if remaining_amount <= 0:
+                logging.info(
+                    f"⏭️ 超时扫描发现剩余数量为0，跳过转市价: account_id={account_id}, order_id={order_id}"
+                )
+                return
+
+            cancel_result = await exchange.cancel_order(order_id, symbol, {"instType": "SWAP"})
+            cancel_code = (cancel_result.get("info", {}) or {}).get("sCode")
+            if cancel_code not in (None, "0"):
+                logging.warning(
+                    f"⚠️ 超时单撤单返回非成功，仍尝试按最新状态继续: account_id={account_id}, order_id={order_id}, sCode={cancel_code}"
+                )
+
+            await self.db.update_order_by_id(account_id, order_id, {"status": "canceled"})
+
+            market_price = await get_market_price(
+                exchange, symbol, self.api_limiter, close_exchange=False
+            )
+            if not market_price or Decimal(str(market_price)) <= 0:
+                logging.error(
+                    f"❌ 超时单转市价失败，无法获取市价: account_id={account_id}, order_id={order_id}, symbol={symbol}"
+                )
+                return
+
+            client_order_id = await get_client_order_id()
+            market_order = await open_position(
+                self,
+                account_id,
+                symbol,
+                order["side"],
+                order["pos_side"],
+                float(remaining_amount),
+                float(market_price),
+                "market",
+                client_order_id,
+                exchange=exchange,
+                close_exchange=False,
+            )
+            if not market_order:
+                logging.error(
+                    f"❌ 超时单撤单后补市价失败: account_id={account_id}, order_id={order_id}, symbol={symbol}"
+                )
+                return
+
+            market_state = (
+                (market_order.get("info", {}) or {}).get("state")
+                or market_order.get("status")
+                or "filled"
+            )
+            await self.db.add_order(
+                {
+                    "account_id": account_id,
+                    "symbol": symbol,
+                    "signal_id": signal_id,
+                    "order_source": "signal_entry_timeout_market",
+                    "order_id": market_order["id"],
+                    "clorder_id": client_order_id,
+                    "price": float(market_price),
+                    "executed_price": None,
+                    "quantity": float(remaining_amount),
+                    "pos_side": order["pos_side"],
+                    "order_type": "market",
+                    "side": order["side"],
+                    "status": market_state,
+                    "position_group_id": order.get("position_group_id") or "",
+                }
+            )
+            logging.info(
+                f"✅ 超时 signal_entry 限价单已转市价: account_id={account_id}, signal_id={signal_id}, old_order={order_id}, new_order={market_order['id']}"
+            )
+        finally:
+            if exchange:
+                try:
+                    await exchange.close()
+                except Exception as close_error:
+                    logging.debug(f"⚠️ 关闭交易所连接出错: {close_error}")
+
+    
+    def _is_exit_external_signal_id(self, external_signal_id: Optional[str]) -> bool:
+        if not external_signal_id:
+            return False
+        return str(external_signal_id).strip().lower().startswith("exit")
+
+    async def convert_timed_out_signal_entry_orders(
+        self, timeout_minutes: int = 15, limit: int = 20
+    ):
+        """将超时未成交的首笔信号开仓限价单撤掉并改为市价单。"""
+        timed_out_orders = await self.db.get_timed_out_signal_entry_orders(
+            timeout_minutes=timeout_minutes, limit=limit
+        )
+        if not timed_out_orders:
+            return
+
+        logging.info(
+            f"⏰ 发现 {len(timed_out_orders)} 个超时 signal_entry 限价单，开始尝试转市价"
+        )
+        for order in timed_out_orders:
+            try:
+                await self._convert_single_timed_out_signal_entry_order(order)
+            except Exception as e:
+                logging.error(
+                    f"❌ 超时 signal_entry 转市价异常: account_id={order.get("account_id")}, order_id={order.get("order_id")}, err={e}",
+                    exc_info=True,
+                )
+
+    async def _convert_single_timed_out_signal_entry_order(self, order: dict):
+        account_id = order["account_id"]
+        order_id = order["order_id"]
+        symbol = order["symbol"]
+        signal_id = order.get("signal_id")
+        signal = await self.db.get_signal_by_id(signal_id) if signal_id else None
+        external_signal_id = (signal or {}).get("external_signal_id")
+
+        if self._is_exit_external_signal_id(external_signal_id):
+            logging.info(
+                f"⏭️ 跳过 Exit 信号的超时转市价扫描: signal_id={signal_id}, external_signal_id={external_signal_id}"
+            )
+            return
+
+        exchange = None
+        try:
+            exchange = await get_exchange(self, account_id)
+            if not exchange:
+                return
+
+            order_info = await fetch_order_with_retry(
+                exchange,
+                account_id,
+                order_id,
+                symbol,
+                {"instType": "SWAP"},
+                api_limiter=self.api_limiter,
+            )
+
+            if order_info is None:
+                await self.db.update_order_by_id(account_id, order_id, {"status": "canceled"})
+                logging.info(
+                    f"ℹ️ 超时单在交易所侧已不存在，直接更新本地为 canceled: account_id={account_id}, order_id={order_id}"
+                )
+                return
+
+            state = str((order_info.get("info", {}) or {}).get("state") or order_info.get("status") or "").lower()
+            if state in {"filled", "closed"}:
+                executed_price = (order_info.get("info", {}) or {}).get("fillPx")
+                fill_time_ms = float((order_info.get("info", {}) or {}).get("fillTime", 0) or 0)
+                updates = {"status": "filled"}
+                if executed_price not in (None, ""):
+                    updates["executed_price"] = executed_price
+                if fill_time_ms > 0:
+                    updates["fill_time"] = await milliseconds_to_local_datetime(fill_time_ms)
+                await self.db.update_order_by_id(account_id, order_id, updates)
+                logging.info(
+                    f"✅ 超时扫描发现订单已成交，无需转市价: account_id={account_id}, order_id={order_id}"
+                )
+                return
+
+            if state in {"canceled", "cancelled"}:
+                await self.db.update_order_by_id(account_id, order_id, {"status": "canceled"})
+                return
+
+            if state not in {"live", "partially_filled", "open"}:
+                logging.info(
+                    f"⏭️ 超时扫描跳过非活跃订单: account_id={account_id}, order_id={order_id}, state={state}"
+                )
+                return
+
+            remaining_amount = Decimal(str(order_info.get("remaining") or 0))
+            if remaining_amount <= 0:
+                remaining_amount = Decimal(str(order.get("quantity") or 0))
+                filled_amount = Decimal(str(order_info.get("filled") or 0))
+                if filled_amount > 0:
+                    remaining_amount = max(Decimal("0"), remaining_amount - filled_amount)
+
+            if remaining_amount <= 0:
+                logging.info(
+                    f"⏭️ 超时扫描发现剩余数量为0，跳过转市价: account_id={account_id}, order_id={order_id}"
+                )
+                return
+
+            cancel_result = await exchange.cancel_order(order_id, symbol, {"instType": "SWAP"})
+            cancel_code = (cancel_result.get("info", {}) or {}).get("sCode")
+            if cancel_code not in (None, "0"):
+                logging.warning(
+                    f"⚠️ 超时单撤单返回非成功，仍尝试按最新状态继续: account_id={account_id}, order_id={order_id}, sCode={cancel_code}"
+                )
+
+            await self.db.update_order_by_id(account_id, order_id, {"status": "canceled"})
+
+            market_price = await get_market_price(
+                exchange, symbol, self.api_limiter, close_exchange=False
+            )
+            if not market_price or Decimal(str(market_price)) <= 0:
+                logging.error(
+                    f"❌ 超时单转市价失败，无法获取市价: account_id={account_id}, order_id={order_id}, symbol={symbol}"
+                )
+                return
+
+            client_order_id = await get_client_order_id()
+            market_order = await open_position(
+                self,
+                account_id,
+                symbol,
+                order["side"],
+                order["pos_side"],
+                float(remaining_amount),
+                float(market_price),
+                "market",
+                client_order_id,
+                exchange=exchange,
+                close_exchange=False,
+            )
+            if not market_order:
+                logging.error(
+                    f"❌ 超时单撤单后补市价失败: account_id={account_id}, order_id={order_id}, symbol={symbol}"
+                )
+                return
+
+            market_state = (
+                (market_order.get("info", {}) or {}).get("state")
+                or market_order.get("status")
+                or "filled"
+            )
+            await self.db.add_order(
+                {
+                    "account_id": account_id,
+                    "symbol": symbol,
+                    "signal_id": signal_id,
+                    "order_source": "signal_entry_timeout_market",
+                    "order_id": market_order["id"],
+                    "clorder_id": client_order_id,
+                    "price": float(market_price),
+                    "executed_price": None,
+                    "quantity": float(remaining_amount),
+                    "pos_side": order["pos_side"],
+                    "order_type": "market",
+                    "side": order["side"],
+                    "status": market_state,
+                    "position_group_id": order.get("position_group_id") or "",
+                }
+            )
+            logging.info(
+                f"✅ 超时 signal_entry 限价单已转市价: account_id={account_id}, signal_id={signal_id}, old_order={order_id}, new_order={market_order.get("id")}"
+            )
+        finally:
+            if exchange:
+                try:
+                    await exchange.close()
+                except Exception as close_error:
+                    logging.debug(f"⚠️ 关闭交易所连接出错: {close_error}")
+
     async def price_monitoring_task(self):
         """价格监控主任务（优先级队列版本 - 方案3 + 超时控制优化）
 
@@ -292,6 +638,11 @@ class PriceMonitoringTask:
                         await self.recover_failed_signal_accounts()
                     except Exception as e:
                         logging.error(f"❌ 恢复失败信号异常: {e}")
+
+                    try:
+                        await self.convert_timed_out_signal_entry_orders()
+                    except Exception as e:
+                        logging.error(f"❌ 超时 signal_entry 转市价异常: {e}")
 
                 # 🎯 获取本轮需要检查的账户
                 accounts_to_check = self.priority_queue.get_accounts_to_check(
@@ -2778,6 +3129,7 @@ class PriceMonitoringTask:
                         continue
 
                     await self.record_open_attempt(signal_id, account_id, "pending")
+                    signal_row = await self.db.get_signal_by_id(signal_id)
                     result = await self.signal_processing_task.handle_open_position(
                         account_id=account_id,
                         symbol=symbol,
@@ -2788,6 +3140,7 @@ class PriceMonitoringTask:
                         open_coefficient=Decimal(
                             str(strategy_info["open_coefficient"])
                         ),
+                        signal=signal_row,
                     )
                     if result:
                         await self.record_open_attempt(signal_id, account_id, "success")
