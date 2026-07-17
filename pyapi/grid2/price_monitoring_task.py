@@ -534,7 +534,7 @@ class PriceMonitoringTask:
                 }
             )
             logging.info(
-                f"✅ 超时 signal_entry 限价单已转市价: account_id={account_id}, signal_id={signal_id}, old_order={order_id}, new_order={market_order.get("id")}"
+                f"✅ 超时 signal_entry 限价单已转市价: account_id={account_id}, signal_id={signal_id}, old_order={order_id}, new_order={market_order.get('id')}"
             )
         finally:
             if exchange:
