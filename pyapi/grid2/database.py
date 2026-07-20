@@ -1190,7 +1190,7 @@ class Database:
                             first_failed_at, last_retry_at, next_retry_at,
                             error_code, error_message, error_detail, failure_stage, last_order_id,
                             created_at, updated_at
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NULL, NOW(), %s, %s, %s, %s, %s, NOW(), NOW())
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NULL, NOW(), %s, %s, %s, %s, %s, NOW(), NOW())
                         ON DUPLICATE KEY UPDATE
                             strategy_name=VALUES(strategy_name),
                             symbol=VALUES(symbol),

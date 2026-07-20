@@ -197,6 +197,21 @@ class PriceMonitoringTask:
             "success_accounts": 0,
         }
 
+    def _is_recent_signal_entry_limit_order(
+        self, order: dict, grace_seconds: int = 180
+    ) -> bool:
+        """刚创建的 signal_entry 限价单可能尚未成交，不应被异常清理误杀。"""
+        if order.get("order_source") != "signal_entry":
+            return False
+        if order.get("order_type") != "limit":
+            return False
+
+        created_at = order.get("created_at")
+        if not isinstance(created_at, datetime):
+            return False
+
+        return (datetime.now() - created_at).total_seconds() <= grace_seconds
+
     
     def _is_exit_external_signal_id(self, external_signal_id: Optional[str]) -> bool:
         if not external_signal_id:
@@ -2257,6 +2272,18 @@ class PriceMonitoringTask:
                 ]
 
                 if not symbol_limit_orders:
+                    continue
+
+                recent_signal_entry_orders = [
+                    order
+                    for order in symbol_limit_orders
+                    if self._is_recent_signal_entry_limit_order(order)
+                ]
+                if recent_signal_entry_orders:
+                    logging.info(
+                        f"⏳ 异常状态检测跳过刚创建的开仓限价单: 账户={account_id}, "
+                        f"币种={symbol}, 订单数={len(recent_signal_entry_orders)}"
+                    )
                     continue
 
                 # 检查是否有止损单

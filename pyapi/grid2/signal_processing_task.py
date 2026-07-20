@@ -61,6 +61,40 @@ class SignalProcessingTask:
         # ✅ 【新增】任务协调标志
         self.signal_processing_active = signal_processing_active
 
+    def _to_json_compatible(self, value: Any) -> Any:
+        """将 Decimal / datetime 等对象转换为可安全写入 JSON 的基础类型。"""
+        if isinstance(value, Decimal):
+            return int(value) if value == value.to_integral_value() else float(value)
+        if isinstance(value, datetime):
+            return value.strftime("%Y-%m-%d %H:%M:%S")
+        if isinstance(value, dict):
+            return {
+                key: self._to_json_compatible(item) for key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [self._to_json_compatible(item) for item in value]
+        return value
+
+    def _is_recent_signal_entry_order(
+        self,
+        order: Dict[str, Any],
+        signal_id: int,
+        grace_seconds: int = 90,
+    ) -> bool:
+        """判断是否为刚创建的首笔开仓限价单，避免下单后立即被误判失败。"""
+        if order.get("signal_id") != signal_id:
+            return False
+        if order.get("order_source") != "signal_entry":
+            return False
+        if order.get("order_type") != "limit":
+            return False
+
+        created_at = order.get("created_at")
+        if not isinstance(created_at, datetime):
+            return False
+
+        return (datetime.now() - created_at).total_seconds() <= grace_seconds
+
     def _normalize_signal_size(self, raw_size: Any) -> int:
         """将 size 容错归一化为 -1 / 0 / 1，兼容历史脏数据和外部小数信号。"""
         try:
@@ -205,6 +239,7 @@ class SignalProcessingTask:
             await self.db.create_signal_recovery_tasks(
                 signal, failed_accounts, max_retry_count=self.recovery_max_retry_count
             )
+            json_failed_accounts = self._to_json_compatible(failed_accounts)
             conn = self.db.get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
@@ -217,7 +252,7 @@ class SignalProcessingTask:
                        WHERE id=%s""",
                     (
                         json.dumps(clean_success_accounts),
-                        json.dumps(failed_accounts),
+                        json.dumps(json_failed_accounts),
                         signal_id,
                         signal_id,
                     ),
@@ -689,6 +724,24 @@ class SignalProcessingTask:
                 else:
                     # ✅ 开仓信号：应该有仓位，如果无仓位则开仓失败
                     if actual_positions == 0:
+                        active_orders = await self.db.get_active_orders(acc_id)
+                        recent_signal_entry_orders = [
+                            order
+                            for order in active_orders
+                            if order.get("symbol") == signal["symbol"]
+                            and self._is_recent_signal_entry_order(
+                                order, signal["id"]
+                            )
+                        ]
+                        if recent_signal_entry_orders:
+                            newest_order = recent_signal_entry_orders[0]
+                            logging.info(
+                                f"⏳ 账户 {acc_id} 开仓后暂未查到仓位，但存在刚创建的限价单，"
+                                f"本次不判失败: 信号={signal['id']}, 币种={signal['symbol']}, "
+                                f"订单={newest_order.get('order_id')}"
+                            )
+                            continue
+
                         logging.warning(
                             f"⚠️ 账户 {acc_id} 开仓失败（无仓位）- 信号={signal['id']}, "
                             f"币种={signal['symbol']}, 方向={signal['direction']}"
