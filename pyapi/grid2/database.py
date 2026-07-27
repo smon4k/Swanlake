@@ -745,9 +745,13 @@ class Database:
         fallback_to_latest: bool = False,
     ) -> Optional[Dict]:
         """
-        获取该币种最近的已成交开仓订单（limit订单）
+        获取该币种最近的已成交开仓订单。
 
         用于检测"有持仓但缺网格单"的情况，然后重新触发网格单创建
+
+        兼容两类开仓来源：
+        1. 首笔 signal_entry 限价单直接成交
+        2. 首笔 signal_entry 限价单超时后，转成 signal_entry_timeout_market 市价单成交
 
         Args:
             account_id: 账户ID
@@ -763,12 +767,19 @@ class Database:
             conn = self.get_db_connection()
             with conn.cursor() as cursor:
                 # 注意：如果 updated_at 为 NULL，则使用 created_at 作为备选
+                eligible_open_order_clause = """
+                    (
+                        (status = 'filled' AND order_type = 'limit' AND order_source = 'signal_entry')
+                        OR
+                        (status IN ('filled', 'closed') AND order_type = 'market' AND order_source = 'signal_entry_timeout_market')
+                    )
+                """
+
                 recent_query = f"""
                     SELECT * FROM {table('orders')}
                     WHERE account_id = %s 
                     AND symbol = %s 
-                    AND status = 'filled'
-                    AND order_type = 'limit'
+                    AND {eligible_open_order_clause}
                     AND (side = 'buy' OR side = 'sell')
                     AND is_clopos = 0
                     AND COALESCE(updated_at, created_at, NOW()) > DATE_SUB(NOW(), INTERVAL %s MINUTE)
@@ -782,6 +793,7 @@ class Database:
                     logging.info(
                         f"✅ 找到最近的已成交订单: 账户={account_id}, 币种={symbol}, "
                         f"订单ID={result.get('order_id', 'N/A')[:15]}..., "
+                        f"来源={result.get('order_source', 'N/A')}, 类型={result.get('order_type', 'N/A')}, "
                         f"更新时间={result.get('updated_at', result.get('created_at', 'N/A'))}"
                     )
                 elif fallback_to_latest:
@@ -789,8 +801,7 @@ class Database:
                         SELECT * FROM {table('orders')}
                         WHERE account_id = %s
                         AND symbol = %s
-                        AND status = 'filled'
-                        AND order_type = 'limit'
+                        AND {eligible_open_order_clause}
                         AND (side = 'buy' OR side = 'sell')
                         AND is_clopos = 0
                         ORDER BY COALESCE(updated_at, created_at) DESC
@@ -803,6 +814,7 @@ class Database:
                         logging.info(
                             f"♻️ 回退找到最新已成交订单: 账户={account_id}, 币种={symbol}, "
                             f"订单ID={result.get('order_id', 'N/A')[:15]}..., "
+                            f"来源={result.get('order_source', 'N/A')}, 类型={result.get('order_type', 'N/A')}, "
                             f"更新时间={result.get('updated_at', result.get('created_at', 'N/A'))}"
                         )
                     else:
