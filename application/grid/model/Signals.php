@@ -117,7 +117,7 @@ class Signals extends Base
         $rows = self::name("signals")
                     ->alias("a")
                     ->where($baseWhere)
-                    ->field('a.id,a.pair_id,a.name,a.symbol,a.direction,a.size,a.position_at,a.status')
+                    ->field('a.id,a.pair_id,a.name,a.symbol,a.direction,a.size,a.position_at,a.status,a.success_accounts')
                     ->order("a.id desc")
                     ->select()
                     ->toArray();
@@ -150,7 +150,9 @@ class Signals extends Base
         foreach ($latestByGroup as $row) {
             $status = strtolower(strval(isset($row['status']) ? $row['status'] : ''));
             if (floatval($row['size']) != 0 && $status !== 'failed' && intval($row['pair_id']) > 0) {
-                $signalIds[] = intval($row['id']);
+                if (self::isSignalStillOpen($row)) {
+                    $signalIds[] = intval($row['id']);
+                }
             }
         }
 
@@ -219,6 +221,124 @@ class Signals extends Base
         }
 
         return '';
+    }
+
+    /**
+     * 只把真实仍在持仓的信号展示到“信号持仓”视图。
+     * 优先按 success_accounts 里的账户去查实时 OKX 持仓；查不到时宁可保守保留，
+     * 避免把刚开仓但接口暂时抖动的信号误杀。
+     */
+    protected static function isSignalStillOpen($row): bool
+    {
+        $signalId = intval($row['id'] ?? 0);
+        if ($signalId <= 0) {
+            return false;
+        }
+
+        $symbol = trim((string)($row['symbol'] ?? ''));
+        $positionSide = self::normalizePositionSide($row);
+        if ($symbol === '' || $positionSide === '') {
+            return true;
+        }
+
+        $accountIds = self::extractSignalAccountIds($row);
+        if (empty($accountIds)) {
+            return true;
+        }
+
+        foreach ($accountIds as $accountId) {
+            $accountInfo = self::getSignalAccountInfo($accountId);
+            if (empty($accountInfo)) {
+                continue;
+            }
+
+            $positions = self::getOkxPositions($accountInfo, $symbol);
+            if ($positions === null) {
+                return true;
+            }
+
+            foreach ($positions as $position) {
+                $instId = trim((string)($position['instId'] ?? $position['symbol'] ?? ''));
+                if ($instId !== '' && strcasecmp($instId, $symbol) !== 0) {
+                    continue;
+                }
+
+                $pos = floatval($position['pos'] ?? $position['contracts'] ?? 0);
+                $posSide = strtolower(strval($position['posSide'] ?? $position['side'] ?? ''));
+                if ($pos > 0 && $posSide === $positionSide) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 读取信号成功账户列表。
+     */
+    protected static function extractSignalAccountIds($row): array
+    {
+        $accountIds = [];
+
+        $successAccounts = $row['success_accounts'] ?? null;
+        if (is_string($successAccounts) && $successAccounts !== '') {
+            $successAccounts = json_decode($successAccounts, true);
+        }
+
+        if (is_array($successAccounts)) {
+            foreach ($successAccounts as $accountId) {
+                $accountId = intval($accountId);
+                if ($accountId > 0) {
+                    $accountIds[] = $accountId;
+                }
+            }
+        }
+
+        return array_values(array_unique($accountIds));
+    }
+
+    /**
+     * 读取账户信息，用于实时查询 OKX 持仓。
+     */
+    protected static function getSignalAccountInfo(int $accountId): array
+    {
+        $account = self::name('accounts')
+            ->where('id', $accountId)
+            ->where('status', 1)
+            ->find();
+
+        if (empty($account)) {
+            return [];
+        }
+
+        return is_array($account) ? $account : $account->toArray();
+    }
+
+    /**
+     * 查询实时 OKX 持仓。
+     * 返回 null 表示接口异常，调用方应保守保留信号。
+     */
+    protected static function getOkxPositions(array $accountInfo, string $symbol): ?array
+    {
+        try {
+            $url = config('okx_uri') . "/api/okex/get_positions?instType=SWAP&instId=" . urlencode($symbol);
+            $params = [
+                'api_key' => $accountInfo['api_key'],
+                'secret_key' => $accountInfo['api_secret'],
+                'passphrase' => $accountInfo['api_passphrase'],
+            ];
+            $responseString = RequestService::doJsonCurlPost($url, json_encode($params));
+            $responseArr = json_decode($responseString, true);
+            if (!$responseArr || ($responseArr['status'] ?? '') !== 'success') {
+                return null;
+            }
+
+            $data = $responseArr['data'] ?? [];
+            return is_array($data) ? $data : [];
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
 }
