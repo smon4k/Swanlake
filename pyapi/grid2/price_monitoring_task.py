@@ -1566,6 +1566,19 @@ class PriceMonitoringTask:
                 print(f"🚫 用户 {account_id} 网格下单：无持仓")
                 return self._grid_manage_result("skip", "无持仓，无需补网格")
 
+            # 平仓信号只用于平仓，不应被当作当前持仓方向来创建网格。
+            # 双向持仓时以交易所实时 posSide 为准，不能用最新信号方向推导。
+            active_sides = {
+                (p.get("side") or p.get("posSide") or "").lower()
+                for p in positions
+                if Decimal(str(p.get("contracts") or p.get("positionAmt") or 0)) != 0
+            }
+            active_sides.discard("")
+            if len(active_sides) != 1:
+                logging.warning(f"⚠️ 实时持仓方向不唯一，跳过网格: 账户={account_id}, 币种={symbol}, sides={active_sides}")
+                return self._grid_manage_result("retry", "持仓方向不唯一")
+            realtime_pos_side = next(iter(active_sides))
+
             total_position_value = await get_total_positions(
                 self, account_id, symbol, "SWAP"
             )
@@ -1597,7 +1610,10 @@ class PriceMonitoringTask:
 
             signal = await self.db.get_latest_signal(symbol, tactics)
             latest_open_signal = await self.db.get_latest_open_signal(symbol, tactics)
-            side = "buy" if signal["direction"] == "long" else "sell"
+            if self._normalize_signal_size(signal.get("size")) == 0:
+                logging.info(f"⏭️ 当前为平仓信号，跳过网格维护: 账户={account_id}, 币种={symbol}")
+                return self._grid_manage_result("skip", "平仓信号不创建网格")
+            side = "buy" if realtime_pos_side == "long" else "sell"
             market_precision = await get_market_precision(self, exchange, symbol)
 
             contract_size = Decimal(str(market_precision["contract_size"]))
@@ -1675,7 +1691,7 @@ class PriceMonitoringTask:
                 return self._grid_manage_result("skip", "卖单数量低于最小下单量")
 
             group_id = str(uuid.uuid4())
-            pos_side = "long" if side == "buy" else "short"
+            pos_side = realtime_pos_side
 
             buy_price = filled_price * (1 - grid_step)
             sell_price = filled_price * (1 + grid_step)
@@ -2635,6 +2651,8 @@ class PriceMonitoringTask:
 
             signal = await self.db.get_latest_signal(symbol, tactics)
             latest_open_signal = await self.db.get_latest_open_signal(symbol, tactics)
+            if self._normalize_signal_size(signal.get("size")) == 0:
+                return self._grid_manage_result("skip", "平仓信号不补卖单")
             market_precision = await get_market_precision(
                 self, exchange, symbol, close_exchange=False
             )
@@ -2643,6 +2661,19 @@ class PriceMonitoringTask:
             )
             if total_position_value <= 0:
                 return self._grid_manage_result("skip", "无持仓，无需补卖单")
+
+            realtime_positions = await exchange.fetch_positions_for_symbol(
+                symbol, {"instType": "SWAP"}
+            )
+            active_sides = {
+                (p.get("side") or p.get("posSide") or "").lower()
+                for p in realtime_positions
+                if Decimal(str(p.get("contracts") or p.get("positionAmt") or 0)) != 0
+            }
+            active_sides.discard("")
+            if len(active_sides) != 1:
+                return self._grid_manage_result("retry", "持仓方向不唯一")
+            realtime_pos_side = next(iter(active_sides))
 
             percent_list = await get_grid_percent_list(
                 self, account_id, symbol, signal["direction"]
@@ -2657,8 +2688,8 @@ class PriceMonitoringTask:
             if sell_size < market_precision["min_amount"]:
                 return self._grid_manage_result("skip", "卖单数量低于最小下单量")
 
-            side = "buy" if signal["direction"] == "long" else "sell"
-            pos_side = "long" if side == "buy" else "short"
+            side = "buy" if realtime_pos_side == "long" else "sell"
+            pos_side = realtime_pos_side
 
             sell_price = filled_price * (1 + grid_step)
             custom_tp = None
