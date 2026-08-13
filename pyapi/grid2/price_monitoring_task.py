@@ -131,6 +131,20 @@ class PriorityAccountQueue:
 
 
 class PriceMonitoringTask:
+    @staticmethod
+    def _normalize_signal_size(raw_size):
+        """将信号 size 统一为 -1/0/1，兼容历史字符串和小数数据。"""
+        try:
+            value = Decimal(str(raw_size).strip())
+        except Exception:
+            logging.warning(f"⚠️ 信号 size 无法解析，按 0 处理: raw_size={raw_size}")
+            return 0
+        if value > 0:
+            return 1
+        if value < 0:
+            return -1
+        return 0
+
     def __init__(
         self,
         config: TradingBotConfig,
