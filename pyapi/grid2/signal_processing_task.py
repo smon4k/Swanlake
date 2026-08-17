@@ -700,6 +700,18 @@ class SignalProcessingTask:
                 if is_close_signal:
                     # ✅ 平仓信号：应该无仓位，如果还有仓位则平仓失败
                     if actual_positions is not None and actual_positions > 0:
+                        latest_signal = await self.db.get_latest_signal(
+                            symbol=signal.get("symbol"), name=signal.get("name")
+                        )
+                        if latest_signal and int(latest_signal.get("id", 0)) > int(
+                            signal["id"]
+                        ):
+                            logging.info(
+                                f"⏭️ 跳过过期平仓验证: signal_id={signal['id']}, "
+                                f"latest_signal={latest_signal.get('id')}, account_id={acc_id}"
+                            )
+                            continue
+
                         logging.warning(
                             f"⚠️ 账户 {acc_id} 平仓失败（仍有仓位）- 信号={signal['id']}, "
                             f"币种={signal['symbol']}, 仓位={actual_positions}"

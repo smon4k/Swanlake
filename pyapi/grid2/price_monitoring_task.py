@@ -2944,6 +2944,31 @@ class PriceMonitoringTask:
                     )
 
                     if signal_type == "close":
+                        # 旧平仓信号可能在新开仓信号之后才完成验证。
+                        # 若已有更新的同策略信号，当前仓位可能属于新信号，禁止旧恢复任务强制平仓。
+                        latest_signal = await self.db.get_latest_signal(
+                            symbol=symbol, name=task.get("strategy_name")
+                        )
+                        if latest_signal and int(latest_signal.get("id", 0)) > int(signal_id):
+                            logging.warning(
+                                f"⏭️ 忽略过期平仓恢复: signal_id={signal_id}, "
+                                f"latest_signal={latest_signal.get('id')}, account_id={account_id}"
+                            )
+                            await self.db.update_signal_recovery_task(
+                                task_id,
+                                {
+                                    # 表结构只允许 pending/retrying/success/failed/blocked；
+                                    # 被新信号覆盖视为旧任务已处理完成。
+                                    "status": "success",
+                                    "resolved_at": datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S"
+                                    ),
+                                    "error_message": f"被更新信号 {latest_signal.get('id')} 覆盖",
+                                },
+                            )
+                            await self._sync_signal_recovery_state(signal_id, account_id)
+                            continue
+
                         if actual_positions is None:
                             logging.warning(
                                 f"🛑 平仓恢复暂停: signal_id={signal_id}, account_id={account_id}, reason=持仓查询失败"
