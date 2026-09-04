@@ -230,6 +230,7 @@ async def open_position(
     is_reduce_only: bool = False,
     exchange: ccxt.Exchange = None,
     close_exchange: bool = True,
+    extra_params: Optional[dict] = None,
 ):
     """开仓、平仓下单（带重试机制 + 超时保护 - 方案3改进）"""
     max_retries = 3
@@ -297,6 +298,8 @@ async def open_position(
                 "clOrdId": current_client_order_id,
                 "reduceOnly": is_reduce_only,
             }
+            if extra_params:
+                params.update(extra_params)
 
             if attempt == 0:  # 只在第一次尝试时记录日志
                 logging.info(

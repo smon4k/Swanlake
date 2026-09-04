@@ -279,13 +279,16 @@ class StopLossTask:
                         # print(f"未找到策略配置: {account_id} {symbol_tactics}")
                         logging.info(f"未找到策略配置: {account_id} {symbol_tactics}")
                         return False
-                    latest_open_signal = await self.db.get_latest_open_signal(
-                        full_symbol, tactics
+                    linked_entry_order = await self.db.get_open_signal_order_with_signal(
+                        account_id, full_symbol, pos["side"]
                     )
+                    latest_open_signal = await self.db.get_latest_open_signal(full_symbol, tactics)
                     custom_sl = None
-                    if latest_open_signal and latest_open_signal.get("sl") not in (None, ""):
+                    # 优先采用与当前未平仓入场订单关联的信号，避免连续信号串单。
+                    signal_for_stop = linked_entry_order or latest_open_signal
+                    if signal_for_stop and signal_for_stop.get("signal_sl", signal_for_stop.get("sl")) not in (None, ""):
                         try:
-                            custom_sl = float(latest_open_signal.get("sl"))
+                            custom_sl = float(signal_for_stop.get("signal_sl", signal_for_stop.get("sl")))
                         except (TypeError, ValueError):
                             custom_sl = None
 
@@ -299,11 +302,17 @@ class StopLossTask:
                         stop_loss_percent = float(
                             strategy_info.get("stop_loss_percent") or 0.458
                         )
+                        signal_entry_price = (signal_for_stop or {}).get("signal_price") or (signal_for_stop or {}).get("price")
+                        stop_loss_base_price = float(signal_entry_price) if signal_entry_price not in (None, "") else entry_price
                         stop_loss_price = (
-                            entry_price * (1 - stop_loss_percent / 100)
+                            stop_loss_base_price * (1 - stop_loss_percent / 100)
                             if side == "buy"
-                            else entry_price * (1 + stop_loss_percent / 100)
-                        )  # 止损价 做多时更低，做空时更高
+                            else stop_loss_base_price * (1 + stop_loss_percent / 100)
+                        )
+                        logging.info(
+                            f"🧭 统一信号止损基准: account_id={account_id}, signal_id={(signal_for_stop or {}).get('linked_signal_id', (signal_for_stop or {}).get('id'))}, "
+                            f"signal_price={stop_loss_base_price:.2f}, actual_entry={entry_price:.2f}, stop_loss={stop_loss_price:.2f}"
+                        )
 
                     # ✅ 验证止损价是否符合OKX规则
                     if side == "buy":  # 做多持仓

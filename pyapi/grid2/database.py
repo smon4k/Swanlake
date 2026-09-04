@@ -592,6 +592,46 @@ class Database:
             if conn:
                 conn.close()
 
+    async def get_open_signal_order_with_signal(
+        self, account_id: int, symbol: str, pos_side: str
+    ) -> Optional[Dict]:
+        """返回当前未平仓首笔入场单及其信号。
+
+        止损必须跟随实际持仓所属的 signal_id，不能只取同策略的最新信号，
+        否则连续信号可能把上一笔仓位的止损基准串到下一笔信号。
+        """
+        conn = None
+        try:
+            conn = self.get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT o.*, s.id AS linked_signal_id, s.price AS signal_price,
+                           s.sl AS signal_sl, s.name AS signal_name
+                    FROM {table('orders')} o
+                    INNER JOIN {table('signals')} s ON s.id = o.signal_id
+                    WHERE o.account_id=%s
+                      AND o.symbol=%s
+                      AND o.pos_side=%s
+                      AND o.is_clopos=0
+                      AND o.status IN ('filled', 'closed')
+                      AND o.order_source IN ('signal_entry', 'signal_entry_timeout_ioc')
+                    ORDER BY COALESCE(o.updated_at, o.created_at) DESC, o.id DESC
+                    LIMIT 1
+                    """,
+                    (account_id, symbol, pos_side),
+                )
+                return cursor.fetchone()
+        except Exception as e:
+            logging.error(
+                f"查询持仓关联信号订单失败: account_id={account_id}, symbol={symbol}, err={e}",
+                exc_info=True,
+            )
+            return None
+        finally:
+            if conn:
+                conn.close()
+
     # 获取订单表中最新成交的一条记录
     async def get_latest_filled_order(
         self, account_id: int, symbol: str
@@ -751,7 +791,7 @@ class Database:
 
         兼容两类开仓来源：
         1. 首笔 signal_entry 限价单直接成交
-        2. 首笔 signal_entry 限价单超时后，转成 signal_entry_timeout_market 市价单成交
+        2. 首笔 signal_entry 限价单超时后，转成 signal_entry_timeout_ioc 受限 IOC 单成交
 
         Args:
             account_id: 账户ID
@@ -771,7 +811,7 @@ class Database:
                     (
                         (status = 'filled' AND order_type = 'limit' AND order_source = 'signal_entry')
                         OR
-                        (status IN ('filled', 'closed') AND order_type = 'market' AND order_source = 'signal_entry_timeout_market')
+                        (status IN ('filled', 'closed') AND order_type = 'limit' AND order_source = 'signal_entry_timeout_ioc')
                     )
                 """
 
@@ -1084,6 +1124,7 @@ class Database:
             "increase_ratio",
             "decrease_ratio",
             "clear_value",
+            "timeout_entry_max_slippage_pct",
         ):
             if merged.get(field) in (None, ""):
                 merged[field] = base_config.get(field)
