@@ -1098,14 +1098,17 @@ async def fetch_positions_history(
     async def _fetch_single_history(target_account_id: int) -> List[dict]:
         exchange = await get_exchange(self, target_account_id)
         if not exchange:
-            return []
+            raise RuntimeError(f"账户 {target_account_id} 无法创建交易所连接")
 
         try:
-            params = {
-                "instType": inst_type,
-                "after": after,
-                "before": before,
-            }
+            # OKX 不接受值为空的 after/before 参数；只有真正分页时才传入。
+            params = {"instType": inst_type}
+            after_value = str(after).strip() if after is not None else ""
+            before_value = str(before).strip() if before is not None else ""
+            if after_value:
+                params["after"] = after_value
+            if before_value:
+                params["before"] = before_value
 
             symbols = [normalized_inst_id] if normalized_inst_id else None
             result = await exchange.fetch_positions_history(
@@ -1119,7 +1122,7 @@ async def fetch_positions_history(
             logging.error(
                 f"获取历史持仓失败: 账户={target_account_id}, 币种={normalized_inst_id or 'ALL'}, 错误={e}"
             )
-            return []
+            raise
         finally:
             await exchange.close()
 

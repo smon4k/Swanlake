@@ -181,8 +181,14 @@ class PositionService:
             )
             return {"success": True, "data": result}
         except Exception as e:
-            logging.error(f"获取历史持仓出错: {e}")
-            return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+            logging.error(
+                f"获取历史持仓出错: account_id={account_id}, inst_id={inst_id or 'ALL'}, error={e}",
+                exc_info=True,
+            )
+            return JSONResponse(
+                status_code=502,
+                content={"success": False, "error": "交易所历史持仓查询失败", "detail": str(e)},
+            )
 
     async def get_current_positions(self, account_id: Optional[int], inst_id: Optional[str], inst_type: str):
         try:
