@@ -37,36 +37,36 @@
 
     <!-- BTC 日理论产出折算系数配置卡片 -->
     <el-card class="box-card" style="margin-top: 25px;">
-      <div slot="header" class="clearfix">
-        <span style="font-size: 18px; font-weight: bold;">BTC 日理论产出折算系数配置 (INCOME_FACTOR)</span>
-      </div>
       <el-table :data="[factorInfo]" style="width: 100%" v-loading="factorLoading">
         <el-table-column label="配置名称" align="center">
-          <template>日产出理论折算系数</template>
+          <template>
+            <span style="color: #fff; font-size: 14px;">BTC 日产出折算系数 (INCOME_FACTOR)</span>
+          </template>
         </el-table-column>
         <el-table-column label="当前系数" align="center">
           <template slot-scope="scope">
-            <span style="font-size: 16px; font-weight: bold; color: #67C23A;">
+            <span style="font-size: 15px; color: #fff;">
               {{ scope.row.income_factor }}
-            </span>
-            <span style="margin-left: 8px; color: #aaa;">
-              ({{ (Number(scope.row.income_factor) * 100).toFixed(0) }}%)
             </span>
           </template>
         </el-table-column>
         <el-table-column label="说明" align="center" width="380">
           <template>
-            平台实际结算日产出按矿池理论收益进行折算，修改后爬虫数据将实时重新折算生效。
+            <span style="color: #bbb; font-size: 13px;">
+              平台实际结算日产出按矿池理论收益折算计入
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="最近更新时间" align="center" width="200">
           <template slot-scope="scope">
-            {{ scope.row.updated_at || '--' }}
+            <span style="color: #bbb; font-size: 13px;">
+              {{ scope.row.updated_at || '--' }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="操作" align="center" fixed="right" width="150">
           <template>
-            <el-button type="warning" size="small" @click="handleEditFactor">修改系数</el-button>
+            <el-button type="primary" size="small" @click="handleEditFactor">修改系数</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -129,6 +129,7 @@
 import { mapState } from "vuex";
 import { setBuyTokenToSRatio } from "@/wallet/trade"; 
 import { getHashpowerPrice } from "@/wallet/serve";
+import { $get, $post } from "@/utils/request";
 import axios from "axios";
 
 export default {
@@ -195,10 +196,12 @@ export default {
     async fetchIncomeFactor() {
       this.factorLoading = true;
       try {
-        // 请求后台爬虫服务的系数配置接口
-        const res = await axios.get("https://pacx.h2opower.site/v1.0/get_income_factor");
-        if (res && res.data && res.data.code === 10000) {
-          this.factorInfo = res.data.data;
+        // 请求后台爬虫服务的系数配置接口（带兜底）
+        let data = await $get("https://pacx.h2opower.site/v1.0/get_income_factor");
+        if (data && data.code === 10000) {
+          this.factorInfo = data.data;
+        } else if (data && data.income_factor !== undefined) {
+          this.factorInfo = data;
         }
       } catch (err) {
         console.error("获取折算系数失败", err);
@@ -223,22 +226,23 @@ export default {
           income_factor: val,
           address: this.address || ""
         };
-        const res = await axios.post("https://pacx.h2opower.site/v1.0/set_income_factor", payload);
-        if (res && res.data && res.data.code === 10000) {
+        // 使用项目公共 $post 方法发起请求
+        const res = await $post("https://pacx.h2opower.site/v1.0/set_income_factor", payload);
+        if (res && res.code === 10000) {
           this.$message.success("折算系数修改成功并已立即生效！");
           this.factorInfo = {
             ...this.factorInfo,
-            income_factor: res.data.data.income_factor,
-            updated_at: res.data.data.updated_at,
-            updated_by: res.data.data.updated_by
+            income_factor: res.data.income_factor,
+            updated_at: res.data.updated_at,
+            updated_by: res.data.updated_by
           };
           this.factorDialogVisible = false;
         } else {
-          this.$message.error(res.data.msg || "修改失败，请重试");
+          this.$message.error((res && res.msg) || "修改失败，请重试");
         }
       } catch (err) {
         console.error("修改折算系数失败", err);
-        const errMsg = (err.response && err.response.data && err.response.data.msg) || "请求失败，请检查服务连接";
+        const errMsg = (err.response && err.response.data && err.response.data.msg) || "请求失败，请检查服务连接与跨域配置";
         this.$message.error(errMsg);
       } finally {
         this.factorSubmitting = false;
@@ -325,18 +329,28 @@ export default {
     
     ::v-deep .el-table, 
     ::v-deep .el-table__expanded-cell {
-        background-color: transparent;
-        color: #fff;
+        background-color: transparent !important;
+        color: #fff !important;
     }
     
     ::v-deep .el-table th, 
     ::v-deep .el-table tr {
-        background-color: transparent;
-        color: #fff;
+        background-color: transparent !important;
+        color: #fff !important;
+    }
+
+    ::v-deep .el-table th.is-leaf {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+    }
+
+    ::v-deep .el-table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        color: #fff !important;
     }
     
     ::v-deep .el-table--enable-row-hover .el-table__body tr:hover > td {
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.1) !important;
     }
   }
 }
