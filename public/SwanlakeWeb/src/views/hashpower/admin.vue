@@ -35,6 +35,43 @@
       </el-table>
     </el-card>
 
+    <!-- BTC 日理论产出折算系数配置卡片 -->
+    <el-card class="box-card" style="margin-top: 25px;">
+      <div slot="header" class="clearfix">
+        <span style="font-size: 18px; font-weight: bold;">BTC 日理论产出折算系数配置 (INCOME_FACTOR)</span>
+      </div>
+      <el-table :data="[factorInfo]" style="width: 100%" v-loading="factorLoading">
+        <el-table-column label="配置名称" align="center">
+          <template>日产出理论折算系数</template>
+        </el-table-column>
+        <el-table-column label="当前系数" align="center">
+          <template slot-scope="scope">
+            <span style="font-size: 16px; font-weight: bold; color: #67C23A;">
+              {{ scope.row.income_factor }}
+            </span>
+            <span style="margin-left: 8px; color: #aaa;">
+              ({{ (Number(scope.row.income_factor) * 100).toFixed(0) }}%)
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="说明" align="center" width="380">
+          <template>
+            平台实际结算日产出按矿池理论收益进行折算，修改后爬虫数据将实时重新折算生效。
+          </template>
+        </el-table-column>
+        <el-table-column label="最近更新时间" align="center" width="200">
+          <template slot-scope="scope">
+            {{ scope.row.updated_at || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" fixed="right" width="150">
+          <template>
+            <el-button type="warning" size="small" @click="handleEditFactor">修改系数</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
     <!-- 修改价格弹窗 -->
     <el-dialog title="修改价格" :visible.sync="dialogVisible" width="30%" :close-on-click-modal="false">
       <el-form label-position="top">
@@ -59,6 +96,32 @@
         <el-button type="primary" @click="confirmEdit" :loading="submitting">确 定</el-button>
       </span>
     </el-dialog>
+
+    <!-- 修改日理论产出折算系数弹窗 -->
+    <el-dialog title="修改日产出折算系数 (INCOME_FACTOR)" :visible.sync="factorDialogVisible" width="32%" :close-on-click-modal="false">
+      <el-form label-position="top">
+        <el-form-item label="当前系数">
+          <el-input :value="factorInfo.income_factor + ' (' + (Number(factorInfo.income_factor) * 100).toFixed(0) + '%)'" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="新折算系数 (例如 0.85 或 0.9)">
+          <el-input 
+            v-model="newFactor" 
+            type="number" 
+            step="0.01"
+            placeholder="请输入新折算系数，例如 0.85"
+            :min="0.01"
+            :max="5"
+          ></el-input>
+          <div style="font-size: 12px; color: #E6A23C; margin-top: 5px;">
+            提示：修改后将保存配置，并立即触发后台重新计算产出数据，全站实时生效。
+          </div>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="factorDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="confirmEditFactor" :loading="factorSubmitting">保 存 并 生 效</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -77,6 +140,15 @@ export default {
       currentEditRow: {},
       newPrice: '',
       submitting: false,
+      factorLoading: false,
+      factorDialogVisible: false,
+      factorSubmitting: false,
+      newFactor: '',
+      factorInfo: {
+        income_factor: 0.85,
+        updated_at: '',
+        updated_by: ''
+      }
     };
   },
   computed: {
@@ -117,8 +189,61 @@ export default {
     }
   },
   created() {
+    this.fetchIncomeFactor();
   },
   methods: {
+    async fetchIncomeFactor() {
+      this.factorLoading = true;
+      try {
+        // 请求后台爬虫服务的系数配置接口
+        const res = await axios.get("https://pacx.h2opower.site/v1.0/get_income_factor");
+        if (res && res.data && res.data.code === 10000) {
+          this.factorInfo = res.data.data;
+        }
+      } catch (err) {
+        console.error("获取折算系数失败", err);
+      } finally {
+        this.factorLoading = false;
+      }
+    },
+    handleEditFactor() {
+      this.newFactor = this.factorInfo.income_factor;
+      this.factorDialogVisible = true;
+    },
+    async confirmEditFactor() {
+      const val = parseFloat(this.newFactor);
+      if (isNaN(val) || val <= 0 || val > 5) {
+        this.$message.warning("请输入合法的折算系数（建议在 0.1 到 2 之间）");
+        return;
+      }
+
+      this.factorSubmitting = true;
+      try {
+        const payload = {
+          income_factor: val,
+          address: this.address || ""
+        };
+        const res = await axios.post("https://pacx.h2opower.site/v1.0/set_income_factor", payload);
+        if (res && res.data && res.data.code === 10000) {
+          this.$message.success("折算系数修改成功并已立即生效！");
+          this.factorInfo = {
+            ...this.factorInfo,
+            income_factor: res.data.data.income_factor,
+            updated_at: res.data.data.updated_at,
+            updated_by: res.data.data.updated_by
+          };
+          this.factorDialogVisible = false;
+        } else {
+          this.$message.error(res.data.msg || "修改失败，请重试");
+        }
+      } catch (err) {
+        console.error("修改折算系数失败", err);
+        const errMsg = (err.response && err.response.data && err.response.data.msg) || "请求失败，请检查服务连接";
+        this.$message.error(errMsg);
+      } finally {
+        this.factorSubmitting = false;
+      }
+    },
     validatePrice() {
       if (this.newPrice && parseFloat(this.newPrice) < 0.1) {
         this.newPrice = 0.1;
